@@ -1,4 +1,5 @@
 /** Packaged recovery settings and alarm audio remain available when the hosted app cannot load. */
+import { LINUX_RELEASE_REPOSITORY } from '@persistent/shared'
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -102,7 +103,7 @@ export class RecoveryWindows {
             options.store.save(validatedSettings({ checkUpdatesAutomatically: raw.value }, options.store.current))
             options.updater.setAutomatic(raw.value)
             return { update: options.updater.snapshot() }
-          case 'source': await shell.openExternal('https://github.com/RyanEwen/persistent'); return {}
+          case 'source': await shell.openExternal(`https://github.com/${LINUX_RELEASE_REPOSITORY}`); return {}
           case 'privacy': await shell.openExternal(`${options.store.current.server}/privacy`); return {}
           case 'promo': {
             const link = settingsCatalog(options.root).flatMap((entry) => entry.links).find((link) => link.url === raw.value)

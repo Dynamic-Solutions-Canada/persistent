@@ -12,8 +12,8 @@ import { replaceImage } from '../scripts/install.js'
 import type { LinuxUpdate } from './release-check.js'
 
 const bytes = Buffer.alloc(64, 3)
-const update: LinuxUpdate = { version: '0.2.0', tag: 'linux-v0.2.0', url: 'https://github.com/RyanEwen/persistent/releases/tag/linux-v0.2.0',
-  downloadUrl: 'https://github.com/RyanEwen/persistent/releases/download/linux-v0.2.0/Persistent-Linux-0.2.0-x86_64.AppImage',
+const update: LinuxUpdate = { version: '0.2.0', tag: 'linux-v0.2.0', url: 'https://github.com/Dynamic-Solutions-Canada/persistent/releases/tag/linux-v0.2.0',
+  downloadUrl: 'https://github.com/Dynamic-Solutions-Canada/persistent/releases/download/linux-v0.2.0/Persistent-Linux-0.2.0-x86_64.AppImage',
   artifact: { name: 'Persistent-Linux-0.2.0-x86_64.AppImage', architecture: 'x64', kind: 'AppImage', size: bytes.length, sha512: createHash('sha512').update(bytes).digest('base64') } }
 
 test('release transport omits credentials and refuses an arbitrary redirect before fetching it', async () => {
@@ -25,7 +25,8 @@ test('release transport omits credentials and refuses an arbitrary redirect befo
   assert.deepEqual(visited, [update.downloadUrl])
   assert.equal(trustedUpdateUrl('https://github.com/Other/repo/releases/download/linux-v0.2.0/file'), false)
   assert.equal(trustedUpdateUrl('http://release-assets.githubusercontent.com/file'), false)
-  assert.equal(trustedUpdateUrl('https://user:pass@github.com/RyanEwen/persistent/releases/download/linux-v0.2.0/file'), false)
+  assert.equal(trustedUpdateUrl('https://api.github.com/repos/RyanEwen/persistent/releases'), false)
+  assert.equal(trustedUpdateUrl('https://user:pass@github.com/Dynamic-Solutions-Canada/persistent/releases/download/linux-v0.2.0/file'), false)
 })
 
 test('verified downloads reuse matching cache and replace corrupted cache only after verification', async () => {

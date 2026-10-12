@@ -3,7 +3,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { linuxRelease, newerVersion } from './release-check.js'
 
-const release = (name: string) => ({ tag_name: 'linux-v0.2.0', draft: false, prerelease: false, html_url: 'https://github.com/RyanEwen/persistent/releases/tag/linux-v0.2.0', assets: [{ name }] })
+const release = (name: string) => ({ tag_name: 'linux-v0.2.0', draft: false, prerelease: false, html_url: 'https://github.com/Dynamic-Solutions-Canada/persistent/releases/tag/linux-v0.2.0', assets: [{ name }] })
 
 test('Linux checks skip unrelated packages, wrong CPU, prereleases and unsafe destinations', () => {
   assert.equal(linuxRelease([release('Persistent-0.30.0.apk')], 'x64'), null)
@@ -23,7 +23,7 @@ test('version comparison is numeric and does not mistake an old package for an u
 
 test('discovery skips malformed or unrelated tags and selects the newest version independently of response order', () => {
   const current = release('Persistent-Linux-0.2.0-x86_64.AppImage')
-  const newer = { ...current, tag_name: 'linux-v0.3.0', html_url: 'https://github.com/RyanEwen/persistent/releases/tag/linux-v0.3.0', assets: [{ name: 'Persistent-Linux-0.3.0-x86_64.AppImage' }] }
+  const newer = { ...current, tag_name: 'linux-v0.3.0', html_url: 'https://github.com/Dynamic-Solutions-Canada/persistent/releases/tag/linux-v0.3.0', assets: [{ name: 'Persistent-Linux-0.3.0-x86_64.AppImage' }] }
   assert.equal(linuxRelease([current, newer], 'x64')?.version, '0.3.0')
   assert.equal(linuxRelease([{ ...current, tag_name: 'desktop-v0.2.0' }, { ...current, html_url: 'not a URL' }], 'x64'), null)
   assert.throws(() => newerVersion('999999999999999999999.0.0', '0.1.0'))

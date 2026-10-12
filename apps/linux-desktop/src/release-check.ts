@@ -1,11 +1,11 @@
 /** Linux-only discovery pins release metadata and payloads to this repository's stable channel. */
 import { releaseResponse } from './update-transport.js'
-import { linuxUpdateManifestSchema, linuxVersionSchema, type LinuxUpdateArtifact } from '@persistent/shared'
+import { LINUX_RELEASE_REPOSITORY, LINUX_RELEASES_URL, linuxUpdateManifestSchema, linuxVersionSchema, type LinuxUpdateArtifact } from '@persistent/shared'
 
 export interface LinuxRelease { version: string; url: string; tag: string }
 export interface LinuxUpdate extends LinuxRelease { artifact: LinuxUpdateArtifact; downloadUrl: string }
 export type UpdateFetch = (input: string, init?: RequestInit) => Promise<Response>
-const RELEASE_ROOT = 'https://github.com/RyanEwen/persistent/releases'
+const RELEASE_ROOT = LINUX_RELEASES_URL
 
 /** Choose the newest canonical Linux tag, independently of Android's GitHub Latest release. */
 export function linuxRelease(value: unknown, architecture: string): LinuxRelease | null {
@@ -63,7 +63,7 @@ async function publicJson(url: string, fetcher: UpdateFetch): Promise<unknown> {
 export async function findLinuxUpdate(version: string, architecture: string, kind: 'AppImage' | 'deb', fetcher: UpdateFetch): Promise<LinuxUpdate | null> {
   const releases: unknown[] = []
   for (let page = 1; page <= 5; page++) {
-    const batch = await publicJson(`https://api.github.com/repos/RyanEwen/persistent/releases?per_page=100&page=${page}`, fetcher)
+    const batch = await publicJson(`https://api.github.com/repos/${LINUX_RELEASE_REPOSITORY}/releases?per_page=100&page=${page}`, fetcher)
     if (!Array.isArray(batch)) throw new Error('Invalid release response')
     releases.push(...batch)
     if (batch.length < 100) break

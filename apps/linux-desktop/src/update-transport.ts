@@ -1,12 +1,13 @@
 /** Anonymous release transport follows only GitHub's known asset redirects. */
+import { LINUX_RELEASE_REPOSITORY } from '@persistent/shared'
 import type { UpdateFetch } from './release-check.js'
 
 /** Restrict every hop; release metadata cannot redirect executable downloads to arbitrary hosts. */
 export function trustedUpdateUrl(value: string): boolean {
   const url = new URL(value)
   if (url.protocol !== 'https:' || url.username || url.password || url.port) return false
-  if (url.hostname === 'api.github.com') return url.pathname === '/repos/RyanEwen/persistent/releases'
-  if (url.hostname === 'github.com') return url.pathname.startsWith('/RyanEwen/persistent/releases/download/linux-v')
+  if (url.hostname === 'api.github.com') return url.pathname === `/repos/${LINUX_RELEASE_REPOSITORY}/releases`
+  if (url.hostname === 'github.com') return url.pathname.startsWith(`/${LINUX_RELEASE_REPOSITORY}/releases/download/linux-v`)
   return ['release-assets.githubusercontent.com', 'objects.githubusercontent.com'].includes(url.hostname)
 }
 

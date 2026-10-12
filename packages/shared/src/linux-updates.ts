@@ -1,6 +1,9 @@
 /** Versioned Linux release metadata shared by the publisher and native updater. */
 import { z } from 'zod'
 
+export const LINUX_RELEASE_REPOSITORY = 'Dynamic-Solutions-Canada/persistent'
+export const LINUX_RELEASES_URL = `https://github.com/${LINUX_RELEASE_REPOSITORY}/releases`
+
 export const linuxVersionSchema = z.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/)
   .refine((value) => value.split('.').every((part) => Number.isSafeInteger(Number(part))), 'Invalid version')
 
