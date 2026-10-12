@@ -1,19 +1,16 @@
 /**
- * Bridge to the Windows desktop host (`apps/desktop`), which loads this same
- * hosted bundle in a WebView2 inside a tray flyout.
- *
- * There are now three hosts for one bundle — browser, Capacitor/Android, and this
- * one — and none of them can be compiled in, so every difference is runtime
- * feature detection. Keep `isDesktopHost()` distinct from `isNative()`
- * (`alarmBridge.ts`): Capacitor is not available here, so `isNative()` is false in
- * the desktop host, and a check that conflates the two will silently do the wrong
- * thing on one of them.
- *
- * The channel is small on purpose. Reminder data crosses it only as the bounded,
- * display-ready snapshot used by the Windows widget. Selection, scheduling and
- * wording stay in this bundle; neither native process becomes another reminder
- * client or another source of truth.
+ * Runtime-detected transport for Windows WebView2 and the sandboxed Linux host.
+ * Native hosts consume server alarm projections; this channel owns bounded UI
+ * navigation, appearance and machine preferences, plus Windows widget snapshots.
+ * Android keeps its separate Capacitor alarm bridge.
  */
+
+import type {
+  DesktopWindowSize as FlyoutSizeOption,
+  DesktopSnoozeChoice as SnoozeChoiceOption,
+  DesktopHostSettings as HostSettings,
+  DesktopHostSettingsPatch as HostSettingsPatch
+} from '@persistent/shared'
 
 interface WebView2Bridge {
   postMessage(message: unknown): void
@@ -24,6 +21,8 @@ interface WebView2Bridge {
 declare global {
   interface Window {
     chrome?: { webview?: WebView2Bridge }
+    /** Sandboxed Linux host; exposes the same bounded message channel as WebView2. */
+    persistentDesktop?: WebView2Bridge & { platform: 'linux' }
   }
 }
 
@@ -49,6 +48,7 @@ type HostMessage =
   | { type: 'navigate'; path: string }
   | { type: 'checkForUpdate' }
   | { type: 'refreshWidgetSnapshot' }
+  | { type: 'snoozeOccurrence'; occurrenceId: string }
   | { type: 'hostSettings'; settings: HostSettings }
 
 export interface WidgetReminderItem {
@@ -66,61 +66,14 @@ export interface WidgetSnapshot {
   items: WidgetReminderItem[]
 }
 
-/**
- * One flyout size the host offers. The dimensions and their labels come from the
- * host rather than being listed here, because they describe a Windows window: a
- * desktop build that changes or adds a preset should not need a web release to go
- * with it.
- */
-export interface FlyoutSizeOption {
-  id: string
-  label: string
-  width: number
-  height: number
-}
-
-/**
- * One snooze duration a Windows notification can start on.
- *
- * Sent by the host rather than taken from `SNOOZE_PRESETS`, even though that is
- * where the durations come from, because Windows caps a toast's combo box at five
- * items and throws on the sixth. So the toast carries a five-item subset, and a
- * settings picker offering the app's full seven would let the user choose two that
- * the notification can never start on. It did: the shipped default of 10 minutes
- * was one of them, so the setting read "10 min" while every toast opened on
- * "5 min". The host is the one that knows its own limit, so the host decides.
- */
-export interface SnoozeChoiceOption {
-  minutes: number
-  label: string
-}
-
-/**
- * The Windows tray app's own settings, as it reports them.
- *
- * These are per *machine* and owned by the host's settings.json, which is what
- * separates them from everything in `settings/useSettings.tsx` (per device,
- * localStorage) and from anything on the account. The page shows and writes them
- * so the product has one Settings screen instead of two, but it never stores them.
- *
- * `startAtSignIn` is what Windows reports, not what was last asked for: an enable
- * can be refused outright when the user has turned the app off in Task Manager.
- * The host keeps no copy of it at all, so it is re-read every time it is sent.
- */
-export interface HostSettings {
-  notifications: boolean
-  snoozeMinutes: number
-  snoozeChoices: SnoozeChoiceOption[]
-  pinFlyout: boolean
-  startAtSignIn: boolean
-  flyoutSize: string
-  flyoutSizes: FlyoutSizeOption[]
-  /** Absent on desktop builds released before placement controls. */
-  flyoutPlacement?: 'tray' | 'last' | 'center'
-}
-
-/** The writable subset: everything except the lists of what is on offer. */
-export type HostSettingsPatch = Partial<Omit<HostSettings, 'flyoutSizes' | 'snoozeChoices'>>
+// Preserve this module's existing public names while keeping native/web payload
+// shapes in the shared package. The hosts, not the page, own these preferences.
+export type {
+  DesktopWindowSize as FlyoutSizeOption,
+  DesktopSnoozeChoice as SnoozeChoiceOption,
+  DesktopHostSettings as HostSettings,
+  DesktopHostSettingsPatch as HostSettingsPatch
+} from '@persistent/shared'
 
 function isFlyoutSizeOption(value: unknown): value is FlyoutSizeOption {
   if (typeof value !== 'object' || value === null) return false
@@ -168,6 +121,8 @@ export function parseHostSettings(value: unknown): HostSettings | null {
     ? distinctBy(raw.snoozeChoices.filter(isSnoozeChoiceOption), (choice) => choice.minutes)
     : []
   if (
+    (raw.platform !== undefined && !['windows', 'linux'].includes(raw.platform as string)) ||
+    (raw.snoozeInApp !== undefined && typeof raw.snoozeInApp !== 'boolean') ||
     typeof raw.notifications !== 'boolean' ||
     typeof raw.snoozeMinutes !== 'number' ||
     typeof raw.pinFlyout !== 'boolean' ||
@@ -185,6 +140,8 @@ export function parseHostSettings(value: unknown): HostSettings | null {
   // A picker whose value matches no option renders blank, which is the one
   // outcome worth ruling out here.
   return {
+    ...(raw.platform === undefined ? {} : { platform: raw.platform as HostSettings['platform'] }),
+    ...(raw.snoozeInApp === undefined ? {} : { snoozeInApp: raw.snoozeInApp as boolean }),
     notifications: raw.notifications,
     snoozeMinutes: nearest(snoozes, raw.snoozeMinutes),
     snoozeChoices: snoozes,
@@ -205,9 +162,21 @@ function nearest(choices: SnoozeChoiceOption[], minutes: number): number {
   ).minutes
 }
 
-/** True when running inside the Windows tray app's WebView2. */
+/** Select the host's bounded transport at runtime; browsers and Capacitor have neither. */
+function desktopTransport(): WebView2Bridge | undefined {
+  if (typeof window === 'undefined') return undefined
+  return window.persistentDesktop ?? window.chrome?.webview
+}
+
+/** True inside either native desktop host. Keep separate from Capacitor detection. */
 export function isDesktopHost(): boolean {
-  return typeof window !== 'undefined' && typeof window.chrome?.webview?.postMessage === 'function'
+  return typeof desktopTransport()?.postMessage === 'function'
+}
+
+/** Read immutable host identity, retaining Windows as the answer for existing WebView2 builds. */
+export function desktopPlatform(): 'windows' | 'linux' | null {
+  if (!isDesktopHost()) return null
+  return window.persistentDesktop?.platform === 'linux' ? 'linux' : 'windows'
 }
 
 /**
@@ -227,7 +196,7 @@ export function isDesktopHost(): boolean {
  */
 export function onHostMessage(handler: (message: HostMessage) => void): () => void {
   if (!isDesktopHost()) return () => {}
-  const bridge = window.chrome!.webview!
+  const bridge = desktopTransport()!
   const listener = (event: { data: unknown }) => {
     const data = event.data
     if (typeof data !== 'object' || data === null) return
@@ -237,7 +206,17 @@ export function onHostMessage(handler: (message: HostMessage) => void): () => vo
     if (type === 'refreshWidgetSnapshot') handler({ type: 'refreshWidgetSnapshot' })
     if (type === 'navigate') {
       const path = (data as { path?: unknown }).path
-      if (typeof path === 'string' && /^\/[^/]/.test(path)) handler({ type: 'navigate', path })
+      if (typeof path === 'string') {
+        const hasUnsafeCharacter = Array.from(path).some((character) =>
+          character === '\\' || character.charCodeAt(0) <= 32 || character.charCodeAt(0) === 127)
+        if (path.startsWith('/') && !path.startsWith('//') && !hasUnsafeCharacter) {
+          handler({ type: 'navigate', path })
+        }
+      }
+    }
+    if (type === 'snoozeOccurrence') {
+      const id = (data as { occurrenceId?: unknown }).occurrenceId
+      if (typeof id === 'string' && id.length > 0 && id.length <= 512) handler({ type: 'snoozeOccurrence', occurrenceId: id })
     }
     if (type === 'hostSettings') {
       const settings = parseHostSettings((data as { settings?: unknown }).settings)
@@ -252,7 +231,7 @@ export function onHostMessage(handler: (message: HostMessage) => void): () => vo
 function postToHost(message: unknown): void {
   if (!isDesktopHost()) return
   try {
-    window.chrome!.webview!.postMessage(message)
+    desktopTransport()!.postMessage(message)
   } catch {
     // Every caller is a request the host may simply not answer, and each one
     // already copes with silence.
@@ -299,9 +278,14 @@ export function clearWidgetSnapshot(): void {
   })
 }
 
-/** Clear native Windows notifications before the departing session is removed. */
+/** Clear native desktop notifications before the departing session is removed. */
 export function notifyHostSignedOut(): void {
   postToHost({ type: 'signedOut' })
+}
+
+/** Resume Linux delivery after server-confirmed sign-in and prior-account alert cleanup. */
+export function notifyHostSignedIn(): void {
+  if (desktopPlatform() === 'linux') postToHost({ type: 'signedIn' })
 }
 
 /**
@@ -331,4 +315,14 @@ export function writeHostSettings(patch: HostSettingsPatch): void {
  */
 export function openHostSettingsWindow(): void {
   postToHost({ type: 'openHostSettings' })
+}
+
+/** Announce the authenticated picker listener, separately from the top-level routing listener. */
+export function announceNotificationActions(ready: boolean): void {
+  postToHost({ type: ready ? 'notificationActionsReady' : 'notificationActionsGone' })
+}
+
+/** Mirror page colors through either desktop transport without exposing implementation-specific APIs. */
+export function publishDesktopAppearance(mode: 'light' | 'dark', background: string): void {
+  postToHost({ type: 'appearance', mode, background })
 }

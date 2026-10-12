@@ -29,6 +29,7 @@ import { HelpPage } from './pages/HelpPage.js'
 import { PrivacyPage } from './pages/PrivacyPage.js'
 import { DeleteAccountPage } from './pages/DeleteAccountPage.js'
 import { DirectBuildMigrationNotice } from './native/DirectBuildMigrationNotice.js'
+import { DesktopNotificationSnooze } from './native/DesktopNotificationSnooze.js'
 import { DesktopWidgetSync } from './native/DesktopWidgetSync.js'
 import { clearWidgetSnapshot } from './native/desktopBridge.js'
 import { registerNavHandler } from './native/navTo.js'
@@ -79,6 +80,7 @@ export function App() {
         <ReminderDialogProvider>
         <DirectBuildMigrationNotice />
         <DesktopWidgetSync />
+        <DesktopNotificationSnooze />
         <AnnouncementDialog />
         <Routes>
           <Route path="/" element={<RemindersPage />} />

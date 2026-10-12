@@ -34,3 +34,11 @@ test('package-lock records the same version as each workspace package.json', () 
     `Lockfile is out of sync:\n  ${drifted.join('\n  ')}\nRun \`npm install --package-lock-only\` and commit the result.`
   )
 })
+
+test('root transport test dependencies match the standalone Linux runtime', () => {
+  const root = readJson('package.json') as { devDependencies: Record<string, string> }
+  const linux = readJson('apps/linux-desktop/package.json') as { dependencies: Record<string, string> }
+  for (const name of ['@particle/dbus-next', 'x11']) {
+    assert.equal(root.devDependencies[name], linux.dependencies[name], `Keep the ${name} test and runtime pins in step.`)
+  }
+})

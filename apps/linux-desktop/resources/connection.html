@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Persistent</title>
+  <link rel="stylesheet" href="connection.css">
+</head>
+<body>
+  <header class="caption"><img src="app-icon.png" alt="" width="16" height="16"><span>Persistent</span><div class="caption-actions"><button id="minimize" type="button" aria-label="Minimize" title="Minimize"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11h14v2H5z"/></svg></button><button id="maximize" type="button" aria-label="Maximize" title="Maximize"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v14H5zm2 2v10h10V7z"/></svg></button><button id="close" type="button" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 5 6 6 6-6 1 1-6 6 6 6-1 1-6-6-6 6-1-1 6-6-6-6z"/></svg></button></div></header>
+  <nav aria-label="App settings">
+    <button id="nav-toggle" class="icon-button" type="button" aria-label="Toggle navigation" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg></button>
+    <button data-page="connection" type="button" aria-current="page" title="Connection"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v14h-7v3h3v2H7v-2h3v-3H3zm2 2v10h14V5z"/></svg><span>Connection</span></button>
+    <div class="nav-footer">
+      <button data-page="apps" type="button" title="Our other apps"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg><span>Our other apps</span></button>
+      <button data-page="about" type="button" title="About"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-6h2zm0-8h-2V7h2z"/></svg><span>About</span></button>
+      <button data-page="settings" type="button" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 13 2-1-2-4-2 1-2-1V5h-5v3L9 9 7 8l-2 4 2 1v2l-2 1 2 4 2-1 2 1v3h5v-3l2-1 2 1 2-4-2-1zM13.5 17a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg><span>Settings</span></button>
+      <button id="quit" type="button" hidden title="Exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h9v2H5v14h7v2H3zm12 4 5 5-5 5-1.4-1.4 2.6-2.6H9v-2h7.2l-2.6-2.6z"/></svg><span>Exit</span></button>
+    </div>
+  </nav>
+  <main>
+    <section data-panel="connection">
+      <h1>Connection</h1>
+      <form id="connection" class="card">
+        <label for="server">Server address</label>
+        <p>The Persistent instance the flyout loads. Change this only if you host your own.</p>
+        <input id="server" type="url" required autocomplete="off" spellcheck="false" placeholder="https://persistent.example.com">
+        <div class="actions"><button class="primary" type="submit">Save and reload</button><button id="reset" type="button">Reset to default</button></div>
+      </form>
+      <div class="card">
+        <h2>Signing in</h2>
+        <p>You sign in inside the flyout itself, with the same email code, passkey or Google account you use everywhere else. This app stores no password and keeps no separate copy of your reminders.</p>
+        <button id="clear" type="button">Clear saved sign-in</button>
+        <p>Clearing removes this PC's saved session and offline copy, then reloads. Your account and reminders are untouched.</p>
+      </div>
+      <div class="card">
+        <h2>Alarms on Android work offline</h2>
+        <p>Linux can keep reminders present and loop alarm audio while this PC is awake and Persistent is running. It catches up after reconnecting, but it cannot wake a sleeping or shut-down PC. Android can sound alarms without an internet connection.</p>
+      </div>
+    </section>
+    <section data-panel="apps" hidden>
+      <h1>Our other apps</h1><p>More from Dynamic Solutions Canada.</p><div id="app-list"></div>
+    </section>
+    <section data-panel="about" hidden>
+      <h1>About</h1>
+      <div class="card identity"><img src="app-icon.png" width="48" height="48" alt=""><div><h2>Persistent for Linux</h2><p id="version"></p><p>A notification-area window onto Persistent. Reminders that won't let you forget.</p></div></div>
+      <div class="card"><h2>Updates</h2><p id="update-status" role="status">Downloads and installation require your approval.</p><label><input id="updateAutomatic" type="checkbox" checked> Automatically check for updates</label><div class="actions"><button id="updates" type="button">Check for updates</button><button id="updateDownload" type="button" hidden>Download update</button><button id="updateInstall" type="button" hidden>Install and restart</button></div></div>
+      <div class="card"><h2>Links</h2><div class="links"><button id="source" type="button">Source code on GitHub</button><button id="privacy" type="button">Privacy policy</button><button id="logs" type="button">Open the log folder</button></div></div>
+    </section>
+    <section data-panel="settings" hidden>
+      <h1>Settings</h1>
+      <div class="card theme-card"><div><label for="theme">App theme</label><p>Appearance of this window. Persistent itself has its own theme, set inside the app.</p></div><select id="theme"><option value="system">System default</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
+      <div class="card"><h2>Notifications, startup and the flyout</h2><p>These are in Persistent itself, on its Settings screen, alongside its theme, sounds and time format.</p><button id="appSettings" type="button">Open Persistent settings</button></div>
+    </section>
+    <p id="status" role="status"></p>
+  </main>
+  <script src="connection.js"></script>
+</body>
+</html>

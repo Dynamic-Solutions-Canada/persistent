@@ -16,22 +16,29 @@ import FormHelperText from '@mui/joy/FormHelperText'
 import type { HostSettingsProps } from './types.js'
 
 export function DesktopNotificationsCard({ settings, update }: HostSettingsProps) {
+  const linux = settings.platform === 'linux'
   return (
     <Card variant="outlined">
-      <Typography level="title-sm">Windows notifications</Typography>
+      <Typography level="title-sm">{linux ? 'Linux notifications' : 'Windows notifications'}</Typography>
       <FormControl orientation="horizontal" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
         <FormLabel>Persistent notifications on this PC</FormLabel>
         <Switch checked={settings.notifications} onChange={(e) => update({ notifications: e.target.checked })} />
       </FormControl>
       <Typography level="body-xs">
-        Keeps each reminder visible and brings it back if dismissed. Alarm reminders loop the Windows alarm sound;
+        Keeps each reminder visible and brings it back if dismissed. Alarm reminders loop {linux ? 'the app alarm sound' : 'the Windows alarm sound'};
         escalations can be de-escalated without marking them done. This works while the PC is awake and Persistent is
         running, and catches up after reconnecting. It cannot wake a sleeping or shut-down PC. Android can sound alarms
         even without an internet connection.
       </Typography>
+      {linux && (
+        <Typography level="body-xs">
+          Your desktop controls notification layout, sounds and Do Not Disturb. GNOME needs AppIndicator support
+          for the tray icon. Snooze opens the app's full picker.
+        </Typography>
+      )}
       {/* The duration only means anything while the notifications are on, so it
           follows the toggle rather than sitting there looking editable. */}
-      {settings.notifications && (
+      {settings.notifications && !settings.snoozeInApp && (
         <FormControl>
           <FormLabel>Snooze starts on</FormLabel>
           <Select

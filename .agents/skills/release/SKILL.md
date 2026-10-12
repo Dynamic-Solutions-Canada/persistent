@@ -5,6 +5,21 @@ description: "Cut a new release: derive the next version from changes since the 
 
 Cut a new app release.
 
+## Linux lane
+
+When asked to release the Linux desktop host, use its independent `linux-vX.Y.Z`
+tag and `apps/linux-desktop/package.json` version. This first release is 0.1.0.
+Do not invoke the Android lane for Linux-only work. Keep its standalone lockfile in
+step, validate and package both architectures, review native evidence, commit/merge
+and push main, and deploy the hosted bridge before publishing the tag. Require a
+clean tree and HEAD equal to origin/main. `release-linux.yml` builds AppImage and
+Debian packages plus the shared checksum manifest; watch both builds and publishing
+to completion. Verify all five release assets and keep Android as GitHub Latest.
+Downloads and installation require separate native consent; automatic checks can
+be disabled. No portable tar release is offered. Report the release URL and limits.
+
+## Android lane
+
 Invocation input (optional): the user-provided bump level, pause request, or dry-run request.
 
 The release pipeline is `.github/workflows/release.yml`: pushing a `vX.Y.Z` tag

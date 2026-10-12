@@ -5,7 +5,7 @@ import Typography from '@mui/joy/Typography'
 import type { AdminStats } from '@persistent/shared'
 import { SectionHeading } from '../../components/SectionHeading.js'
 
-const appLabels = { browser: 'Web browser', pwa: 'Installed PWA', android: 'Android app', windows: 'Windows app' }
+const appLabels = { browser: 'Web browser', pwa: 'Installed PWA', android: 'Android app', windows: 'Windows app', linux: 'Linux app' }
 const platformLabels = { android: 'Android', ios: 'iOS', windows: 'Windows', macos: 'macOS', linux: 'Linux', unknown: 'Unknown OS' }
 
 export function ClientUsageTable({ clients }: { clients: AdminStats['clients'] }) {
@@ -25,7 +25,7 @@ export function ClientUsageTable({ clients }: { clients: AdminStats['clients'] }
               <th scope="row">
                 {client.app ? appLabels[client.app] : 'Unknown app'} / {client.platform ? platformLabels[client.platform] : 'Unknown OS'}
                 <Typography level="body-xs">Web: {client.webVersion ?? 'Not reported'}</Typography>
-                {(client.app === 'android' || client.app === 'windows') && (
+                {(client.app === 'android' || client.app === 'windows' || client.app === 'linux') && (
                   <Typography level="body-xs">Native: {client.nativeVersion ?? 'Not reported'}</Typography>
                 )}
               </th>

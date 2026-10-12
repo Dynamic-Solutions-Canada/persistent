@@ -17,15 +17,16 @@ import { openHostSettingsWindow } from '../desktopBridge.js'
 import type { HostSettingsProps } from './types.js'
 
 export function DesktopAppCard({ settings, update }: HostSettingsProps) {
+  const linux = settings.platform === 'linux'
   return (
     <Card variant="outlined">
-      <Typography level="title-sm">Windows app</Typography>
+      <Typography level="title-sm">{linux ? 'Linux app' : 'Windows app'}</Typography>
 
       <FormControl orientation="horizontal" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
           <FormLabel>Start at sign-in</FormLabel>
           <Typography level="body-xs">
-            Keeps Persistent in the notification area. Off means no tray icon, and no Windows notifications, until
+            Keeps Persistent in the notification area. Off means no tray icon, and no {linux ? 'Linux' : 'Windows'} notifications, until
             you launch it.
           </Typography>
         </Box>
@@ -47,6 +48,9 @@ export function DesktopAppCard({ settings, update }: HostSettingsProps) {
         </FormControl>
       )}
 
+      {linux && !settings.flyoutPlacement && (
+        <Typography level="body-xs">Wayland chooses where this window opens.</Typography>
+      )}
       <FormControl orientation="horizontal" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
           <FormLabel>Keep the window open</FormLabel>
@@ -83,10 +87,10 @@ export function DesktopAppCard({ settings, update }: HostSettingsProps) {
       <Box>
         <Typography level="body-xs" sx={{ mb: 1 }}>
           The server this app connects to, the version it's running, its log folder and the theme of its own window
-          are in a separate window, because you may need them when this page can't load.
+          {' '}are in a separate window, because you may need them when this page can't load.
         </Typography>
         <Button variant="outlined" color="neutral" size="sm" onClick={openHostSettingsWindow}>
-          More Windows app settings
+          More {linux ? 'Linux' : 'Windows'} app settings
         </Button>
       </Box>
     </Card>

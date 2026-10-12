@@ -1,0 +1,100 @@
+name: Release Linux desktop
+
+on:
+  push:
+    tags: ['linux-v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: linux-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - architecture: x64
+            runner: ubuntu-24.04
+          - architecture: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          submodules: true
+          fetch-depth: 0
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '20.20.2'
+          cache: npm
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run build --workspace @persistent/shared
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22.22.3'
+          cache: npm
+          cache-dependency-path: apps/linux-desktop/package-lock.json
+      - run: npm --prefix apps/linux-desktop ci
+      - name: Verify tag version and main ancestry
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs'
+          import { execFileSync } from 'node:child_process'
+          import { linuxVersionSchema } from './packages/shared/dist/index.js'
+          const version = JSON.parse(fs.readFileSync('apps/linux-desktop/package.json', 'utf8')).version
+          linuxVersionSchema.parse(version)
+          if (process.env.GITHUB_REF_NAME !== `linux-v${version}`) throw new Error('Linux tag does not match package version')
+          execFileSync('git', ['merge-base', '--is-ancestor', 'HEAD', 'origin/main'])
+          JS
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '20.20.2'
+      - run: npm run validate
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22.22.3'
+      - run: npm run package:linux -- --${{ matrix.architecture }}
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: linux-release-${{ matrix.architecture }}
+          path: |
+            apps/linux-desktop/artifacts/*.AppImage
+            apps/linux-desktop/artifacts/*.deb
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: package
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          submodules: true
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22.22.3'
+      - run: npm ci
+      - run: npm --prefix apps/linux-desktop ci --ignore-scripts
+      - run: npm run build:linux
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          pattern: linux-release-*
+          path: linux-release
+          merge-multiple: true
+      - name: Publish complete Linux release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(node -p "require('./apps/linux-desktop/package.json').version")
+          node apps/linux-desktop/dist/release-manifest.cjs linux-release "$VERSION"
+          gh release create "$GITHUB_REF_NAME" --draft --verify-tag --latest=false \
+            --title "Persistent for Linux $VERSION" --notes-file apps/linux-desktop/RELEASE_NOTES.md
+          gh release upload "$GITHUB_REF_NAME" linux-release/*.AppImage linux-release/*.deb linux-release/*-update.json
+          gh release edit "$GITHUB_REF_NAME" --draft=false --latest=false

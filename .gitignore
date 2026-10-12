@@ -81,3 +81,10 @@ apps/mobile/release.keystore
 *.aab
 
 /.artifacts/
+
+# Linux desktop generated tone, icon and package output
+apps/linux-desktop/resources/icon.png
+apps/linux-desktop/resources/app-icon.png
+apps/linux-desktop/resources/alarm.wav
+apps/linux-desktop/resources/promo/
+apps/linux-desktop/artifacts/
