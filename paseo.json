@@ -1,32 +1,32 @@
 {
   "worktree": {
-    "setup": "npm run dev:prepare-worktree",
-    "teardown": "npm run dev:down"
+    "setup": "bash scripts/dev/with-project-node.sh npm run dev:prepare-worktree",
+    "teardown": "bash scripts/dev/with-project-node.sh npm run dev:down"
   },
   "scripts": {
     "dev-prepare-worktree": {
-      "command": "npm run dev:prepare-worktree"
+      "command": "bash scripts/dev/with-project-node.sh npm run dev:prepare-worktree"
     },
     "dev": {
-      "command": "npm run dev"
+      "command": "bash scripts/dev/with-project-node.sh npm run dev"
     },
     "dev-background": {
-      "command": "npm run dev:background"
+      "command": "bash scripts/dev/with-project-node.sh npm run dev:background"
     },
     "dev-down": {
-      "command": "npm run dev:down"
+      "command": "bash scripts/dev/with-project-node.sh npm run dev:down"
     },
     "dev-doctor": {
-      "command": "npm run dev:doctor"
+      "command": "bash scripts/dev/with-project-node.sh npm run dev:doctor"
     },
     "validate": {
-      "command": "npm run validate"
+      "command": "bash scripts/dev/with-project-node.sh npm run validate"
     },
     "test": {
-      "command": "npm test"
+      "command": "bash scripts/dev/with-project-node.sh npm test"
     },
     "build": {
-      "command": "npm run build"
+      "command": "bash scripts/dev/with-project-node.sh npm run build"
     }
   }
 }

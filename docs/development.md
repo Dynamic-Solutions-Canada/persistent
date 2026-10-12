@@ -159,7 +159,12 @@ Persistent has no filesystem baseline paths, so snapshots contain database state
 `npm run dev:prepare-worktree` copies missing allowlisted local configuration,
 ensures checkout-local dependencies, generates the Prisma client, and builds the
 shared contracts. It is safe to repeat and does not start Docker, PostgreSQL,
-the proxy, or the app. Before a fresh checkout has dependencies, it uses the
+the proxy, or the app. Preparation and development automatically select the Node
+version in `.nvmrc` from an existing nvm installation and check the pinned npm
+version, even when Paseo's shell uses a newer Node by default. They do not install
+a runtime or change the machine's default. Install the pinned runtime once with
+`nvm install` if it is absent, or use the development container.
+Before a fresh checkout has dependencies, it uses the
 `devkit` PATH link installed by the machine bootstrap. A standalone clone without
 that link needs an initial `npm install`.
 
@@ -206,7 +211,9 @@ database for snapshots.
 `paseo.json` uses the same setup and teardown commands for worktree lifecycle
 hooks. Paseo prepares a new worktree with `npm run dev:prepare-worktree` and
 runs `npm run dev:down` before removing it. Setup does not start the application;
-run the `dev` script when you want to use it.
+run the `dev` script when you want to use it. Both hooks and all Scripts menu
+commands use the pinned runtime wrapper, so they do not depend on Paseo's host
+Node version or an interactive shell's nvm setup.
 
 The Scripts menu exposes `dev-prepare-worktree`, `dev`, `dev-background`,
 `dev-down`, `dev-doctor`, `validate`, `test`, and `build`. Prefer the supervised

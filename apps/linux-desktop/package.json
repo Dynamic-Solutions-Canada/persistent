@@ -5,7 +5,7 @@
   "description": "Persistent Linux tray application",
   "author": "Dynamic Solutions Canada",
   "homepage": "https://persistent.dynamic-solutions.ca",
-  "license": "UNLICENSED",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "desktopName": "ca.persistent.desktop.desktop",
   "main": "dist/main.cjs",
