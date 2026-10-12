@@ -1,7 +1,8 @@
 /** Host-specific content and destinations for the native-app promotion banner. */
+import { LINUX_RELEASES_URL } from '@persistent/shared'
 
 export const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=ca.dynamicsolutions.persistent'
-export const LINUX_DOWNLOADS_URL = 'https://github.com/RyanEwen/persistent/releases?q=linux-v&expanded=true'
+export const LINUX_DOWNLOADS_URL = `${LINUX_RELEASES_URL}?q=linux-v&expanded=true`
 export const WINDOWS_STORE_URL = 'https://apps.microsoft.com/detail/9PCX2XGQ7CJS'
 
 // This key is deliberately unversioned: dismissal means never show this promo

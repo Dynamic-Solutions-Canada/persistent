@@ -32,6 +32,10 @@ compatibility gaps remain in the separate verification record, including KDE,
 independent X11, real hardware passkeys/Google, and privileged Debian installation.
 Integrity hashes are not a Linux code-signing claim.
 
+Release preflight also caught a GitHub repository relocation. Linux URLs now use
+the verified canonical repository, shared by discovery, transport and downloads.
+The updater deliberately rejects the former owner instead of broadening trust.
+
 ## Mandatory reviews
 
 Documentation reviewed: root README and AGENTS, every tracked scoped AGENTS plus

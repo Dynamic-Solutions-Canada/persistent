@@ -145,7 +145,7 @@ compact rows at medium size, or four expanded rows at large size. It catches up
 after reconnecting, but cannot reach you while it is closed or the PC is asleep.
 
 **Linux:** download an AppImage or Debian package from the
-[Linux releases](https://github.com/RyanEwen/persistent/releases?q=linux-v&expanded=true).
+[Linux releases](https://github.com/Dynamic-Solutions-Canada/persistent/releases?q=linux-v&expanded=true).
 The tray flyout and native reminder alerts work while the app runs and the computer
 is awake. Updates can be checked automatically or manually, with approval before
 downloading and installing. AppImage installation is user-level; Debian installation
