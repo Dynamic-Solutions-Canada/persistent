@@ -1,5 +1,8 @@
 # Desktop architecture (Windows tray app)
 
+The Linux host and its platform boundaries are documented in
+[`linux-desktop-architecture.md`](linux-desktop-architecture.md).
+
 `apps/desktop` is a WinUI 3 tray app that shows the hosted Persistent PWA in a
 flyout near the notification area. Read this before changing it, and read
 [`alarm-architecture.md`](alarm-architecture.md) first for why the guarantees are

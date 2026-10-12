@@ -144,9 +144,17 @@ also provides a Windows 11 widget with the next two reminders at small size, fou
 compact rows at medium size, or four expanded rows at large size. It catches up
 after reconnecting, but cannot reach you while it is closed or the PC is asleep.
 
-> Both apps publish into the same release list, so browsing it raw interleaves
+**Linux:** download an AppImage or Debian package from the
+[Linux releases](https://github.com/RyanEwen/persistent/releases?q=linux-v&expanded=true).
+The tray flyout and native reminder alerts work while the app runs and the computer
+is awake. Updates can be checked automatically or manually, with approval before
+downloading and installing. AppImage installation is user-level; Debian installation
+needs administrator approval. GNOME needs AppIndicator support and may require
+double click. XWayland is the default on Wayland desktops for tray-corner placement.
+
+> All three apps publish into the same release list, so browsing it raw interleaves
 > them. The Android app is tagged `vX.Y.Z` and is always the one marked **Latest**;
-> the Windows tray app is tagged `desktop-vX.Y.Z`. The links above already filter
+> Windows uses `desktop-vX.Y.Z` and Linux uses `linux-vX.Y.Z`. The links above filter
 > to the right one.
 
 ## Why the app over the web?
@@ -163,3 +171,10 @@ Setup, architecture, and the release/deploy workflow are in
 ## License
 
 UNLICENSED — private.
+
+## Linux desktop
+
+The Linux tray host lives in `apps/linux-desktop`, alongside the existing Windows
+application. It hosts the web app and optionally delivers session-bound native
+notifications and alarm audio. See [Linux setup and packaging](apps/linux-desktop/README.md)
+and [platform behavior](docs/linux-desktop-architecture.md).

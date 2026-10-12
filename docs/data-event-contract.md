@@ -56,7 +56,7 @@ the previous account's local state before enabling requests.
 
 On initial opening and foregrounding, `StartupDataGate` keeps mounted pages hidden
 behind the shared spinner until their active queries refresh, including restored
-cache hits. Android resume, document visibility and the Windows `checkForUpdate`
+cache hits. Android resume, document visibility and the desktop `checkForUpdate`
 host message all use this path. Keeping the pages mounted preserves dialogs and
 editor drafts. Reconnect can cancel an in-flight query while resetting access
 grants; the gate joins its replacement rather than treating cancellation as a
@@ -168,7 +168,9 @@ invalidation and immediate-dismiss path. On startup, reconnect and relevant
 events, the host pulls the server-computed device alarm projection from
 `/api/sync/occurrences?alarmsOnly=true`. This gives it display-ready text and
 presentation flags without duplicating reminder or escalation rules. See
-[`desktop-architecture.md`](desktop-architecture.md).
+[`desktop-architecture.md`](desktop-architecture.md). The Linux resident host uses the same
+projection and authenticated invalidation contract, with independent native
+presentation. See [`linux-desktop-architecture.md`](linux-desktop-architecture.md).
 
 The Windows widget is a downstream projection of the normal web queries, not
 another API or socket consumer. While the authenticated page is awake,

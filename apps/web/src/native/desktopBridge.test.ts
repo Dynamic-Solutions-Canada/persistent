@@ -99,3 +99,29 @@ test('parseHostSettings: rejects anything that is not an object', () => {
   assert.equal(parseHostSettings('hostSettings'), null)
   assert.equal(parseHostSettings([complete]), null)
 })
+
+test('Linux host settings retain optional capabilities and reject false platform data', () => {
+  const linux = { ...complete, platform: 'linux', snoozeInApp: true }
+  assert.deepEqual(parseHostSettings(linux), linux)
+  assert.equal(parseHostSettings({ ...linux, platform: 'android' }), null)
+  assert.equal(parseHostSettings({ ...linux, snoozeInApp: 'true' }), null)
+})
+
+test('host navigation rejects backslash and whitespace open-redirect forms', async () => {
+  const { onHostMessage } = await import('./desktopBridge.js')
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'window')
+  let receive!: (event: { data: unknown }) => void
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: { chrome: { webview: {
+    postMessage: () => {}, addEventListener: (_type: string, handler: typeof receive) => { receive = handler }, removeEventListener: () => {}
+  } } } })
+  try {
+    const paths: string[] = []
+    const unsubscribe = onHostMessage((message) => { if (message.type === 'navigate') paths.push(message.path) })
+    for (const path of ['//evil.example', '/\\evil.example', '/\n/evil.example', '/', '/settings']) receive({ data: { type: 'navigate', path } })
+    assert.deepEqual(paths, ['/', '/settings'])
+    unsubscribe()
+  } finally {
+    if (previous) Object.defineProperty(globalThis, 'window', previous)
+    else Reflect.deleteProperty(globalThis, 'window')
+  }
+})

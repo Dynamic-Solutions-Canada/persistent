@@ -165,7 +165,10 @@ the WebView2 profile per call
 (`AppFlyout.GetSessionCookieAsync`). Unlike the Android worker it caches nothing
 and mirrors nothing — it has a WebView right there — so a refreshed session is
 picked up automatically and signing out simply makes its calls fail. Nothing about
-the session is written to `settings.json`. The separate Windows widget provider
+the session is written to `settings.json`. The Linux host follows the same profile-authenticated model, with a bounded
+main-process bridge and account-generation cleanup. It retains only an in-memory
+hash to distinguish a new cookie from an expiry-only refresh; no usable credential
+is mirrored. See `linux-desktop-architecture.md`. The separate Windows widget provider
 never receives the cookie: the authenticated page sends it only bounded,
 display-ready Upcoming strings, and signing out replaces that local snapshot with
 an empty state.
@@ -334,10 +337,10 @@ updates only the live session identified by the caller's cookie and user id.
 Clients report on confirmed opening/foregrounding without polling or persistent
 device fingerprints. Reports run after every successful session refresh, even if
 the profile is unchanged; pending native metadata lookups are cancelled on account
-transitions. Native bridges distinguish Android and Windows shells;
+transitions. Native bridges distinguish Android, Windows and Linux shells;
 browser display mode distinguishes browser/PWA and user-agent OS detection is
-approximate. Android shell versions are reported when available; Windows shell
-versions currently remain unknown because the host bridge does not expose them.
+approximate. Android and Linux shell versions are reported when available; Windows shell
+versions currently remain unknown because that host bridge does not expose them.
 Legacy clients are not guessed from user agents: their metadata remains unknown.
 A shared browser/PWA cookie records the most recently reported mode. Adoption
 counts use sessions active in the last 30 days, including subsequently expired or

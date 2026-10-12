@@ -6,14 +6,14 @@ import DialogTitle from '@mui/joy/DialogTitle'
 import ModalDialog from '@mui/joy/ModalDialog'
 import Typography from '@mui/joy/Typography'
 import { BackAwareModal } from './BackAwareModal.js'
-import { NativeAppStoreButtons } from './NativeAppStoreButtons.js'
+import { NativeAppButtons } from './NativeAppButtons.js'
 
 export interface NativeAppsDialogProps {
   open: boolean
   onClose(): void
 }
 
-/** Present both native apps without treating either platform as the default. */
+/** Present all native apps without treating either platform as the default. */
 export function NativeAppsDialog({ open, onClose }: NativeAppsDialogProps) {
   return (
     <BackAwareModal open={open} onClose={onClose}>
@@ -21,10 +21,10 @@ export function NativeAppsDialog({ open, onClose }: NativeAppsDialogProps) {
         <DialogTitle>Get Persistent</DialogTitle>
         <DialogContent>
           <Typography level="body-sm">
-            Android can sound alarms even while offline. The Windows app adds tray access, an upcoming widget, and
-            persistent notifications with alarm audio while your PC is awake.
+            Android can sound alarms even while offline. The Windows and Linux apps add tray access and
+            persistent notifications with alarm audio while your computer is awake. Windows also offers an upcoming widget.
           </Typography>
-          <NativeAppStoreButtons />
+          <NativeAppButtons />
         </DialogContent>
         <DialogActions>
           <Button variant="plain" color="neutral" onClick={onClose}>

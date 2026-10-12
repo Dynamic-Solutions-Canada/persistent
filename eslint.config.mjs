@@ -41,6 +41,10 @@ export default tseslint.config(
     }
   },
   {
+    files: ['apps/linux-desktop/resources/*.js'],
+    languageOptions: { globals: globals.browser }
+  },
+  {
     files: ['apps/web/**/*.{ts,tsx}'],
     plugins: {
       'react-hooks': reactHooks,

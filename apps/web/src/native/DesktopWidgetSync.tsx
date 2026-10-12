@@ -12,7 +12,7 @@ import { selectUpcomingReminders } from '../lib/upcomingReminders.js'
 import { useSettings } from '../settings/useSettings.js'
 import { useStartupDataReady } from '../components/startupDataContext.js'
 import {
-  isDesktopHost,
+  desktopPlatform,
   onHostMessage,
   publishWidgetSnapshot,
   type WidgetSnapshot
@@ -62,20 +62,22 @@ export function DesktopWidgetSync() {
   const refetchActive = active.refetch
 
   useEffect(() => {
-    if (!dataReady || !isDesktopHost() || !reminderData || !activeData) return
+    if (!dataReady || desktopPlatform() !== 'windows' || !reminderData || !activeData) return
     publishWidgetSnapshot(makeSnapshot(reminderData, activeData, timeFormat))
   }, [activeData, reminderData, timeFormat, dataReady])
 
   useEffect(
-    () =>
-      onHostMessage((message) => {
+    () => {
+      if (desktopPlatform() !== 'windows') return
+      return onHostMessage((message) => {
         if (message.type !== 'refreshWidgetSnapshot') return
         void (async () => {
           const [freshReminders, freshActive] = await Promise.all([refetchReminders(), refetchActive()])
           if (!freshReminders.data || !freshActive.data) return
           publishWidgetSnapshot(makeSnapshot(freshReminders.data, freshActive.data, timeFormat))
         })()
-      }),
+      })
+    },
     [refetchActive, refetchReminders, timeFormat]
   )
 
