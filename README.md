@@ -8,15 +8,16 @@
   Reminders that don't give up — they keep nagging until you <em>actually</em> mark them done.
 </p>
 
+<!-- Official store badges lead with the recommended Android app. -->
 <p align="center">
-  <a href="https://persistent.dynamic-solutions.ca">
-    <img src="https://img.shields.io/badge/Open%20the%20web%20app-persistent.dynamic--solutions.ca-12b886?style=for-the-badge" alt="Open the web app at persistent.dynamic-solutions.ca">
+  <a href="https://play.google.com/store/apps/details?id=ca.dynamicsolutions.persistent">
+    <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get Persistent for Android on Google Play" height="80">
   </a>
 </p>
 
 <p align="center">
-  <a href="https://play.google.com/store/apps/details?id=ca.dynamicsolutions.persistent">
-    <img src="https://img.shields.io/badge/Android-Google%20Play-3ddc84?style=for-the-badge" alt="Get Persistent for Android on Google Play">
+  <a href="https://apps.microsoft.com/detail/9PCX2XGQ7CJS">
+    <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Download Persistent for Windows from the Microsoft Store" height="56">
   </a>
 </p>
 
@@ -26,13 +27,9 @@
   </a>
 </p>
 
-<!-- The official Store badge, matching the sibling Dynamic Solutions Canada apps. It sits on
-     its own row rather than beside the shields badges above because it is 56px tall
-     and they are not. Windows has no shields badge any more: the Store is the
-     install route, and the portable zip on a release is covered under "Get it". -->
 <p align="center">
-  <a href="https://apps.microsoft.com/detail/9PCX2XGQ7CJS">
-    <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Download Persistent for Windows from the Microsoft Store" height="56">
+  <a href="https://persistent.dynamic-solutions.ca">
+    <img src="https://img.shields.io/badge/Open%20the%20web%20app-persistent.dynamic--solutions.ca-12b886?style=for-the-badge" alt="Open the web app at persistent.dynamic-solutions.ca">
   </a>
 </p>
 
@@ -117,11 +114,6 @@ other products with platform labels and links, including Windows apps.
 
 ## Get it
 
-**Web:** open [persistent.dynamic-solutions.ca](https://persistent.dynamic-solutions.ca)
-in any browser and sign up free. It installs as a web app for managing reminders,
-with the same account and live data as every other surface. Browser notifications
-are not supported; install a native app to be alerted.
-
 **Android (recommended, Android 7.0 or newer):** install Persistent from
 [Google Play](https://play.google.com/store/apps/details?id=ca.dynamicsolutions.persistent).
 The app can sound previously scheduled alarms even while offline.
@@ -168,6 +160,11 @@ to add a user-level application-menu launcher and keep a stable path for updates
 no Node toolchain is needed. On Debian/Ubuntu, open the `.deb` with your package
 installer. See [Linux installation details](apps/linux-desktop/README.md#build-package-and-install)
 for requirements and troubleshooting. Portable tar downloads are not offered.
+
+**Web:** open [persistent.dynamic-solutions.ca](https://persistent.dynamic-solutions.ca)
+in any browser and sign up free. It installs as a web app for managing reminders,
+with the same account and live data as every other surface. Browser notifications
+are not supported; install a native app to be alerted.
 
 > Windows and Linux downloads share a GitHub release list. Windows uses
 > `desktop-vX.Y.Z` and Linux uses `linux-vX.Y.Z`; their links above filter to the
