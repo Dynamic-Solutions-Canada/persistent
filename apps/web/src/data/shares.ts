@@ -1,6 +1,6 @@
 /** Reminder sharing queries and online mutations. Access changes require a server response. */
 import { useMutation, useQuery } from '@tanstack/react-query'
-import type { ReminderShare, SharedReminder, ShareInput } from '@persistent/shared'
+import type { ReminderShare, ReminderSharingAccess, SharedReminder, ShareInput } from '@persistent/shared'
 import { apiFetch } from '../lib/apiClient.js'
 import { queryClient, queryKeys } from '../lib/queryClient.js'
 
@@ -21,7 +21,7 @@ export function useShareRecipients() {
 export function useReminderShares(reminderId: string) {
   return useQuery({
     queryKey: ['shares', reminderId],
-    queryFn: async () => (await apiFetch<{ shares: ReminderShare[] }>(`/api/shares/${reminderId}`)).shares,
+    queryFn: () => apiFetch<ReminderSharingAccess>(`/api/shares/${reminderId}`),
     enabled: Boolean(reminderId)
   })
 }
@@ -31,7 +31,7 @@ export function useSaveReminderShare(reminderId: string) {
     mutationFn: (input: ShareInput) =>
       apiFetch<{ share: ReminderShare }>(`/api/shares/${reminderId}`, { method: 'PUT', body: JSON.stringify(input) }),
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: ['shares', reminderId] })
+      void queryClient.invalidateQueries({ queryKey: ['shares'] })
       void queryClient.invalidateQueries({ queryKey: ['shares', 'recipients'] })
       void queryClient.invalidateQueries({ queryKey: queryKeys.reminders })
     }
@@ -47,7 +47,7 @@ export function useRemoveReminderShare(reminderId: string) {
       { method: 'DELETE' }
     ),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['shares', reminderId] })
+      void queryClient.invalidateQueries({ queryKey: ['shares'] })
       void queryClient.invalidateQueries({ queryKey: queryKeys.reminders })
     }
   })

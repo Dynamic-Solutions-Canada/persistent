@@ -30,6 +30,8 @@ import { materializeReminder, fireDueForReminder, ensureUnscheduledFiring } from
 import { broadcast } from '../lib/realtime.js'
 import { dispatchToUser, nudgeNativeSync } from '../lib/delivery/index.js'
 import { logger } from '../lib/logger.js'
+import { lockSharingReminder, withSharingReminder } from '../lib/sharing-access.js'
+import { reminderForActor } from '../lib/personal-notification-settings.js'
 import { actionableReminder, editableReminder, broadcastSharedChange, participantIds } from '../lib/share-access.js'
 import { sendShareInvitation } from '../lib/share-invitations.js'
 
@@ -68,8 +70,8 @@ remindersRouter.post('/', async (request, response) => {
   // Resolve grants before writing. Unknown addresses become pending invitations,
   // which only grant access after that address is verified at sign-in.
   const owner = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true, displayName: true } })
-  const recipients = new Map<string, { recipientId: string; permission: 'EDIT' }>()
-  const invitations = new Map<string, { email: string; permission: 'EDIT' }>()
+  const recipients = new Map<string, { recipientId: string; invitedById: string; permission: 'EDIT' }>()
+  const invitations = new Map<string, { email: string; invitedById: string; permission: 'EDIT' }>()
   for (const share of parsedShares.data) {
     const recipient = await prisma.user.findFirst({
       where: { email: { equals: share.email, mode: 'insensitive' } },
@@ -77,11 +79,11 @@ remindersRouter.post('/', async (request, response) => {
     })
     if (share.email === owner.email.toLowerCase()) throw badRequest('You already own this reminder.')
     if (!recipient) {
-      invitations.set(share.email, { email: share.email, permission: 'EDIT' })
+      invitations.set(share.email, { email: share.email, invitedById: userId, permission: 'EDIT' })
       continue
     }
     if (recipient.id === userId) throw badRequest('You already own this reminder.')
-    recipients.set(recipient.id, { recipientId: recipient.id, permission: 'EDIT' })
+    recipients.set(recipient.id, { recipientId: recipient.id, invitedById: userId, permission: 'EDIT' })
   }
 
   const reminder = await prisma.reminder.create({
@@ -137,25 +139,50 @@ remindersRouter.put('/:id', async (request, response) => {
   if (!existing) throw notFound('Reminder not found.')
   const ownerId = existing.userId
 
-  // Last-edit-wins: ignore an offline edit that predates the stored version (a
-  // newer edit already landed). The stale client reconciles on its next refetch.
   const clientEditedAt = typeof request.body?.clientEditedAt === 'string' ? request.body.clientEditedAt : null
-  if (isStaleWrite(clientEditedAt, existing.updatedAt)) {
-    response.json({ reminder: toReminder(existing) })
+  const personalShade = parsed.data.shadeProminence ?? 'INHERIT'
+  const result = await prisma.$transaction(async (transaction) => {
+    // Follow membership's parent-before-grant lock order to avoid deadlocks.
+    await lockSharingReminder(transaction, existing.id, userId)
+    const current = await transaction.reminder.findFirstOrThrow({ where: { id: existing.id, userId: ownerId } })
+    const share = userId === ownerId ? null : await transaction.reminderShare.findUnique({
+      where: { reminderId_recipientId: { reminderId: current.id, recipientId: userId } }
+    })
+    if (userId !== ownerId && !share) throw notFound('Reminder not found.')
+
+    // Evaluate staleness after locking; return only the caller's personal setting.
+    if (isStaleWrite(clientEditedAt, current.updatedAt)) {
+      return { reminder: reminderForActor(current, userId, share), previous: current, stale: true }
+    }
+    if (share) {
+      await transaction.reminderShare.update({
+        where: { reminderId_recipientId: { reminderId: current.id, recipientId: userId } },
+        data: { shadeProminence: personalShade }
+      })
+    }
+    const definitionData = toReminderData(parsed.data)
+    const reminder = await transaction.reminder.update({
+      where: { id: current.id, userId: ownerId },
+      data: {
+        ...definitionData,
+        // A recipient's prominence never overwrites the owner's preference.
+        shadeProminence: userId === ownerId ? definitionData.shadeProminence : undefined
+      }
+    })
+    return { reminder, previous: current, stale: false }
+  })
+  const { reminder } = result
+  if (result.stale) {
+    response.json({ reminder: toReminder(reminder) })
     return
   }
-
-  const reminder = await prisma.reminder.update({
-    where: { id: existing.id },
-    data: toReminderData(parsed.data)
-  })
 
   // Drop not-yet-fired occurrences so the new schedule re-materializes cleanly.
   await prisma.reminderOccurrence.deleteMany({ where: { reminderId: reminder.id, userId: ownerId, status: 'PENDING' } })
   // Only moving between a real schedule, no schedule and a note touches an
   // existing firing; see `scheduleTransition` for why each direction does what
   // it does.
-  const beforeKind = (existing.schedule as unknown as { kind?: string }).kind ?? ''
+  const beforeKind = (result.previous.schedule as unknown as { kind?: string }).kind ?? ''
   const transition = scheduleTransition(beforeKind, parsed.data.schedule.kind)
   if (transition === 'retire') {
     const retired = await prisma.reminderOccurrence.findMany({
@@ -193,7 +220,7 @@ remindersRouter.put('/:id', async (request, response) => {
   broadcast(ownerId, { type: 'reminder.changed', reminderId: reminder.id })
   await broadcastSharedChange(reminder.id, ownerId)
   void nudgeNativeSync(ownerId).catch((error) => logger.warn('sync nudge failed', { error: String(error) }))
-  response.json({ reminder: toReminder(reminder) })
+  response.json({ reminder: toReminder(userId === ownerId ? reminder : { ...reminder, shadeProminence: personalShade }) })
 })
 
 /** Save only the text opened in the reading dialog, preserving schedule and checklist state. */
@@ -540,35 +567,35 @@ remindersRouter.post('/:id/check', async (request, response) => {
   const parsed = checkItemInputSchema.safeParse(request.body)
   if (!parsed.success) throw badRequest('Invalid checklist item.')
 
-  const existing = await actionableReminder(request.params.id, userId)
-  if (!existing) throw notFound('Reminder not found.')
-  if (existing.type !== 'TODO') throw badRequest('This reminder has no checklist.')
-  const kind = (existing.schedule as unknown as { kind?: string }).kind
-  if (kind !== 'never') throw badRequest('Only a note is ticked off directly; a scheduled reminder is ticked per firing.')
+  const updated = await withSharingReminder(request.params.id, userId, async (transaction, existing) => {
+    if (existing.type !== 'TODO') throw badRequest('This reminder has no checklist.')
+    const kind = (existing.schedule as unknown as { kind?: string }).kind
+    if (kind !== 'never') throw badRequest('Only a note is ticked off directly; a scheduled reminder is ticked per firing.')
 
-  const items = todoItems((existing.typeData ?? {}) as TypeData)
-  if (!items.some((item) => item.id === parsed.data.itemId)) throw notFound('Checklist item not found.')
+    const items = todoItems((existing.typeData ?? {}) as TypeData)
+    if (!items.some((item) => item.id === parsed.data.itemId)) throw notFound('Checklist item not found.')
 
-  // One atomic statement, for the same reason as the occurrence route: working
-  // down a list means several taps in quick succession, each its own request, and
-  // a read-modify-write loses every tick but the last. `-` then `||` also makes
-  // re-ticking idempotent, so an offline replay can't duplicate an id.
-  const { itemId, checked } = parsed.data
-  await prisma.$executeRaw`
-    UPDATE "Reminder"
-    SET "checkedItems" = CASE
-      WHEN ${checked}::boolean THEN ("checkedItems" - ${itemId}::text) || jsonb_build_array(${itemId}::text)
-      ELSE "checkedItems" - ${itemId}::text
-    END
-    WHERE "id" = ${existing.id} AND "userId" = ${existing.userId}
-  `
-  const updated = await prisma.reminder.findFirstOrThrow({ where: { id: existing.id, userId: existing.userId } })
+    // One atomic statement, for the same reason as the occurrence route: working
+    // down a list means several taps in quick succession, each its own request, and
+    // a read-modify-write loses every tick but the last. `-` then `||` also makes
+    // re-ticking idempotent, so an offline replay can't duplicate an id.
+    const { itemId, checked } = parsed.data
+    await transaction.$executeRaw`
+      UPDATE "Reminder"
+      SET "checkedItems" = CASE
+        WHEN ${checked}::boolean THEN ("checkedItems" - ${itemId}::text) || jsonb_build_array(${itemId}::text)
+        ELSE "checkedItems" - ${itemId}::text
+      END
+      WHERE "id" = ${existing.id} AND "userId" = ${existing.userId}
+    `
+    return transaction.reminder.findFirstOrThrow({ where: { id: existing.id, userId: existing.userId } })
+  })
 
   // WS only. A note notifies nobody, so there is no notification to re-render and
   // nothing for a device to re-sync — this just lets the user's other open clients
   // converge on the same list.
-  broadcast(existing.userId, { type: 'reminder.changed', reminderId: updated.id })
-  await broadcastSharedChange(updated.id, existing.userId)
+  broadcast(updated.userId, { type: 'reminder.changed', reminderId: updated.id })
+  await broadcastSharedChange(updated.id, updated.userId)
   response.json({ reminder: toReminder(updated) })
 })
 

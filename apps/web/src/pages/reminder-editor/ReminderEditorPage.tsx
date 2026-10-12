@@ -522,7 +522,7 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
           )}
 
           <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-            {!shared && !assignedToMe && (
+            {!assignedToMe && (
               <Button
                 type="button"
                 variant="outlined"
@@ -566,11 +566,16 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
           else navigate(to)
         }}
       />
-      {!shared && !assignedToMe && (
+      {!assignedToMe && (
         <ReminderSharing
           open={shareOpen}
           onClose={() => setShareOpen(false)}
           reminderId={id}
+          onLeave={() => {
+            setLeaving(true)
+            if (onFinished) onFinished('/')
+            else navigate('/')
+          }}
           draftShares={draftShares}
           onDraftSharesChange={setDraftShares}
           draftMode={draftMode}

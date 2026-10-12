@@ -1,4 +1,4 @@
-/** Keep received firings out of the persisted offline cache without losing owned firings. */
+/** Keep received queries, paused writes, and rollback content out of owner offline storage. */
 import type { PersistedClient } from '@tanstack/react-query-persist-client'
 import type { Occurrence, OccurrenceList, Reminder } from '@persistent/shared'
 
@@ -31,20 +31,75 @@ export function ownedOccurrenceData(data: unknown, ids: Set<string>): unknown {
   return undefined
 }
 
-/** Keep the live query cache intact while serializing only owner-owned firings. */
-export function serializeOwnedCache(client: PersistedClient): string {
+const EXCLUDED_PREFIXES = new Set(['auth', 'shares', 'assignments', 'admin', 'announcements', 'promoted-apps'])
+
+/** Collect owned targets from normal and paged occurrence feeds. */
+function ownedOccurrenceIds(client: PersistedClient, ids: Set<string>): Set<string> {
+  const occurrenceIds = new Set<string>()
+  for (const query of client.clientState.queries) {
+    if (query.queryKey[0] !== 'occurrences') continue
+    const data = ownedOccurrenceData(query.state.data, ids)
+    if (Array.isArray(data)) {
+      for (const row of data as Occurrence[]) occurrenceIds.add(row.id)
+    } else if (data && typeof data === 'object' && 'pages' in data) {
+      for (const page of (data as { pages: OccurrenceList[] }).pages) {
+        for (const row of page.occurrences) occurrenceIds.add(row.id)
+      }
+    }
+  }
+  return occurrenceIds
+}
+
+/** Remove revocable data from both saved queries and paused writes, also on restoration. */
+export function ownedCache(client: PersistedClient): PersistedClient {
   const ids = ownedReminderIds(client)
-  return JSON.stringify({
+  const occurrenceIds = ownedOccurrenceIds(client, ids)
+  const mutations = client.clientState.mutations.flatMap((mutation) => {
+    const [scope, operation] = mutation.mutationKey ?? []
+    const variables = mutation.state.variables as { id?: string } | string | undefined
+    const id = typeof variables === 'string' ? variables : variables?.id
+    const context = mutation.state.context as Record<string, unknown> | undefined
+    const completingOwned = scope === 'occurrences' && Array.isArray(context?.previous) &&
+      context.previous.some((row: Occurrence) => row.id === id && ids.has(row.reminderId))
+    const deletingOwned = scope === 'reminders' && operation === 'delete' &&
+      Array.isArray(context?.previous) && context.previous.some((row: Reminder) => row.id === id)
+    let allowed = false
+    if (scope === 'reminders') {
+      allowed = operation === 'create' || (!!id && (ids.has(id) || deletingOwned))
+    } else if (scope === 'occurrences') {
+      allowed = !!id && (occurrenceIds.has(id) || completingOwned)
+    }
+    if (!allowed) return []
+
+    // Legacy whole-cache snapshots and current row changes must not retain
+    // received projections, including when the write itself targets an owned row.
+    const safeContext = context ? { ...context } : undefined
+    if (safeContext) {
+      delete safeContext.received
+      if (scope === 'occurrences' && Array.isArray(safeContext.previous)) {
+        safeContext.previous = ownedOccurrenceData(safeContext.previous, ids)
+      }
+      if (safeContext.checklist && typeof safeContext.checklist === 'object') {
+        const checklist = safeContext.checklist as { owned?: unknown[] }
+        safeContext.checklist = { owned: checklist.owned ?? [], received: [] }
+      }
+    }
+    return [{ ...mutation, state: safeContext ? { ...mutation.state, context: safeContext } : mutation.state }]
+  })
+  return {
     ...client,
     clientState: {
       ...client.clientState,
-      queries: client.clientState.queries.filter((query) => query.queryKey[0] !== 'admin').map((query) => {
+      mutations,
+      queries: client.clientState.queries.filter((query) => !EXCLUDED_PREFIXES.has(String(query.queryKey[0]))).map((query) => {
         if (query.queryKey[0] !== 'occurrences') return query
-        return {
-          ...query,
-          state: { ...query.state, data: ownedOccurrenceData(query.state.data, ids) }
-        }
+        return { ...query, state: { ...query.state, data: ownedOccurrenceData(query.state.data, ids) } }
       })
     }
-  })
+  }
+}
+
+/** Keep the live cache intact while serializing owner queries and owner-targeted writes. */
+export function serializeOwnedCache(client: PersistedClient): string {
+  return JSON.stringify(ownedCache(client))
 }

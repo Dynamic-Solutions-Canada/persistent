@@ -32,6 +32,7 @@ import {
 } from '@persistent/shared'
 import { apiFetch } from './apiClient.js'
 import { notify } from './toast.js'
+import { checkedItems, optimisticChecklistChange, rollbackChecklistChange, updateSharedReminder, type ChecklistSnapshot } from './checklistCache.js'
 
 // Persisted entries are dropped once garbage-collected, so keep them around long
 // enough to outlive offline stretches (must be >= the persister maxAge).
@@ -142,11 +143,11 @@ function optimisticReminder(input: ReminderInput, id = tempId()): Reminder {
   }
 }
 
-interface RemindersSnapshot {
+interface RemindersSnapshot extends ChecklistSnapshot<Reminder> {
   previous?: Reminder[]
 }
 
-interface OccurrencesSnapshot {
+interface OccurrencesSnapshot extends ChecklistSnapshot<Occurrence> {
   previous?: Occurrence[]
 }
 
@@ -175,11 +176,13 @@ export function registerMutationDefaults(): void {
   }
   const rollback = (_e: unknown, _v: unknown, ctx: RemindersSnapshot | undefined) => {
     if (ctx?.previous) queryClient.setQueryData(queryKeys.reminders, ctx.previous)
+    if (ctx?.checklist) rollbackChecklistChange(queryClient, queryKeys.reminders, queryKeys.receivedShares, ctx)
   }
   // Declared up here, not inline: an inline arrow annotating its variables param
   // as `unknown` pins the mutation's inferred variables type to `unknown` too.
   const rollbackOccurrences = (_e: unknown, _v: unknown, ctx: OccurrencesSnapshot | undefined) => {
     if (ctx?.previous) queryClient.setQueryData(queryKeys.occurrencesActive, ctx.previous)
+    if (ctx?.checklist) rollbackChecklistChange(queryClient, queryKeys.occurrencesActive, queryKeys.receivedShares, ctx)
   }
 
   queryClient.setMutationDefaults(mutationKeys.createReminder, {
@@ -273,16 +276,16 @@ export function registerMutationDefaults(): void {
     mutationFn: ({ id, arg }: { id: string; arg: CheckItemInput }) =>
       apiFetch(`/api/reminders/${id}/check`, { method: 'POST', body: JSON.stringify(arg) }),
     onMutate: async ({ id, arg }: { id: string; arg: CheckItemInput }): Promise<RemindersSnapshot> => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.reminders })
-      const previous = reminders()
-      queryClient.setQueryData<Reminder[]>(queryKeys.reminders, (list) =>
-        (list ?? []).map((reminder) => {
-          if (reminder.id !== id) return reminder
-          const checked = reminder.checkedItemIds.filter((itemId) => itemId !== arg.itemId)
-          return { ...reminder, checkedItemIds: arg.checked ? [...checked, arg.itemId] : checked }
-        })
+      const update = (reminder: Reminder) => {
+        if (reminder.id !== id) return reminder
+        return { ...reminder, checkedItemIds: checkedItems(reminder.checkedItemIds, arg.itemId, arg.checked) }
+      }
+
+      return optimisticChecklistChange<Reminder>(
+        queryClient, queryKeys.reminders, queryKeys.receivedShares,
+        update,
+        (share) => share.id === id ? updateSharedReminder(share, update) : share
       )
-      return { previous }
     },
     onError: rollback,
     onSettled: invalidateReminders
@@ -297,14 +300,14 @@ export function registerMutationDefaults(): void {
     mutationFn: ({ id, arg }: { id: string; arg: AddTodoItemInput }) =>
       apiFetch(`/api/reminders/${id}/items`, { method: 'POST', body: JSON.stringify(arg) }),
     onMutate: async ({ id, arg }: { id: string; arg: AddTodoItemInput }): Promise<RemindersSnapshot> => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.reminders })
-      const previous = reminders()
-      queryClient.setQueryData<Reminder[]>(queryKeys.reminders, (list) =>
-        (list ?? []).map((reminder) =>
-          reminder.id === id ? { ...reminder, typeData: withTodoItem(reminder.typeData, arg) } : reminder
-        )
+      const update = (reminder: Reminder) =>
+        reminder.id === id ? { ...reminder, typeData: withTodoItem(reminder.typeData, arg) } : reminder
+
+      return optimisticChecklistChange<Reminder>(
+        queryClient, queryKeys.reminders, queryKeys.receivedShares,
+        update,
+        (share) => share.id === id ? updateSharedReminder(share, update) : share
       )
-      return { previous }
     },
     onError: rollback,
     onSettled: invalidateReminders
@@ -314,20 +317,20 @@ export function registerMutationDefaults(): void {
     mutationFn: ({ id, itemId }: { id: string; itemId: string }) =>
       apiFetch(`/api/reminders/${id}/items/${encodeURIComponent(itemId)}`, { method: 'DELETE' }),
     onMutate: async ({ id, itemId }: { id: string; itemId: string }): Promise<RemindersSnapshot> => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.reminders })
-      const previous = reminders()
-      queryClient.setQueryData<Reminder[]>(queryKeys.reminders, (list) =>
-        (list ?? []).map((reminder) =>
-          reminder.id === id
-            ? {
-                ...reminder,
-                typeData: withoutTodoItem(reminder.typeData, itemId),
-                checkedItemIds: reminder.checkedItemIds.filter((checkedId) => checkedId !== itemId)
-              }
-            : reminder
-        )
+      const update = (reminder: Reminder) =>
+        reminder.id === id
+          ? {
+              ...reminder,
+              typeData: withoutTodoItem(reminder.typeData, itemId),
+              checkedItemIds: reminder.checkedItemIds.filter((checkedId) => checkedId !== itemId)
+            }
+          : reminder
+
+      return optimisticChecklistChange<Reminder>(
+        queryClient, queryKeys.reminders, queryKeys.receivedShares,
+        update,
+        (share) => share.id === id ? updateSharedReminder(share, update) : share
       )
-      return { previous }
     },
     onError: rollback,
     onSettled: invalidateReminders
@@ -342,14 +345,14 @@ export function registerMutationDefaults(): void {
     mutationFn: ({ id, arg }: { id: string; arg: ReorderTodoItemsInput }) =>
       apiFetch(`/api/reminders/${id}/items/order`, { method: 'POST', body: JSON.stringify(arg) }),
     onMutate: async ({ id, arg }: { id: string; arg: ReorderTodoItemsInput }): Promise<RemindersSnapshot> => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.reminders })
-      const previous = reminders()
-      queryClient.setQueryData<Reminder[]>(queryKeys.reminders, (list) =>
-        (list ?? []).map((reminder) =>
-          reminder.id === id ? { ...reminder, typeData: withTodoOrder(reminder.typeData, arg.itemIds) } : reminder
-        )
+      const update = (reminder: Reminder) =>
+        reminder.id === id ? { ...reminder, typeData: withTodoOrder(reminder.typeData, arg.itemIds) } : reminder
+
+      return optimisticChecklistChange<Reminder>(
+        queryClient, queryKeys.reminders, queryKeys.receivedShares,
+        update,
+        (share) => share.id === id ? updateSharedReminder(share, update) : share
       )
-      return { previous }
     },
     onError: rollback,
     onSettled: invalidateReminders
@@ -370,14 +373,14 @@ export function registerMutationDefaults(): void {
       itemId: string
       arg: RenameTodoItemInput
     }): Promise<RemindersSnapshot> => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.reminders })
-      const previous = reminders()
-      queryClient.setQueryData<Reminder[]>(queryKeys.reminders, (list) =>
-        (list ?? []).map((reminder) =>
-          reminder.id === id ? { ...reminder, typeData: withTodoItemText(reminder.typeData, itemId, arg.text) } : reminder
-        )
+      const update = (reminder: Reminder) =>
+        reminder.id === id ? { ...reminder, typeData: withTodoItemText(reminder.typeData, itemId, arg.text) } : reminder
+
+      return optimisticChecklistChange<Reminder>(
+        queryClient, queryKeys.reminders, queryKeys.receivedShares,
+        update,
+        (share) => share.id === id ? updateSharedReminder(share, update) : share
       )
-      return { previous }
     },
     onError: rollback,
     onSettled: invalidateReminders
@@ -390,12 +393,13 @@ export function registerMutationDefaults(): void {
     mutationFn: ({ id, arg }: { id: string; arg: HideCheckedInput }) =>
       apiFetch(`/api/reminders/${id}/hide-checked`, { method: 'POST', body: JSON.stringify(arg) }),
     onMutate: async ({ id, arg }: { id: string; arg: HideCheckedInput }): Promise<RemindersSnapshot> => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.reminders })
-      const previous = reminders()
-      queryClient.setQueryData<Reminder[]>(queryKeys.reminders, (list) =>
-        (list ?? []).map((reminder) => (reminder.id === id ? { ...reminder, hideCheckedItems: arg.hidden } : reminder))
+      const update = (reminder: Reminder) =>
+        reminder.id === id ? { ...reminder, hideCheckedItems: arg.hidden } : reminder
+      return optimisticChecklistChange<Reminder>(
+        queryClient, queryKeys.reminders, queryKeys.receivedShares,
+        update,
+        (share) => share.id === id ? updateSharedReminder(share, update) : share
       )
-      return { previous }
     },
     onError: rollback,
     onSettled: invalidateReminders
@@ -441,16 +445,18 @@ export function registerMutationDefaults(): void {
     mutationFn: ({ id, arg }: { id: string; arg: CheckItemInput }) =>
       apiFetch(`/api/occurrences/${id}/check`, { method: 'POST', body: JSON.stringify(arg) }),
     onMutate: async ({ id, arg }: { id: string; arg: CheckItemInput }): Promise<OccurrencesSnapshot> => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.occurrencesActive })
-      const previous = queryClient.getQueryData<Occurrence[]>(queryKeys.occurrencesActive)
-      queryClient.setQueryData<Occurrence[]>(queryKeys.occurrencesActive, (list) =>
-        (list ?? []).map((occurrence) => {
-          if (occurrence.id !== id) return occurrence
-          const checked = occurrence.checkedItemIds.filter((itemId) => itemId !== arg.itemId)
-          return { ...occurrence, checkedItemIds: arg.checked ? [...checked, arg.itemId] : checked }
+      return optimisticChecklistChange<Occurrence>(
+        queryClient, queryKeys.occurrencesActive, queryKeys.receivedShares,
+        (occurrence) => occurrence.id === id
+          ? { ...occurrence, checkedItemIds: checkedItems(occurrence.checkedItemIds, arg.itemId, arg.checked) }
+          : occurrence,
+        (share) => ({
+          ...share,
+          activeFirings: share.activeFirings.map((firing) => firing.id === id
+            ? { ...firing, checkedItemIds: checkedItems(firing.checkedItemIds, arg.itemId, arg.checked) }
+            : firing)
         })
       )
-      return { previous }
     },
     onError: rollbackOccurrences,
     onSettled: invalidateOccurrences

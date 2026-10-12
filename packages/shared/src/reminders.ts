@@ -470,11 +470,19 @@ export const reminderShareSchema = z.object({
   email: z.string(),
   displayName: z.string().nullable(),
   permission: sharePermissionSchema,
-  pending: z.boolean()
+  pending: z.boolean(),
+  canRemove: z.boolean().optional()
 })
 export type ReminderShare = z.infer<typeof reminderShareSchema>
 
-/** Recipient view omits the owner's escalation contact and device settings. */
+/** Sharing roster visible only to the owner and explicit current members. */
+export const reminderSharingSchema = z.object({
+  owner: z.object({ id: z.string(), email: z.string(), displayName: z.string().nullable() }),
+  shares: z.array(reminderShareSchema)
+})
+export type ReminderSharingAccess = z.infer<typeof reminderSharingSchema>
+
+/** Recipient projection includes the editable definition with that member's personal prominence. */
 export const sharedReminderSchema = z.object({
   id: z.string(),
   title: z.string(),

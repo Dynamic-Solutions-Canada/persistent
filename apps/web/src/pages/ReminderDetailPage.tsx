@@ -29,21 +29,14 @@ import ShareIcon from '@mui/icons-material/Share'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { formatMedications, reminderBodyText, todoItems } from '@persistent/shared'
 import {
-  useAddTodoItem,
-  useCheckReminderItem,
   useReminders,
-  useRenameTodoItem,
-  useRemoveTodoItem,
-  useReorderTodoItems,
-  useSetHideCheckedItems,
   useUpdateReminderContent
 } from '../data/reminders.js'
 import {
   useActiveOccurrences,
   useAckOccurrence,
   useSnoozeOccurrence,
-  useSilenceOccurrence,
-  useCheckOccurrenceItem
+  useSilenceOccurrence
 } from '../data/occurrences.js'
 import { reminderScheduleLine } from '../lib/scheduleSummary.js'
 import { formatWhen } from '../lib/datetime.js'
@@ -55,7 +48,7 @@ import { FiringStatusChip } from '../components/FiringStatusChip.js'
 import { firingTone } from '../lib/firingTone.js'
 import { compareFirings } from '../lib/firingOrder.js'
 import { OccurrenceActions } from '../components/OccurrenceActions.js'
-import { TodoChecklist } from '../components/TodoChecklist.js'
+import { ReminderChecklist } from '../components/ReminderChecklist.js'
 import { SnoozeDialog } from '../components/SnoozeDialog.js'
 import { ReminderSharing } from '../components/ReminderSharing.js'
 import { ShareCountChip } from '../components/ShareCountChip.js'
@@ -77,13 +70,6 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
   const ack = useAckOccurrence()
   const snooze = useSnoozeOccurrence()
   const silence = useSilenceOccurrence()
-  const checkItem = useCheckOccurrenceItem()
-  const checkNoteItem = useCheckReminderItem()
-  const addItem = useAddTodoItem()
-  const reorderItems = useReorderTodoItems()
-  const renameItem = useRenameTodoItem()
-  const removeItem = useRemoveTodoItem()
-  const hideChecked = useSetHideCheckedItems()
   const updateContent = useUpdateReminderContent()
   const { timeFormat } = useSettings()
   const [snoozeFor, setSnoozeFor] = useState<string | null>(null)
@@ -232,24 +218,7 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
                   )}
                   {reminder.type === 'TODO' && (
                     <Box>
-                      <TodoChecklist
-                        items={items}
-                        checkedItemIds={occurrence.checkedItemIds}
-                        onToggle={(itemId, checked) =>
-                          checkItem.mutate({ id: occurrence.id, arg: { itemId, checked } })
-                        }
-                        // Items are per reminder, so adding one from any of these
-                        // cards adds it to the list every card is drawing.
-                        onAddItem={(item) => addItem.mutate({ id: reminder.id, arg: item })}
-                        onReorder={(itemIds) => reorderItems.mutate({ id: reminder.id, arg: { itemIds } })}
-                        onRenameItem={(itemId, text) => renameItem.mutate({ id: reminder.id, itemId, arg: { text } })}
-                        onRemoveItem={(itemId) => removeItem.mutate({ id: reminder.id, itemId })}
-                        // Ticks are per firing, the collapse is per reminder — so
-                        // every card here hides and shows together, and agrees with
-                        // the same list on Current.
-                        hideChecked={reminder.hideCheckedItems}
-                        onHideCheckedChange={(hidden) => hideChecked.mutate({ id: reminder.id, arg: { hidden } })}
-                      />
+                      <ReminderChecklist reminder={reminder} isNote={false} firing={occurrence} />
                     </Box>
                   )}
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -277,33 +246,7 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
             sx={{ p: 0, bgcolor: 'transparent', boxShadow: 'none' }}
           >
             <Typography level="title-sm">Checklist</Typography>
-            {reminder.schedule.kind === 'never' ? (
-              <TodoChecklist
-                items={items}
-                checkedItemIds={reminder.checkedItemIds}
-                confirmable={false}
-                onToggle={(itemId, checked) => checkNoteItem.mutate({
-                  id: reminder.id,
-                  arg: { itemId, checked }
-                })}
-                onAddItem={(item) => addItem.mutate({ id: reminder.id, arg: item })}
-                onRenameItem={(itemId, text) => renameItem.mutate({ id: reminder.id, itemId, arg: { text } })}
-                onRemoveItem={(itemId) => removeItem.mutate({ id: reminder.id, itemId })}
-                onReorder={(itemIds) => reorderItems.mutate({ id: reminder.id, arg: { itemIds } })}
-                hideChecked={reminder.hideCheckedItems}
-                onHideCheckedChange={(hidden) => hideChecked.mutate({ id: reminder.id, arg: { hidden } })}
-              />
-            ) : (
-              <TodoChecklist
-                items={items}
-                checkedItemIds={[]}
-                confirmable={false}
-                onAddItem={(item) => addItem.mutate({ id: reminder.id, arg: item })}
-                onRenameItem={(itemId, text) => renameItem.mutate({ id: reminder.id, itemId, arg: { text } })}
-                onRemoveItem={(itemId) => removeItem.mutate({ id: reminder.id, itemId })}
-                onReorder={(itemIds) => reorderItems.mutate({ id: reminder.id, arg: { itemIds } })}
-              />
-            )}
+            <ReminderChecklist reminder={reminder} isNote={reminder.schedule.kind === 'never'} />
             {reminder.schedule.kind !== 'never' && (
               <Typography level="body-xs" sx={{ color: 'text.tertiary' }}>
                 Ticked off each time this reminder notifies you.

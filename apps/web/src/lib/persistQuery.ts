@@ -3,7 +3,8 @@
  * firings render offline (e.g. the Capacitor WebView with no network), and
  * queued mutations survive a reload, bound to the saved account profile. Auth,
  * share, assignment, and admin queries are excluded; occurrence feeds are saved with
- * recipient firings removed.
+ * recipient firings removed. Paused writes and rollback contexts are filtered
+ * to owned targets on serialization and restoration.
  *
  * The cache holds DTOs shaped by the version that wrote them, so it is busted on
  * every app version: restoring rows from an older release into newer components

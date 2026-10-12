@@ -81,6 +81,8 @@ model User {
   announcementViews AnnouncementView[]
   reminders     Reminder[]
   receivedShares ReminderShare[]
+  invitedShares ReminderShare[] @relation("ShareInviter")
+  sentReminderInvitations ReminderInvitation[] @relation("InvitationInviter")
   recipientAlerts RecipientAlertState[]
   shareRecipients ShareRecipient[]
   assignmentsCreated ReminderAssignment[] @relation("AssignmentCreator")
@@ -228,6 +230,11 @@ model Reminder {
 /// Explicit collaboration grant. The reminder and firing remain owner-scoped,
 /// while each recipient can edit or complete and receives personal alerts.
 model ReminderShare {
+  /// Personal display preference; never copied from subsequent owner edits.
+  shadeProminence ShadeProminence @default(INHERIT)
+  /// Creator of this grant. Null on legacy grants or after inviter account deletion.
+  invitedById String?
+  invitedBy User? @relation("ShareInviter", fields: [invitedById], references: [id], onDelete: SetNull)
   reminderId  String
   recipientId String
   permission  SharePermission @default(EDIT)
@@ -238,11 +245,15 @@ model ReminderShare {
 
   @@id([reminderId, recipientId])
   @@index([recipientId])
+  @@index([invitedById])
 }
 
 /// Access requested for an email address that has not signed up yet. A verified
 /// sign-in for this address converts the invitation into a normal share.
 model ReminderInvitation {
+  /// Preserved when the invitation becomes a verified share.
+  invitedById String?
+  invitedBy User? @relation("InvitationInviter", fields: [invitedById], references: [id], onDelete: SetNull)
   reminderId String
   email String
   permission SharePermission @default(EDIT)
@@ -252,6 +263,7 @@ model ReminderInvitation {
 
   @@id([reminderId, email])
   @@index([email])
+  @@index([invitedById])
 }
 
 /// Owner-scoped history for the recipient picker, retained after access removal.

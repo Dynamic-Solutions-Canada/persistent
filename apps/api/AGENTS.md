@@ -13,9 +13,19 @@
   (`docs/auth-architecture.md`).
 - **Shared reminders are the only cross-user grant.** A recipient query must
   filter `ReminderShare.recipientId` by `requireUserId(request)` and join through
-  that exact reminder. Every grant permits editing and completion. Owner-only
-  sharing and deletion routes still scope the reminder by its owner's `userId`.
-  Completion and definition changes reach all participants; snooze and alarm
+  that exact reminder. Every grant permits editing and completion. Every current
+  member can view the roster and invite others. Only the owner or
+  original inviter can remove a member or pending invitation; leaving removes
+  only the actor's grant. Reminder deletion remains owner-only.
+  Membership changes and invitation claims lock the canonical reminder before
+  changing grants, then recheck authorization after waiting. Use
+  `lib/sharing-access.ts` for this lock order, also for full definition edits
+  that write a recipient's personal preference and for checklist progress writes.
+  An occurrence tick must check live status in its atomic SQL update, so Done
+  remains terminal even if completion races the earlier status read.
+  Each grant stores personal shade prominence and original inviter attribution.
+  Recipient definition writes must preserve the owner's prominence. Completion
+  and definition changes reach all participants; snooze and alarm
   escalation belong to the participant acting on the firing. A recipient may
   delete their own share without deleting the owner's reminder. Invitations for
   unknown addresses never grant access until a verified sign-in claims them;

@@ -220,13 +220,22 @@ by that row's `recipientId`; action and edit routes require that grant before
 touching the owner's reminder or firing. Every current grant permits editing,
 checklist changes, and completion. Completion dismisses the one shared firing
 for everyone. Snooze and alarm escalation are per participant.
-The owner grants, revokes, and deletes. A recipient may also leave a shared
-reminder, which deletes only their own grant. The firing stays owned by the creator,
+Every current member can read the sharing roster, including the owner, and invite
+additional people directly. Only the owner or original inviter can remove a
+member or pending invitation. Re-adding an existing member does not transfer
+inviter authority. Legacy grants with no inviter remain owner-managed. An inviter
+who leaves no longer has management access; members they invited retain theirs.
+Only the owner deletes the reminder. A recipient may leave from the sharing
+dialog, which deletes only their own grant. The firing stays owned by the creator,
 but each participant receives their own native alarms. The full editor includes
 the reminder's escalation settings, so sharing also discloses those settings.
 The recipient's Current, Upcoming, Notes, and History views read active grants;
 Settings links to a full Shared with me list. Received data is excluded from the
-persisted offline cache so revoked access does not linger on that device.
+persisted offline cache so revoked access does not linger on that device. This
+includes paused received-targeted writes and received rollback snapshots, with
+the same filtering applied before restoring older caches. Membership and progress
+writes recheck the grant after locking the reminder, so a revoked participant
+cannot act through a request that was waiting for the lock.
 
 An assignment has one recipient and is separate from sharing. For an existing
 account, the reminder and firings are owned by the assignee immediately. For an

@@ -6,15 +6,17 @@ import { Router } from 'express'
 import { isTimeless, shareInputSchema, type Schedule, type SharedReminder } from '@persistent/shared'
 import { prisma } from '../lib/prisma.js'
 import { requireUser, requireUserId } from '../lib/auth-middleware.js'
-import { badRequest, notFound } from '../lib/http-error.js'
+import { badRequest, forbidden, notFound } from '../lib/http-error.js'
 import { broadcast } from '../lib/realtime.js'
-import { sendShareInvitation } from '../lib/share-invitations.js'
+import { sendShareInvitationFor } from '../lib/share-invitations.js'
 import { occurrenceForActor } from '../lib/recipient-alert-state.js'
 import { nudgeNativeSync } from '../lib/delivery/index.js'
 import { logger } from '../lib/logger.js'
 import { toCheckedItemIds, toReminder } from '../lib/serializers.js'
 import { expandSchedule } from '../lib/schedule-expand.js'
 import type { Prisma } from '@prisma/client'
+
+import { withSharingReminder, canManageInvitation, broadcastSharingChange } from '../lib/sharing-access.js'
 
 export const sharesRouter = Router()
 sharesRouter.use(requireUser)
@@ -34,15 +36,15 @@ const receivedShareInclude = (now: Date) => ({
 }) satisfies Prisma.ReminderShareInclude
 
 /** Remember an address after a grant or invitation is stored, even if later removed. */
-async function rememberRecipient(ownerId: string, email: string): Promise<void> {
-  await prisma.shareRecipient.upsert({
+async function rememberRecipient(database: Prisma.TransactionClient, ownerId: string, email: string): Promise<void> {
+  await database.shareRecipient.upsert({
     where: { ownerId_email: { ownerId, email } },
     create: { ownerId, email },
     update: { lastSharedAt: new Date() }
   })
 }
 
-/** Send only fields that the recipient needs to read the reminder. */
+/** Project canonical reminder data with the recipient's personal display preference. */
 function toSharedReminder(
   share: Prisma.ReminderShareGetPayload<{ include: ReturnType<typeof receivedShareInclude> }>,
   firings: SharedReminder['activeFirings'],
@@ -75,7 +77,10 @@ function toSharedReminder(
     nextScheduledFor,
     permission: 'EDIT',
     activeFirings: firings,
-    editableReminder: toReminder(reminder, reminder.occurrences[0] ?? null),
+    editableReminder: {
+      ...toReminder(reminder, reminder.occurrences[0] ?? null),
+      shadeProminence: share.shadeProminence
+    },
     updatedAt: reminder.updatedAt.toISOString()
   }
 }
@@ -128,54 +133,54 @@ sharesRouter.get('/recipients', async (request, response) => {
 /** Leaving removes only the caller's grant; the owner's reminder and firings survive. */
 sharesRouter.delete('/received/:reminderId', async (request, response) => {
   const recipientId = requireUserId(request)
-  const share = await prisma.reminderShare.findFirst({
-    where: { reminderId: request.params.reminderId, recipientId },
-    select: { reminder: { select: { userId: true } } }
+  const reminder = await withSharingReminder(request.params.reminderId, recipientId, async (transaction, reminder) => {
+    const deleted = await transaction.reminderShare.deleteMany({ where: { reminderId: reminder.id, recipientId } })
+    if (deleted.count === 0) throw notFound('Shared reminder not found.')
+    await transaction.recipientAlertState.deleteMany({
+      where: { recipientId, occurrence: { reminderId: reminder.id } }
+    })
+    return reminder
   })
-  if (!share) throw notFound('Shared reminder not found.')
-
-  await prisma.reminderShare.deleteMany({ where: { reminderId: request.params.reminderId, recipientId } })
-  await prisma.recipientAlertState.deleteMany({
-    where: { recipientId, occurrence: { reminderId: request.params.reminderId } }
-  })
-  broadcast(recipientId, { type: 'share.changed' })
-  broadcast(recipientId, { type: 'reminder.changed', reminderId: request.params.reminderId })
-  broadcast(share.reminder.userId, { type: 'share.changed' })
+  await broadcastSharingChange(reminder.id, reminder.userId, recipientId)
+  broadcast(recipientId, { type: 'reminder.changed', reminderId: reminder.id })
   void nudgeNativeSync(recipientId).catch((error) =>
-    logger.warn('leave shared reminder sync failed', { error: String(error), reminderId: request.params.reminderId })
+    logger.warn('leave shared reminder sync failed', { error: String(error), reminderId: reminder.id })
   )
   response.json({ ok: true })
 })
 
 sharesRouter.get('/:reminderId', async (request, response) => {
   const userId = requireUserId(request)
-  const reminder = await prisma.reminder.findFirst({ where: { id: request.params.reminderId, userId } })
-  if (!reminder) throw notFound('Reminder not found.')
-
-  const shares = await prisma.reminderShare.findMany({
-    where: { reminderId: reminder.id, reminder: { userId } },
-    include: { recipient: { select: { email: true, displayName: true } } },
-    orderBy: { createdAt: 'asc' }
+  const roster = await withSharingReminder(request.params.reminderId, userId, async (transaction, reminder) => {
+    const shares = await transaction.reminderShare.findMany({
+      where: { reminderId: reminder.id, reminder: { userId: reminder.userId } },
+      include: { recipient: { select: { email: true, displayName: true } } },
+      orderBy: { createdAt: 'asc' }
+    })
+    const invitations = await transaction.reminderInvitation.findMany({
+      where: { reminderId: reminder.id, reminder: { userId: reminder.userId } },
+      orderBy: { createdAt: 'asc' }
+    })
+    return {
+      owner: reminder.user,
+      shares: [...shares.map((share) => ({
+        recipientId: share.recipientId,
+        email: share.recipient.email,
+        displayName: share.recipient.displayName,
+        permission: 'EDIT',
+        pending: false,
+        canRemove: canManageInvitation(reminder.userId, share.invitedById, userId)
+      })), ...invitations.map((invitation) => ({
+        recipientId: null,
+        email: invitation.email,
+        displayName: null,
+        permission: 'EDIT',
+        pending: true,
+        canRemove: canManageInvitation(reminder.userId, invitation.invitedById, userId)
+      }))]
+    }
   })
-  const invitations = await prisma.reminderInvitation.findMany({
-    where: { reminderId: reminder.id, reminder: { userId } },
-    orderBy: { createdAt: 'asc' }
-  })
-  response.json({
-    shares: [...shares.map((share) => ({
-      recipientId: share.recipientId,
-      email: share.recipient.email,
-      displayName: share.recipient.displayName,
-      permission: 'EDIT',
-      pending: false
-    })), ...invitations.map((invitation) => ({
-      recipientId: null,
-      email: invitation.email,
-      displayName: null,
-      permission: 'EDIT',
-      pending: true
-    }))]
-  })
+  response.json(roster)
 })
 
 sharesRouter.put('/:reminderId', async (request, response) => {
@@ -183,133 +188,146 @@ sharesRouter.put('/:reminderId', async (request, response) => {
   const parsed = shareInputSchema.safeParse(request.body)
   if (!parsed.success) throw badRequest('Enter a valid email and access level.')
 
-  const reminder = await prisma.reminder.findFirst({
-    where: { id: request.params.reminderId, userId },
-    include: { user: { select: { email: true, displayName: true } } }
-  })
-  if (!reminder) throw notFound('Reminder not found.')
-  if (await prisma.reminderAssignment.findUnique({ where: { reminderId: reminder.id } })) {
-    throw badRequest('Assigned reminders can have only one recipient.')
-  }
+  const result = await withSharingReminder(request.params.reminderId, userId, async (transaction, reminder) => {
+    if (await transaction.reminderAssignment.findUnique({ where: { reminderId: reminder.id } })) {
+      throw badRequest('Assigned reminders can have only one recipient.')
+    }
 
-  // Google may have stored the account's original email casing; addresses are
-  // matched case-insensitively just like the sign-in field presented to people.
-  const recipient = await prisma.user.findFirst({
-    where: { email: { equals: parsed.data.email, mode: 'insensitive' } }
-  })
-  if (recipient?.id === userId || parsed.data.email === reminder.user.email.toLowerCase()) {
-    throw badRequest('You already own this reminder.')
-  }
+    // Google may have stored the account's original email casing; addresses are
+    // matched case-insensitively just like the sign-in field presented to people.
+    const recipient = await transaction.user.findFirst({
+      where: { email: { equals: parsed.data.email, mode: 'insensitive' } }
+    })
+    if (parsed.data.email === reminder.user.email.toLowerCase()) {
+      throw badRequest('The owner already has access.')
+    }
+    if (recipient?.id === userId) throw badRequest('You already have access.')
 
-  if (!recipient) {
-    const existing = await prisma.reminderInvitation.findUnique({
+    if (!recipient) {
+      const existing = await transaction.reminderInvitation.findUnique({
+        where: { reminderId_email: { reminderId: reminder.id, email: parsed.data.email } }
+      })
+      if (existing && !canManageInvitation(reminder.userId, existing.invitedById, userId)) {
+        throw forbidden('Only the owner or inviter can resend this invitation.')
+      }
+      if (!existing) {
+        const count = await transaction.reminderShare.count({ where: { reminderId: reminder.id } }) +
+          await transaction.reminderInvitation.count({ where: { reminderId: reminder.id } })
+        if (count >= 20) throw badRequest('You can share with up to 20 people.')
+      }
+      await transaction.reminderInvitation.upsert({
+        where: { reminderId_email: { reminderId: reminder.id, email: parsed.data.email } },
+        create: { reminderId: reminder.id, email: parsed.data.email, invitedById: userId, permission: 'EDIT' },
+        update: { permission: 'EDIT' }
+      })
+      await rememberRecipient(transaction, userId, parsed.data.email)
+      return { reminder, share: { recipientId: null, email: parsed.data.email, displayName: null, permission: 'EDIT' as const, pending: true } }
+
+    }
+
+    const current = await transaction.reminderShare.findUnique({
+      where: { reminderId_recipientId: { reminderId: reminder.id, recipientId: recipient.id } }
+    })
+    // An account may have registered while its email invitation is still being claimed.
+    // Preserve that invitation's author instead of awarding removal rights to a later add.
+    const pendingInvitation = await transaction.reminderInvitation.findUnique({
       where: { reminderId_email: { reminderId: reminder.id, email: parsed.data.email } }
     })
-    if (!existing) {
-      const count = await prisma.reminderShare.count({ where: { reminderId: reminder.id } }) +
-        await prisma.reminderInvitation.count({ where: { reminderId: reminder.id } })
+    const invitedById = pendingInvitation ? pendingInvitation.invitedById : userId
+    if (!current && !pendingInvitation) {
+      const count = await transaction.reminderShare.count({ where: { reminderId: reminder.id } }) +
+        await transaction.reminderInvitation.count({ where: { reminderId: reminder.id } })
       if (count >= 20) throw badRequest('You can share with up to 20 people.')
     }
-    await prisma.reminderInvitation.upsert({
-      where: { reminderId_email: { reminderId: reminder.id, email: parsed.data.email } },
-      create: { reminderId: reminder.id, email: parsed.data.email, permission: 'EDIT' },
+
+    const share = await transaction.reminderShare.upsert({
+      where: { reminderId_recipientId: { reminderId: reminder.id, recipientId: recipient.id } },
+      create: { reminderId: reminder.id, recipientId: recipient.id, invitedById, permission: 'EDIT' },
       update: { permission: 'EDIT' }
     })
-    await rememberRecipient(userId, parsed.data.email)
-    // A prior attempt may have stored the invitation before email delivery
-    // failed. Adding the same address must retry rather than report success.
-    await sendShareInvitation({
-      ownerId: userId,
-      email: parsed.data.email,
-      ownerName: reminder.user.displayName || reminder.user.email
-    })
-    broadcast(userId, { type: 'share.changed' })
-    response.json({ share: { recipientId: null, email: parsed.data.email, displayName: null, permission: 'EDIT', pending: true } })
-    return
-  }
+    await rememberRecipient(transaction, userId, parsed.data.email)
+    await transaction.reminderInvitation.deleteMany({ where: { reminderId: reminder.id, email: parsed.data.email } })
+    return { reminder, share: { recipientId: share.recipientId, email: recipient.email, displayName: recipient.displayName, permission: 'EDIT' as const, pending: false } }
+  })
 
-  const current = await prisma.reminderShare.findUnique({
-    where: { reminderId_recipientId: { reminderId: reminder.id, recipientId: recipient.id } }
-  })
-  if (!current) {
-    const count = await prisma.reminderShare.count({ where: { reminderId: reminder.id } }) +
-      await prisma.reminderInvitation.count({ where: { reminderId: reminder.id } })
-    if (count >= 20) throw badRequest('You can share with up to 20 people.')
+  // Persist and invalidate before delivery: a mail failure leaves a retryable invitation.
+  await broadcastSharingChange(result.reminder.id, result.reminder.userId)
+  if (result.share.recipientId) {
+    broadcast(result.share.recipientId, { type: 'reminder.changed', reminderId: result.reminder.id })
+    void nudgeNativeSync(result.share.recipientId).catch((error) =>
+      logger.warn('new share sync failed', { error: String(error), reminderId: result.reminder.id })
+    )
+  } else {
+    await deliverInvitation(userId, result.reminder.id, result.share.email)
   }
-
-  const share = await prisma.reminderShare.upsert({
-    where: { reminderId_recipientId: { reminderId: reminder.id, recipientId: recipient.id } },
-    create: { reminderId: reminder.id, recipientId: recipient.id, permission: 'EDIT' },
-    update: { permission: 'EDIT' }
-  })
-  await rememberRecipient(userId, parsed.data.email)
-  await prisma.reminderInvitation.deleteMany({ where: { reminderId: reminder.id, email: parsed.data.email } })
-  broadcast(recipient.id, { type: 'share.changed' })
-  broadcast(recipient.id, { type: 'reminder.changed', reminderId: reminder.id })
-  broadcast(userId, { type: 'share.changed' })
-  void nudgeNativeSync(recipient.id).catch((error) =>
-    logger.warn('new share sync failed', { error: String(error), reminderId: reminder.id })
-  )
-  response.json({
-    share: {
-      recipientId: share.recipientId,
-      email: recipient.email,
-      displayName: recipient.displayName,
-      permission: 'EDIT',
-      pending: false
-    }
-  })
+  response.json({ share: result.share })
 })
 
 sharesRouter.delete('/:reminderId/invitations/:email', async (request, response) => {
   const userId = requireUserId(request)
-  const reminder = await prisma.reminder.findFirst({ where: { id: request.params.reminderId, userId } })
-  if (!reminder) throw notFound('Reminder not found.')
-
-  const deleted = await prisma.reminderInvitation.deleteMany({
-    where: { reminderId: reminder.id, email: request.params.email.toLowerCase(), reminder: { userId } }
+  const reminder = await withSharingReminder(request.params.reminderId, userId, async (transaction, reminder) => {
+    const deleted = await transaction.reminderInvitation.deleteMany({
+      where: {
+        reminderId: reminder.id, email: request.params.email.toLowerCase(),
+        reminder: { userId: reminder.userId },
+        ...(reminder.userId === userId ? {} : { invitedById: userId })
+      }
+    })
+    if (deleted.count === 0) throw notFound('Invitation not found.')
+    return reminder
   })
-  if (deleted.count === 0) throw notFound('Invitation not found.')
-  broadcast(userId, { type: 'share.changed' })
+  await broadcastSharingChange(reminder.id, reminder.userId)
   response.json({ ok: true })
 })
 
 sharesRouter.post('/:reminderId/invitations/:email/resend', async (request, response) => {
   const userId = requireUserId(request)
-  const invitation = await prisma.reminderInvitation.findFirst({
-    where: {
-      reminderId: request.params.reminderId,
-      email: request.params.email.toLowerCase(),
-      reminder: { userId }
-    },
-    include: { reminder: { include: { user: { select: { email: true, displayName: true } } } } }
+  const invitation = await withSharingReminder(request.params.reminderId, userId, async (transaction, reminder) => {
+    const invitation = await transaction.reminderInvitation.findFirst({
+      where: {
+        reminderId: reminder.id,
+        email: request.params.email.toLowerCase(),
+        reminder: { userId: reminder.userId },
+        ...(reminder.userId === userId ? {} : { invitedById: userId })
+      }
+    })
+    if (!invitation) throw notFound('Invitation not found.')
+    return invitation
   })
-  if (!invitation) throw notFound('Invitation not found.')
-  await sendShareInvitation({
-    ownerId: userId,
-    email: invitation.email,
-    ownerName: invitation.reminder.user.displayName || invitation.reminder.user.email
-  })
+  await deliverInvitation(userId, invitation.reminderId, invitation.email)
   response.json({ ok: true })
 })
 
 sharesRouter.delete('/:reminderId/:recipientId', async (request, response) => {
   const userId = requireUserId(request)
-  const reminder = await prisma.reminder.findFirst({ where: { id: request.params.reminderId, userId } })
-  if (!reminder) throw notFound('Reminder not found.')
-
-  const deleted = await prisma.reminderShare.deleteMany({
-    where: { reminderId: reminder.id, recipientId: request.params.recipientId, reminder: { userId } }
+  const reminder = await withSharingReminder(request.params.reminderId, userId, async (transaction, reminder) => {
+    const deleted = await transaction.reminderShare.deleteMany({
+      where: {
+        reminderId: reminder.id, recipientId: request.params.recipientId,
+        reminder: { userId: reminder.userId },
+        ...(reminder.userId === userId ? {} : { invitedById: userId })
+      }
+    })
+    if (deleted.count === 0) throw notFound('Share not found.')
+    await transaction.recipientAlertState.deleteMany({
+      where: { recipientId: request.params.recipientId, occurrence: { reminderId: reminder.id } }
+    })
+    return reminder
   })
-  if (deleted.count === 0) throw notFound('Share not found.')
-  await prisma.recipientAlertState.deleteMany({
-    where: { recipientId: request.params.recipientId, occurrence: { reminderId: reminder.id } }
-  })
-  broadcast(request.params.recipientId, { type: 'share.changed' })
+  await broadcastSharingChange(reminder.id, reminder.userId, request.params.recipientId)
   broadcast(request.params.recipientId, { type: 'reminder.changed', reminderId: reminder.id })
-  broadcast(userId, { type: 'share.changed' })
   void nudgeNativeSync(request.params.recipientId).catch((error) =>
     logger.warn('removed share sync failed', { error: String(error), reminderId: reminder.id })
   )
   response.json({ ok: true })
 })
+
+/** Log retryable email failures without recipient addresses or message contents. */
+async function deliverInvitation(actorId: string, reminderId: string, email: string): Promise<void> {
+  try {
+    await sendShareInvitationFor(actorId, email)
+  } catch (error) {
+    logger.warn('share invitation delivery failed', { actorId, reminderId, error: String(error) })
+    throw error
+  }
+}

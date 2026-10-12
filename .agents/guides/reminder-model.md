@@ -34,7 +34,11 @@ older unacknowledged one, and acknowledging one occurrence never clears another.
 `SUPERSEDED` is legacy-only and must not be produced.
 
 Shared reminders keep creator-owned firings and give every participant edit and
-completion access. Assigned reminders instead belong to one assignee. Their
+completion access. Members use the same reading-view checklist and firing actions
+as owners. Snooze, de-escalation, and shade prominence are personal; checklist
+progress and Done are shared. Every current member can invite another person.
+Only the owner or original inviter may remove that person's access; leaving
+removes only the caller's grant. Assigned reminders instead belong to one assignee. Their
 creator has a separate read-only progress record and receives no firing alerts.
 For a pending email invitation, create and schedule the reminder only after
 verified sign-in establishes the assignee and their time zone.

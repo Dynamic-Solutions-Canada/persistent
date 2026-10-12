@@ -130,7 +130,7 @@ export function ReminderDialogProvider({ children }: { children: ReactNode }) {
                 {canEdit && (
                   <Button variant="outlined" size="sm" startDecorator={<EditIcon />} onClick={() => setDialog({ kind: 'edit', id: dialog.id })}>Edit</Button>
                 )}
-                {ownerReminder && (
+                {(ownerReminder || receivedReminder) && (
                   <Button
                     variant="plain"
                     size="sm"
@@ -147,7 +147,7 @@ export function ReminderDialogProvider({ children }: { children: ReactNode }) {
           )}
         </ModalDialog>
       </BackAwareModal>
-      <ReminderSharing open={shareOpen} onClose={() => setShareOpen(false)} reminderId={ownerReminder?.id} />
+      <ReminderSharing open={shareOpen} onClose={() => setShareOpen(false)} reminderId={viewedId ?? undefined} onLeave={close} />
     </ReminderDialogContext.Provider>
   )
 }

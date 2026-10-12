@@ -98,7 +98,10 @@ other products with platform labels and links, including Windows apps.
   Everyone with access can edit it and mark a firing done for the group. Snoozes and alarm
   escalation are personal, so one person's snooze does not silence another person's alert.
   Reminders shared with you appear in Current, Upcoming, Notes, and History as appropriate;
-  Settings has a full Shared with me list.
+  Settings has a full Shared with me list. The usual reading view supports checklist
+  ticks, Done, Snooze, and de-escalation. Share lists the owner and members, lets any
+  member invite someone else, and offers Leave to recipients. The owner and the person
+  who invited someone can remove their access. Android shade prominence is personal.
 - **Assign a reminder.** Create one for a single other person. They own its alerts and actions;
   you can see when each firing was handled in Assigned by me. They can decline it.
 - **Medication reminders.** Keep a medicine name and dose with a reminder. Persistent helps

@@ -498,8 +498,12 @@ The level is chosen per non-alarm notification by `channelFor(spec)`: a reminder
 own `shadeProminence` (`NORMAL`/`MINIMIZED`), or — when `INHERIT` — the **device
 default** stored in `AlarmStore` (`SettingsPage` -> `setDefaultShadeProminence` ->
 `AlarmService.setDefaultProminence`). `shadeProminence` is a server-side reminder
-field (shared `shadeProminenceSchema` <-> Prisma `ShadeProminence`), so per-reminder
-choices sync across devices; the device default is a per-device localStorage pref
+field for the owner, while each recipient stores their own choice on their
+`ReminderShare`. Recipient editor writes never change the owner's choice, and
+`/api/sync/occurrences` projects the current participant's choice into device
+alarms. Existing grants start with the former shared value at migration; new
+grants follow the recipient's device default until changed. Per-person choices
+sync across that person's devices; the device default is a per-device localStorage pref
 pushed to native on startup and on change.
 
 A notification's channel can't change on an in-place `notify()`, so a prominence

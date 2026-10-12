@@ -1,4 +1,5 @@
 /** Bind persisted queries and queued writes to the last server-confirmed account. */
+import { ownedCache } from './serializeOwnedCache.js'
 import type { PersistedClient } from '@tanstack/react-query-persist-client'
 
 /** Add the owner to the already-filtered cache without retaining credentials. */
@@ -12,5 +13,5 @@ export function deserializeAccountCache(raw: string, accountId: string | null): 
   if (!accountId || saved.accountId !== accountId) {
     return { timestamp: 0, buster: '', clientState: { queries: [], mutations: [] } }
   }
-  return saved
+  return ownedCache(saved)
 }
