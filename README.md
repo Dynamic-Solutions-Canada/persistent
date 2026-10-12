@@ -15,8 +15,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Dynamic-Solutions-Canada/persistent/releases/latest">
-    <img src="https://img.shields.io/badge/Android-Download%20the%20app-3ddc84?style=for-the-badge" alt="Download the Android app">
+  <a href="https://play.google.com/store/apps/details?id=ca.dynamicsolutions.persistent">
+    <img src="https://img.shields.io/badge/Android-Google%20Play-3ddc84?style=for-the-badge" alt="Get Persistent for Android on Google Play">
   </a>
 </p>
 
@@ -123,15 +123,13 @@ with the same account and live data as every other surface. Browser notification
 are not supported; install a native app to be alerted.
 
 **Android (recommended, Android 7.0 or newer):** install Persistent from
-[Google Play](https://play.google.com/store/apps/details?id=ca.dynamicsolutions.persistent)
-or download the [APK from GitHub](https://github.com/Dynamic-Solutions-Canada/persistent/releases/latest).
-Both offer the same app. Google Play is optional; you can keep installing newer APKs
-manually from GitHub. The app can sound previously scheduled alarms even while offline.
+[Google Play](https://play.google.com/store/apps/details?id=ca.dynamicsolutions.persistent).
+The app can sound previously scheduled alarms even while offline.
 During detected phone or voice/video calls, alarms wait quietly as notifications
 and resume after the call if you have not handled them.
 
-Older GitHub installs were a separate Android app. The new APK installs beside that
-old app instead of replacing it. Install from either source, sign in to the same
+Older GitHub installs were a separate Android app. The Google Play app installs beside
+that old app instead of replacing it. Install from Google Play, sign in to the same
 account, check your saved reminders, then remove the old app to avoid duplicate
 alerts. The new app has no Android Auto support or in-app APK updater.
 
@@ -171,10 +169,9 @@ no Node toolchain is needed. On Debian/Ubuntu, open the `.deb` with your package
 installer. See [Linux installation details](apps/linux-desktop/README.md#build-package-and-install)
 for requirements and troubleshooting. Portable tar downloads are not offered.
 
-> All three apps publish into the same release list, so browsing it raw interleaves
-> them. The Android app is tagged `vX.Y.Z` and is always the one marked **Latest**;
-> Windows uses `desktop-vX.Y.Z` and Linux uses `linux-vX.Y.Z`. The links above filter
-> to the right one.
+> Windows and Linux downloads share a GitHub release list. Windows uses
+> `desktop-vX.Y.Z` and Linux uses `linux-vX.Y.Z`; their links above filter to the
+> right platform. Android downloads link to Google Play.
 
 ## Why the app over the web?
 
