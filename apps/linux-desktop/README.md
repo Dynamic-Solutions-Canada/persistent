@@ -1,5 +1,8 @@
 # Persistent for Linux
 
+[Download Persistent for Linux](https://github.com/Dynamic-Solutions-Canada/persistent/releases?q=Linux&expanded=true),
+available as AppImage and Debian packages for Intel/AMD 64-bit and ARM64 computers.
+
 A resident tray app hosting the same Persistent web UI as Windows. Notifications
 are optional and off by default. It can restore dismissed notifications, repeat
 configured nags and loop alarm audio while the computer is awake and the app runs.

@@ -1,10 +1,10 @@
 /**
  * Settings for appearance, native notifications, account access and sign-out.
- * Browser notifications are deliberately unsupported; Android and Windows each
+ * Browser notifications are deliberately unsupported; Android, Windows and Linux each
  * render their own device-specific controls here.
  *
  * Every host adds its own cards here rather than putting them somewhere of its
- * own: Android's sounds and shade prominence, and the Windows tray app's
+ * own: Android's sounds and shade prominence, and the desktop tray apps'
  * notifications, startup and window settings (`native/desktop-settings/`). One
  * Settings screen per product, whichever host is showing it.
  */
@@ -183,7 +183,7 @@ export function SettingsPage() {
         </Card>
       )}
 
-      {/* The Windows tray app's own settings. Renders nothing anywhere else. */}
+      {/* Desktop host settings render only in the Windows and Linux apps. */}
       <DesktopSettings />
 
       <Card variant="outlined">
@@ -229,7 +229,7 @@ export function SettingsPage() {
       <Card variant="outlined">
         <Typography level="title-sm">Apps</Typography>
         <Typography level="body-sm">
-          Get alarms that work offline on Android, or persistent alerts while your PC is awake with the Windows app.
+          Get alarms that work offline on Android, or persistent alerts while your computer is awake with the Windows and Linux apps.
         </Typography>
         <NativeAppButtons />
         <Link component={RouterLink} to="/settings/apps">Our other apps</Link>

@@ -15,8 +15,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/RyanEwen/persistent/releases/latest">
+  <a href="https://github.com/Dynamic-Solutions-Canada/persistent/releases/latest">
     <img src="https://img.shields.io/badge/Android-Download%20the%20app-3ddc84?style=for-the-badge" alt="Download the Android app">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Dynamic-Solutions-Canada/persistent/releases?q=Linux&amp;expanded=true">
+    <img src="https://img.shields.io/badge/Linux-Download%20the%20app-fcc624?style=for-the-badge&amp;logo=linux&amp;logoColor=black" alt="Download Persistent for Linux (AppImage and Debian)">
   </a>
 </p>
 
@@ -118,7 +124,7 @@ are not supported; install a native app to be alerted.
 
 **Android (recommended, Android 7.0 or newer):** install Persistent from
 [Google Play](https://play.google.com/store/apps/details?id=ca.dynamicsolutions.persistent)
-or download the [APK from GitHub](https://github.com/RyanEwen/persistent/releases/latest).
+or download the [APK from GitHub](https://github.com/Dynamic-Solutions-Canada/persistent/releases/latest).
 Both offer the same app. Google Play is optional; you can keep installing newer APKs
 manually from GitHub. The app can sound previously scheduled alarms even while offline.
 During detected phone or voice/video calls, alarms wait quietly as notifications
@@ -135,7 +141,7 @@ app, and its size remains adjustable in Settings. Install it from the
 [Microsoft Store](https://apps.microsoft.com/detail/9PCX2XGQ7CJS), which keeps it
 up to date on its own. If you'd rather not install anything, the portable zip for
 your architecture (x64 or ARM64) is on the
-[latest `desktop-v*` release](https://github.com/RyanEwen/persistent/releases?q=desktop&expanded=true):
+[latest `desktop-v*` release](https://github.com/Dynamic-Solutions-Canada/persistent/releases?q=desktop&expanded=true):
 unzip and run. It's for seeing and confirming reminders at your desk, and it can
 keep Windows notifications present until you act, restore them after dismissal,
 repeat configured nags, and loop alarm audio for Alarm reminders and escalations.
@@ -145,12 +151,25 @@ compact rows at medium size, or four expanded rows at large size. It catches up
 after reconnecting, but cannot reach you while it is closed or the PC is asleep.
 
 **Linux:** download an AppImage or Debian package from the
-[Linux releases](https://github.com/Dynamic-Solutions-Canada/persistent/releases?q=linux-v&expanded=true).
+[Linux releases](https://github.com/Dynamic-Solutions-Canada/persistent/releases?q=Linux&expanded=true).
 The tray flyout and native reminder alerts work while the app runs and the computer
 is awake. Updates can be checked automatically or manually, with approval before
 downloading and installing. AppImage installation is user-level; Debian installation
 needs administrator approval. GNOME needs AppIndicator support and may require
 double click. XWayland is the default on Wayland desktops for tray-corner placement.
+
+Choose the package matching your computer:
+
+| Computer | AppImage filename ends with | Debian/Ubuntu filename ends with |
+| --- | --- | --- |
+| 64-bit Intel or AMD | `x86_64.AppImage` | `amd64.deb` |
+| ARM64 | `arm64.AppImage` | `arm64.deb` |
+
+For AppImage, mark the download executable and run it. Run it with `--install`
+to add a user-level application-menu launcher and keep a stable path for updates;
+no Node toolchain is needed. On Debian/Ubuntu, open the `.deb` with your package
+installer. See [Linux installation details](apps/linux-desktop/README.md#build-package-and-install)
+for requirements and troubleshooting. Portable tar downloads are not offered.
 
 > All three apps publish into the same release list, so browsing it raw interleaves
 > them. The Android app is tagged `vX.Y.Z` and is always the one marked **Latest**;
@@ -160,8 +179,8 @@ double click. XWayland is the default on Wayland desktops for tray-corner placem
 ## Why the app over the web?
 
 The Android app can keep an alarm sounding until you act, even while offline.
-The web app manages reminders but does not send alerts. The Windows app can alert
-you while it is running and your PC is awake.
+The web app manages reminders but does not send alerts. The Windows and Linux
+apps can alert you while they are running and your computer is awake.
 
 ## Developers
 
