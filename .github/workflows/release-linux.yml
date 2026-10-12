@@ -3,12 +3,21 @@ name: Release Linux desktop
 on:
   push:
     tags: ['linux-v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing Linux tag to build and publish
+        required: true
+        type: string
+
+env:
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 
 permissions:
   contents: read
 
 concurrency:
-  group: linux-release-${{ github.ref }}
+  group: linux-release-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -26,6 +35,7 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           submodules: true
+          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.ref }}
           fetch-depth: 0
       - uses: actions/setup-node@v7.1.0
         with:
@@ -48,7 +58,7 @@ jobs:
           import { linuxVersionSchema } from './packages/shared/dist/index.js'
           const version = JSON.parse(fs.readFileSync('apps/linux-desktop/package.json', 'utf8')).version
           linuxVersionSchema.parse(version)
-          if (process.env.GITHUB_REF_NAME !== `linux-v${version}`) throw new Error('Linux tag does not match package version')
+          if (process.env.RELEASE_TAG !== `linux-v${version}`) throw new Error('Linux tag does not match package version')
           execFileSync('git', ['merge-base', '--is-ancestor', 'HEAD', 'origin/main'])
           JS
       - uses: actions/setup-node@v7.1.0
@@ -77,10 +87,14 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           submodules: true
+          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.ref }}
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '20.20.2'
+      - run: npm ci
       - uses: actions/setup-node@v7.1.0
         with:
           node-version: '22.22.3'
-      - run: npm ci
       - run: npm --prefix apps/linux-desktop ci --ignore-scripts
       - run: npm run build:linux
       - uses: actions/download-artifact@v8.0.2
@@ -94,7 +108,7 @@ jobs:
         run: |
           VERSION=$(node -p "require('./apps/linux-desktop/package.json').version")
           node apps/linux-desktop/dist/release-manifest.cjs linux-release "$VERSION"
-          gh release create "$GITHUB_REF_NAME" --draft --verify-tag --latest=false \
+          gh release create "$RELEASE_TAG" --draft --verify-tag --latest=false \
             --title "Persistent for Linux $VERSION" --notes-file apps/linux-desktop/RELEASE_NOTES.md
-          gh release upload "$GITHUB_REF_NAME" linux-release/*.AppImage linux-release/*.deb linux-release/*-update.json
-          gh release edit "$GITHUB_REF_NAME" --draft=false --latest=false
+          gh release upload "$RELEASE_TAG" linux-release/*.AppImage linux-release/*.deb linux-release/*-update.json
+          gh release edit "$RELEASE_TAG" --draft=false --latest=false
