@@ -183,7 +183,8 @@ Setup, architecture, and the release/deploy workflow are in
 
 ## License
 
-UNLICENSED — private.
+Licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE.md).
+Copyright (c) 2026 Ryan Ewen.
 
 ## Linux desktop
 
