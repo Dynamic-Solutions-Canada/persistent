@@ -19,11 +19,8 @@
   <a href="https://apps.microsoft.com/detail/9PCX2XGQ7CJS">
     <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Download Persistent for Windows from the Microsoft Store" height="56">
   </a>
-</p>
-
-<p align="center">
   <a href="https://github.com/Dynamic-Solutions-Canada/persistent/releases?q=Linux&amp;expanded=true">
-    <img src="https://img.shields.io/badge/Linux-Download%20the%20app-fcc624?style=for-the-badge&amp;logo=linux&amp;logoColor=black" alt="Download Persistent for Linux (AppImage and Debian)">
+    <img src="https://img.shields.io/badge/Linux-Download%20the%20app-fcc624?style=for-the-badge&amp;logo=linux&amp;logoColor=black" alt="Download Persistent for Linux (AppImage and Debian)" height="56">
   </a>
 </p>
 
@@ -68,9 +65,10 @@ other products with platform labels and links, including Windows apps.
 
 ## What makes it different
 
-- **It won't be ignored.** Choose a persistent notification that re-sounds, or a
-  full-screen alarm that rings continuously until you confirm — even with the
-  phone locked.
+- **It won't be ignored.** On Android, choose a persistent notification that
+  re-sounds, or a full-screen alarm that rings continuously until you confirm,
+  even with the phone locked. Windows and Linux offer persistent alerts while
+  the app runs and your computer is awake.
 - **Escalation.** If you still haven't acted, it can escalate to a louder alarm
   on your devices and email a chosen contact — with your covering message and what
   is actually overdue, so they can act on it — and you can silence that alarm
@@ -114,81 +112,91 @@ other products with platform labels and links, including Windows apps.
 
 ## Get it
 
-**Android (recommended, Android 7.0 or newer):** install Persistent from
+### Android
+
+Recommended for alarms that can sound offline. Requires Android 7.0 or newer.
+Install Persistent from
 [Google Play](https://play.google.com/store/apps/details?id=ca.dynamicsolutions.persistent).
 The app can sound previously scheduled alarms even while offline.
 During detected phone or voice/video calls, alarms wait quietly as notifications
 and resume after the call if you have not handled them.
 
-Older GitHub installs were a separate Android app. The Google Play app installs beside
-that old app instead of replacing it. Install from Google Play, sign in to the same
-account, check your saved reminders, then remove the old app to avoid duplicate
-alerts. The new app has no Android Auto support or in-app APK updater.
+### Desktop
 
-**Windows:** a tray app that keeps Persistent one click from the notification
-area. Its default tall flyout gives reminder editors room similar to the phone
-app, and its size remains adjustable in Settings. Install it from the
-[Microsoft Store](https://apps.microsoft.com/detail/9PCX2XGQ7CJS), which keeps it
-up to date on its own. If you'd rather not install anything, the portable zip for
-your architecture (x64 or ARM64) is on the
-[latest `desktop-v*` release](https://github.com/Dynamic-Solutions-Canada/persistent/releases?q=desktop&expanded=true):
-unzip and run. It's for seeing and confirming reminders at your desk, and it can
-keep Windows notifications present until you act, restore them after dismissal,
-repeat configured nags, and loop alarm audio for Alarm reminders and escalations.
-Done, Snooze, and De-escalate are available on the notification. The Store build
-also provides a Windows 11 widget with the next two reminders at small size, four
-compact rows at medium size, or four expanded rows at large size. It catches up
-after reconnecting, but cannot reach you while it is closed or the PC is asleep.
+Persistent is available for Windows and Linux, with installation details for each
+below. Both keep the same reminder interface in the tray, with a tall, resizable
+flyout for viewing, editing, sharing and confirming reminders.
+You can enable **Persistent notifications on this PC** in Settings; notifications
+are off by default on both platforms. Once enabled, the app restores dismissed
+reminders, repeats configured nags and loops alarm audio for Alarm reminders and
+escalations. Notifications offer Done, Snooze and De-escalate where applicable.
+On Linux, Snooze opens the app's full picker; Windows offers a notification dropdown.
 
-**Linux:** download an AppImage or Debian package from the
+These alerts work while the app runs and the computer is awake. Both apps catch up
+after reconnecting, but cannot alert you while closed or while the computer is asleep.
+Use Android for previously scheduled alarms that must sound offline.
+
+#### Windows
+
+**Install:** get Persistent from the
+[Microsoft Store](https://apps.microsoft.com/detail/9PCX2XGQ7CJS), or download the
+portable ZIP for your computer (x64 or ARM64) from the
+[Windows releases](https://github.com/Dynamic-Solutions-Canada/persistent/releases?q=desktop&expanded=true).
+Unzip and run the portable app; it needs no installation.
+
+**Updates:** the Microsoft Store keeps its build up to date. The portable app
+checks for new Windows releases and links to the download, which you replace manually.
+
+**Desktop integration:** the Store build also provides a Windows 11 widget with
+the next two reminders at small size, four compact rows at medium size, or four
+expanded rows at large size.
+
+#### Linux
+
+**Install:** download an AppImage or Debian package from the
 [Linux releases](https://github.com/Dynamic-Solutions-Canada/persistent/releases?q=Linux&expanded=true).
-The tray flyout and native reminder alerts work while the app runs and the computer
-is awake. Updates can be checked automatically or manually, with approval before
-downloading and installing. AppImage installation is user-level; Debian installation
-needs administrator approval. GNOME needs AppIndicator support and may require
-double click. XWayland is the default on Wayland desktops for tray-corner placement.
-
-Choose the package matching your computer:
+Both formats are available for Intel/AMD 64-bit and ARM64 computers.
 
 | Computer | AppImage filename ends with | Debian/Ubuntu filename ends with |
 | --- | --- | --- |
 | 64-bit Intel or AMD | `x86_64.AppImage` | `amd64.deb` |
 | ARM64 | `arm64.AppImage` | `arm64.deb` |
 
-For AppImage, mark the download executable and run it. Run it with `--install`
-to add a user-level application-menu launcher and keep a stable path for updates;
-no Node toolchain is needed. On Debian/Ubuntu, open the `.deb` with your package
-installer. See [Linux installation details](apps/linux-desktop/README.md#build-package-and-install)
-for requirements and troubleshooting. Portable tar downloads are not offered.
+For AppImage, mark the download executable and run it. Use `--install` to add a
+user-level application-menu launcher and keep a stable path for updates; no Node
+toolchain is needed. On Debian/Ubuntu, open the `.deb` with your package installer;
+installation needs administrator approval. See
+[Linux installation details](apps/linux-desktop/README.md#build-package-and-install)
+for requirements and troubleshooting.
 
-**Web:** open [persistent.dynamic-solutions.ca](https://persistent.dynamic-solutions.ca)
+**Updates:** the app can check automatically or manually, then asks separately
+before downloading and installing. AppImage updates are user-level; Debian updates
+need administrator approval.
+
+**Desktop integration:** targets KDE Plasma and GNOME with AppIndicator support,
+on X11 and Wayland. GNOME may require double click to open the flyout. XWayland is
+the default on Wayland desktops for tray-corner placement; native Wayland lets the
+compositor choose placement. Tray and notification presentation vary by desktop.
+
+### Web
+
+Open [persistent.dynamic-solutions.ca](https://persistent.dynamic-solutions.ca)
 in any browser and sign up free. It installs as a web app for managing reminders,
 with the same account and live data as every other surface. Browser notifications
 are not supported; install a native app to be alerted.
 
-> Windows and Linux downloads share a GitHub release list. Windows uses
-> `desktop-vX.Y.Z` and Linux uses `linux-vX.Y.Z`; their links above filter to the
-> right platform. Android downloads link to Google Play.
-
-## Why the app over the web?
-
-The Android app can keep an alarm sounding until you act, even while offline.
-The web app manages reminders but does not send alerts. The Windows and Linux
-apps can alert you while they are running and your computer is awake.
-
 ## Developers
 
 Setup, architecture, and the release/deploy workflow are in
-[docs/development.md](docs/development.md).
+[docs/development.md](docs/development.md). Both desktop apps host the web interface
+and add optional native notifications and alarm audio:
+
+- **Windows:** [development and packaging](.codex/docs/windows-development.md),
+  [architecture and platform behavior](docs/desktop-architecture.md).
+- **Linux:** [development and packaging](apps/linux-desktop/README.md),
+  [architecture and platform behavior](docs/linux-desktop-architecture.md).
 
 ## License
 
 Licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE.md).
 Copyright (c) 2026 Ryan Ewen.
-
-## Linux desktop
-
-The Linux tray host lives in `apps/linux-desktop`, alongside the existing Windows
-application. It hosts the web app and optionally delivers session-bound native
-notifications and alarm audio. See [Linux setup and packaging](apps/linux-desktop/README.md)
-and [platform behavior](docs/linux-desktop-architecture.md).
