@@ -28,6 +28,7 @@ store-assets
 # The Android client is built by CI, never by this image, and its generated
 # android/ directory is large.
 apps/mobile
+apps/linux-desktop
 
 # Installed in-image by `npm ci`; copying host modules over that would break the
 # Prisma engine match (the host may not be debian-openssl-3.0.x).

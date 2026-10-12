@@ -1,7 +1,7 @@
 /** Account transitions and local access policy shared by startup, reconnect and sign-in. */
 import type { QueryClient } from '@tanstack/react-query'
 import { queryKeys } from '../lib/queryClient.js'
-import { notifyHostSignedOut } from '../native/desktopBridge.js'
+import { notifyHostSignedIn, notifyHostSignedOut } from '../native/desktopBridge.js'
 import { AlarmPlugin, isNative } from '../native/alarmBridge.js'
 import { readOfflineUser, saveOfflineUser } from './offlineSession.js'
 import { setSessionNetwork } from './sessionNetwork.js'
@@ -30,7 +30,7 @@ export function dropSignedOutData(queryClient: QueryClient): void {
 /**
  * Clear native alerts belonging to the account being signed out.
  *
- * Android alarms and Windows notifications outlive the web session that armed
+ * Android alarms and desktop notifications outlive the web session that armed
  * them. Without this cleanup, a reminder belonging to the previous account can
  * still appear after sign-out. Both host calls are no-ops in a normal browser.
  */
@@ -78,5 +78,8 @@ export async function acceptSession(queryClient: QueryClient, session: LocalSess
     }
   }
   setSessionNetwork(Boolean(session.user) && !session.offline)
+  // The new cookie can arrive before prior-account native cleanup pauses delivery.
+  // Resume only after an online authoritative session has passed that cleanup.
+  if (session.user && !session.offline) notifyHostSignedIn()
   return session
 }

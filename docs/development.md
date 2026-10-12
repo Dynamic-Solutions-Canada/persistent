@@ -284,6 +284,20 @@ Because the app loads the UI from production, web-only changes ship via a deploy
 with no new build — cut a release only for native changes (alarm/update/passkey/
 Google plugins, manifest, icon).
 
+### Linux desktop releases
+
+Linux uses a separate standalone package and `linux-vX.Y.Z` tags. It does not bump
+or publish the Android or Windows binary. Read
+[Linux build/install/update instructions](../apps/linux-desktop/README.md).
+`release-linux.yml` validates the main-branch tag/version, builds x64 and ARM64
+AppImage/Debian packages, then publishes a complete draft with the shared checksum
+manifest before making it public. Android remains GitHub Latest.
+
+Deploy the hosted Linux bridge before publishing the Linux release. Root validation
+stays on Node 20 and uses root transport test dependencies; Linux tooling requires
+its standalone install under Node 22.12+. Native tests use isolated profiles and
+synthetic data. Build evidence does not replace desktop runtime evidence.
+
 ## Codex skills (`.agents/skills/`)
 
 - `$commit`: review (docs, data isolation, and logging), validate, and commit.

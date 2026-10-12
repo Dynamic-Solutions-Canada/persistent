@@ -41,3 +41,9 @@ test('non-native sessions never invoke the native version bridge', async () => {
   })
   assert.deepEqual(usage, { app: 'pwa', platform: 'windows', webVersion: '1.0.0', nativeVersion: null })
 })
+
+test('Linux native host identity is distinct from a Linux browser and validates against the shared contract', () => {
+  const identity = classifyClient(false, true, false, 'Linux', 'linux')
+  assert.deepEqual(identity, { app: 'linux', platform: 'linux' })
+  assert.equal(clientUsageSchema.safeParse({ ...identity, webVersion: '1.0.0', nativeVersion: null }).success, true)
+})

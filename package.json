@@ -54,10 +54,16 @@
     "android:verify": "npm --prefix apps/mobile run verify:android",
     "verify:desktop:csharp": "apps/desktop/verify-csharp.sh",
     "build:desktop": "scripts/windows-build --dev",
-    "package:desktop": "scripts/windows-build --no-sign"
+    "package:desktop": "scripts/windows-build --no-sign",
+    "dev:linux": "npm --prefix apps/linux-desktop run dev --",
+    "build:linux": "npm run build --workspace @persistent/shared && npm --prefix apps/linux-desktop run build",
+    "package:linux": "npm run build --workspace @persistent/shared && npm --prefix apps/linux-desktop run package --",
+    "verify:linux": "npm --prefix apps/linux-desktop run typecheck",
+    "install:linux": "npm run build:linux && node apps/linux-desktop/dist/install.cjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.24.0",
+    "@particle/dbus-next": "0.11.4",
     "@ryanewen/devkit": "github:RyanEwen/devkit#v0.13.0",
     "concurrently": "^9.1.2",
     "eslint": "^9.24.0",
@@ -65,6 +71,7 @@
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.29.0"
+    "typescript-eslint": "^8.29.0",
+    "x11": "4.3.1"
   }
 }

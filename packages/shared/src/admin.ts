@@ -1,7 +1,7 @@
 /** Aggregate administration and session client identity. No personal content leaves these endpoints. */
 import { z } from 'zod'
 
-export const clientAppSchema = z.enum(['browser', 'pwa', 'android', 'windows'])
+export const clientAppSchema = z.enum(['browser', 'pwa', 'android', 'windows', 'linux'])
 export const clientPlatformSchema = z.enum(['android', 'ios', 'windows', 'macos', 'linux', 'unknown'])
 const versionSchema = z.string().trim().min(1).max(64)
 

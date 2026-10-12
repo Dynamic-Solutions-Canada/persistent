@@ -26,12 +26,15 @@ export function SnoozeDialog({
   open,
   onClose,
   onSnooze,
-  busy
+  busy,
+  reminderTitle
 }: {
   open: boolean
   onClose: () => void
   onSnooze: (input: SnoozeInput) => void
   busy?: boolean
+  /** Identify a notification target when the picker opens over a different reminder or draft. */
+  reminderTitle?: string
 }) {
   const [mode, setMode] = useState<'none' | 'custom' | 'until'>('none')
   // Held as a string so the field can be emptied mid-edit (backspacing the last
@@ -60,7 +63,7 @@ export function SnoozeDialog({
   return (
     <BackAwareModal open={open} onClose={onClose}>
       <ModalDialog sx={{ maxWidth: 360 }}>
-        <DialogTitle>Snooze for…</DialogTitle>
+        <DialogTitle>{reminderTitle ? `Snooze ${reminderTitle}` : 'Snooze for…'}</DialogTitle>
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
           {SNOOZE_PRESETS.map((p) => (
             <Button

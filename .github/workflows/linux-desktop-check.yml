@@ -1,0 +1,63 @@
+name: Linux desktop check
+
+on:
+  pull_request:
+    paths:
+      - 'apps/linux-desktop/**'
+      - 'apps/web/src/native/**'
+      - 'packages/shared/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/linux-desktop-check.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/linux-desktop/**'
+      - 'packages/shared/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/linux-desktop-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          submodules: true
+          fetch-depth: 0
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '20.20.2'
+          cache: npm
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run build --workspace @persistent/shared
+      # Linux Electron tooling has a newer engine requirement than the web/API.
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22.22.3'
+          cache: npm
+          cache-dependency-path: apps/linux-desktop/package-lock.json
+      - run: npm --prefix apps/linux-desktop ci
+      # Root tests include the standalone Linux transport tests.
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '20.20.2'
+      - run: npm run validate
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22.22.3'
+      - run: npm run package:linux -- --x64
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: persistent-linux-x64
+          path: |
+            apps/linux-desktop/artifacts/*.AppImage
+            apps/linux-desktop/artifacts/*.deb
+          if-no-files-found: error
+          retention-days: 7

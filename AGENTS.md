@@ -14,9 +14,8 @@ Architecture and conventions are borrowed, thinned, from the sibling
 
 ## Architecture
 
-- `apps/mobile` and `apps/desktop` sit in the tree outside the npm **workspaces**
-  graph (the first has its own `package.json` but is not listed in the root
-  `workspaces`, the second is C# and has none).
+- `apps/mobile`, `apps/desktop` and `apps/linux-desktop` sit outside the npm
+  **workspaces** graph. Mobile and Linux have standalone packages; Windows is C#.
 - **`apps/api`** owns auth, reminder CRUD, the scheduling/escalation engine, push
   delivery, and a per-user WebSocket at `/ws`.
 - **`apps/mobile`**: Capacitor (Android) wrapper of the built web app plus a
@@ -32,6 +31,11 @@ Architecture and conventions are borrowed, thinned, from the sibling
   `docs/desktop-architecture.md`.
 - **`packages/shared`**: the single source of truth for request/response shapes;
   do not duplicate them elsewhere.
+- **`apps/linux-desktop`**: Electron Linux tray host of the same hosted UI and
+  server-computed alarm projection. X11/XWayland is the default for Windows flyout
+  parity; GNOME AppIndicator can require double click. See
+  `docs/linux-desktop-architecture.md` and its nested guidance. No PWA notifications
+  or duplicated reminder scheduling rules.
 
 ## The persistence reality (read before touching notifications)
 
@@ -114,6 +118,10 @@ See `docs/auth-architecture.md` and `apps/api/AGENTS.md`.
   because the variable normally comes from the development environment, which not
   every shell inherits, and the whole check used to die on a missing value having
   tested nothing.
+- Root dev dependencies include the small Linux transport libraries for tests.
+  Linux's standalone build tools require Node 22.12+, preserving the Node 20 web/API
+  environment. Run `npm run build:linux` and relevant package/native checks;
+  root validation does not establish native Linux runtime behavior.
 - `npm test` discovers `*.test.ts` under `apps/`, `packages/` **and `scripts/`**.
   The last is for repo-hygiene checks belonging to no single workspace: currently
   that the lockfile's recorded workspace versions match their `package.json`

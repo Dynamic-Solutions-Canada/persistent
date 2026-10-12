@@ -3,7 +3,7 @@ import { useEffect, useMemo } from 'react'
 import { useSettings } from '../settings/useSettings.js'
 import { useAppTheme } from '../settings/useAppTheme.js'
 import { AlarmPlugin, isNative } from './alarmBridge.js'
-import { isDesktopHost } from './desktopBridge.js'
+import { isDesktopHost, publishDesktopAppearance } from './desktopBridge.js'
 import { nativeAppearance } from './appearance.js'
 
 export function NativeAppearanceSync() {
@@ -21,11 +21,7 @@ export function NativeAppearanceSync() {
 
   useEffect(() => {
     if (!isDesktopHost()) return
-    window.chrome?.webview?.postMessage({
-      type: 'appearance',
-      mode: selected.mode,
-      background: appearance[selected.mode].background
-    })
+    publishDesktopAppearance(selected.mode, appearance[selected.mode].background)
   }, [appearance, selected.mode])
 
   return null
