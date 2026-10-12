@@ -29,7 +29,7 @@ past a broken `MainActivity`. Run `npm run prepare:android` once first if the
 generated `android/` project doesn't exist yet. The scripted Gradle commands
 disable the persistent daemon and default to two workers so a compile cannot
 starve WSL; only raise `ANDROID_GRADLE_WORKERS` deliberately. The same command
-also runs JVM unit tests for both flavors. Keep their authoritative Kotlin sources
+also runs JVM unit tests for both flavors. Keep their authoritative Kotlin tests and pure Java helpers
 in `android-tests/`; setup copies them into the generated project's test source set.
 
 ## Two Android flavors
@@ -84,11 +84,22 @@ standalone browser for this workflow. Follow the workflow's permission, account,
 steps; preserve the signed-in Store app. Keep native permission demonstration
 videos separate.
 
+The experimental [Test Lab capture workflow](../../docs/test-lab-store-captures.md)
+uses virtual Android 16 by default with a fresh synthetic-only server and disabled
+billing. Keep lab instrumentation and diagnostic geometry helpers in test sources,
+never the shipping app. Its runtime gates are separate from native compilation;
+failed or contaminated captures do not replace approved Store assets.
+
 `store/listing.md` owns the listing copy and published screenshot set. The manual
 `play-listing` workflow (`scripts/play-publish.mjs --listing`) uploads both, only
 when publication is requested. Medication reminders are available, so the listing,
 Health apps declaration, and Data safety declaration must cover medicine names
 and doses accurately.
+
+A successful API commit confirms the upload, not review submission or public
+availability. Check Play Console's Publishing overview after publishing. Inspect
+all pending items before sending the approved changes for review, then confirm
+the screenshots appear under Changes in review.
 
 ## Google Play releases
 

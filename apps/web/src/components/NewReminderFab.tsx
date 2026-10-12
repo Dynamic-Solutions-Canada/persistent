@@ -48,6 +48,7 @@
 import { createPortal } from 'react-dom'
 import { useReminderDialogs } from './reminderDialogContext.js'
 import Box from '@mui/joy/Box'
+import { safeAreaInset } from '../lib/safeArea.js'
 import Button from '@mui/joy/Button'
 import AddIcon from '@mui/icons-material/Add'
 
@@ -64,7 +65,7 @@ export function NewReminderFab() {
             position: 'fixed',
             left: 0,
             right: 0,
-            bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
+            bottom: `calc(72px + ${safeAreaInset('bottom')})`,
             // Under BottomNav's z-index of 10, so it can never sit over the tabs.
             zIndex: 9,
             mx: 'auto',

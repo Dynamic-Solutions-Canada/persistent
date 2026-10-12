@@ -7,6 +7,12 @@ Read [the capture workflow](../../../store-assets/README.md). The manifest owns 
 
 Prepare the dedicated demo fixture in the isolated development database. Verify the signed-in account before capturing; never seed or capture a personal account. Reuse the existing seeded scenarios, including the synthetic vitamin dose and sample recipient. Do not complete reminders or send invitations for a screenshot.
 
+For the approved disposable-device path, read
+[the Test Lab workflow](../../../docs/test-lab-store-captures.md). Use virtual
+Android 16 by default, a fresh synthetic-only server and verified disabled billing.
+Check its remaining runtime gates before adopting screenshots; never tunnel the
+ordinary development stack or accept lab icons as clean store sources.
+
 Use full-display captures from the isolated Android demo app for every Play source
 screen, including the real status area and gesture bar. Verify readable system
 icons in both themes and no unrelated app notification icons. Use the shared Paseo

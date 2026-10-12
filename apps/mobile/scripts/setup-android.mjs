@@ -77,11 +77,11 @@ const kotlinFiles = readdirSync(pluginDir)
 for (const file of kotlinFiles) {
   copyFileSync(join(pluginDir, file), join(alarmPkgDir, file))
 }
-// Native JVM tests live beside the plugin overlay, outside the generated project.
+// Native JVM tests and pure Java test helpers live beside the overlay, outside the generated project.
 const nativeTestsDir = join(mobileRoot, 'android-tests')
 const generatedTestsDir = join(mobileRoot, 'android/app/src/test/java/ca/persistent/app/alarm')
 mkdirSync(generatedTestsDir, { recursive: true })
-for (const file of readdirSync(nativeTestsDir).filter((name) => name.endsWith('.kt'))) {
+for (const file of readdirSync(nativeTestsDir).filter((name) => name.endsWith('.kt') || name.endsWith('.java'))) {
   copyFileSync(join(nativeTestsDir, file), join(generatedTestsDir, file))
 }
 // A pre-flavor checkout put UpdatePlugin.kt in main; leaving it there would

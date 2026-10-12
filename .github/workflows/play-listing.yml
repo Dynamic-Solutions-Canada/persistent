@@ -13,8 +13,8 @@ name: play-listing
 # resource and are left alone. Screenshots are replaced wholesale — Play has no
 # stable per-image identity to diff against. See apps/mobile/scripts/play-publish.mjs.
 #
-# Play reviews a description change before it goes live; a green run here means
-# submitted, not published.
+# A green run confirms the edit was committed. Verify Publishing overview in
+# Play Console separately, including whether changes were sent for review.
 
 on:
   workflow_dispatch:

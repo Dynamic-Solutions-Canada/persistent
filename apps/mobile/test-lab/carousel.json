@@ -1,0 +1,308 @@
+{
+  "description": "Eight synthetic carousel views, using the reviewed real-device navigation. Lab execution and pixel review remain required before adoption.",
+  "steps": [
+    {
+      "action": "javascript",
+      "expression": "localStorage.setItem('persistent-settings', JSON.stringify({themeId:'enjoy-light',themeDefaultMigrated:true,timeFormat:'12h',timeFormatChosen:true,doodles:false})); localStorage.setItem('persistent-hide-native-apps-banner','1'); window.__captureReloadPending = true; setTimeout(() => { location.href = '/'; }, 100); true"
+    },
+    {
+      "action": "wait",
+      "expression": "!window.__captureReloadPending && location.pathname === '/' && document.body.innerText.includes('Water the plants')",
+      "timeoutMs": 45000
+    },
+    {
+      "action": "wait",
+      "expression": "document.readyState === 'complete' && Array.from(document.querySelectorAll('a')).some(a => a.getAttribute('href') === '/notes')",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "wait",
+      "expression": "!document.querySelector('[role=dialog]') && !document.body.innerText.includes('A change to Android downloads')",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "capture",
+      "name": "00-current-light.png",
+      "surface": "web",
+      "requiredControls": [
+        "header",
+        "navigation"
+      ]
+    },
+    {
+      "action": "shell",
+      "command": "cmd statusbar expand-notifications"
+    },
+    {
+      "action": "wait-native",
+      "text": "Water the plants",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "expand-notifications"
+    },
+    {
+      "action": "capture",
+      "name": "01-notification-shade.png",
+      "surface": "shade"
+    },
+    {
+      "action": "shell",
+      "command": "cmd statusbar collapse"
+    },
+    {
+      "action": "javascript",
+      "expression": "localStorage.setItem('persistent-settings', JSON.stringify({themeId:'enjoy-dark',themeDefaultMigrated:true,timeFormat:'12h',timeFormatChosen:true,doodles:false})); localStorage.setItem('persistent-hide-native-apps-banner','1'); window.__captureReloadPending = true; setTimeout(() => { location.href = '/'; }, 100); true"
+    },
+    {
+      "action": "wait",
+      "expression": "!window.__captureReloadPending && location.pathname === '/' && document.body.innerText.includes('Water the plants')",
+      "timeoutMs": 45000
+    },
+    {
+      "action": "wait",
+      "expression": "document.readyState === 'complete' && Array.from(document.querySelectorAll('a')).some(a => a.getAttribute('href') === '/notes')",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "javascript",
+      "expression": "(() => { const b=Array.from(document.querySelectorAll('button')).find(b=>b.innerText.startsWith('Get out the door')); if(!b)throw Error('Checklist missing'); b.click(); return 'Opened checklist without changing items'; })()"
+    },
+    {
+      "action": "wait",
+      "expression": "!!document.querySelector('[role=dialog]') && document.querySelector('[role=dialog]').innerText.includes('Get out the door')",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "capture",
+      "name": "03-checklist-dark.png",
+      "surface": "web",
+      "requiredControls": [
+        "dialog"
+      ]
+    },
+    {
+      "action": "javascript",
+      "expression": "localStorage.setItem('persistent-settings', JSON.stringify({themeId:'enjoy-light',themeDefaultMigrated:true,timeFormat:'12h',timeFormatChosen:true,doodles:false})); localStorage.setItem('persistent-hide-native-apps-banner','1'); window.__captureReloadPending = true; setTimeout(() => { location.href = '/'; }, 100); true"
+    },
+    {
+      "action": "wait",
+      "expression": "!window.__captureReloadPending && location.pathname === '/' && document.body.innerText.includes('Water the plants')",
+      "timeoutMs": 45000
+    },
+    {
+      "action": "wait",
+      "expression": "document.readyState === 'complete' && Array.from(document.querySelectorAll('a')).some(a => a.getAttribute('href') === '/notes')",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "javascript",
+      "expression": "(() => { const a=document.querySelector('a[href=\"/upcoming\"]'); a.click(); return 'Upcoming opened'; })()"
+    },
+    {
+      "action": "wait",
+      "expression": "location.pathname === '/upcoming' && document.body.innerText.includes('Take vitamin D')",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "javascript",
+      "expression": "(() => { Array.from(document.querySelectorAll('button')).find(b=>b.innerText.startsWith('Take vitamin D')).click(); return 'Opened vitamin reminder'; })()"
+    },
+    {
+      "action": "wait",
+      "expression": "!!document.querySelector('[role=dialog]')",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "javascript",
+      "expression": "(() => { const b=Array.from(document.querySelectorAll('[role=\"dialog\"] button')).find(b=>b.innerText.trim()==='Edit'); if(!b)throw Error('Edit missing'); b.click(); return 'Editor opened'; })()"
+    },
+    {
+      "action": "wait",
+      "expression": "(() => { const dialog=Array.from(document.querySelectorAll('[role=dialog]')).at(-1); if(!dialog)return false; const inputs=Array.from(dialog.querySelectorAll('input')); return inputs.some(input=>input.value==='Vitamin D') && inputs.some(input=>input.value==='1000') && inputs.some(input=>input.value==='IU') && dialog.innerText.includes('Unit') && Array.from(dialog.querySelectorAll('button')).some(button=>button.innerText.trim()==='Save'); })()",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "capture",
+      "name": "04-medication-light.png",
+      "surface": "web",
+      "requiredControls": [
+        "dialog"
+      ]
+    },
+    {
+      "action": "javascript",
+      "expression": "localStorage.setItem('persistent-settings', JSON.stringify({themeId:'enjoy-dark',themeDefaultMigrated:true,timeFormat:'12h',timeFormatChosen:true,doodles:false})); localStorage.setItem('persistent-hide-native-apps-banner','1'); window.__captureReloadPending = true; setTimeout(() => { location.href = '/'; }, 100); true"
+    },
+    {
+      "action": "wait",
+      "expression": "!window.__captureReloadPending && location.pathname === '/' && document.body.innerText.includes('Water the plants')",
+      "timeoutMs": 45000
+    },
+    {
+      "action": "wait",
+      "expression": "document.readyState === 'complete' && Array.from(document.querySelectorAll('a')).some(a => a.getAttribute('href') === '/notes')",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "javascript",
+      "expression": "(() => { Array.from(document.querySelectorAll('button')).find(b=>b.innerText.trim()==='New reminder').click(); return 'Unsaved draft opened'; })()"
+    },
+    {
+      "action": "wait",
+      "expression": "!!document.querySelector('[role=dialog]')",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "javascript",
+      "expression": "(() => { Array.from(document.querySelectorAll('[role=\"dialog\"] button')).find(b=>b.innerText.trim()==='Share').click(); return 'Sharing opened without saving'; })()"
+    },
+    {
+      "action": "wait",
+      "expression": "!!document.querySelector('input[placeholder=\"Their email address\"]')",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "javascript",
+      "expression": "(() => { const input=document.querySelector('input[placeholder=\"Their email address\"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'alex@example.test'); input.dispatchEvent(new Event('input',{bubbles:true})); return 'Synthetic recipient entered'; })()"
+    },
+    {
+      "action": "wait",
+      "expression": "document.querySelector('input[placeholder=\"Their email address\"]').value === 'alex@example.test'",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "javascript",
+      "expression": "(() => { const dialogs=Array.from(document.querySelectorAll('[role=\"dialog\"]')); const dialog=dialogs.at(-1); Array.from(dialog.querySelectorAll('button')).find(b=>b.innerText.trim()==='Add person').click(); return 'Recipient staged in unsaved draft'; })()"
+    },
+    {
+      "action": "wait",
+      "expression": "document.body.innerText.includes('alex@example.test')",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "capture",
+      "name": "05-sharing-dark.png",
+      "surface": "web",
+      "requiredControls": [
+        "dialog"
+      ]
+    },
+    {
+      "action": "javascript",
+      "expression": "localStorage.setItem('persistent-settings', JSON.stringify({themeId:'enjoy-light',themeDefaultMigrated:true,timeFormat:'12h',timeFormatChosen:true,doodles:false})); localStorage.setItem('persistent-hide-native-apps-banner','1'); window.__captureReloadPending = true; setTimeout(() => { location.href = '/'; }, 100); true"
+    },
+    {
+      "action": "wait",
+      "expression": "!window.__captureReloadPending && location.pathname === '/' && document.body.innerText.includes('Water the plants')",
+      "timeoutMs": 45000
+    },
+    {
+      "action": "wait",
+      "expression": "document.readyState === 'complete' && Array.from(document.querySelectorAll('a')).some(a => a.getAttribute('href') === '/notes')",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "javascript",
+      "expression": "(() => { document.querySelector('a[href=\"/notes\"]').click(); return 'Notes opened'; })()"
+    },
+    {
+      "action": "wait",
+      "expression": "location.pathname === '/notes' && document.body.innerText.includes('Trip packing')",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "capture",
+      "name": "06-notes-light.png",
+      "surface": "web",
+      "requiredControls": [
+        "header",
+        "navigation"
+      ]
+    },
+    {
+      "action": "javascript",
+      "expression": "localStorage.setItem('persistent-settings', JSON.stringify({themeId:'enjoy-dark',themeDefaultMigrated:true,timeFormat:'12h',timeFormatChosen:true,doodles:false})); localStorage.setItem('persistent-hide-native-apps-banner','1'); window.__captureReloadPending = true; setTimeout(() => { location.href = '/'; }, 100); true"
+    },
+    {
+      "action": "wait",
+      "expression": "!window.__captureReloadPending && location.pathname === '/' && document.body.innerText.includes('Water the plants')",
+      "timeoutMs": 45000
+    },
+    {
+      "action": "wait",
+      "expression": "document.readyState === 'complete' && Array.from(document.querySelectorAll('a')).some(a => a.getAttribute('href') === '/notes')",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "javascript",
+      "expression": "(() => { document.querySelector('a[href=\"/assigned\"]').click(); return 'Assignments opened'; })()"
+    },
+    {
+      "action": "wait",
+      "expression": "location.pathname === '/assigned' && document.body.innerText.includes('Pick up the parcel')",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "capture",
+      "name": "07-assigned-dark.png",
+      "surface": "web",
+      "requiredControls": [
+        "header",
+        "navigation"
+      ]
+    },
+    {
+      "action": "javascript",
+      "expression": "localStorage.setItem('persistent-settings', JSON.stringify({themeId:'enjoy-dark',themeDefaultMigrated:true,timeFormat:'12h',timeFormatChosen:true,doodles:false})); localStorage.setItem('persistent-hide-native-apps-banner','1'); window.__captureReloadPending = true; setTimeout(() => { location.href = '/'; }, 100); true"
+    },
+    {
+      "action": "wait",
+      "expression": "!window.__captureReloadPending && location.pathname === '/' && document.body.innerText.includes('Water the plants')",
+      "timeoutMs": 45000
+    },
+    {
+      "action": "wait",
+      "expression": "document.readyState === 'complete' && Array.from(document.querySelectorAll('a')).some(a => a.getAttribute('href') === '/notes')",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "javascript",
+      "expression": "window.__captureEscalationReady = false; (async () => { const email = 'ryan.ewen+persistentdemo@gmail.com'; const me = await (await fetch('/api/auth/me')).json(); if ((me.user?.email ?? me.email) !== email) return; const startDate = new Intl.DateTimeFormat('en-CA',{timeZone:'America/Toronto',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()); const response = await fetch('/api/reminders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:'Check the oven',details:'Take the tray out, then turn the oven off.',persistence:'PERSISTENT',escalateAfterMinutes:1,schedule:{kind:'none',timesOfDay:[]},startDate})}); if (!response.ok) return; const result = await response.json(); localStorage.setItem('persistent-capture-escalation-id',result.reminder.id); window.__captureEscalationReady = true; })(); true"
+    },
+    {
+      "action": "wait",
+      "expression": "window.__captureEscalationReady === true",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "wait-native",
+      "text": "De-escalate",
+      "timeoutMs": 150000
+    },
+    {
+      "action": "wait-native",
+      "text": "Check the oven",
+      "timeoutMs": 15000
+    },
+    {
+      "action": "capture",
+      "name": "02-alarm-dark.png",
+      "surface": "alarm",
+      "reminderTitle": "Check the oven"
+    },
+    {
+      "action": "shell",
+      "command": "am start -n ca.persistent.app/.MainActivity"
+    },
+    {
+      "action": "javascript",
+      "expression": "window.__captureCleanup = false; (async () => { const me = await (await fetch('/api/auth/me')).json(); if ((me.user?.email ?? me.email) !== 'ryan.ewen+persistentdemo@gmail.com') return; const id = localStorage.getItem('persistent-capture-escalation-id'); if (!id) return; const response = await fetch('/api/reminders/'+encodeURIComponent(id),{method:'DELETE'}); if (!response.ok) return; localStorage.removeItem('persistent-capture-escalation-id'); window.__captureCleanup = true; })(); true"
+    },
+    {
+      "action": "wait",
+      "expression": "window.__captureCleanup === true",
+      "timeoutMs": 15000
+    }
+  ]
+}

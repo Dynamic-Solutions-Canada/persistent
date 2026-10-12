@@ -1,0 +1,23 @@
+{
+  "description": "Starter capture only. Extend the reviewed recipe to cover the complete carousel before replacing any assets.",
+  "steps": [
+    {
+      "action": "javascript",
+      "expression": "localStorage.setItem('persistent-settings', JSON.stringify({themeId:'enjoy-light',themeDefaultMigrated:true,timeFormat:'12h',timeFormatChosen:true,doodles:false})); localStorage.setItem('persistent-hide-native-apps-banner','1'); window.__captureReloadPending = true; setTimeout(() => location.reload(), 100); true"
+    },
+    {
+      "action": "wait",
+      "expression": "!window.__captureReloadPending && document.body.innerText.includes('Water the plants') && document.body.innerText.includes('Current')",
+      "timeoutMs": 45000
+    },
+    {
+      "action": "capture",
+      "name": "00-current-light.png",
+      "surface": "web",
+      "requiredControls": [
+        "header",
+        "navigation"
+      ]
+    }
+  ]
+}

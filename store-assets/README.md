@@ -20,6 +20,11 @@ Sign in to that account on the local development origin. The development email-c
 
 ## Google Play
 
+The [Firebase Test Lab workflow](../docs/test-lab-store-captures.md) provides a
+separate capture path on disposable devices, with a synthetic-only temporary
+server and a free-only submission guard. Check its runtime verification status
+before using its results as store sources.
+
 Use the isolated demo Android app on the physical phone, following the native
 capture setup below. Capture the full display for all eight images, including the
 real status area and gesture bar. Both bars must be readable against the selected
@@ -141,7 +146,11 @@ The native capture provenance is recorded in `raw/android/native/README.md`.
 ## Publishing an approved refresh
 
 After deploying the matching hosted UI, run the existing `play-listing` workflow
-in check mode, inspect its diff, then run publish mode to submit the new Play carousel.
+in check mode, inspect its diff, then run publish mode to upload the new Play carousel.
+API success confirms a committed edit, not review submission. Open Publishing
+overview in Play Console, inspect all pending changes, send the approved items
+for review if needed, and confirm the phone screenshots appear under Changes
+in review. Public availability remains a separate check after approval.
 No Android version bump is needed for listing assets or hosted UI alone.
 
 The `store-publish` workflow validates the Microsoft manifest and release notes,

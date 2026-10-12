@@ -19,6 +19,7 @@ import ca.persistent.app.alarm.AlarmReceiver;
 import ca.persistent.app.alarm.PendingNavStore;
 import ca.persistent.app.alarm.PasskeyPlugin;
 import ca.persistent.app.alarm.GoogleAuthPlugin;
+import ca.persistent.app.alarm.WebViewSystemInsets;
 
 public class MainActivity extends BridgeActivity {
     @Override
@@ -32,6 +33,7 @@ public class MainActivity extends BridgeActivity {
         FlavorPlugins.register(this);
         super.onCreate(savedInstanceState);
         drawEdgeToEdge();
+        WebViewSystemInsets.attach(getBridge());
         // Cold start from a notification tap: the WebView drains the store on startup.
         storePendingNav(getIntent());
     }
@@ -45,12 +47,10 @@ public class MainActivity extends BridgeActivity {
      * every screen. The web UI paints its own themed background, so the fix is to
      * stop insetting and let it reach the edges.
      *
-     * The web side now carries `env(safe-area-inset-*)` padding on the top bar and
-     * bottom nav (`components/AppLayout.tsx`, `components/BottomNav.tsx`) to keep
-     * the controls clear of the bars; `viewport-fit=cover` in index.html is what
-     * makes those values non-zero. Ship the web change FIRST: while the old bundle
-     * is still being served, insets read as 0 and the header would ride under the
-     * status bar.
+     * The web shell uses the greater of CSS safe-area env() values and measured
+     * native insets from WebViewSystemInsets. Older WebViews do not expose system
+     * bars through env(), even with viewport-fit=cover. Deploy the matching web
+     * shell before releasing this native change so it reads the native fallback.
      *
      * `setDecorFitsSystemWindows(false)` is the edge-to-edge switch. Disabling
      * contrast enforcement matters just as much on API 29+, since the system

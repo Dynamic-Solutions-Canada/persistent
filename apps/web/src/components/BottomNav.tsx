@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 import type { SvgIconComponent } from '@mui/icons-material'
 import Sheet from '@mui/joy/Sheet'
+import { safeAreaInset } from '../lib/safeArea.js'
 import Stack from '@mui/joy/Stack'
 import Button from '@mui/joy/Button'
 import Typography from '@mui/joy/Typography'
@@ -137,9 +138,9 @@ export function BottomNav() {
         borderColor: 'divider',
         // Extend the bar's background down behind the gesture bar while keeping the
         // buttons above it — otherwise the tabs sit under the system navigation.
-        pb: 'env(safe-area-inset-bottom, 0px)',
-        pl: 'env(safe-area-inset-left, 0px)',
-        pr: 'env(safe-area-inset-right, 0px)'
+        pb: safeAreaInset('bottom'),
+        pl: safeAreaInset('left'),
+        pr: safeAreaInset('right')
       }}
     >
       <Stack direction="row" sx={{ maxWidth: 640, mx: 'auto' }}>

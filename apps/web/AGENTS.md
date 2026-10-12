@@ -155,6 +155,10 @@
   dropdown combines Match theme, No doodles, and the permitted line colors.
   Format dates/times via `lib/datetime.ts`, never
   `toLocaleString` directly.
+- **System-bar spacing:** use `lib/safeArea.ts` for shell bars and floating controls.
+  It takes the greater of browser CSS insets and `WebViewSystemInsets` native
+  measurements, covering older Android WebViews without double padding. Native
+  measurements do not consume keyboard insets.
 - **Native bridge:** `src/native/` (bundled into this app, which Capacitor loads)
   drives the on-device alarm plugin: schedules alarms from `/api/sync/occurrences`,
   re-syncs live on WS events, and exposes `pickSound`. Guard every call behind
@@ -184,7 +188,7 @@
   rendered in place resolves against the page-tall pull container and lands off
   screen instead of above the nav. It still computes as `position: fixed`, which is
   what makes it confusing to debug. Such a control also has to clear `BottomNav`
-  **and** `env(safe-area-inset-bottom)`, and anchor to the 640px centred column
+  **and** the shared `lib/safeArea.ts` spacing, and anchor to the 640px centred column
   rather than the viewport.
 - **The viewport is not always phone-shaped: the Windows flyout is a window the
   user can drag to resize**, and its WebView is suspended and resumed rather than
