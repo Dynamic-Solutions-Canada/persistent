@@ -1,4 +1,4 @@
-/** Store chooser opened by the web title bar's "Get the app" action. */
+/** Native download chooser opened by the web title bar's "Get the app" action. */
 import Button from '@mui/joy/Button'
 import DialogActions from '@mui/joy/DialogActions'
 import DialogContent from '@mui/joy/DialogContent'
@@ -13,7 +13,7 @@ export interface NativeAppsDialogProps {
   onClose(): void
 }
 
-/** Present all native apps without treating either platform as the default. */
+/** Present all native apps without treating a platform as the default. */
 export function NativeAppsDialog({ open, onClose }: NativeAppsDialogProps) {
   return (
     <BackAwareModal open={open} onClose={onClose}>

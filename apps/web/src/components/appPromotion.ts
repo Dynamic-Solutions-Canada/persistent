@@ -2,7 +2,8 @@
 import { LINUX_RELEASES_URL } from '@persistent/shared'
 
 export const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=ca.dynamicsolutions.persistent'
-export const LINUX_DOWNLOADS_URL = `${LINUX_RELEASES_URL}?q=linux-v&expanded=true`
+// GitHub release search matches the published title, not the linux-v tag prefix.
+export const LINUX_DOWNLOADS_URL = `${LINUX_RELEASES_URL}?q=Linux&expanded=true`
 export const WINDOWS_STORE_URL = 'https://apps.microsoft.com/detail/9PCX2XGQ7CJS'
 
 // This key is deliberately unversioned: dismissal means never show this promo
