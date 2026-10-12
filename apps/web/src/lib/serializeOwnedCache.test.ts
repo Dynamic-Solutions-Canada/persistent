@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import type { PersistedClient } from '@tanstack/react-query-persist-client'
+import { deserializeAccountCache } from './accountCache.js'
 import { serializeOwnedCache } from './serializeOwnedCache.js'
 
 /** Exercise the serialized cache, since this is what survives an offline reload. */
@@ -68,4 +69,51 @@ test('administrator aggregates cannot survive offline serialization', () => {
   const saved = serializeOwnedCache(client)
   assert.doesNotMatch(saved, /secretAggregate|"admin"/)
   assert.equal(client.clientState.queries.length, 5, 'live data is not mutated while serializing')
+})
+
+test('paused mutations retain only owned writes and remove received rollback content', () => {
+  const client = persistedClient([{ id: 'owned' }], [
+    { id: 'own-fire', reminderId: 'owned' }, { id: 'shared-fire', reminderId: 'shared' }
+  ], { pages: [], pageParams: [] })
+  client.clientState.mutations = [
+    { mutationKey: ['reminders', 'check'], state: { variables: { id: 'owned' }, context: {
+      received: [{ title: 'PRIVATE SHARED CONTENT' }],
+      checklist: { owned: [{ id: 'owned' }], received: [{ title: 'PRIVATE SHARED CONTENT' }] }
+    } } },
+    { mutationKey: ['reminders', 'check'], state: { variables: { id: 'shared', arg: { text: 'PRIVATE SHARED CONTENT' } } } },
+    { mutationKey: ['occurrences', 'check'], state: { variables: { id: 'shared-fire' } } },
+    { mutationKey: ['occurrences', 'ack'], state: { variables: { id: 'own-fire' }, context: {
+      previous: [{ id: 'own-fire', reminderId: 'owned' }, { id: 'shared-fire', reminderId: 'shared', title: 'PRIVATE SHARED CONTENT' }]
+    } } }
+  ] as never
+  const saved = JSON.parse(serializeOwnedCache(client)) as PersistedClient
+  assert.equal(saved.clientState.mutations.length, 2)
+  assert.doesNotMatch(JSON.stringify(saved), /PRIVATE SHARED CONTENT|shared-fire/)
+  assert.match(JSON.stringify(client), /PRIVATE SHARED CONTENT/, 'live state remains intact')
+})
+
+test('owned completion and deletion queues survive their optimistic list removal', () => {
+  const client = persistedClient([{ id: 'owned' }], [], { pages: [], pageParams: [] })
+  client.clientState.mutations = [
+    { mutationKey: ['occurrences', 'ack'], state: { variables: { id: 'own-fire' }, context: {
+      previous: [{ id: 'own-fire', reminderId: 'owned' }, { id: 'shared-fire', reminderId: 'shared' }]
+    } } },
+    { mutationKey: ['reminders', 'delete'], state: { variables: 'deleted-owned', context: { previous: [{ id: 'deleted-owned' }] } } }
+  ] as never
+  const saved = JSON.parse(serializeOwnedCache(client)) as PersistedClient
+  assert.equal(saved.clientState.mutations.length, 2)
+  assert.doesNotMatch(JSON.stringify(saved), /shared-fire/)
+})
+
+
+test('restoring an older account-bound cache strips shared queries and queued writes', () => {
+  const client = persistedClient([{ id: 'owned' }], [], { pages: [], pageParams: [] })
+  client.clientState.queries.push({ queryKey: ['shares', 'received'], state: { data: [{ title: 'PRIVATE SHARED CONTENT' }] } } as never)
+  client.clientState.mutations = [
+    { mutationKey: ['reminders', 'check'], state: { variables: { id: 'shared' }, context: { received: [{ title: 'PRIVATE SHARED CONTENT' }] } } },
+    { mutationKey: ['reminders', 'check'], state: { variables: { id: 'owned' }, context: { received: [{ title: 'PRIVATE SHARED CONTENT' }] } } }
+  ] as never
+  const restored = deserializeAccountCache(JSON.stringify({ ...client, accountId: 'account' }), 'account')
+  assert.equal(restored.clientState.mutations.length, 1)
+  assert.doesNotMatch(JSON.stringify(restored), /PRIVATE SHARED CONTENT|"shares"|"shared"/)
 })

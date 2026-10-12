@@ -7,6 +7,7 @@ import { broadcast } from './realtime.js'
 import { rateLimit } from './rate-limit.js'
 import { buildShareInvitationEmail } from './share-invitation-email.js'
 import { nudgeNativeSync } from './delivery/index.js'
+import { broadcastSharingChange } from './sharing-access.js'
 import { logger } from './logger.js'
 
 /** Invite an unregistered recipient without exposing reminder details in email. */
@@ -30,25 +31,44 @@ export async function sendShareInvitation(input: {
   })
 }
 
+/** Attribute an invitation email to the authenticated person actually sending it. */
+export async function sendShareInvitationFor(actorId: string, email: string): Promise<void> {
+  const actor = await prisma.user.findUniqueOrThrow({
+    where: { id: actorId },
+    select: { email: true, displayName: true }
+  })
+  await sendShareInvitation({
+    ownerId: actorId,
+    email,
+    ownerName: actor.displayName || actor.email
+  })
+}
+
 /** Convert pending grants only after sign-in verifies ownership of the address. */
 export async function claimShareInvitations(user: { id: string; email: string }): Promise<void> {
   const claimed = await prisma.$transaction(async (transaction) => {
     const invitations = await transaction.reminderInvitation.findMany({
       where: { email: { equals: user.email, mode: 'insensitive' } },
-      include: { reminder: { select: { userId: true } } }
+      include: { reminder: { select: { userId: true } } },
+      orderBy: { reminderId: 'asc' }
     })
     const claimedReminderIds: string[] = []
     for (const invitation of invitations) {
-      // Delete first so an invitation revoked during sign-in cannot be claimed
-      // from a stale earlier read.
-      const deleted = await transaction.reminderInvitation.deleteMany({
-        where: { reminderId: invitation.reminderId, email: invitation.email }
+      // Use the same parent lock as add/remove. Re-read after waiting so a
+      // revoked invitation cannot be claimed and its original author is current.
+      await transaction.$queryRaw`
+        SELECT id FROM "Reminder" WHERE id = ${invitation.reminderId}
+        AND "userId" = ${invitation.reminder.userId} FOR UPDATE
+      `
+      const current = await transaction.reminderInvitation.findUnique({
+        where: { reminderId_email: { reminderId: invitation.reminderId, email: invitation.email } }
       })
-      if (deleted.count === 0) continue
+      if (!current) continue
+      await transaction.reminderInvitation.delete({ where: { reminderId_email: { reminderId: current.reminderId, email: current.email } } })
       if (invitation.reminder.userId !== user.id) {
         await transaction.reminderShare.upsert({
           where: { reminderId_recipientId: { reminderId: invitation.reminderId, recipientId: user.id } },
-          create: { reminderId: invitation.reminderId, recipientId: user.id, permission: 'EDIT' },
+          create: { reminderId: invitation.reminderId, recipientId: user.id, invitedById: current.invitedById, permission: 'EDIT' },
           update: { permission: 'EDIT' }
         })
         claimedReminderIds.push(invitation.reminderId)
@@ -59,6 +79,11 @@ export async function claimShareInvitations(user: { id: string; email: string })
   if (claimed.length > 0) {
     broadcast(user.id, { type: 'share.changed' })
     for (const reminderId of claimed) {
+      const reminder = await prisma.reminder.findFirst({
+        where: { id: reminderId, shares: { some: { recipientId: user.id } } },
+        select: { userId: true }
+      })
+      if (reminder) await broadcastSharingChange(reminderId, reminder.userId)
       broadcast(user.id, { type: 'reminder.changed', reminderId })
     }
     void nudgeNativeSync(user.id).catch((error) =>

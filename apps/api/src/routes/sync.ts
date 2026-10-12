@@ -18,6 +18,7 @@ import { escalateAtFor } from '../lib/escalation.js'
 import { expandSchedule } from '../lib/schedule-expand.js'
 import { buildDeviceAlarms } from '../lib/device-alarms.js'
 import { notificationBody } from '../lib/notification-format.js'
+import { reminderForActor } from '../lib/personal-notification-settings.js'
 import { occurrenceForActor } from '../lib/recipient-alert-state.js'
 
 export const syncRouter = Router()
@@ -60,7 +61,7 @@ syncRouter.get('/occurrences', async (request, response) => {
       scheduledFor: { lte: queryUntil }
     },
     include: {
-      reminder: { include: { user: { select: { timeZone: true } } } },
+      reminder: { include: { user: { select: { timeZone: true } }, shares: { where: { recipientId: userId }, select: { shadeProminence: true } } } },
       recipientAlerts: { where: { recipientId: userId } }
     },
     orderBy: { scheduledFor: 'asc' },
@@ -78,7 +79,8 @@ syncRouter.get('/occurrences', async (request, response) => {
   const notes: DeviceAgendaEntry[] = []
   const serialized: ReturnType<typeof toOccurrence>[] = []
   for (const stored of occurrences) {
-    const o = occurrenceForActor(stored, userId, stored.recipientAlerts[0])
+    const personal = occurrenceForActor(stored, userId, stored.recipientAlerts[0])
+    const o = { ...personal, reminder: reminderForActor(personal.reminder, userId, personal.reminder.shares[0]) }
     const tz = o.reminder.user.timeZone
     // Escalation is a hard backstop anchored to the first fire, so the "after N
     // minutes" threshold counts from firedAt (or the scheduled time before it

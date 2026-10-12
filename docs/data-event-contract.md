@@ -235,6 +235,26 @@ and the on-device escalation alarm). The server reverts `ESCALATED → FIRED`, t
 broadcasts a `silence` WS event **and** sends a `silence` push so every device
 downgrades its ringing alarm to a soft notification instead of clearing it.
 
+## Sharing membership and personal notification placement
+
+`GET /api/shares/:reminderId` requires ownership or an explicit current share and
+returns the owner plus members and pending invitations. Each row's `canRemove`
+is true only for the owner or original inviter. Current members may invite
+additional people directly. Repeated adds preserve the original inviter, and
+verified invitation claims carry that attribution into the new grant. Removal,
+leaving, and new grants invalidate every current member's roster over WebSocket;
+a removed member is invalidated too. Only the owner can delete the reminder.
+Membership writes and verified claims serialize on the reminder row and recheck
+authorization after acquiring the lock. This preserves the 20-person limit and
+prevents a removed member from granting access through a waiting request.
+Invitations are invalidated after persistence, before email delivery, so a
+delivery failure leaves a visible invitation that its owner or inviter can retry.
+
+Shade prominence is personal: the owner stores theirs on the reminder; a shared
+member stores theirs on their grant. Received editor projections and device alarm
+sync use that participant's choice. Saving a shared definition updates the
+recipient's setting transactionally and omits the owner's prominence column.
+
 ## Checklist ticks
 
 A `TODO` reminder's items live on the reminder (`typeData.items`, each with a
@@ -265,7 +285,17 @@ items, so a tick changes the text of an already-armed alarm. Native devices re-p
 body never re-alerts); web clients converge over the WS event, while the FCM sync
 nudge is only for Android. The web client applies the toggle optimistically
 (`mutationKeys.checkOccurrenceItem`) — a checkbox that waits for a round trip feels
-broken.
+broken. The owner and recipient reading views use the same checklist controls.
+Checklist mutations update the live received-share cache optimistically alongside
+owned data, including the nested editable definition. On failure, rollback touches
+only a changed row still matching that write's optimistic value; it never recreates
+a missing or revoked row or overwrites a newer edit. Settled invalidation reconciles
+overlapping changes. Progress writes recheck the share grant after acquiring the
+reminder lock. A firing tick also checks live status in the atomic SQL write, so a
+concurrent Done cannot be followed by a change to its finished checklist. Received queries, received-targeted paused writes, and received
+rollback content are excluded from both persisted caches and restored legacy caches.
+Owned queued writes remain available offline, including completion and deletion
+whose optimistic result already removed the target from a list.
 
 ## Adding a checklist item
 

@@ -24,7 +24,7 @@ export function OccurrenceActions({
   silenceLoading,
   doneLabel = 'Done'
 }: {
-  occurrence: Occurrence
+  occurrence: Pick<Occurrence, 'status'> & { reminder: Pick<Occurrence['reminder'], 'title'> }
   onDone: () => void
   doneLoading: boolean
   onSnooze: () => void

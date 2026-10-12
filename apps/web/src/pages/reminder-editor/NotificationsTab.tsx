@@ -79,7 +79,7 @@ export function NotificationsTab({
       <ReminderSoundsField form={form} set={set} />
 
       <FormControl>
-        <FormLabel>Shade prominence</FormLabel>
+        <FormLabel>Your shade prominence</FormLabel>
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           {shadeProminenceLevels.map((p) => (
             <Button
@@ -92,6 +92,7 @@ export function NotificationsTab({
             </Button>
           ))}
         </Stack>
+        <Typography level="body-xs" sx={{ mt: 0.5 }}>Only changes your notifications for this reminder.</Typography>
         <Typography level="body-xs" sx={{ mt: 0.5 }}>
           {form.shadeProminence === 'MINIMIZED'
             ? 'Android only: tucks this reminder into the collapsed section at the bottom of the notification shade, with no pop-up banner. Visual only — it does not change the sound.'

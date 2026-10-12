@@ -38,7 +38,13 @@ test('sign-out removes identity and persisted writes so reopening cannot recover
 })
 
 test('a different account never hydrates another account data or queued writes', () => {
-  const cache = { timestamp: 100, buster: 'test', clientState: { queries: [{ private: true }], mutations: [{ queued: true }] } }
+  const cache = {
+    timestamp: 100, buster: 'test',
+    clientState: {
+      queries: [{ queryKey: ['reminders'], state: { data: [{ id: 'owned' }] } }],
+      mutations: [{ mutationKey: ['reminders', 'check'], state: { variables: { id: 'owned' } } }]
+    }
+  }
   const raw = serializeAccountCache(JSON.stringify(cache), user.id)
   assert.deepEqual(deserializeAccountCache(raw, user.id).clientState, cache.clientState)
   for (const account of [null, 'another-owner']) {

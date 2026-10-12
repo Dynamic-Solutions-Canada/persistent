@@ -28,6 +28,7 @@ import { notificationTitle, notificationBody } from '../lib/notification-format.
 import { ackDecision } from '../lib/occurrence-ack.js'
 import { logger } from '../lib/logger.js'
 import { actionableOccurrence, broadcastSharedChange, participantIds, personalOccurrence } from '../lib/share-access.js'
+import { withSharingReminder } from '../lib/sharing-access.js'
 import { occurrenceForActor } from '../lib/recipient-alert-state.js'
 import { broadcastAssignmentProgress } from '../lib/assignment-progress.js'
 
@@ -236,42 +237,56 @@ occurrencesRouter.post('/:id/check', async (request, response) => {
 
   const existing = await actionableOccurrence(request.params.id, userId)
   if (!existing) throw notFound('Occurrence not found.')
-  if (existing.reminder.type !== 'TODO') throw badRequest('This reminder has no checklist.')
+  const result = await withSharingReminder(existing.reminderId, userId, async (transaction, reminder) => {
+    const current = await transaction.reminderOccurrence.findFirst({
+      where: { id: existing.id, userId: reminder.userId, reminderId: reminder.id },
+      include: { reminder: true }
+    })
+    if (!current) throw notFound('Occurrence not found.')
+    if (current.reminder.type !== 'TODO') throw badRequest('This reminder has no checklist.')
 
-  const items = todoItems((existing.reminder.typeData ?? {}) as TypeData)
-  if (!items.some((item) => item.id === parsed.data.itemId)) throw notFound('Checklist item not found.')
+    const items = todoItems((current.reminder.typeData ?? {}) as TypeData)
+    if (!items.some((item) => item.id === parsed.data.itemId)) throw notFound('Checklist item not found.')
 
-  // Only a nagging firing has a checklist to work through. Same guard as
-  // silence/snooze: a toggle queued on a device and drained after the ack must not
-  // rewrite a finished firing's record of what was actually done.
-  if (existing.status !== 'FIRED' && existing.status !== 'ESCALATED' && existing.status !== 'SNOOZED') {
-    response.json({ occurrence: toOccurrence(existing) })
+    // Only a nagging firing has a checklist to work through. Same guard as
+    // silence/snooze: a toggle queued on a device and drained after the ack must not
+    // rewrite a finished firing's record of what was actually done.
+    if (current.status !== 'FIRED' && current.status !== 'ESCALATED' && current.status !== 'SNOOZED') {
+      return { updated: current, changed: false }
+    }
+
+    // Applied as ONE atomic statement rather than the obvious read-modify-write,
+    // which loses a tick whenever two arrive together — and they do: working down a
+    // checklist means tapping several items in quick succession, and each tap is its
+    // own request. Read-modify-write has both read `[]` before either write lands, so
+    // the second overwrites the first.
+    //
+    // `-` removes every matching element (so re-ticking can't duplicate, making the
+    // toggle idempotent for offline replays) and `||` appends. The tagged template
+    // parameterizes this atomic write; ownership and live status remain predicates
+    // even after authorization was rechecked under the reminder lock.
+    const { itemId, checked } = parsed.data
+    const changed = await transaction.$executeRaw`
+      UPDATE "ReminderOccurrence"
+      SET "checkedItems" = CASE
+        WHEN ${checked}::boolean THEN ("checkedItems" - ${itemId}::text) || jsonb_build_array(${itemId}::text)
+        ELSE "checkedItems" - ${itemId}::text
+      END
+      WHERE "id" = ${current.id} AND "userId" = ${current.userId}
+        AND "status" IN ('FIRED', 'ESCALATED', 'SNOOZED')
+    `
+    const updated = await transaction.reminderOccurrence.findFirstOrThrow({
+      where: { id: current.id, userId: current.userId },
+      include: { reminder: true }
+    })
+
+    return { updated, changed: changed > 0 }
+  })
+  const { updated } = result
+  if (!result.changed) {
+    response.json({ occurrence: toOccurrence(updated) })
     return
   }
-
-  // Applied as ONE atomic statement rather than the obvious read-modify-write,
-  // which loses a tick whenever two arrive together — and they do: working down a
-  // checklist means tapping several items in quick succession, and each tap is its
-  // own request. Read-modify-write has both read `[]` before either write lands, so
-  // the second overwrites the first.
-  //
-  // `-` removes every matching element (so re-ticking can't duplicate, making the
-  // toggle idempotent for offline replays) and `||` appends. Raw SQL is confined to
-  // the checklist writes that need this atomicity (the two in `routes/reminders.ts`
-  // are the others); the tagged template parameterizes, and `userId` still scopes it.
-  const { itemId, checked } = parsed.data
-  await prisma.$executeRaw`
-    UPDATE "ReminderOccurrence"
-    SET "checkedItems" = CASE
-      WHEN ${checked}::boolean THEN ("checkedItems" - ${itemId}::text) || jsonb_build_array(${itemId}::text)
-      ELSE "checkedItems" - ${itemId}::text
-    END
-    WHERE "id" = ${existing.id} AND "userId" = ${existing.userId}
-  `
-  const updated = await prisma.reminderOccurrence.findFirstOrThrow({
-    where: { id: existing.id, userId: existing.userId },
-    include: { reminder: true }
-  })
 
   // A notification lists only the items still unticked, so this tick changed its
   // text. Web clients converge over WS; native devices need the FCM-only `sync` to

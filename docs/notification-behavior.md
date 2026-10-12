@@ -59,7 +59,7 @@ Two things hold on every surface regardless of which action the user takes:
   multi-line textarea, so those line breaks are content: the web detail view and
   list previews use `pre-wrap`, the native notification uses `BigTextStyle`, the
   full-screen alarm renders them as-is, and the escalation email is plain text. The
-  compact shared-reminder row is the one deliberate exception. A checklist reminder's body is its still-unticked
+  shared-reminder row uses those same controls. A checklist reminder's body is its still-unticked
   items (§1a), one per line, and depends on exactly the same thing.
 
 The three user actions on a firing are **Done**, **Silence**, and **Snooze**.
@@ -243,7 +243,10 @@ has passed before the server receives it; the firing remains active.
 For a shared reminder, each participant has their own snooze and alarm escalation
 state. Snoozing clears only that person's devices. Done confirms the single
 shared firing and clears it for every participant. Checklist ticks and reminder
-edits also apply to everyone.
+edits also apply to everyone, except shade prominence, which is personal.
+The reading dialog uses the same Snooze, Done confirmation, and De-escalate
+controls for owners and shared members. Share lists the owner and members and
+contains the recipient's Leave action.
 
 The reminder's covering email is sent once per firing. Its configured delay
 starts at the original fire, but an active snooze by any current participant

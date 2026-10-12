@@ -15,7 +15,11 @@
   Snooze, Done, and checklist
   controls in the dialog. Checklist previews show the saved checked state and
   honor the reminder's hide-checked preference without adding nested buttons.
-  The editor opens as a separate dialog, while saved editor URLs continue to
+  Owners and recipients use the same occurrence and checklist controls. Share
+  opens the same roster, with the owner labelled, direct invitations for current
+  members, and Leave inside the dialog for recipients. Only owners and original
+  inviters see Remove. Shade prominence in the editor belongs to the person
+  viewing it. The editor opens as a separate dialog, while saved editor URLs continue to
   resolve for older links. A title or note body becomes an inline text field only
   when selected in the reading dialog; its focused PATCH updates only that text.
   Received shares follow the same placement: active firings on Current, future or
@@ -101,7 +105,10 @@
   server session check succeeds; browser online events alone must not replay
   writes. HTTP failures cannot authorize offline fallback. Sign-out, deletion,
   account changes and server revocation clear departed account data and writes.
-  Shared and assignment projections remain excluded offline.
+  Shared and assignment projections remain excluded offline. Persist only
+  owner-targeted queued writes and owner rollback content; sanitize restored
+  caches too. Checklist rollback must not resurrect revoked rows or overwrite
+  later changes.
 - **Mutations** are registered as defaults in `lib/queryClient.ts`
   (`registerMutationDefaults`) keyed by `mutationKeys`; hooks in `src/data/` just
   reference the key. Defaults own the optimistic cache update + `onSettled`

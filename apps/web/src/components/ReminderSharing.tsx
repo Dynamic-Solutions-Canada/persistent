@@ -19,11 +19,13 @@ import {
   useShareRecipients
 } from '../data/shares.js'
 import { BackAwareModal } from './BackAwareModal.js'
+import { LeaveReminderButton } from './LeaveReminderButton.js'
 import { useToast } from './ToastProvider.js'
 
 interface ReminderSharingProps {
   open: boolean
   onClose: () => void
+  onLeave?: () => void
   reminderId?: string
   draftShares?: ShareInput[]
   onDraftSharesChange?: (shares: ShareInput[]) => void
@@ -36,6 +38,7 @@ interface ReminderSharingProps {
 export function ReminderSharing({
   open,
   onClose,
+  onLeave,
   reminderId,
   draftShares = [],
   onDraftSharesChange,
@@ -62,7 +65,7 @@ export function ReminderSharing({
       return false
     }
     if (parsed.data.email === user?.email.toLowerCase()) {
-      setError('You already own this reminder.')
+      setError('You already have access.')
       return false
     }
     setError(null)
@@ -102,7 +105,8 @@ export function ReminderSharing({
     onClose()
   }
 
-  const people = reminderId ? (shares.data ?? []) : draftShares
+  const people = reminderId ? (shares.data?.shares ?? []) : draftShares
+  const isOwner = shares.data?.owner.id === user?.id
   const assigning = !reminderId && draftMode === 'assign'
 
   return (
@@ -140,7 +144,7 @@ export function ReminderSharing({
             <Typography level="body-sm">
               {assigning
                 ? 'Only the assignee gets alerts and can edit or complete this reminder. You can monitor its status after creation. An invited person starts receiving it after sign-in.'
-                : 'Share with someone who has a Persistent account, or invite them by email. Everyone with access can edit and complete this reminder.'}
+                : 'Share with someone who has a Persistent account, or invite them by email. Everyone with access can edit, complete, and share this reminder further. Snooze, de-escalation, and shade prominence are personal.'}
             </Typography>
             <Typography level="title-sm">{assigning ? 'Assignee' : 'People with access'}</Typography>
             {assigning ? (
@@ -151,16 +155,21 @@ export function ReminderSharing({
               <Typography level="body-sm">Loading access...</Typography>
             ) : reminderId && shares.isError ? (
               <Typography level="body-sm" color="danger">Could not load access.</Typography>
-            ) : people.length === 0 ? (
+            ) : !reminderId && people.length === 0 ? (
               <Typography level="body-sm">Only you</Typography>
             ) : null}
+            {reminderId && shares.data?.owner && (
+              <Typography level="body-sm" sx={{ overflowWrap: 'anywhere' }}>
+                {shares.data.owner.displayName || shares.data.owner.email} (owner{isOwner ? ', you' : ''})
+              </Typography>
+            )}
             {reminderId
-              ? shares.data?.map((share) => (
+              ? shares.data?.shares.map((share) => (
                   <Stack key={share.email} direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
                     <Typography level="body-sm" sx={{ flex: 1, minWidth: 120, overflowWrap: 'anywhere' }}>
-                      {share.displayName || share.email}{share.pending ? ' (invited)' : ''}
+                      {share.displayName || share.email}{share.recipientId === user?.id ? ' (you)' : ''}{share.pending ? ' (invited)' : ''}
                     </Typography>
-                    {share.pending && (
+                    {share.pending && share.canRemove && (
                       <Button
                         size="sm"
                         variant="plain"
@@ -170,15 +179,17 @@ export function ReminderSharing({
                         Resend
                       </Button>
                     )}
-                    <Button
-                      size="sm"
-                      variant="plain"
-                      color="danger"
-                      disabled={save.isPending || remove.isPending}
-                      onClick={() => remove.mutate(share)}
-                    >
-                      Remove
-                    </Button>
+                    {share.canRemove && (
+                      <Button
+                        size="sm"
+                        variant="plain"
+                        color="danger"
+                        disabled={save.isPending || remove.isPending}
+                        onClick={() => remove.mutate(share)}
+                      >
+                        Remove
+                      </Button>
+                    )}
                   </Stack>
                 ))
               : draftShares.map((share) => (
@@ -226,6 +237,12 @@ export function ReminderSharing({
               </Button>
             </Stack>
             {error && <Typography color="danger" level="body-sm">{error}</Typography>}
+            {reminderId && shares.data && !isOwner && (
+              <LeaveReminderButton reminderId={reminderId} onLeft={() => {
+                onClose()
+                onLeave?.()
+              }} />
+            )}
             {!reminderId && !assigning && draftShares.length > 0 && (
               <Typography level="body-xs">Access or invitations will be sent when you create the reminder.</Typography>
             )}
