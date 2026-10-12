@@ -64,3 +64,10 @@ packaging, schema/checksum manifest generation, workflow lint and runtime depend
 audit pass. Native update approval/refusal and real AppImage replacement/restart were
 exercised with an isolated profile and no audible alarms. See
 [verification](linux-desktop-verification.md) for evidence and runtime limits.
+
+Release CI built both CPU packages successfully but initially refused publisher
+root dependency installation under Node 22 (`EBADENGINE`, root requires Node 20.20.2
+and npm 10.8.2). The publisher now installs root dependencies under Node 20 before
+switching to native Node 22. A manual existing-tag retry checks out the exact tag,
+validates its version/main ancestry and uses the same publication sequence. The
+failed tag is preserved rather than moved.

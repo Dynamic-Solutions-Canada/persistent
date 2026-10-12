@@ -86,7 +86,8 @@ code signing. Unpackaged development builds do not install updates.
 `linux-vX.Y.Z` tags run `release-linux.yml`, build both CPUs, and publish only after
 all four packages and their checksum manifest exist. The package version must match
 the tag, and its commit must be on main. Linux releases never replace Android as
-GitHub Latest. These developer build/install commands do not themselves publish.
+GitHub Latest. An existing-tag manual run can recover a pre-publication workflow
+failure without moving its tag. These developer build/install commands do not themselves publish.
 
 ## Runtime checks
 
