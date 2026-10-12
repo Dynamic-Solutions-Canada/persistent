@@ -23,6 +23,14 @@ resume, and hosted appearance updates, keeping status icons and the gesture bar
 readable in both light and dark themes. Platform picker controls retain their
 system styling.
 
+The edge-to-edge WebView keeps its themed background behind the system bars.
+`WebViewSystemInsets` publishes the actual overlapping native bar/cutout dimensions
+as CSS properties after layout and page loads. Shared web `safeArea.ts` takes the
+greater of those values and browser `env()` insets, keeping header and navigation
+controls clear on older WebViews without adding padding twice. Insets are returned
+unconsumed so the platform can continue resizing the keyboard viewport. Deploy
+the corresponding hosted web helper before releasing this native fallback.
+
 Android shade notifications request the selected palette's accent with
 `NotificationCompat.Builder.setColor`; the OS controls their backgrounds and
 final rendering. Appearance updates re-post existing notification ids in place,

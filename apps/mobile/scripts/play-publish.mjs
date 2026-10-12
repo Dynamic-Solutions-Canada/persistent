@@ -646,7 +646,7 @@ async function main() {
     await commitEdit(token, packageName, edit.id)
     console.log(`[play-publish] committed. ${LISTING_LANGUAGE} listing updated from ${listingFile}`)
     if (withShots) console.log(`[play-publish] ${shots.length} screenshots replaced from ${shotsDir}`)
-    console.log('[play-publish] Play reviews listing changes before they go live.')
+    console.log('[play-publish] Upload committed. Verify Publishing overview in Play Console: API success does not prove the changes were sent for review or published.')
     return
   }
 

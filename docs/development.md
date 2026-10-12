@@ -102,6 +102,13 @@ stored in repository configuration. Android builds use no persistent Gradle
 daemon and at most two workers by default to keep WSL responsive; set
 `ANDROID_GRADLE_WORKERS` only when the host has known spare capacity.
 
+For repeatable Store screenshots without the personal phone, the experimental
+[Firebase Test Lab workflow](test-lab-store-captures.md) defaults to a virtual
+Android 16 phone, rejects billed projects, and uses a fresh synthetic-only server
+with a temporary HTTPS tunnel. Its complete carousel is still gated on real alarm
+escalation and removal of unrelated lab icons. Ordinary development databases,
+production credentials and cached personal data must never be exposed by this path.
+
 The `$test-android-device` Codex skill follows that same physical-device
 workflow. The repository-local Codex hook rejects patches to generated files
 and to `apps/mobile/android/`; change the tracked native overlay or setup script

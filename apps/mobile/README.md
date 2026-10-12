@@ -183,6 +183,16 @@ npm run sync          # copy web + plugins into android/
 npm run open:android  # build/run in Android Studio
 ```
 
+## Disposable Store capture tests
+
+The experimental [Test Lab workflow](../../docs/test-lab-store-captures.md) uses
+virtual Android 16, a fresh synthetic-only server and verified disabled billing.
+Its instrumentation and pure geometry helpers live only in test source sets;
+UI Automator is added only to the disposable build. Pure geometry uses Java to
+avoid requiring the shipping Kotlin 1.9 compiler to read UI Automator 2.4's newer
+Kotlin metadata. JVM tests live in `android-tests/` and compile for both flavors.
+The complete carousel remains blocked by native escalation and unrelated lab icons.
+
 ## Edge-to-edge, and why the web ships first
 
 `MainActivity.drawEdgeToEdge()` lets the WebView fill the display under
@@ -191,9 +201,14 @@ band above and below every screen: that band showed the *window* background, whi
 the web UI's own themed background never reaches.
 
 That makes the layout depend on the **hosted** web bundle, which the APK loads
-live (`server.url` in `capacitor.config.ts`) — the top bar and bottom nav carry
-`env(safe-area-inset-*)` padding to stay clear of the bars
-(`apps/web/src/components/AppLayout.tsx`, `BottomNav.tsx`).
+live (`server.url` in `capacitor.config.ts`). The top bar, bottom navigation and
+floating action share `apps/web/src/lib/safeArea.ts`, which takes the greater of
+CSS `env(safe-area-inset-*)` and measured native spacing. WebView versions before
+136 do not expose system-bar insets through CSS, so `WebViewSystemInsets` supplies
+the actual overlap through `--native-safe-area-inset-*` properties. It measures
+again after layout, rotation and page loads, leaving keyboard insets unconsumed.
+Using the greater value prevents double spacing on modern WebViews. The background
+still fills the display behind both system bars.
 
 **Deploy the web change before shipping an APK that contains this.** The two
 update independently, and while an old bundle is still being served a new APK
