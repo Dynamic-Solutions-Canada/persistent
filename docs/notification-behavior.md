@@ -419,6 +419,10 @@ The Play build ships neither this screen (Android Auto has no app category a rem
 can honestly claim) nor the notification mirror of §5 — it carries no Android Auto
 integration at all.
 
+The Linux desktop host follows the same session-bound outcomes, with Snooze
+opening the existing web picker and freedesktop notifications controlled by the
+desktop daemon. See [`linux-desktop-architecture.md`](linux-desktop-architecture.md).
+
 ## 5a. Windows tray app: session-bound persistence on a toast
 
 The Windows tray app (`apps/desktop`) can optionally keep a Windows notification

@@ -24,3 +24,12 @@ test('promotes both native apps in an ordinary browser', () => {
   assert.equal(promotion.showAndroid, true)
   assert.equal(promotion.showWindows, true)
 })
+
+test('Linux promotes the Android companion without advertising its own download', () => {
+  const promotion = getNativeAppsPromotion('linux')
+  assert.equal(promotion.showAndroid, true)
+  assert.equal(promotion.showWindows, false)
+  assert.equal(promotion.showLinux, false)
+  assert.equal(getNativeAppsPromotion('web').showLinux, true)
+  assert.equal(getNativeAppsPromotion('android').showLinux, true)
+})

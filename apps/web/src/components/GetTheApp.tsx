@@ -1,8 +1,8 @@
 /**
  * Nudges toward the native apps. The title-bar button is a web-only app chooser,
  * while one permanently dismissible banner adapts to its host: Android
- * promotes Windows, Windows promotes Android, and an ordinary browser presents
- * both. This keeps the cross-device story visible without advertising the app the
+ * promotes the desktop apps, both desktop hosts promote Android, and an
+ * ordinary browser presents all three. This keeps the cross-device story visible without advertising the app the
  * user is already running.
  */
 import { useState } from 'react'
@@ -16,19 +16,19 @@ import CloseIcon from '@mui/icons-material/Close'
 import DevicesRoundedIcon from '@mui/icons-material/DevicesRounded'
 import WindowRoundedIcon from '@mui/icons-material/WindowRounded'
 import { isNative } from '../native/alarmBridge.js'
-import { isDesktopHost } from '../native/desktopBridge.js'
+import { desktopPlatform, isDesktopHost } from '../native/desktopBridge.js'
 import {
   APP_PROMO_DISMISSED_KEY,
   getNativeAppsPromotion,
   type NativeAppsPromoHost
 } from './appPromotion.js'
-import { NativeAppStoreButtons } from './NativeAppStoreButtons.js'
+import { NativeAppButtons } from './NativeAppButtons.js'
 import { NativeAppsDialog } from './NativeAppsDialog.js'
 
 /** Identify the surface so the banner does not promote the app already in use. */
 function currentPromoHost(): NativeAppsPromoHost {
   if (isNative()) return 'android'
-  if (isDesktopHost()) return 'windows'
+  if (isDesktopHost()) return desktopPlatform() ?? 'web'
   return 'web'
 }
 
@@ -91,9 +91,10 @@ export function NativeAppsPromoBanner() {
           {promotion.description}
         </Typography>
         <Box sx={{ mt: 1 }}>
-          <NativeAppStoreButtons
+          <NativeAppButtons
             showAndroid={promotion.showAndroid}
             showWindows={promotion.showWindows}
+            showLinux={promotion.showLinux}
           />
         </Box>
       </Box>

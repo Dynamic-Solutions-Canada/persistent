@@ -733,6 +733,10 @@ the supported path if it misbehaves.
   a one-minute recovery refresh catches missed events while the process runs
   (`docs/desktop-architecture.md`). That is why it is only session-bound: nothing
   new reaches it while it is closed or the PC remains asleep.
+- The Linux tray host uses the same session-bound device-alarm projection and
+  recovery model, presented through freedesktop D-Bus notifications and a local
+  alarm audio loop. It owns no offline exact wake schedule. See
+  [`linux-desktop-architecture.md`](linux-desktop-architecture.md).
 - Browsers receive no notifications. Open web clients stay current over `/ws`.
 
 `dispatchToUser` sends `fire`/`escalate`/`dismiss`/`silence` through FCM, and

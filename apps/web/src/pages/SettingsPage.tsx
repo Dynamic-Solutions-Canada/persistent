@@ -32,7 +32,7 @@ import { mirrorSyncConfig } from '../native/nativeSync.js'
 import { DesktopSettings } from '../native/desktop-settings/DesktopSettings.js'
 import { UpdateSettings } from '../native/UpdateSettings.js'
 import { AccountSettingsCard } from '../components/AccountSettingsCard.js'
-import { NativeAppStoreButtons } from '../components/NativeAppStoreButtons.js'
+import { NativeAppButtons } from '../components/NativeAppButtons.js'
 
 export function SettingsPage() {
   const { user } = useAuth()
@@ -231,7 +231,7 @@ export function SettingsPage() {
         <Typography level="body-sm">
           Get alarms that work offline on Android, or persistent alerts while your PC is awake with the Windows app.
         </Typography>
-        <NativeAppStoreButtons />
+        <NativeAppButtons />
         <Link component={RouterLink} to="/settings/apps">Our other apps</Link>
       </Card>
     </Stack>

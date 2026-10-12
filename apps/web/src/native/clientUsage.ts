@@ -2,12 +2,12 @@
 import type { ClientUsage } from '@persistent/shared'
 import { apiFetch } from '../lib/apiClient.js'
 import { isNative, NativeApp } from './alarmBridge.js'
-import { isDesktopHost } from './desktopBridge.js'
+import { isDesktopHost, desktopPlatform } from './desktopBridge.js'
 
 /** Prefer native bridge identity; browser/PWA distinction is the current display mode. */
-export function classifyClient(native: boolean, desktop: boolean, standalone: boolean, userAgent: string): Pick<ClientUsage, 'app' | 'platform'> {
+export function classifyClient(native: boolean, desktop: boolean, standalone: boolean, userAgent: string, hostPlatform: 'windows' | 'linux' = 'windows'): Pick<ClientUsage, 'app' | 'platform'> {
   if (native) return { app: 'android', platform: 'android' }
-  if (desktop) return { app: 'windows', platform: 'windows' }
+  if (desktop) return { app: hostPlatform, platform: hostPlatform }
 
   let platform: ClientUsage['platform'] = 'unknown'
   if (/Android/i.test(userAgent)) platform = 'android'
@@ -44,7 +44,7 @@ export async function collectClientUsage(
 export async function reportClientUsage(signal?: AbortSignal): Promise<void> {
   const standalone = window.matchMedia('(display-mode: standalone)').matches
     || (navigator as Navigator & { standalone?: boolean }).standalone === true
-  const identity = classifyClient(isNative(), isDesktopHost(), standalone, navigator.userAgent)
+  const identity = classifyClient(isNative(), isDesktopHost(), standalone, navigator.userAgent, desktopPlatform() ?? 'windows')
   const reportSignal = signal
     ? AbortSignal.any([signal, AbortSignal.timeout(8_000)])
     : AbortSignal.timeout(8_000)
