@@ -1,7 +1,7 @@
 {
   "worktree": {
     "setup": "node \"$PASEO_SOURCE_CHECKOUT_PATH/node_modules/@ryanewen/devkit/bin/devkit.mjs\" run npm run dev:prepare-worktree",
-    "teardown": "node node_modules/@ryanewen/devkit/bin/devkit.mjs run npm run dev:down"
+    "teardown": "node \"$PASEO_SOURCE_CHECKOUT_PATH/node_modules/@ryanewen/devkit/bin/devkit.mjs\" cleanup --paseo --yes"
   },
   "scripts": {
     "dev-prepare-worktree": {
