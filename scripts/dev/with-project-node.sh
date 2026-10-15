@@ -6,6 +6,8 @@ set -eo pipefail
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 node_version="$(cat "$repo_root/.nvmrc")"
 
+unset npm_config_prefix NPM_CONFIG_PREFIX
+
 if [[ "$(node --version 2>/dev/null)" != "v$node_version" ]]; then
   nvm_script="${NVM_DIR:-$HOME/.nvm}/nvm.sh"
   if [[ ! -s "$nvm_script" ]]; then
