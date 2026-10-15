@@ -1,32 +1,32 @@
 {
   "worktree": {
-    "setup": "bash scripts/dev/with-project-node.sh npm run dev:prepare-worktree",
-    "teardown": "bash scripts/dev/with-project-node.sh npm run dev:down"
+    "setup": "node \"$PASEO_SOURCE_CHECKOUT_PATH/node_modules/@ryanewen/devkit/bin/devkit.mjs\" run npm run dev:prepare-worktree",
+    "teardown": "node node_modules/@ryanewen/devkit/bin/devkit.mjs run npm run dev:down"
   },
   "scripts": {
     "dev-prepare-worktree": {
-      "command": "bash scripts/dev/with-project-node.sh npm run dev:prepare-worktree"
+      "command": "node node_modules/@ryanewen/devkit/bin/devkit.mjs run npm run dev:prepare-worktree"
     },
     "dev": {
-      "command": "bash scripts/dev/with-project-node.sh npm run dev"
+      "command": "node node_modules/@ryanewen/devkit/bin/devkit.mjs run npm run dev"
     },
     "dev-background": {
-      "command": "bash scripts/dev/with-project-node.sh npm run dev:background"
+      "command": "node node_modules/@ryanewen/devkit/bin/devkit.mjs run npm run dev:background"
     },
     "dev-down": {
-      "command": "bash scripts/dev/with-project-node.sh npm run dev:down"
+      "command": "node node_modules/@ryanewen/devkit/bin/devkit.mjs run npm run dev:down"
     },
     "dev-doctor": {
-      "command": "bash scripts/dev/with-project-node.sh npm run dev:doctor"
+      "command": "node node_modules/@ryanewen/devkit/bin/devkit.mjs run npm run dev:doctor"
     },
     "validate": {
-      "command": "bash scripts/dev/with-project-node.sh npm run validate"
+      "command": "node node_modules/@ryanewen/devkit/bin/devkit.mjs run npm run validate"
     },
     "test": {
-      "command": "bash scripts/dev/with-project-node.sh npm test"
+      "command": "node node_modules/@ryanewen/devkit/bin/devkit.mjs run npm test"
     },
     "build": {
-      "command": "bash scripts/dev/with-project-node.sh npm run build"
+      "command": "node node_modules/@ryanewen/devkit/bin/devkit.mjs run npm run build"
     }
   }
 }
