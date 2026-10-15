@@ -38,11 +38,13 @@ the `Passkey` model.
   `webauthn.ts`, kept in sync with the cert in `assetlinks.json`). The login UI
   offers passkey first, with email as fallback.
 
-In optional devkit host mode, `CLIENT_ORIGIN` is the checkout's derived
-`*.localhost` URL. WebAuthn binds credentials to that hostname: a passkey created
-on plain `localhost` or another worktree will not work there, even when a database
-snapshot copied its credential row. Sign in by email code and register a separate
-passkey for each development hostname where one is useful.
+In optional Devkit host mode, `CLIENT_ORIGIN` lists the checkout's configured
+origins, with the preferred origin first. The default is the derived `*.localhost`
+URL; a machine can add a secondary domain and prefer its remote URL while retaining
+localhost for CORS. WebAuthn derives its relying-party id from the first origin.
+A passkey registered for another hostname does not become valid merely because a
+database snapshot copied its credential row. Sign in by email code when switching
+development domains. Remote passkey use requires browser-trusted HTTPS.
 
 Native app: the WebView has no `navigator.credentials`, so the native
 `PasskeyPlugin` (androidx.credentials Credential Manager) performs the ceremony —
