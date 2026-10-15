@@ -210,7 +210,9 @@ database for snapshots.
 
 `paseo.json` uses the same setup and teardown commands for worktree lifecycle
 hooks. Paseo prepares a new worktree with `npm run dev:prepare-worktree` and
-runs `npm run dev:down` before removing it. Setup does not start the application;
+runs `devkit cleanup --paseo --yes` before removing it. Archive cleanup removes private
+worktree volumes only after the final active workspace reference is archived; ordinary
+`npm run dev:down` preserves them. Setup does not start the application;
 run the `dev` script when you want to use it. Both hooks and all Scripts menu
 commands use the pinned runtime wrapper, so they do not depend on Paseo's host
 Node version or an interactive shell's nvm setup.

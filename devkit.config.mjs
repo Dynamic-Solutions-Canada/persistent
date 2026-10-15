@@ -12,6 +12,9 @@ export const DEV_PORTS = Object.freeze({
 })
 
 export default {
+  // Private worktree volumes removed by archive; shared caches remain.
+  cleanup: { volumes: ["{project}_android-home"] },
+
   /** Web is first because the proxy routes to the first port in each checkout's derived block. */
   ports: ['web'],
 

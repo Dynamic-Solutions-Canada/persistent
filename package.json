@@ -17,6 +17,7 @@
   "scripts": {
     "build": "npm run build --workspace @persistent/shared && npm run build --workspace @persistent/api && npm run build --workspace @persistent/web",
     "dev": "devkit run node scripts/dev/run-dev.mjs",
+    "dev:cleanup": "devkit cleanup --yes",
     "dev:background": "npm run dev -- --background",
     "dev:down": "npm run dev -- --down",
     "dev:prepare-worktree": "devkit run bash scripts/dev/prepare-worktree.sh",
@@ -64,7 +65,7 @@
   "devDependencies": {
     "@eslint/js": "^9.24.0",
     "@particle/dbus-next": "0.11.4",
-    "@ryanewen/devkit": "github:RyanEwen/devkit#v0.15.1",
+    "@ryanewen/devkit": "github:RyanEwen/devkit#v0.16.0",
     "concurrently": "^9.1.2",
     "eslint": "^9.24.0",
     "eslint-plugin-react-hooks": "^5.2.0",
