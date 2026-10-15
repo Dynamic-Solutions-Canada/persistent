@@ -41,11 +41,11 @@ export default {
    * CLIENT_ORIGIN is the proxied origin the browser uses, which also makes its hostname the
    * WebAuthn relying-party id. Devkit itself supplies the host bind and allowed-host values.
    */
-  env: ({ url }) => ({
+  env: ({ url, urls = [url] }) => ({
     // Local sign-in always shows the code, even when .env has email credentials.
     DEMO_MODE: 'true',
     API_PORT: DEV_PORTS.api,
-    CLIENT_ORIGIN: url,
+    CLIENT_ORIGIN: urls.join(','),
     VITE_DEV_PORT: DEV_PORTS.web,
     VITE_API_PORT: DEV_PORTS.api
   })
