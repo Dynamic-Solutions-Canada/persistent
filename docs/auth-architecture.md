@@ -343,6 +343,23 @@ only after reconnection. Counts include admin and test accounts and exclude
 cascade-deleted data. This is not a permanent event log or a count of people
 actively looking at the screen.
 
+The same snapshot includes `userGrowth`, with `growthDays=30`, `90` (default), or
+`365`, independently of the active-user window. Each Toronto calendar day has an
+aggregate sign-up count and cumulative total, including accounts created before
+the selected window. Missing days have zero sign-ups. Today is partial, bounded
+by `generatedAt`, independent of the database session's time zone. No individual
+creation timestamps or account identities leave the API. The chart, date slider
+and daily-count table use this series to compare
+total users and daily sign-ups. These are reconstructed counts from retained
+accounts: deleting an account removes it from every historical bucket, so they
+are not an archive of historical totals or gross sign-ups including deleted users.
+Initial account totals and growth data use skeletons. Changing periods retains
+the dashboard layout and masks the chart's previous values with skeletons until
+the new period arrives, preserving scroll position and the selected chart mode.
+Changing the activity window masks only the affected account counts. Retained
+snapshots are restricted to the same account; errors, offline state and loss of
+the admin role hide the data.
+
 `POST /api/client-usage` validates bounded app/platform/version metadata and
 updates only the live session identified by the caller's cookie and user id.
 Clients report on confirmed opening/foregrounding without polling or persistent

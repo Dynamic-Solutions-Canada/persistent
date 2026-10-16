@@ -18,10 +18,21 @@ const count = z.number().int().nonnegative()
 export const adminMetricSchema = z.object({ key: z.string(), count, users: count })
 export type AdminMetric = z.infer<typeof adminMetricSchema>
 
+/** Calendar-day growth windows, independent of the active-user window. */
+export const adminGrowthDaysSchema = z.union([z.literal(30), z.literal(90), z.literal(365)])
+export type AdminGrowthDays = z.infer<typeof adminGrowthDaysSchema>
+export const adminUserGrowthSchema = z.object({
+  days: adminGrowthDaysSchema,
+  timeZone: z.literal('America/Toronto'),
+  points: z.array(z.object({ date: z.string().date(), signups: count, total: count })).max(365)
+})
+export type AdminUserGrowth = z.infer<typeof adminUserGrowthSchema>
+
 export const adminStatsSchema = z.object({
   generatedAt: z.string().datetime(),
   activeDays: z.union([z.literal(7), z.literal(30)]),
   users: z.object({ total: count, active: count, inactive: count, day: count, week: count, month: count, newMonth: count, withReminders: count }),
+  userGrowth: adminUserGrowthSchema,
   reminders: z.array(adminMetricSchema),
   types: z.array(adminMetricSchema),
   schedules: z.array(adminMetricSchema),
