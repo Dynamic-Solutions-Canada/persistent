@@ -2,7 +2,7 @@
 import { Prisma } from '@prisma/client'
 import {
   adminStatsSchema, reminderStatLabels, occurrenceStatLabels, collaborationStatLabels,
-  type AdminMetric, type AdminStats
+  type AdminGrowthDays, type AdminMetric, type AdminStats
 } from '@persistent/shared'
 import { prisma } from './prisma.js'
 
@@ -12,8 +12,13 @@ function completeMetrics(rows: AdminMetric[], labels: Record<string, string>): A
   return Object.keys(labels).map((key) => byKey.get(key) ?? { key, count: 0, users: 0 })
 }
 
-/** Read one consistent snapshot. Activity includes authenticated background sync; clients are self-reported. */
-export async function readAdminStats(activeDays: 7 | 30, now = new Date()): Promise<AdminStats> {
+/**
+ * Read one consistent snapshot bounded by `now`. Activity uses a rolling 7/30-day
+ * window; growthDays uses Toronto calendar days and includes today as a partial day.
+ * Activity includes authenticated background sync; clients are self-reported.
+ */
+export async function readAdminStats(activeDays: 7 | 30, now = new Date(), growthDays: AdminGrowthDays = 90): Promise<AdminStats> {
+  const asOf = now.toISOString()
   const day = new Date(now.getTime() - 24 * 60 * 60 * 1000)
   const week = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
   const month = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
@@ -35,6 +40,28 @@ export async function readAdminStats(activeDays: 7 | 30, now = new Date()): Prom
     if (!users) throw new Error('User aggregate missing.')
     users.active = activeDays === 7 ? users.week : users.month
     users.inactive = users.total - users.active
+
+    // Prisma timestamps are UTC without a SQL time zone. Convert explicitly before
+    // grouping into Toronto calendar days; generate dates rather than 24-hour steps
+    // so DST transitions and days with no sign-ups are represented correctly. Keep
+    // the snapshot's ISO offset rather than casting an instant to a local timestamp.
+    const growth = await db.$queryRaw<AdminStats['userGrowth']['points']>`
+      WITH bounds AS (
+        SELECT (${asOf}::timestamptz AT TIME ZONE 'America/Toronto')::date AS today
+      ), calendar AS (
+        SELECT today - n AS day FROM bounds, generate_series(0, ${growthDays - 1}::int) AS n
+      ), daily AS (
+        SELECT ("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'America/Toronto')::date AS day,
+          COUNT(*)::int AS signups
+        FROM "User" WHERE "createdAt" <= (${asOf}::timestamptz AT TIME ZONE 'UTC') GROUP BY day
+      ), baseline AS (
+        SELECT COALESCE(SUM(signups), 0) AS total FROM daily
+        WHERE day < (SELECT MIN(day) FROM calendar)
+      )
+      SELECT TO_CHAR(c.day, 'YYYY-MM-DD') AS date, COALESCE(d.signups, 0)::int AS signups,
+        ((SELECT total FROM baseline) + SUM(COALESCE(d.signups, 0)) OVER (ORDER BY c.day))::int AS total
+      FROM calendar c LEFT JOIN daily d ON d.day = c.day ORDER BY c.day
+    `
 
     // Notes never alert. Counts describe saved configuration, including paused definitions.
     const reminders = await db.$queryRaw<AdminMetric[]>`
@@ -91,6 +118,7 @@ export async function readAdminStats(activeDays: 7 | 30, now = new Date()): Prom
     `
     return adminStatsSchema.parse({
       generatedAt: now.toISOString(), activeDays, users,
+      userGrowth: { days: growthDays, timeZone: 'America/Toronto', points: growth },
       reminders: completeMetrics(reminders, reminderStatLabels), types, schedules,
       occurrences: completeMetrics(occurrences, occurrenceStatLabels),
       collaboration: completeMetrics(collaboration, collaborationStatLabels), clients

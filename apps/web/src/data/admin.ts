@@ -1,17 +1,14 @@
 /** Online-only administrator snapshot. Never persisted or replayed as an offline mutation. */
 import { useQuery } from '@tanstack/react-query'
-import { adminStatsSchema } from '@persistent/shared'
+import type { AdminGrowthDays } from '@persistent/shared'
 import { useAuth } from '../auth/useAuth.js'
-import { apiFetch } from '../lib/apiClient.js'
+import { adminStatsQueryOptions } from './adminStatsQuery.js'
 
-export function useAdminStats(activeDays: 7 | 30) {
+/** Load an online admin snapshot with independent activity and calendar-day growth windows. */
+export function useAdminStats(activeDays: 7 | 30, growthDays: AdminGrowthDays = 90) {
   const { user, offline } = useAuth()
   return useQuery({
-    queryKey: ['admin', user?.id, 'stats', activeDays],
-    queryFn: async ({ signal }) => adminStatsSchema.parse(await apiFetch(`/api/admin/stats?activeDays=${activeDays}`, { signal })),
-    enabled: Boolean(user?.isAdmin) && !offline,
-    retry: false,
-    gcTime: 0,
-    staleTime: 0
+    ...adminStatsQueryOptions(user?.id, activeDays, growthDays),
+    enabled: Boolean(user?.isAdmin) && !offline
   })
 }
