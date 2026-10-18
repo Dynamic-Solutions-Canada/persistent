@@ -238,8 +238,8 @@ The recipient's Current, Upcoming, Notes, and History views read active grants;
 Settings links to a full Shared with me list. Received data is excluded from the
 persisted offline cache so revoked access does not linger on that device. This
 includes paused received-targeted writes and received rollback snapshots, with
-the same filtering applied before restoring older caches. Membership and progress
-writes recheck the grant after locking the reminder, so a revoked participant
+the same filtering applied before restoring older caches. Membership, checklist
+definition, presentation, focused text, full-editor, and progress writes recheck the grant after locking the reminder, so a revoked participant
 cannot act through a request that was waiting for the lock.
 
 An assignment has one recipient and is separate from sharing. For an existing

@@ -62,7 +62,7 @@ export function SharedReminderPage({ reminderId, onClose, onEdit }: {
               <InlineReminderText
                 kind="title"
                 text={reminder.title}
-                onSave={(title) => updateContent.mutate({ id: reminder.id, arg: { title } })}
+                onSave={(title, expectedText) => updateContent.mutateAsync({ id: reminder.id, arg: { title, expectedText } })}
               />
               <Typography level="body-sm" sx={{ color: 'text.tertiary' }}>Shared by {reminder.ownerName}</Typography>
             </Stack>
@@ -90,7 +90,7 @@ export function SharedReminderPage({ reminderId, onClose, onEdit }: {
               <InlineReminderText
                 kind="body"
                 text={reminder.details ?? ''}
-                onSave={(details) => updateContent.mutate({ id: reminder.id, arg: { details: details || null } })}
+                onSave={(details, expectedText) => updateContent.mutateAsync({ id: reminder.id, arg: { details: details || null, expectedText } })}
               />
             )}
             {reminder.type === 'TODO' && reminder.activeFirings.length === 0 && (

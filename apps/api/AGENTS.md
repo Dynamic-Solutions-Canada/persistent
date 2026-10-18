@@ -20,7 +20,8 @@
   Membership changes and invitation claims lock the canonical reminder before
   changing grants, then recheck authorization after waiting. Use
   `lib/sharing-access.ts` for this lock order, also for full definition edits
-  that write a recipient's personal preference, checklist progress writes, and
+  that write a recipient's personal preference, all focused text and checklist
+  definition/presentation writes, checklist progress writes, and
   explicit Undo done. Undo checks the acknowledged timestamp atomically and restores
   only that firing, with fresh personal alert state for every current member.
   An occurrence tick must check live status in its atomic SQL update, so Done
@@ -83,6 +84,11 @@
   uses the same owner or explicit share-grant lookup as other edits. A changed
   scheduled reminder nudges native devices because its alert text may change;
   a note only needs the WebSocket broadcast.
+- **Concurrent edits:** full-editor updates compare `expectedUpdatedAt` after the
+  canonical reminder lock; focused text and item renames compare `expectedText`.
+  Return 409 on conflicts and log safe identifiers without text or request bodies.
+  Definition writes advance the version even within one millisecond. Presentation
+  and tick writes preserve it. Keep optional comparison fields for legacy clients.
 - **Scheduler:** `lib/scheduler.ts` owns materialization, the tick loop, and the
   snooze/escalation/miss sweeps. On reminder create/update, materialize the
   changed reminder immediately (don't wait for the 5-min cycle); on update, drop

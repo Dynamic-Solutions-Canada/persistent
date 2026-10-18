@@ -1,9 +1,11 @@
 /** Text in the reading dialog that becomes a small editor only when selected. */
 import { useEffect, useRef, useState } from 'react'
 import Box from '@mui/joy/Box'
+import Button from '@mui/joy/Button'
 import Input from '@mui/joy/Input'
 import Textarea from '@mui/joy/Textarea'
 import Typography from '@mui/joy/Typography'
+import { extractErrorMessage } from '@persistent/shared'
 
 export function InlineReminderText({
   text,
@@ -12,10 +14,14 @@ export function InlineReminderText({
 }: {
   text: string
   kind: 'title' | 'body'
-  onSave: (text: string) => void
+  onSave: (text: string, expectedText: string) => void | Promise<unknown>
 }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(text)
+  const baseline = useRef(text)
+  const saving = useRef(false)
+  const [pending, setPending] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const finished = useRef(false)
   const label = kind === 'title' ? 'Edit reminder title' : 'Edit note body'
 
@@ -23,16 +29,32 @@ export function InlineReminderText({
     if (!editing) setDraft(text)
   }, [text, editing])
 
-  function commit() {
+  async function commit() {
+    if (saving.current) return
     if (finished.current) return
     finished.current = true
     const next = draft.trim()
-    setEditing(false)
     if (kind === 'title' && !next) {
       setDraft(text)
+      setEditing(false)
       return
     }
-    if (next !== text) onSave(next)
+    if (next === baseline.current) {
+      setEditing(false)
+      return
+    }
+    saving.current = true
+    setPending(true)
+    try {
+      await onSave(next, baseline.current)
+      setEditing(false)
+    } catch (error) {
+      finished.current = false
+      setSaveError(extractErrorMessage(error))
+    } finally {
+      saving.current = false
+      setPending(false)
+    }
   }
 
   function cancel() {
@@ -43,49 +65,64 @@ export function InlineReminderText({
 
   function beginEditing() {
     finished.current = false
+    baseline.current = text
+    setSaveError(null)
     setEditing(true)
   }
 
   if (editing) {
-    return kind === 'title' ? (
-      <Input
-        autoFocus
-        value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-        onBlur={commit}
-        onKeyDown={(event) => {
-          if (event.key === 'Escape') {
-            event.stopPropagation()
-            cancel()
-          }
-          if (event.key === 'Enter') {
-            event.preventDefault()
-            commit()
-          }
-        }}
-        slotProps={{ input: { 'aria-label': label, maxLength: 200 } }}
-        sx={{ flex: 1, minWidth: 0, fontSize: 'lg' }}
-      />
-    ) : (
-      <Textarea
-        autoFocus
-        minRows={3}
-        value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-        onBlur={commit}
-        onKeyDown={(event) => {
-          if (event.key === 'Escape') {
-            event.stopPropagation()
-            cancel()
-          }
-          if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
-            event.preventDefault()
-            commit()
-          }
-        }}
-        slotProps={{ textarea: { 'aria-label': label, maxLength: 2000 } }}
-        sx={{ width: '100%' }}
-      />
+    return (
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        {kind === 'title' ? (
+          <Input
+            disabled={pending}
+            autoFocus
+            value={draft}
+            onChange={(event) => { setDraft(event.target.value); setSaveError(null) }}
+            onBlur={() => { if (!saveError) void commit() }}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                event.stopPropagation()
+                cancel()
+              }
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                commit()
+              }
+            }}
+            slotProps={{ input: { 'aria-label': label, maxLength: 200 } }}
+            sx={{ flex: 1, minWidth: 0, fontSize: 'lg' }}
+          />
+        ) : (
+          <Textarea
+            disabled={pending}
+            autoFocus
+            minRows={3}
+            value={draft}
+            onChange={(event) => { setDraft(event.target.value); setSaveError(null) }}
+            onBlur={() => { if (!saveError) void commit() }}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                event.stopPropagation()
+                cancel()
+              }
+              if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                event.preventDefault()
+                commit()
+              }
+            }}
+            slotProps={{ textarea: { 'aria-label': label, maxLength: 2000 } }}
+            sx={{ width: '100%' }}
+          />
+        )}
+        {saveError && <Box>
+          <Typography level="body-xs" color="danger" role="alert">{saveError} Your draft is kept above.</Typography>
+          <Button size="sm" variant="plain" color="neutral" onClick={() => {
+            setDraft(text)
+            setEditing(false)
+          }}>Cancel edit and show latest</Button>
+        </Box>}
+      </Box>
     )
   }
 

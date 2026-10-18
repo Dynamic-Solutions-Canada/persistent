@@ -8,7 +8,8 @@ registerMutationDefaults()
 const reminder = {
   id: 'reminder', title: 'Synthetic checklist', details: null, type: 'TODO',
   typeData: { items: [{ id: 'a', text: 'First' }, { id: 'b', text: 'Second' }] },
-  checkedItemIds: [], hideCheckedItems: false
+  checkedItemIds: [], hideCheckedItems: false,
+  createdAt: '2026-10-18T00:00:00.000Z', updatedAt: '2026-10-18T12:00:00.000Z'
 } as unknown as Reminder
 const share = {
   ...reminder, permission: 'EDIT', isNote: true, editableReminder: reminder,
@@ -16,6 +17,11 @@ const share = {
 } as unknown as SharedReminder
 
 for (const [key, variables, verify] of [
+  [mutationKeys.updateReminderContent, { id: 'reminder', arg: { title: 'Renamed', expectedText: reminder.title } }, (value: SharedReminder) => {
+    assert.equal(value.title, 'Renamed')
+    assert.equal(value.editableReminder?.title, 'Renamed')
+    assert.equal('expectedText' in value.editableReminder!, false)
+  }],
   [mutationKeys.checkReminderItem, { id: 'reminder', arg: { itemId: 'a', checked: true } }, (value: SharedReminder) => {
     assert.deepEqual(value.checkedItemIds, ['a'])
     assert.deepEqual(value.editableReminder?.checkedItemIds, ['a'])
@@ -82,5 +88,47 @@ test('an older failed write preserves a newer checklist change', async () => {
   await defaults.onMutate!({ id: share.id, arg: { itemId: 'b', checked: true } }, {} as never)
   await defaults.onError!(new Error('First failed'), first, context, {} as never)
   assert.deepEqual(queryClient.getQueryData<SharedReminder[]>(queryKeys.receivedShares)?.[0]?.checkedItemIds, ['a', 'b'])
+  queryClient.clear()
+})
+
+
+for (const [key, variables] of [
+  [mutationKeys.updateReminderContent, { id: reminder.id, arg: { title: 'Optimistic', expectedText: reminder.title } }],
+  [mutationKeys.updateReminder, { id: reminder.id, input: { title: 'Optimistic', schedule: { kind: 'never', timesOfDay: [] }, startDate: '2026-10-18' } }]
+] as const) {
+  test(`failed edit preserves newer owner/shared rows: ${key.join('/')}`, async () => {
+    queryClient.clear()
+    queryClient.setQueryData(queryKeys.reminders, [reminder])
+    queryClient.setQueryData(queryKeys.receivedShares, [share])
+    const defaults = queryClient.getMutationDefaults(key)
+    const context = await defaults.onMutate!(variables, {} as never)
+    const newer = { ...reminder, title: 'Newer saved title' }
+    const newShare = { ...share, title: newer.title, editableReminder: newer }
+    const other = { ...reminder, id: 'new-row' }
+    queryClient.setQueryData(queryKeys.reminders, [newer, other])
+    queryClient.setQueryData(queryKeys.receivedShares, [newShare])
+    await defaults.onError!(new Error('Conflict'), variables, context, {} as never)
+    assert.deepEqual(queryClient.getQueryData(queryKeys.reminders), [newer, other])
+    assert.deepEqual(queryClient.getQueryData(queryKeys.receivedShares), [newShare])
+    queryClient.setQueryData(queryKeys.receivedShares, [])
+    await defaults.onError!(new Error('Revoked'), variables, context, {} as never)
+    assert.deepEqual(queryClient.getQueryData(queryKeys.receivedShares), [])
+    queryClient.clear()
+  })
+}
+
+
+test('an optimistic definition save preserves its server version and rolls back only its own row', async () => {
+  queryClient.clear()
+  queryClient.setQueryData(queryKeys.reminders, [reminder])
+  const defaults = queryClient.getMutationDefaults(mutationKeys.updateReminder)
+  const variables = { id: reminder.id, input: { title: 'Optimistic', schedule: { kind: 'never', timesOfDay: [] }, startDate: '2026-10-18' } }
+  const context = await defaults.onMutate!(variables, {} as never)
+  const current = queryClient.getQueryData<Reminder[]>(queryKeys.reminders)![0]!
+  assert.equal(current.title, 'Optimistic')
+  assert.equal(current.updatedAt, reminder.updatedAt)
+  assert.equal(current.createdAt, reminder.createdAt)
+  await defaults.onError!(new Error('Conflict'), variables, context, {} as never)
+  assert.deepEqual(queryClient.getQueryData(queryKeys.reminders), [reminder])
   queryClient.clear()
 })

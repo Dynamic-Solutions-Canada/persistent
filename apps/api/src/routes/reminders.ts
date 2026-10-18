@@ -14,6 +14,7 @@ import {
   MAX_TODO_ITEMS,
   reminderContentInputSchema,
   reminderInputSchema,
+  reminderUpdateInputSchema,
   renameTodoItemInputSchema,
   reorderTodoItemsInputSchema,
   todoItems,
@@ -22,7 +23,7 @@ import {
 import { prisma } from '../lib/prisma.js'
 import { toReminderData } from '../lib/reminder-data.js'
 import { requireUser, requireUserId } from '../lib/auth-middleware.js'
-import { badRequest, notFound } from '../lib/http-error.js'
+import { badRequest, conflict, notFound } from '../lib/http-error.js'
 import { toReminder } from '../lib/serializers.js'
 import { isStaleWrite } from '../lib/conflict.js'
 import { scheduleTransition } from '../lib/schedule-transition.js'
@@ -31,8 +32,7 @@ import { broadcast } from '../lib/realtime.js'
 import { dispatchToUser, nudgeNativeSync } from '../lib/delivery/index.js'
 import { logger } from '../lib/logger.js'
 import { lockSharingReminder, withSharingReminder } from '../lib/sharing-access.js'
-import { reminderForActor } from '../lib/personal-notification-settings.js'
-import { actionableReminder, editableReminder, broadcastSharedChange, participantIds } from '../lib/share-access.js'
+import { editableReminder, broadcastSharedChange, participantIds } from '../lib/share-access.js'
 import { sendShareInvitation } from '../lib/share-invitations.js'
 
 export const remindersRouter = Router()
@@ -132,14 +132,14 @@ remindersRouter.post('/', async (request, response) => {
 
 remindersRouter.put('/:id', async (request, response) => {
   const userId = requireUserId(request)
-  const parsed = reminderInputSchema.safeParse(request.body)
+  const parsed = reminderUpdateInputSchema.safeParse(request.body)
   if (!parsed.success) throw badRequest(parsed.error.issues[0]?.message ?? 'Invalid reminder.')
 
   const existing = await editableReminder(request.params.id, userId)
   if (!existing) throw notFound('Reminder not found.')
   const ownerId = existing.userId
 
-  const clientEditedAt = typeof request.body?.clientEditedAt === 'string' ? request.body.clientEditedAt : null
+  const { clientEditedAt, expectedUpdatedAt } = parsed.data
   const personalShade = parsed.data.shadeProminence ?? 'INHERIT'
   const result = await prisma.$transaction(async (transaction) => {
     // Follow membership's parent-before-grant lock order to avoid deadlocks.
@@ -150,9 +150,13 @@ remindersRouter.put('/:id', async (request, response) => {
     })
     if (userId !== ownerId && !share) throw notFound('Reminder not found.')
 
-    // Evaluate staleness after locking; return only the caller's personal setting.
-    if (isStaleWrite(clientEditedAt, current.updatedAt)) {
-      return { reminder: reminderForActor(current, userId, share), previous: current, stale: true }
+    // Compare the version read when editing began, after acquiring the row lock.
+    // Legacy queued writes still use their original client timestamp.
+    if (expectedUpdatedAt !== undefined
+      ? new Date(expectedUpdatedAt).getTime() !== current.updatedAt.getTime()
+      : isStaleWrite(clientEditedAt, current.updatedAt)) {
+      logger.warn('reminder edit conflict', { userId, reminderId: current.id, operation: 'definition' })
+      throw conflict('This reminder changed while you were editing. Load the latest version before saving again.')
     }
     if (share) {
       await transaction.reminderShare.update({
@@ -165,17 +169,15 @@ remindersRouter.put('/:id', async (request, response) => {
       where: { id: current.id, userId: ownerId },
       data: {
         ...definitionData,
+        // A strictly newer token also distinguishes writes within one millisecond.
+        updatedAt: new Date(Math.max(Date.now(), current.updatedAt.getTime() + 1)),
         // A recipient's prominence never overwrites the owner's preference.
         shadeProminence: userId === ownerId ? definitionData.shadeProminence : undefined
       }
     })
-    return { reminder, previous: current, stale: false }
+    return { reminder, previous: current }
   })
   const { reminder } = result
-  if (result.stale) {
-    response.json({ reminder: toReminder(reminder) })
-    return
-  }
 
   // Drop not-yet-fired occurrences so the new schedule re-materializes cleanly.
   await prisma.reminderOccurrence.deleteMany({ where: { reminderId: reminder.id, userId: ownerId, status: 'PENDING' } })
@@ -229,27 +231,35 @@ remindersRouter.patch('/:id/content', async (request, response) => {
   const parsed = reminderContentInputSchema.safeParse(request.body)
   if (!parsed.success) throw badRequest(parsed.error.issues[0]?.message ?? 'Invalid reminder text.')
 
-  const existing = await editableReminder(request.params.id, userId)
-  if (!existing) throw notFound('Reminder not found.')
-  if (parsed.data.details !== undefined && (existing.schedule as { kind?: string }).kind !== 'never') {
-    throw badRequest('Only a note body can be edited here.')
-  }
-  if (parsed.data.details !== undefined && existing.type === 'TODO') {
-    throw badRequest('A checklist note is edited through its items.')
-  }
-
-  await prisma.reminder.updateMany({
-    where: { id: existing.id, userId: existing.userId },
-    data: {
-      ...(parsed.data.title !== undefined ? { title: parsed.data.title } : {}),
-      ...(parsed.data.details !== undefined ? { details: parsed.data.details } : {})
+  const updated = await withSharingReminder(request.params.id, userId, async (transaction, existing) => {
+    if (parsed.data.details !== undefined && (existing.schedule as { kind?: string }).kind !== 'never') {
+      throw badRequest('Only a note body can be edited here.')
     }
+    if (parsed.data.details !== undefined && existing.type === 'TODO') {
+      throw badRequest('A checklist note is edited through its items.')
+    }
+
+    const currentText = parsed.data.title !== undefined ? existing.title : existing.details ?? ''
+    if (parsed.data.expectedText !== undefined && parsed.data.expectedText !== currentText) {
+      logger.warn('reminder edit conflict', { userId, reminderId: existing.id, operation: 'content' })
+      throw conflict('This text changed while you were editing. Cancel this edit to review the latest text before trying again.')
+    }
+
+    await transaction.reminder.updateMany({
+      where: { id: existing.id, userId: existing.userId },
+      data: {
+        updatedAt: new Date(Math.max(Date.now(), existing.updatedAt.getTime() + 1)),
+        ...(parsed.data.title !== undefined ? { title: parsed.data.title } : {}),
+        ...(parsed.data.details !== undefined ? { details: parsed.data.details } : {})
+      }
+    })
+    const updated = await transaction.reminder.findFirstOrThrow({ where: { id: existing.id, userId: existing.userId } })
+    return updated
   })
-  const updated = await prisma.reminder.findFirstOrThrow({ where: { id: existing.id, userId: existing.userId } })
-  broadcast(existing.userId, { type: 'reminder.changed', reminderId: updated.id })
-  await broadcastSharedChange(updated.id, existing.userId)
+  broadcast(updated.userId, { type: 'reminder.changed', reminderId: updated.id })
+  await broadcastSharedChange(updated.id, updated.userId)
   if ((updated.schedule as { kind?: string }).kind !== 'never') {
-    void nudgeNativeSync(existing.userId).catch((error) =>
+    void nudgeNativeSync(updated.userId).catch((error) =>
       logger.warn('reminder text sync nudge failed', { error: String(error), reminderId: updated.id })
     )
   }
@@ -279,59 +289,62 @@ remindersRouter.post('/:id/items', async (request, response) => {
   // here is a client bug rather than something to explain in Zod's words.
   if (!parsed.success) throw badRequest('Invalid checklist item.')
 
-  const existing = await editableReminder(request.params.id, userId)
-  if (!existing) throw notFound('Reminder not found.')
-  const ownerId = existing.userId
-  if (existing.type !== 'TODO') throw badRequest('This reminder has no checklist.')
-  // Read first for two reasons: a full list is refused with a sentence the user can
-  // act on, and the statement below manipulates `typeData.items` as jsonb, which
-  // raises on the wrong type rather than returning no rows. Postgres does not
-  // promise to evaluate WHERE clauses in order, so a `jsonb_typeof` guard *in the
-  // statement* cannot be relied on to run before `jsonb_array_length` — the shape
-  // has to be settled out here. Nothing reachable writes a malformed bag (the editor
-  // validates, this endpoint appends), and saving once in the editor repairs one.
-  const stored = (existing.typeData ?? {}) as { items?: unknown }
-  if (typeof stored !== 'object' || Array.isArray(stored) || (stored.items !== undefined && !Array.isArray(stored.items))) {
-    throw badRequest("This reminder's checklist needs saving in the editor before items can be added to it.")
-  }
-  if (todoItems(stored as TypeData).length >= MAX_TODO_ITEMS) {
-    throw badRequest(`A checklist holds at most ${MAX_TODO_ITEMS} items.`)
-  }
+  const updated = await withSharingReminder(request.params.id, userId, async (transaction, existing) => {
+    const ownerId = existing.userId
+    if (existing.type !== 'TODO') throw badRequest('This reminder has no checklist.')
+    // Read first for two reasons: a full list is refused with a sentence the user can
+    // act on, and the statement below manipulates `typeData.items` as jsonb, which
+    // raises on the wrong type rather than returning no rows. Postgres does not
+    // promise to evaluate WHERE clauses in order, so a `jsonb_typeof` guard *in the
+    // statement* cannot be relied on to run before `jsonb_array_length` — the shape
+    // has to be settled out here. Nothing reachable writes a malformed bag (the editor
+    // validates, this endpoint appends), and saving once in the editor repairs one.
+    const stored = (existing.typeData ?? {}) as { items?: unknown }
+    if (typeof stored !== 'object' || Array.isArray(stored) || (stored.items !== undefined && !Array.isArray(stored.items))) {
+      throw badRequest("This reminder's checklist needs saving in the editor before items can be added to it.")
+    }
+    if (todoItems(stored as TypeData).length >= MAX_TODO_ITEMS
+      && !todoItems(stored as TypeData).some((item) => item.id === parsed.data.id)) {
+      throw badRequest(`A checklist holds at most ${MAX_TODO_ITEMS} items.`)
+    }
 
-  // Appended in ONE atomic statement, exactly as a tick is: the add row stays open
-  // for the next line, so two adds are routinely in flight together, and a
-  // read-modify-write would have both read the same list and the second overwrite
-  // the first — silently dropping an item the user watched appear.
-  //
-  // Both clauses carry a rule, not just the message above them: `@>` makes a
-  // replayed add a no-op (the client mints the id, so a duplicate id IS the same
-  // item arriving twice) and the length check holds the cap when two adds race at 49.
-  const { id: itemId, text } = parsed.data
-  const appended = await prisma.$executeRaw`
-    UPDATE "Reminder"
-    SET "typeData" = jsonb_set(
-          "typeData",
-          '{items}',
-          COALESCE("typeData" -> 'items', '[]'::jsonb) ||
-            jsonb_build_array(jsonb_build_object('id', ${itemId}::text, 'text', ${text}::text)),
-          true
-        ),
-        -- Bumped, unlike a tick's statement: this changes the definition, so an
-        -- older edit replayed from another device must lose to it (isStaleWrite).
-        "updatedAt" = NOW()
-    WHERE "id" = ${existing.id}
-      AND "userId" = ${ownerId}
-      AND NOT COALESCE("typeData" -> 'items', '[]'::jsonb) @> jsonb_build_array(jsonb_build_object('id', ${itemId}::text))
-      AND jsonb_array_length(COALESCE("typeData" -> 'items', '[]'::jsonb)) < ${MAX_TODO_ITEMS}
-  `
-  const updated = await prisma.reminder.findFirstOrThrow({ where: { id: existing.id, userId: ownerId } })
-  // Nothing updated and the item isn't there: a racing add took the last slot
-  // between the check above and the statement. An id that IS there is the idempotent
-  // case — the stored list is already what the client asked for, so it goes back
-  // as-is rather than erroring on a request that has already had its effect.
-  if (appended === 0 && !todoItems(updated.typeData as TypeData).some((item) => item.id === itemId)) {
-    throw badRequest(`A checklist holds at most ${MAX_TODO_ITEMS} items.`)
-  }
+    // Appended in ONE atomic statement, exactly as a tick is: the add row stays open
+    // for the next line, so two adds are routinely in flight together, and a
+    // read-modify-write would have both read the same list and the second overwrite
+    // the first — silently dropping an item the user watched appear.
+    //
+    // Both clauses carry a rule, not just the message above them: `@>` makes a
+    // replayed add a no-op (the client mints the id, so a duplicate id IS the same
+    // item arriving twice) and the length check holds the cap when two adds race at 49.
+    const { id: itemId, text } = parsed.data
+    const appended = await transaction.$executeRaw`
+      UPDATE "Reminder"
+      SET "typeData" = jsonb_set(
+            "typeData",
+            '{items}',
+            COALESCE("typeData" -> 'items', '[]'::jsonb) ||
+              jsonb_build_array(jsonb_build_object('id', ${itemId}::text, 'text', ${text}::text)),
+            true
+          ),
+          -- Bumped, unlike a tick's statement: this changes the definition, so an
+          -- older edit replayed from another device must lose to it (isStaleWrite).
+          "updatedAt" = GREATEST("updatedAt" + INTERVAL '1 millisecond', clock_timestamp())
+      WHERE "id" = ${existing.id}
+        AND "userId" = ${ownerId}
+        AND NOT COALESCE("typeData" -> 'items', '[]'::jsonb) @> jsonb_build_array(jsonb_build_object('id', ${itemId}::text))
+        AND jsonb_array_length(COALESCE("typeData" -> 'items', '[]'::jsonb)) < ${MAX_TODO_ITEMS}
+    `
+    const updated = await transaction.reminder.findFirstOrThrow({ where: { id: existing.id, userId: ownerId } })
+    // Nothing updated and the item isn't there: a racing add took the last slot
+    // between the check above and the statement. An id that IS there is the idempotent
+    // case — the stored list is already what the client asked for, so it goes back
+    // as-is rather than erroring on a request that has already had its effect.
+    if (appended === 0 && !todoItems(updated.typeData as TypeData).some((item) => item.id === itemId)) {
+      throw badRequest(`A checklist holds at most ${MAX_TODO_ITEMS} items.`)
+    }
+    return updated
+  })
+  const ownerId = updated.userId
 
   // The new item arrives unticked, so it joins the body of every live firing —
   // which is a tick's problem in reverse, and needs the same nudge: web clients
@@ -367,44 +380,46 @@ remindersRouter.post('/:id/items/order', async (request, response) => {
   const parsed = reorderTodoItemsInputSchema.safeParse(request.body)
   if (!parsed.success) throw badRequest('Invalid checklist order.')
 
-  const existing = await editableReminder(request.params.id, userId)
-  if (!existing) throw notFound('Reminder not found.')
-  const ownerId = existing.userId
-  if (existing.type !== 'TODO') throw badRequest('This reminder has no checklist.')
-  // Same shape guard as the add route, and for the same reason: the statement treats
-  // `items` as a jsonb array, and Postgres does not promise to evaluate a WHERE-clause
-  // type check before the expression that depends on it.
-  const stored = (existing.typeData ?? {}) as { items?: unknown }
-  if (typeof stored !== 'object' || Array.isArray(stored) || (stored.items !== undefined && !Array.isArray(stored.items))) {
-    throw badRequest("This reminder's checklist needs saving in the editor before it can be reordered.")
-  }
+  const updated = await withSharingReminder(request.params.id, userId, async (transaction, existing) => {
+    const ownerId = existing.userId
+    if (existing.type !== 'TODO') throw badRequest('This reminder has no checklist.')
+    // Same shape guard as the add route, and for the same reason: the statement treats
+    // `items` as a jsonb array, and Postgres does not promise to evaluate a WHERE-clause
+    // type check before the expression that depends on it.
+    const stored = (existing.typeData ?? {}) as { items?: unknown }
+    if (typeof stored !== 'object' || Array.isArray(stored) || (stored.items !== undefined && !Array.isArray(stored.items))) {
+      throw badRequest("This reminder's checklist needs saving in the editor before it can be reordered.")
+    }
 
-  // One atomic statement rather than read-modify-write: a reorder rewrites the whole
-  // list, so a concurrent add read a moment earlier would be silently undone. Sorting
-  // in SQL means the rows being sorted are the rows as they are *now*.
-  //
-  // `array_position` gives each item its rank; an id that isn't in the ranking returns
-  // NULL, and `NULLS LAST` with the original ordinal as the tiebreak leaves those in
-  // place at the end. That is the ranking rule, encoded once, matching `withTodoOrder`.
-  const { itemIds } = parsed.data
-  await prisma.$executeRaw`
-    UPDATE "Reminder"
-    SET "typeData" = jsonb_set(
-          "typeData",
-          '{items}',
-          COALESCE(
-            (
-              SELECT jsonb_agg(item ORDER BY array_position(${itemIds}::text[], item ->> 'id') NULLS LAST, ordinality)
-              FROM jsonb_array_elements(COALESCE("typeData" -> 'items', '[]'::jsonb)) WITH ORDINALITY AS t(item, ordinality)
+    // One atomic statement rather than read-modify-write: a reorder rewrites the whole
+    // list, so a concurrent add read a moment earlier would be silently undone. Sorting
+    // in SQL means the rows being sorted are the rows as they are *now*.
+    //
+    // `array_position` gives each item its rank; an id that isn't in the ranking returns
+    // NULL, and `NULLS LAST` with the original ordinal as the tiebreak leaves those in
+    // place at the end. That is the ranking rule, encoded once, matching `withTodoOrder`.
+    const { itemIds } = parsed.data
+    await transaction.$executeRaw`
+      UPDATE "Reminder"
+      SET "typeData" = jsonb_set(
+            "typeData",
+            '{items}',
+            COALESCE(
+              (
+                SELECT jsonb_agg(item ORDER BY array_position(${itemIds}::text[], item ->> 'id') NULLS LAST, ordinality)
+                FROM jsonb_array_elements(COALESCE("typeData" -> 'items', '[]'::jsonb)) WITH ORDINALITY AS t(item, ordinality)
+              ),
+              '[]'::jsonb
             ),
-            '[]'::jsonb
+            true
           ),
-          true
-        ),
-        "updatedAt" = NOW()
-    WHERE "id" = ${existing.id} AND "userId" = ${ownerId}
-  `
-  const updated = await prisma.reminder.findFirstOrThrow({ where: { id: existing.id, userId: ownerId } })
+          "updatedAt" = GREATEST("updatedAt" + INTERVAL '1 millisecond', clock_timestamp())
+      WHERE "id" = ${existing.id} AND "userId" = ${ownerId}
+    `
+    const updated = await transaction.reminder.findFirstOrThrow({ where: { id: existing.id, userId: ownerId } })
+    return updated
+  })
+  const ownerId = updated.userId
 
   // The notification body lists the unticked items *in order*, so a reorder changes the
   // text of an already-armed alarm exactly as adding one does — hence the same nudge,
@@ -424,9 +439,8 @@ remindersRouter.post('/:id/items/order', async (request, response) => {
  *
  * Another focused write on the same list, changing what a line *says*
  * without changing which line it is: ids and order are untouched, so a firing part-way
- * through the checklist keeps its ticks against the same items. Last-write-wins is the
- * honest model for free text — two devices renaming one line have no merge, and the
- * later edit is the one the user typed most recently.
+ * through the checklist keeps its ticks against the same items. New clients send the
+ * original text so a concurrent rename is rejected rather than silently overwritten.
  *
  * A 404 for an id the list no longer has, rather than re-adding it: a rename queued
  * offline and drained after someone deleted the item must not resurrect it.
@@ -445,48 +459,55 @@ remindersRouter.post('/:id/items/:itemId', async (request, response, next) => {
   const parsed = renameTodoItemInputSchema.safeParse(request.body)
   if (!parsed.success) throw badRequest('Invalid checklist item.')
 
-  const existing = await editableReminder(request.params.id, userId)
-  if (!existing) throw notFound('Reminder not found.')
-  const ownerId = existing.userId
-  if (existing.type !== 'TODO') throw badRequest('This reminder has no checklist.')
-  // Same shape guard as the sibling routes: the statement treats `items` as a jsonb
-  // array and Postgres does not promise to evaluate a type check before the expression
-  // depending on it.
-  const stored = (existing.typeData ?? {}) as { items?: unknown }
-  if (typeof stored !== 'object' || Array.isArray(stored) || (stored.items !== undefined && !Array.isArray(stored.items))) {
-    throw badRequest("This reminder's checklist needs saving in the editor before it can be edited here.")
-  }
-  const itemId = request.params.itemId
-  if (!todoItems(stored as TypeData).some((item) => item.id === itemId)) throw notFound('Checklist item not found.')
+  const updated = await withSharingReminder(request.params.id, userId, async (transaction, existing) => {
+    const ownerId = existing.userId
+    if (existing.type !== 'TODO') throw badRequest('This reminder has no checklist.')
+    // Same shape guard as the sibling routes: the statement treats `items` as a jsonb
+    // array and Postgres does not promise to evaluate a type check before the expression
+    // depending on it.
+    const stored = (existing.typeData ?? {}) as { items?: unknown }
+    if (typeof stored !== 'object' || Array.isArray(stored) || (stored.items !== undefined && !Array.isArray(stored.items))) {
+      throw badRequest("This reminder's checklist needs saving in the editor before it can be edited here.")
+    }
+    const itemId = request.params.itemId
+    const item = todoItems(stored as TypeData).find((item) => item.id === itemId)
+    if (!item) throw notFound('Checklist item not found.')
+    if (parsed.data.expectedText !== undefined && parsed.data.expectedText !== item.text) {
+      logger.warn('reminder edit conflict', { userId, reminderId: existing.id, operation: 'rename-item' })
+      throw conflict('This checklist item changed while you were editing. Cancel this edit to review the latest text before trying again.')
+    }
 
-  // Rebuilt in one statement, like its siblings, so a concurrent add or reorder is not
-  // undone by a read-modify-write. Only the matching element's `text` changes; every
-  // other element, and the order, passes through as it is.
-  const { text } = parsed.data
-  await prisma.$executeRaw`
-    UPDATE "Reminder"
-    SET "typeData" = jsonb_set(
-          "typeData",
-          '{items}',
-          COALESCE(
-            (
-              SELECT jsonb_agg(
-                       CASE WHEN item ->> 'id' = ${itemId}
-                         THEN jsonb_set(item, '{text}', to_jsonb(${text}::text))
-                         ELSE item
-                       END
-                       ORDER BY ordinality
-                     )
-              FROM jsonb_array_elements(COALESCE("typeData" -> 'items', '[]'::jsonb)) WITH ORDINALITY AS t(item, ordinality)
+    // Rebuilt in one statement, like its siblings, so a concurrent add or reorder is not
+    // undone by a read-modify-write. Only the matching element's `text` changes; every
+    // other element, and the order, passes through as it is.
+    const { text } = parsed.data
+    await transaction.$executeRaw`
+      UPDATE "Reminder"
+      SET "typeData" = jsonb_set(
+            "typeData",
+            '{items}',
+            COALESCE(
+              (
+                SELECT jsonb_agg(
+                         CASE WHEN item ->> 'id' = ${itemId}
+                           THEN jsonb_set(item, '{text}', to_jsonb(${text}::text))
+                           ELSE item
+                         END
+                         ORDER BY ordinality
+                       )
+                FROM jsonb_array_elements(COALESCE("typeData" -> 'items', '[]'::jsonb)) WITH ORDINALITY AS t(item, ordinality)
+              ),
+              '[]'::jsonb
             ),
-            '[]'::jsonb
+            true
           ),
-          true
-        ),
-        "updatedAt" = NOW()
-    WHERE "id" = ${existing.id} AND "userId" = ${ownerId}
-  `
-  const updated = await prisma.reminder.findFirstOrThrow({ where: { id: existing.id, userId: ownerId } })
+          "updatedAt" = GREATEST("updatedAt" + INTERVAL '1 millisecond', clock_timestamp())
+      WHERE "id" = ${existing.id} AND "userId" = ${ownerId}
+    `
+    const updated = await transaction.reminder.findFirstOrThrow({ where: { id: existing.id, userId: ownerId } })
+    return updated
+  })
+  const ownerId = updated.userId
 
   // The renamed line is part of the notification body, so an armed alarm's text is now
   // stale — the same nudge adding and reordering send, and the same exception for a
@@ -504,45 +525,46 @@ remindersRouter.post('/:id/items/:itemId', async (request, response, next) => {
 /** Delete an item from the definition atomically, including a note's saved tick. */
 remindersRouter.delete('/:id/items/:itemId', async (request, response) => {
   const userId = requireUserId(request)
-  const existing = await editableReminder(request.params.id, userId)
-  if (!existing) throw notFound('Reminder not found.')
-  if (existing.type !== 'TODO') throw badRequest('This reminder has no checklist.')
+  const { updated, removed } = await withSharingReminder(request.params.id, userId, async (transaction, existing) => {
+    if (existing.type !== 'TODO') throw badRequest('This reminder has no checklist.')
 
-  const stored = (existing.typeData ?? {}) as { items?: unknown }
-  if (typeof stored !== 'object' || Array.isArray(stored) || (stored.items !== undefined && !Array.isArray(stored.items))) {
-    throw badRequest("This reminder's checklist needs saving in the editor before it can be edited here.")
-  }
+    const stored = (existing.typeData ?? {}) as { items?: unknown }
+    if (typeof stored !== 'object' || Array.isArray(stored) || (stored.items !== undefined && !Array.isArray(stored.items))) {
+      throw badRequest("This reminder's checklist needs saving in the editor before it can be edited here.")
+    }
 
-  const itemId = request.params.itemId
-  const removed = await prisma.$executeRaw`
-    UPDATE "Reminder"
-    SET "typeData" = jsonb_set(
-          "typeData",
-          '{items}',
-          COALESCE(
-            (
-              SELECT jsonb_agg(item ORDER BY ordinality)
-              FROM jsonb_array_elements(COALESCE("typeData" -> 'items', '[]'::jsonb)) WITH ORDINALITY AS t(item, ordinality)
-              WHERE item ->> 'id' <> ${itemId}
+    const itemId = request.params.itemId
+    const removed = await transaction.$executeRaw`
+      UPDATE "Reminder"
+      SET "typeData" = jsonb_set(
+            "typeData",
+            '{items}',
+            COALESCE(
+              (
+                SELECT jsonb_agg(item ORDER BY ordinality)
+                FROM jsonb_array_elements(COALESCE("typeData" -> 'items', '[]'::jsonb)) WITH ORDINALITY AS t(item, ordinality)
+                WHERE item ->> 'id' <> ${itemId}
+              ),
+              '[]'::jsonb
             ),
-            '[]'::jsonb
+            true
           ),
-          true
-        ),
-        "checkedItems" = "checkedItems" - ${itemId}::text,
-        "updatedAt" = NOW()
-    WHERE "id" = ${existing.id}
-      AND "userId" = ${existing.userId}
-      AND COALESCE("typeData" -> 'items', '[]'::jsonb) @> jsonb_build_array(jsonb_build_object('id', ${itemId}::text))
-  `
-  const updated = await prisma.reminder.findFirstOrThrow({ where: { id: existing.id, userId: existing.userId } })
+          "checkedItems" = "checkedItems" - ${itemId}::text,
+          "updatedAt" = GREATEST("updatedAt" + INTERVAL '1 millisecond', clock_timestamp())
+      WHERE "id" = ${existing.id}
+        AND "userId" = ${existing.userId}
+        AND COALESCE("typeData" -> 'items', '[]'::jsonb) @> jsonb_build_array(jsonb_build_object('id', ${itemId}::text))
+    `
+    const updated = await transaction.reminder.findFirstOrThrow({ where: { id: existing.id, userId: existing.userId } })
+    return { updated, removed }
+  })
 
   // Offline replays of an already deleted id are safe and do not issue another nudge.
   if (removed > 0) {
-    broadcast(existing.userId, { type: 'reminder.changed', reminderId: updated.id })
-    await broadcastSharedChange(updated.id, existing.userId)
+    broadcast(updated.userId, { type: 'reminder.changed', reminderId: updated.id })
+    await broadcastSharedChange(updated.id, updated.userId)
     if ((updated.schedule as unknown as { kind?: string }).kind !== 'never') {
-      void nudgeNativeSync(existing.userId).catch((error) =>
+      void nudgeNativeSync(updated.userId).catch((error) =>
         logger.warn('checklist delete sync nudge failed', { error: String(error), reminderId: updated.id })
       )
     }
@@ -618,15 +640,16 @@ remindersRouter.post('/:id/hide-checked', async (request, response) => {
   const parsed = hideCheckedInputSchema.safeParse(request.body)
   if (!parsed.success) throw badRequest('Invalid checklist view state.')
 
-  const existing = await editableReminder(request.params.id, userId)
-  if (!existing) throw notFound('Reminder not found.')
-  const ownerId = existing.userId
-  if (existing.type !== 'TODO') throw badRequest('This reminder has no checklist.')
-
-  const updated = await prisma.reminder.update({
-    where: { id: existing.id },
-    data: { hideCheckedItems: parsed.data.hidden }
+  const updated = await withSharingReminder(request.params.id, userId, async (transaction, existing) => {
+    if (existing.type !== 'TODO') throw badRequest('This reminder has no checklist.')
+    return transaction.reminder.update({
+      where: { id: existing.id, userId: existing.userId },
+      // Presentation is not a definition edit. Preserve the conflict token rather
+      // than letting Prisma's automatic timestamp move it backwards or invalidate drafts.
+      data: { hideCheckedItems: parsed.data.hidden, updatedAt: existing.updatedAt }
+    })
   })
+  const ownerId = updated.userId
 
   // WS only, for the same reason there is no push: this is what one list looks
   // like, not what the user owes anyone. Other open clients converge; devices

@@ -73,7 +73,11 @@ state and schedule. Settings also links to a full Shared with me list; Current
 does not carry a separate received-reminder section.
 Clicking its title, or a non-checklist note's body, opens a focused text field.
 Enter or blur saves a title; blur or Ctrl+Enter saves a body. Escape cancels.
-The write applies only that text. The full editor opens
+The write applies only that text. If someone saves a competing text edit first,
+the field keeps the draft and shows a conflict instead of replacing their words.
+Full-editor saves also detect changes made since opening and offer Load latest,
+which explicitly replaces the draft. Different checklist lines can save
+independently; live updates reach all current members. The full editor opens
 from the dialog footer for schedule and other definition changes.
 
 ## 1. Done — clears the reminder everywhere

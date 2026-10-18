@@ -106,6 +106,9 @@ other products with platform labels and links, including Windows apps.
   ticks, Done, Snooze, and de-escalation. Share lists the owner and members, lets any
   member invite someone else, and offers Leave to recipients. The owner and the person
   who invited someone can remove their access. Android shade prominence is personal.
+- **Edit together safely.** Shared notes and checklists refresh live. Different checklist
+  items can be edited independently; conflicting text or full-editor saves show an
+  error and keep the draft in the open editor for review.
 - **Assign a reminder.** Create one for a single other person. They own its alerts and actions;
   you can see when each firing was handled in Assigned by me. They can decline it.
 - **Medication reminders.** Keep a medicine name and dose with a reminder. Persistent helps

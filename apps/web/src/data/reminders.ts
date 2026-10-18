@@ -31,7 +31,7 @@ export function useCreateReminder() {
 }
 
 export function useUpdateReminder() {
-  return useMutation<{ reminder: Reminder }, Error, { id: string; input: ReminderInput; editedAt?: string }>({
+  return useMutation<{ reminder: Reminder }, Error, { id: string; input: ReminderInput; editedAt?: string; expectedUpdatedAt?: string }>({
     mutationKey: mutationKeys.updateReminder
   })
 }
@@ -88,8 +88,8 @@ export function useReorderTodoItems() {
 }
 
 /**
- * Retitle one checklist item, from the reading dialog or the editor's row. Last-write-wins:
- * free text has no merge, so the later edit is the one that stands.
+ * Retitle one checklist item. Reading-view edits carry the original text so a
+ * simultaneous edit to that line is reported as a conflict.
  */
 export function useRenameTodoItem() {
   return useMutation<unknown, Error, { id: string; itemId: string; arg: RenameTodoItemInput }>({

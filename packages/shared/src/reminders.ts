@@ -576,10 +576,18 @@ export const reminderInputSchema = z
 export type ReminderInput = z.input<typeof reminderInputSchema>
 export type ReminderInputParsed = z.output<typeof reminderInputSchema>
 
+/** A definition save carries the server version the editor opened, never a client clock. */
+export const reminderUpdateInputSchema = reminderInputSchema.and(z.object({
+  expectedUpdatedAt: z.string().datetime().optional(),
+  clientEditedAt: z.string().datetime().optional()
+}))
+export type ReminderUpdateInput = z.input<typeof reminderUpdateInputSchema>
+
 /** A focused reading-view edit that cannot replace unrelated reminder fields. */
 export const reminderContentInputSchema = z.object({
   title: z.string().trim().min(1).max(200).optional(),
-  details: z.string().trim().max(2000).nullable().optional()
+  details: z.string().trim().max(2000).nullable().optional(),
+  expectedText: z.string().max(2000).optional()
 }).refine((value) => Number(value.title !== undefined) + Number(value.details !== undefined) === 1, {
   message: 'Choose one text field to update.'
 })
@@ -698,14 +706,14 @@ export type AddTodoItemInput = z.infer<typeof addTodoItemInputSchema>
  * Retitle one checklist item — clicking its text on a card, or typing in its row in
  * the editor, both end here (`POST /api/reminders/:id/items/:itemId`).
  *
- * Per item and last-write-wins, which is the honest model for free text: two devices
- * renaming the same line have no merge, and the later one is the one the user typed
- * most recently. It carries no id of its own because the path names the item, and it
+ * Per item: expectedText detects simultaneous changes to this line without
+ * blocking edits to other lines. It is optional for legacy clients. It carries no id of its own because the path names the item, and it
  * cannot add or remove anything — an id that has since been deleted is a 404 rather
  * than a resurrection.
  */
 export const renameTodoItemInputSchema = z.object({
-  text: z.string().trim().min(1).max(MAX_TODO_ITEM_TEXT)
+  text: z.string().trim().min(1).max(MAX_TODO_ITEM_TEXT),
+  expectedText: z.string().max(MAX_TODO_ITEM_TEXT).optional()
 })
 export type RenameTodoItemInput = z.infer<typeof renameTodoItemInputSchema>
 

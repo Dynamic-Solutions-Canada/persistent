@@ -61,8 +61,11 @@ account by email. See `docs/auth-architecture.md`.
 
 The server owns the truth; clients hold a mirror. Reads go over HTTP (TanStack
 Query, cache persisted for offline reads); writes apply optimistically and
-**queue while offline**, replaying after account confirmation on reconnect, with **last-edit-wins**
-conflict resolution. Live updates arrive over a per-user WebSocket. The native
+**queue while offline**, replaying after account confirmation on reconnect. Full-editor
+saves compare the server version opened; focused text edits compare the original
+field or item text. Conflicts return 409 rather than silently overwriting a newer
+edit. Open editors retain their draft. Independent checklist operations preserve
+one another. Live updates arrive over a per-user WebSocket. The native
 client also pulls occurrences to schedule on-device alarms and drains
 acks/snoozes back to the server. First opening and foregrounding wait behind a
 spinner for fresh data. A previously signed-in account can reopen saved personal

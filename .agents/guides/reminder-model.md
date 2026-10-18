@@ -19,7 +19,10 @@ the occurrence; only Done does.
 Checklist item additions, deletions, reordering, and renames update the reminder definition and
 future firings. Additions arrive unticked; deletions discard saved note ticks;
 ranking-based reorder must not drop a concurrent item; renames retain item identity. These writes also update live
-notification content.
+notification content. Full-editor saves compare the opening server version; focused
+text edits compare the original field/item text under the canonical reminder lock.
+Conflicts return 409; different item edits preserve one another. Presentation and
+ticks do not advance the definition version.
 
 A note is the exception because it has no occurrences. Its checked item IDs live
 on `Reminder.checkedItems`, and the server clears them when it gains a schedule.

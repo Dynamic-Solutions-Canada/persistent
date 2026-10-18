@@ -34,7 +34,7 @@ export function ReminderChecklist({ reminder, firing, isNote, editable = true, a
       else checkNote.mutate({ id: reminder.id, arg })
     } : undefined}
     onAddItem={editable ? (item) => add.mutate({ id: reminder.id, arg: item }) : undefined}
-    onRenameItem={editable ? (itemId, text) => rename.mutate({ id: reminder.id, itemId, arg: { text } }) : undefined}
+    onRenameItem={editable ? (itemId, text, expectedText) => rename.mutateAsync({ id: reminder.id, itemId, arg: { text, expectedText } }) : undefined}
     onRemoveItem={editable ? (itemId) => remove.mutate({ id: reminder.id, itemId }) : undefined}
     onReorder={editable ? (itemIds) => reorder.mutate({ id: reminder.id, arg: { itemIds } }) : undefined}
     hideChecked={hasProgress && reminder.hideCheckedItems}
