@@ -108,12 +108,20 @@ rows. A cursor whose occurrence no longer exists (its reminder was deleted
 mid-paging) returns an empty page rather than erroring, which the client reads as
 "no more".
 
-Conflict resolution is **last-edit-wins**: an update sends `clientEditedAt` (the
-wall time the edit was made, captured at submit so it survives offline queueing).
-The PUT route ignores a write whose `clientEditedAt` predates the stored row's
-`updatedAt` (`lib/conflict.ts`), so a late-replayed stale edit can't clobber a
-newer one; the stale client reconciles on its next refetch. Creates always apply
-(new id, no conflict).
+Full-editor saves send `expectedUpdatedAt`, captured from the server row when the
+editor opens and retained through offline queueing. Under the canonical reminder
+lock, PUT compares that version with the current row and returns **409** on a
+mismatch. Definition writes advance the token by at least one millisecond, including
+SQL checklist writes, so overlapping saves cannot reuse the same timestamp. The
+open editor retains the draft and offers an explicit Load latest action.
+It never silently reports a rejected save as successful. Legacy queued writes
+without a version still use `clientEditedAt`; stale ones also return 409.
+
+Focused title/body edits send `expectedText`, captured when the field opens.
+The locked PATCH compares only that field, so unrelated text edits can both save.
+A conflict retains the inline draft and displays an error. Missing comparison
+fields preserve compatibility with older clients. WebSocket reconnect invalidates
+owned reminders as well as shares, catching changes missed while disconnected.
 
 ## Editing text in the reading dialog
 
@@ -123,7 +131,11 @@ sharing untouched. Body edits are limited to non-checklist notes; checklists use
 their item operations. The route requires ownership or an explicit edit grant,
 broadcasts `reminder.changed`, and nudges native devices when notification text
 could have changed. The web updates its reminder cache optimistically and
-invalidates owner and received-share projections on settle.
+invalidates owner and received-share projections on settle. Focused text changes
+update both projections optimistically; guarded per-row rollback cannot restore
+revoked content or overwrite a newer update. Full-editor optimism preserves the
+server version token and applies only to the owned definition; recipient schedule
+and firing projections refresh from the server.
 
 The owner reminder list includes `shareCount` and `invitationCount` for card
 markers and Share button counts. Both counts come from the owner's scoped list
@@ -324,7 +336,8 @@ whose optimistic result already removed the target from a list.
 `POST /api/reminders/:id/items` appends one item to a `TODO` reminder's
 `typeData.items`. The reading dialog keeps Add item visible while a new row is typed, so extending a list
 doesn't mean a trip to the editor. Rejected for anything that is not a `TODO`, and
-at the 50-item cap (`MAX_TODO_ITEMS`).
+at the 50-item cap (`MAX_TODO_ITEMS`). Replaying an existing item id remains a
+successful no-op even when the list has reached the cap.
 
 The body is one item, `{ id, text }`, with the **id minted by the client** exactly
 as the editor mints it. That is what makes the write idempotent: an add replayed
@@ -406,9 +419,11 @@ text in the reading dialog, or typing in its row in the editor, ends up calling.
 anything that is not a `TODO`, and **404 for an id the list no longer has** — a rename
 queued offline and drained after someone deleted that item must not resurrect it.
 
-**Last-write-wins**, which is the honest model for free text: two devices renaming one
-line have no merge, and the later edit is the one the user typed most recently. It is
-per item, so it cannot add, drop or reorder anything.
+New clients send `expectedText`, captured when editing begins. The route locks the
+canonical reminder, rechecks the actor's share grant, and compares the stored item
+text before writing. A concurrent change to the same line returns **409** and the
+inline editor retains the draft. Changes to other lines do not conflict. Older
+clients without the comparison field retain last-arrival behavior.
 
 Rebuilt in **one SQL statement** like its siblings (only the matching element's `text`
 changes; every other element and the order pass through), so a concurrent add or reorder
@@ -455,6 +470,10 @@ full-definition write racing a real edit from another device. So the update path
 leaves the column alone, and nothing clears it: the worst a leftover can do is
 collapse a list the user themselves collapsed, and only once something is ticked
 again.
+
+The hide-checked write uses the canonical reminder lock and rechecks sharing access.
+It explicitly preserves `updatedAt`: presentation changes must neither invalidate
+an editor draft nor reset its definition conflict token.
 
 ## What the device arms vs. what it lists
 
@@ -508,3 +527,13 @@ permanent Settings guidance. Both GitHub APK downloads and Google Play are offer
 the Store is optional. Signing into the same account in the new app restores
 server-saved reminders. Local preferences and unfinished offline edits are not
 transferred between these separate apps.
+
+
+All checklist definition mutations (append, reorder, rename, delete) use the same
+parent row lock as full-editor saves and membership changes; hide-checked uses
+that lock too while preserving the definition version. Type, item existence,
+and authorization are checked after waiting, so a concurrent type change or grant
+revocation cannot authorize a write from an outdated snapshot. Independent item
+operations preserve each other; simultaneous ticks and reorders use last-arrival
+state for the same item/order. This is conflict detection and live convergence,
+without character-by-character merging or cursor presence.

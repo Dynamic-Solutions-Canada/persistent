@@ -93,6 +93,8 @@ function closeDeviceNotification(occurrenceId: string): void {
 function connect(): void {
   socket = new WebSocket(wsUrl())
   socket.onopen = () => {
+    // Catch edits missed while the socket was disconnected, including owned notes.
+    void queryClient.invalidateQueries({ queryKey: queryKeys.reminders })
     void queryClient.invalidateQueries({ queryKey: queryKeys.announcements })
     // Recheck grants after reconnect: access can be revoked while this device
     // was offline, and a missed invalidation cannot authorize a cached view.

@@ -201,39 +201,31 @@ export function registerMutationDefaults(): void {
   })
 
   queryClient.setMutationDefaults(mutationKeys.updateReminder, {
-    // clientEditedAt (captured at submit, preserved while queued offline) lets the
-    // server apply last-edit-wins so a late-replayed stale edit can't clobber a
-    // newer one.
-    mutationFn: ({ id, input, editedAt }: { id: string; input: ReminderInput; editedAt?: string }) =>
+    // The server version captured on opening survives offline queueing.
+    // clientEditedAt is retained for older queued mutations without a version.
+    mutationFn: ({ id, input, editedAt, expectedUpdatedAt }: { id: string; input: ReminderInput; editedAt?: string; expectedUpdatedAt?: string }) =>
       apiFetch<{ reminder: Reminder }>(`/api/reminders/${id}`, {
         method: 'PUT',
-        body: JSON.stringify({ ...input, clientEditedAt: editedAt ?? new Date().toISOString() })
+        body: JSON.stringify({ ...input, expectedUpdatedAt, clientEditedAt: editedAt ?? new Date().toISOString() })
       }),
-    onMutate: async ({ id, input }: { id: string; input: ReminderInput; editedAt?: string }): Promise<RemindersSnapshot> => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.reminders })
-      const previous = reminders()
-      queryClient.setQueryData<Reminder[]>(
-        queryKeys.reminders,
-        // Ticks are carried over rather than rebuilt from the input, which has
-        // none: editing a note's title must not blink its checked items away and
-        // back when the server's row lands. This mirrors the server's own rule —
-        // ticks survive while it is still a note, and are cleared once it isn't.
-        (previous ?? []).map((r) =>
-          r.id === id
-            ? {
-                ...optimisticReminder(input, id),
-                checkedItemIds: input.schedule.kind === 'never' ? r.checkedItemIds : [],
-                // Carried over unconditionally: the server's update never touches
-                // this column, so rebuilding the row from the form must not blink
-                // a collapsed checklist open until the real row lands.
-                hideCheckedItems: r.hideCheckedItems,
-                shareCount: r.shareCount,
-                invitationCount: r.invitationCount
-              }
-            : r
-        )
+    onMutate: async ({ id, input }: { id: string; input: ReminderInput; editedAt?: string; expectedUpdatedAt?: string }): Promise<RemindersSnapshot> => {
+      const update = (r: Reminder): Reminder => r.id === id ? {
+        ...r,
+        ...optimisticReminder(input, id),
+        // Only server responses supply conflict tokens; never invent one locally.
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+        checkedItemIds: input.schedule.kind === 'never' ? r.checkedItemIds : [],
+        hideCheckedItems: r.hideCheckedItems,
+        shareCount: r.shareCount,
+        invitationCount: r.invitationCount
+      } : r
+      return optimisticChecklistChange<Reminder>(
+        queryClient, queryKeys.reminders, queryKeys.receivedShares,
+        update,
+        // Full recipient projections include schedule/firing data computed by the server.
+        (share) => share
       )
-      return { previous }
     },
     onError: rollback,
     onSettled: invalidateReminders
@@ -245,12 +237,16 @@ export function registerMutationDefaults(): void {
     mutationFn: ({ id, arg }: { id: string; arg: ReminderContentInput }) =>
       apiFetch(`/api/reminders/${id}/content`, { method: 'PATCH', body: JSON.stringify(arg) }),
     onMutate: async ({ id, arg }: { id: string; arg: ReminderContentInput }): Promise<RemindersSnapshot> => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.reminders })
-      const previous = reminders()
-      queryClient.setQueryData<Reminder[]>(queryKeys.reminders, (list) =>
-        (list ?? []).map((reminder) => reminder.id === id ? { ...reminder, ...arg } : reminder)
+      const update = (reminder: Reminder): Reminder => reminder.id === id ? {
+        ...reminder,
+        ...(arg.title !== undefined ? { title: arg.title } : {}),
+        ...(arg.details !== undefined ? { details: arg.details } : {})
+      } : reminder
+      return optimisticChecklistChange<Reminder>(
+        queryClient, queryKeys.reminders, queryKeys.receivedShares,
+        update,
+        (share) => share.id === id ? updateSharedReminder(share, update) : share
       )
-      return { previous }
     },
     onError: rollback,
     onSettled: invalidateReminders

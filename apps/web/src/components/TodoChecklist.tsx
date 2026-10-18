@@ -87,7 +87,7 @@ export function TodoChecklist({
    * so the new wording is what every later firing shows. Omitted where nothing owns
    * the write; the text is then plain and inert.
    */
-  onRenameItem?: (itemId: string, text: string) => void
+  onRenameItem?: (itemId: string, text: string, expectedText: string) => void | Promise<unknown>
   /** Delete an item from the reminder definition. */
   onRemoveItem?: (itemId: string) => void
   /**
@@ -249,7 +249,7 @@ export function TodoChecklist({
                 text={item.text}
                 struck={isChecked}
                 disabled={disabled}
-                onRename={onRenameItem ? (text) => onRenameItem(item.id, text) : undefined}
+                onRename={onRenameItem ? (text, expectedText) => onRenameItem(item.id, text, expectedText) : undefined}
               />
               {onRemoveItem && (
                 <IconButton

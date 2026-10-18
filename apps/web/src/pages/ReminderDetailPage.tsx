@@ -151,7 +151,7 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
               <InlineReminderText
                 kind="title"
                 text={reminder.title}
-                onSave={(title) => updateContent.mutate({ id: reminder.id, arg: { title } })}
+                onSave={(title, expectedText) => updateContent.mutateAsync({ id: reminder.id, arg: { title, expectedText } })}
               />
             ) : (
               <Typography level="title-lg" sx={{ minWidth: 0 }}>
@@ -182,7 +182,7 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
               <InlineReminderText
                 kind="body"
                 text={reminder.details ?? ''}
-                onSave={(details) => updateContent.mutate({ id: reminder.id, arg: { details: details || null } })}
+                onSave={(details, expectedText) => updateContent.mutateAsync({ id: reminder.id, arg: { details: details || null, expectedText } })}
               />
             </Box>
           )}

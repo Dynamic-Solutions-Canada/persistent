@@ -15,8 +15,10 @@
  */
 import { useEffect, useRef, useState } from 'react'
 import Box from '@mui/joy/Box'
+import Button from '@mui/joy/Button'
 import Input from '@mui/joy/Input'
 import Typography from '@mui/joy/Typography'
+import { extractErrorMessage } from '@persistent/shared'
 import { checklistItemTextSx } from './checklistItemTextSx.js'
 import { MAX_TODO_ITEM_TEXT } from '@persistent/shared'
 
@@ -33,11 +35,15 @@ export function TodoItemText({
    * Save new text for this item. Omitted where nothing owns the write (History, or a
    * surface with no reminder to edit), and the text is then plain and inert.
    */
-  onRename?: (text: string) => void
+  onRename?: (text: string, expectedText: string) => void | Promise<unknown>
   disabled?: boolean
 }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(text)
+  const baseline = useRef(text)
+  const saving = useRef(false)
+  const [pending, setPending] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const input = useRef<HTMLInputElement | null>(null)
 
   // A rename landing from another device while this row is open would otherwise be
@@ -46,15 +52,32 @@ export function TodoItemText({
     if (!editing) setDraft(text)
   }, [text, editing])
 
-  function commit() {
+  async function commit() {
+    if (saving.current) return
     const trimmed = draft.trim()
-    setEditing(false)
     // An emptied line is a deletion the user has not asked for, so it reverts instead.
-    if (!trimmed || trimmed === text) {
+    if (!trimmed || trimmed === baseline.current) {
       setDraft(text)
+      setEditing(false)
       return
     }
-    onRename?.(trimmed)
+    saving.current = true
+    setPending(true)
+    try {
+      await onRename?.(trimmed, baseline.current)
+      setEditing(false)
+    } catch (error) {
+      setSaveError(extractErrorMessage(error))
+    } finally {
+      saving.current = false
+      setPending(false)
+    }
+  }
+
+  function beginEditing() {
+    baseline.current = text
+    setSaveError(null)
+    setEditing(true)
   }
 
   if (!onRename || disabled) {
@@ -74,11 +97,11 @@ export function TodoItemText({
         role="button"
         tabIndex={0}
         aria-label={`Edit ${text}`}
-        onClick={() => setEditing(true)}
+        onClick={beginEditing}
         onKeyDown={(event) => {
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault()
-            setEditing(true)
+            beginEditing()
           }
         }}
         sx={{
@@ -106,25 +129,35 @@ export function TodoItemText({
   }
 
   return (
-    <Input
-      autoFocus
-      size="sm"
-      value={draft}
-      onChange={(event) => setDraft(event.target.value)}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter') {
-          event.preventDefault()
-          commit()
-        } else if (event.key === 'Escape') {
+    <Box sx={{ flex: 1, minWidth: 0 }}>
+      <Input
+        disabled={pending}
+        autoFocus
+        size="sm"
+        value={draft}
+        onChange={(event) => { setDraft(event.target.value); setSaveError(null) }}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault()
+            commit()
+          } else if (event.key === 'Escape') {
+            setDraft(text)
+            setEditing(false)
+          }
+        }}
+        onBlur={() => { if (!saveError) void commit() }}
+        slotProps={{
+          input: { ref: input, 'aria-label': `Edit ${text}`, maxLength: MAX_TODO_ITEM_TEXT, enterKeyHint: 'done' }
+        }}
+        sx={{ flex: 1, minWidth: 0 }}
+      />
+      {saveError && <Box>
+        <Typography level="body-xs" color="danger" role="alert">{saveError} Your draft is kept above.</Typography>
+        <Button size="sm" variant="plain" color="neutral" onClick={() => {
           setDraft(text)
           setEditing(false)
-        }
-      }}
-      onBlur={commit}
-      slotProps={{
-        input: { ref: input, 'aria-label': `Edit ${text}`, maxLength: MAX_TODO_ITEM_TEXT, enterKeyHint: 'done' }
-      }}
-      sx={{ flex: 1, minWidth: 0 }}
-    />
+        }}>Cancel edit and show latest</Button>
+      </Box>}
+    </Box>
   )
 }

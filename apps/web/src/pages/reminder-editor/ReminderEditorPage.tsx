@@ -98,6 +98,7 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
   const [form, setForm] = useState<FormState>(() => (existing ? fromReminder(existing) : emptyForm()))
   // The state the editor was opened in, to tell edits from the untouched form.
   const [original, setOriginal] = useState<FormState>(form)
+  const [expectedUpdatedAt, setExpectedUpdatedAt] = useState(existing?.updatedAt)
   // Where to go once the user confirms discarding; null = no prompt showing.
   const [discardTo, setDiscardTo] = useState<string | null>(null)
   // Set while leaving deliberately (saved, deleted, or discarded), so the guard
@@ -112,6 +113,7 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
     // Re-baseline too, or the reminder simply arriving would read as an edit.
     setOriginal(hydrated)
     setHydratedId(existing.id)
+    setExpectedUpdatedAt(existing.updatedAt)
   }
 
   const dirty = !leaving && (isFormDirty(original, form) || (!id && (draftShares.length > 0 || draftMode === 'assign')))
@@ -248,13 +250,12 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
       : shared ? `/shared/${id}` : landingTab(input.schedule.kind)
     const savedMessage = id ? 'Saved' : 'Created'
     setLeaving(true)
-    // Capture the edit time now (survives offline queueing) so the server can
-    // apply last-edit-wins on replay.
+    // Preserve both the opening version and submission time through offline queueing.
     const editedAt = new Date().toISOString()
     // Offline, the mutation is queued (optimistically applied to the cache) and
     // replayed on reconnect — so navigate immediately instead of awaiting it.
     if (!navigator.onLine) {
-      if (id) update.mutate({ id, input, editedAt })
+      if (id) update.mutate({ id, input, editedAt, expectedUpdatedAt })
       else create.mutate({ ...input, shares: draftShares })
       toast(savedMessage)
       finish(destination)
@@ -262,7 +263,7 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
     }
     try {
       let failedInvitations: string[] = []
-      if (id) await update.mutateAsync({ id, input, editedAt })
+      if (id) await update.mutateAsync({ id, input, editedAt, expectedUpdatedAt })
       else if (draftMode === 'assign') {
         const result = await createAssignment.mutateAsync({ recipientEmail: draftAssignee, reminder: input })
         if (result.invitationFailed) failedInvitations = [draftAssignee]
@@ -387,6 +388,17 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
             </Typography>
           )}
           {error && <Alert color="danger">{error}</Alert>}
+          {!leaving && existing && expectedUpdatedAt !== existing.updatedAt && (
+            <Alert color="warning" endDecorator={<Button size="sm" variant="outlined" color="warning" onClick={() => {
+              const latest = fromReminder(existing)
+              setForm(latest)
+              setOriginal(latest)
+              setExpectedUpdatedAt(existing.updatedAt)
+              setError(null)
+            }}>Load latest</Button>}>
+              This reminder has changed. Your draft is kept here. Load latest replaces your draft with the saved version.
+            </Alert>
+          )}
 
           <Tabs defaultValue="details" sx={{ bgcolor: 'transparent' }}>
             <TabList

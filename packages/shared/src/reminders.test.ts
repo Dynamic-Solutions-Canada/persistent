@@ -6,6 +6,8 @@ import {
   reminderBodyText,
   reminderContentInputSchema,
   reminderInputSchema,
+  reminderUpdateInputSchema,
+  renameTodoItemInputSchema,
   reminderSchema,
   selectableReminderTypes,
   snoozeInputSchema,
@@ -453,4 +455,18 @@ test('withTodoItemText ignores an id the list no longer has', () => {
 test('withTodoItemText leaves the rest of typeData alone', () => {
   const next = withTodoItemText({ medications: [{ name: 'Ibuprofen' }], items: [{ id: 'a', text: 'Milk' }] }, 'a', 'Oat milk')
   assert.deepEqual(next.medications, [{ name: 'Ibuprofen' }])
+})
+
+
+test('collaboration comparison values survive parsing without trimming the original text', () => {
+  const version = '2026-10-18T12:00:00.000Z'
+  assert.equal(reminderUpdateInputSchema.parse({ ...base, expectedUpdatedAt: version }).expectedUpdatedAt, version)
+  assert.equal(reminderContentInputSchema.parse({ title: 'New', expectedText: ' Original ' }).expectedText, ' Original ')
+  assert.equal(renameTodoItemInputSchema.parse({ text: 'New', expectedText: ' Original ' }).expectedText, ' Original ')
+  assert.equal(reminderContentInputSchema.parse({ details: 'New', expectedText: '' }).expectedText, '')
+})
+
+test('invalid collaboration versions cannot bypass validation', () => {
+  assert.equal(reminderUpdateInputSchema.safeParse({ ...base, expectedUpdatedAt: 'not-a-version' }).success, false)
+  assert.equal(renameTodoItemInputSchema.safeParse({ text: 'New', expectedText: null }).success, false)
 })

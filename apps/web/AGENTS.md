@@ -128,6 +128,11 @@
   anyway: look enum-ish values up defensively (`components/ReminderIcons.tsx`),
   because a React element type that resolves to `undefined` takes down the whole
   view rather than one row.
+- **Concurrent editing:** capture a definition's server `updatedAt` when its editor
+  opens, and the original text when an inline field opens. Preserve those baselines
+  through live refreshes and offline queueing. Retain drafts on 409 and require an
+  explicit action to load the latest version. Guard rollback by the current row;
+  never replace a newer cache snapshot or invent a server version optimistically.
 - **Staying current:** `lib/swUpdate.ts` registers the auto-activating worker with
   `registerSW` and an `onNeedReload` override. Checks run on visibility, hourly while
   visible, and desktop host resume. Worker activation triggers the same build comparison as polling: only a
