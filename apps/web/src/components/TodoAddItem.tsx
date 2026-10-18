@@ -1,5 +1,5 @@
 /**
- * The add row under a checklist in the reading dialog or editor: extend a list without
+ * The add row under a checklist in the reading dialog: extend a list without
  * opening the editor.
  *
  * The quiet add button stays visible when a draft row opens above it, so the new
@@ -15,7 +15,7 @@
  * means it also joins the body of whatever is nagging right now
  * (docs/notification-behavior.md §1a). It never touches a tick.
  */
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Input from '@mui/joy/Input'
 import Button from '@mui/joy/Button'
 import IconButton from '@mui/joy/IconButton'
@@ -36,9 +36,19 @@ export function TodoAddItem({
   const [open, setOpen] = useState(false)
   const [text, setText] = useState('')
   const input = useRef<HTMLInputElement | null>(null)
+  const draft = useRef('')
+  const add = useRef(onAdd)
+  useEffect(() => { add.current = onAdd }, [onAdd])
+  // Back and backdrop dismissal can unmount without blurring the input.
+  useEffect(() => () => {
+    const trimmed = draft.current.trim()
+    draft.current = ''
+    if (trimmed) add.current({ id: newTodoItemId(), text: trimmed })
+  }, [])
 
-  function commit() {
-    const trimmed = text.trim()
+  function commit(focus = true) {
+    const trimmed = draft.current.trim()
+    draft.current = ''
     // An empty submit is the user saying they're done, not an item.
     if (!trimmed) {
       setOpen(false)
@@ -47,7 +57,7 @@ export function TodoAddItem({
     onAdd({ id: newTodoItemId(), text: trimmed })
     setText('')
     // Tapping the save icon moves focus onto it, so put it back for the next line.
-    input.current?.focus()
+    if (focus) input.current?.focus()
   }
 
   return (
@@ -59,18 +69,21 @@ export function TodoAddItem({
           value={text}
           disabled={disabled}
           placeholder="New item"
-          onChange={(event) => setText(event.target.value)}
+          onChange={(event) => { draft.current = event.target.value; setText(event.target.value) }}
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
               event.preventDefault()
               commit()
             } else if (event.key === 'Escape') {
+              draft.current = ''
               setText('')
               setOpen(false)
             }
           }}
           onBlur={() => {
-            if (!text.trim()) setOpen(false)
+            // Commit before the ensuing click (Close, Done, Edit, etc.).
+            // Clear the ref synchronously so a following plus click cannot duplicate it.
+            commit(false)
           }}
           slotProps={{
             input: {
@@ -87,6 +100,7 @@ export function TodoAddItem({
               color="neutral"
               aria-label={text.trim() ? 'Save new item' : 'Cancel new item'}
               disabled={disabled}
+              onMouseDown={(event) => event.preventDefault()}
               onClick={() => {
                 if (text.trim()) commit()
                 else setOpen(false)

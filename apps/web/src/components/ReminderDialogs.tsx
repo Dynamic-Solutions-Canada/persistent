@@ -1,4 +1,6 @@
 /** In-app reminder reading and editing dialogs, independent of page routes. */
+import type { Occurrence } from '@persistent/shared'
+import { PastOccurrenceDetail } from './PastOccurrenceDetail.js'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ModalDialog from '@mui/joy/ModalDialog'
@@ -16,7 +18,7 @@ import { ReminderEditorPage } from '../pages/reminder-editor/ReminderEditorPage.
 import { ShareCountChip } from './ShareCountChip.js'
 import { ReminderDialogContext, type ReminderDialogActions } from './reminderDialogContext.js'
 
-type DialogState = { kind: 'view' | 'edit'; id: string } | { kind: 'new' } | null
+type DialogState = { kind: 'view' | 'edit'; id: string; occurrence?: Occurrence } | { kind: 'new' } | null
 
 export function ReminderDialogProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
@@ -55,7 +57,7 @@ export function ReminderDialogProvider({ children }: { children: ReactNode }) {
   }
   const registerClose = (handler: () => void) => { editorClose.current = handler }
   const actions: ReminderDialogActions = useMemo(() => ({
-    view: (id) => show({ kind: 'view', id }),
+    view: (id, occurrence) => show({ kind: 'view', id, occurrence }),
     edit: (id) => show({ kind: 'edit', id }),
     create: () => show({ kind: 'new' })
   }), [show])
@@ -96,18 +98,21 @@ export function ReminderDialogProvider({ children }: { children: ReactNode }) {
           {/* Scroll clipping needs a small gutter for card shadows at every edge.
               Negative margin preserves alignment with the dialog heading/footer. */}
           <Box sx={{ minHeight: 0, overflowY: 'auto', p: 0.5, m: -0.5 }}>
-            {dialog?.kind === 'view' && (
+            {dialog?.kind === 'view' && dialog.occurrence && (
+              <PastOccurrenceDetail occurrence={dialog.occurrence} onUndone={close} />
+            )}
+            {dialog?.kind === 'view' && !dialog.occurrence && (
               <ReminderDetailPage
                 reminderId={dialog.id}
                 onClose={close}
-                onEdit={() => setDialog({ kind: 'edit', id: dialog.id })}
+                onEdit={() => setDialog({ kind: 'edit', id: dialog.id, occurrence: dialog.occurrence })}
               />
             )}
             {dialog?.kind === 'edit' && (
               <ReminderEditorPage
                 key={dialog.id}
                 reminderId={dialog.id}
-                onClose={() => setDialog({ kind: 'view', id: dialog.id })}
+                onClose={() => setDialog({ kind: 'view', id: dialog.id, occurrence: dialog.occurrence })}
                 onFinished={close}
                 registerClose={registerClose}
               />
@@ -128,7 +133,7 @@ export function ReminderDialogProvider({ children }: { children: ReactNode }) {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, flexShrink: 0, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
               <Stack direction="row" spacing={0.5}>
                 {canEdit && (
-                  <Button variant="outlined" size="sm" startDecorator={<EditIcon />} onClick={() => setDialog({ kind: 'edit', id: dialog.id })}>Edit</Button>
+                  <Button variant="outlined" size="sm" startDecorator={<EditIcon />} onClick={() => setDialog({ kind: 'edit', id: dialog.id, occurrence: dialog.occurrence })}>Edit</Button>
                 )}
                 {(ownerReminder || receivedReminder) && (
                   <Button

@@ -131,6 +131,11 @@ query. Received reminders are marked Shared from their explicit share grant.
 Mutation responses and older offline cache rows default the counts to zero
 until the owner list refreshes.
 
+Nonempty checklist additions in the reading view commit through the normal add-item
+mutation when focus leaves the field or the view unmounts, including Back. Empty
+or whitespace-only drafts produce no mutation. The editor adds rows to its form
+immediately; Save includes typed rows, and Cancel uses the existing discard guard.
+
 ## Live updates (WebSocket `/ws`)
 
 One reconnecting socket per signed-in client (`apps/web/src/lib/wsClient.ts`),
@@ -148,7 +153,7 @@ Event types (`packages/shared/src/ws-events.ts`):
 | Event | Meaning | Client reaction |
 |---|---|---|
 | `occurrence.fired` | an occurrence became due | invalidate active/upcoming/history occurrences + reminders |
-| `occurrence.changed` | status changed (ack/snooze/escalate) | invalidate active/upcoming/history occurrences + reminders (a confirmed one-time or unscheduled reminder drops out of Upcoming) |
+| `occurrence.changed` | status changed (ack/undo/snooze/escalate) | invalidate active/upcoming/history occurrences + reminders (a confirmed one-time or unscheduled reminder drops out of Upcoming) |
 | `reminder.changed` | a reminder was created/updated/deleted | invalidate reminders + occurrences (active/upcoming/history) |
 | `share.changed` | a grant or invitation changed | invalidate received reminders, owner reminder sharing counts, and owner share lists; reset received caches after access removal |
 | `assignment.changed` | an invitation or assignee firing changed | invalidate the creator's status view and assignee assignment labels |
@@ -191,6 +196,23 @@ that firing for every participant; a personal snooze clears only the actor's
 devices. Each occurrence is independent, so
 a `dismiss` only ever clears the one occurrence that was acked/snoozed — a
 reminder's other still-unconfirmed firings keep nagging on their own.
+
+`POST /api/occurrences/:id/undo-done` accepts `{ acknowledgedAt }` from the
+selected History occurrence. Under the canonical reminder lock, ownership or a
+current share grant permits an atomic ACKNOWLEDGED-to-FIRED transition only for
+that timestamp. A stale retry or a definition now kept as a note returns 409.
+The occurrence id, scheduled time, checklist ticks, and reminder schedule stay
+unchanged. Owner and recipient snoozes/escalations are cleared, and automatic
+alarm escalation is silenced, including for recipients without prior personal
+alert state. Inherent ALARM reminders still ring. Assignment progress is
+recalculated. Existing email-delivery guards are preserved.
+
+`occurrence.changed` refreshes the owner's web and desktop clients; recipient
+`reminder.changed` events and native sync nudges refresh all current participants.
+The web mutation invalidates active, upcoming, history, reminders, and received
+shares on settle. Its registered default supports account-bound offline replay;
+recipient writes remain excluded from offline persistence. History opens the
+selected occurrence rather than substituting the reminder's current firing.
 
 `POST /api/occurrences/:id/snooze` accepts either `{ minutes }` for a duration
 or `{ until }` with an ISO instant for the in-app "Until" choice. The server

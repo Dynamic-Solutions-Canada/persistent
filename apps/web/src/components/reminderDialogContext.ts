@@ -1,7 +1,8 @@
+import type { Occurrence } from '@persistent/shared'
 import { createContext, useContext } from 'react'
 
 export interface ReminderDialogActions {
-  view: (id: string) => void
+  view: (id: string, occurrence?: Occurrence) => void
   edit: (id: string) => void
   create: () => void
 }

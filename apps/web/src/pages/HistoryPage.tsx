@@ -1,10 +1,10 @@
 /**
  * History: past entries — occurrences that were acknowledged or missed, most
  * recent first. Uses the same reminder card layout as Current and Upcoming;
- * a card opens the reading dialog with the reminder's current details.
+ * a card opens the selected firing's reading dialog, including Undo done.
  *
- * Loaded a page at a time (see `usePastOccurrences`). Nothing prunes confirmed
- * firings, so this list only ever grows; fetching it whole meant a bigger payload
+ * Loaded a page at a time (see `usePastOccurrences`). Confirmed firings accumulate
+ * unless explicitly reopened or deleted; fetching it whole meant a bigger payload
  * and a longer render on every visit, forever. "Show more" is deliberate rather
  * than infinite scroll — history is something you occasionally go looking back
  * through, not a feed to fall into, and an explicit control keeps the page a
@@ -77,7 +77,7 @@ export function HistoryPage() {
               sharing={receivedIds.has(occurrence.reminderId)
                 ? 'shared'
                 : sharingState(ownedById.get(occurrence.reminderId) ?? { shareCount: 0, invitationCount: 0 })}
-              onOpen={() => dialogs.view(occurrence.reminderId)}
+              onOpen={() => dialogs.view(occurrence.reminderId, occurrence)}
               status={<StatusChip status={occurrence.status} />}
               checkedItemIds={occurrence.checkedItemIds}
               when={formatWhen(occurrence.scheduledFor, timeFormat, user?.timeZone)}

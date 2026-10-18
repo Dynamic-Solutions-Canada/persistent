@@ -32,6 +32,7 @@ import { useReceivedShares } from '../../data/shares.js'
 import { useCreateAssignment, useReceivedAssignments } from '../../data/assignments.js'
 import { compareFirings } from '../../lib/firingOrder.js'
 import { isNote as isNoteReminder } from '../../lib/notes.js'
+import { hasConsumedOneTimeSchedule, showScheduleEnabled } from './scheduleControls.js'
 import { fireSummary } from '../../lib/schedule-preview.js'
 import { formatWhen } from '../../lib/datetime.js'
 import { useSettings } from '../../settings/useSettings.js'
@@ -478,10 +479,12 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
           </Tabs>
 
           <Divider />
-          <FormControl orientation="horizontal" sx={{ justifyContent: 'space-between' }}>
-            <FormLabel>Active</FormLabel>
-            <Switch checked={form.active} onChange={(e) => set('active', e.target.checked)} />
-          </FormControl>
+          {showScheduleEnabled(form, existing) && (
+            <FormControl orientation="horizontal" sx={{ justifyContent: 'space-between' }}>
+              <FormLabel>Schedule enabled</FormLabel>
+              <Switch checked={form.active} onChange={(e) => set('active', e.target.checked)} />
+            </FormControl>
+          )}
 
           {missingTodoItems ? (
             <Alert color="warning" variant="soft" size="sm">
@@ -497,9 +500,13 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
             <Alert color="neutral" variant="soft" size="sm">
               Never notifies you — kept as a note.
             </Alert>
-          ) : !form.active ? (
+          ) : hasConsumedOneTimeSchedule(form, existing) ? (
             <Alert color="neutral" variant="soft" size="sm">
-              Inactive — won't notify you until you turn it on.
+              This one-time reminder has already notified you. Use History to undo Done, or change the schedule to notify again.
+            </Alert>
+          ) : showSchedule && !form.active ? (
+            <Alert color="neutral" variant="soft" size="sm">
+              Schedule paused — no future notifications until enabled. Current firings still need Done.
             </Alert>
           ) : !showSchedule ? (
             // An unscheduled reminder fires once, on creation — so this is a promise

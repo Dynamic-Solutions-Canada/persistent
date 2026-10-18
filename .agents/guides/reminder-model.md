@@ -31,7 +31,13 @@ persistence guarantee.
 
 Each `ReminderOccurrence` is independent. A later firing never suppresses an
 older unacknowledged one, and acknowledging one occurrence never clears another.
-`SUPERSEDED` is legacy-only and must not be produced.
+`SUPERSEDED` is legacy-only and must not be produced. The explicit Undo done
+History action may restore an acknowledged occurrence to FIRED after checking the
+completion timestamp and current ownership/share access. It preserves checked
+items and scheduledFor, clears snoozes and old alarm escalation, and suppresses
+further automatic alarm escalation for every current member on that firing.
+Assigned progress is recalculated from the remaining acknowledged occurrences.
+Notes cannot acquire live occurrences through undo.
 
 Shared reminders keep creator-owned firings and give every participant edit and
 completion access. Members use the same reading-view checklist and firing actions

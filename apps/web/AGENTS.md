@@ -27,6 +27,11 @@
   firings on History. Settings links to the full Shared with me list. Use the
   server's next firing instant for received schedules because the owner may have
   a different time zone. The Notes tab also appears for received notes.
+- **History opens the selected firing**, with its saved checklist ticks and an
+  Undo done action for acknowledged occurrences (`components/PastOccurrenceDetail.tsx`).
+  Undo restores that firing, never a fresh schedule. The editor's Schedule enabled
+  control is hidden for timeless definitions and consumed one-time schedules;
+  an older completion must not hide it for a new future schedule.
 - **The loudest control on a screen is the one that finishes work.** Done
   (`components/OccurrenceActions.tsx`, solid `success`) is the app's entire
   guarantee, so nothing that merely *creates* or navigates may outrank it:
@@ -48,8 +53,10 @@
 - **A checklist row uses the same controls everywhere.** The leading handle drags,
   the checkbox ticks, the text opens for editing, and the trailing X deletes: in the
   reading dialog (`components/TodoChecklist.tsx`) and in the editor's field
-  (`pages/reminder-editor/TodoItemsField.tsx`) alike, and adding a line is the same
-  `components/TodoAddItem.tsx` in both. Don't reintroduce a surface-specific gesture
+  (`pages/reminder-editor/TodoItemsField.tsx`) alike. The reading view's
+  `components/TodoAddItem.tsx` commits nonempty drafts on blur or unmount;
+  the editor inserts a row directly into its form so Save and its discard guard
+  include every typed line. Don't reintroduce a surface-specific gesture
   (the whole row used to tick, which left nowhere to put editing); if a region has to
   earn its tap, give it a bigger hit area rather than a second meaning. The editor's
   checkbox writes the *firing* immediately and is not part of the draft, so it is shown
@@ -78,7 +85,7 @@
   live updates arrive over `/ws` (`lib/wsClient.ts`) and invalidate query keys
   defined in `lib/queryClient.ts`. **History is the one paged feed**
   (`usePastOccurrences` is a `useInfiniteQuery`: read it as `data.pages.flatMap`,
-  not `data.map`); it only ever grows, so it loads a page at a time behind "Show
+  not `data.map`); it accumulates over time, so it loads a page at a time behind "Show
   more". Active and upcoming are small by construction and load whole.
 - **Other apps:** `data/promotedApps.ts` imports the shared public catalog from
   `apps/desktop/external/promo`. Keep its query optional for startup and separate

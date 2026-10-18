@@ -43,7 +43,8 @@ import IconButton from '@mui/joy/IconButton'
 import CloseIcon from '@mui/icons-material/Close'
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 import { emptyTodo, type TodoRow } from './formState.js'
-import { TodoAddItem } from '../../components/TodoAddItem.js'
+import Button from '@mui/joy/Button'
+import AddIcon from '@mui/icons-material/Add'
 import { REORDER_ROW_ATTR, useDragReorder } from '../../lib/useDragReorder.js'
 
 export function TodoItemsField({
@@ -209,7 +210,9 @@ export function TodoItemsField({
         {/* The draft row appears above its persistent Add button. Enter inside an
             existing row still inserts below that row for keyboard list entry. */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <TodoAddItem onAdd={(item) => onInsert(todos.length, item)} />
+          <Button variant="plain" color="neutral" size="sm" startDecorator={<AddIcon />} onClick={() => insertAt(todos.length)}>
+            Add item
+          </Button>
         </Box>
       </Stack>
     </Box>

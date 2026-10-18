@@ -1,6 +1,6 @@
 /**
  * Occurrence routes: the "due now / needs confirmation" feed plus the explicit
- * completion (ack), snooze, silence, and checklist-item actions.
+ * completion (ack), explicit undo, snooze, silence, and checklist-item actions.
  *
  * Acknowledging or snoozing broadcasts a `dismiss` (over WS and push) so the
  * notification clears on every one of the user's devices — the cross-device
@@ -12,6 +12,7 @@ import { Router } from 'express'
 import type { ReminderOccurrence } from '@prisma/client'
 import {
   checkItemInputSchema,
+  undoDoneInputSchema,
   MAX_SNOOZE_MINUTES,
   snoozeInputSchema,
   todoItems,
@@ -162,6 +163,61 @@ occurrencesRouter.post('/:id/ack', async (request, response) => {
   broadcast(existing.userId, { type: 'occurrence.changed', occurrence: toOccurrence(updated) })
   await broadcastSharedChange(existing.reminderId, existing.userId)
   response.json({ occurrence: toOccurrence(occurrenceForActor(updated, userId, null)) })
+})
+
+// Undo reopens exactly one completion; it never creates a new firing or changes its schedule.
+occurrencesRouter.post('/:id/undo-done', async (request, response) => {
+  const userId = requireUserId(request)
+  const parsed = undoDoneInputSchema.safeParse(request.body)
+  if (!parsed.success) throw badRequest('Invalid completion to undo.')
+  const existing = await actionableOccurrence(request.params.id, userId)
+  if (!existing) throw notFound('Occurrence not found.')
+  const now = new Date()
+  const updated = await withSharingReminder(existing.reminderId, userId, async (transaction, reminder) => {
+    // The conditional write also serializes against Done. A retry after a later
+    // completion must never reopen that newer completion.
+    const changed = await transaction.reminderOccurrence.updateMany({
+      where: {
+        id: existing.id, userId: reminder.userId, reminderId: reminder.id,
+        status: 'ACKNOWLEDGED', acknowledgedAt: new Date(parsed.data.acknowledgedAt)
+      },
+      data: {
+        status: 'FIRED', acknowledgedAt: null, snoozedUntil: null,
+        escalatedAt: null, escalationSilencedAt: now, lastNotifiedAt: now
+      }
+    })
+    if (!changed.count) throw conflict('This completion has changed. Refresh History before trying again.')
+    // Notes cannot have live firings. Changing back to a reminder is a separate edit.
+    if ((reminder.schedule as { kind?: string }).kind === 'never') {
+      throw conflict('This reminder is now a note. Change its schedule before undoing completion.')
+    }
+    // A member who never snoozed/escalated may not have a personal state yet.
+    // Give every current recipient the same restored, non-escalated starting point.
+    const shares = await transaction.reminderShare.findMany({
+      where: { reminderId: reminder.id, reminder: { userId: reminder.userId } },
+      select: { recipientId: true }
+    })
+    await transaction.recipientAlertState.createMany({
+      data: shares.map(({ recipientId }) => ({
+        occurrenceId: existing.id, recipientId, escalationSilencedAt: now, lastNotifiedAt: now
+      })),
+      skipDuplicates: true
+    })
+    await transaction.recipientAlertState.updateMany({
+      where: { occurrenceId: existing.id, occurrence: { userId: reminder.userId } },
+      data: { snoozedUntil: null, escalatedAt: null, escalationSilencedAt: now, lastNotifiedAt: now }
+    })
+    return transaction.reminderOccurrence.findFirstOrThrow({
+      where: { id: existing.id, userId: reminder.userId }, include: { reminder: true }
+    })
+  })
+  logger.info('occurrence completion undone', { occurrenceId: updated.id, reminderId: updated.reminderId, actorId: userId })
+  broadcast(updated.userId, { type: 'occurrence.changed', occurrence: toOccurrence(updated) })
+  await broadcastSharedChange(updated.reminderId, updated.userId)
+  void nudgeNativeSync(updated.userId).catch((error) =>
+    logger.warn('undo completion sync nudge failed', { error: String(error), occurrenceId: updated.id })
+  )
+  response.json({ occurrence: toOccurrence(updated) })
 })
 
 occurrencesRouter.post('/:id/snooze', async (request, response) => {

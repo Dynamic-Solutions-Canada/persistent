@@ -20,7 +20,9 @@
   Membership changes and invitation claims lock the canonical reminder before
   changing grants, then recheck authorization after waiting. Use
   `lib/sharing-access.ts` for this lock order, also for full definition edits
-  that write a recipient's personal preference and for checklist progress writes.
+  that write a recipient's personal preference, checklist progress writes, and
+  explicit Undo done. Undo checks the acknowledged timestamp atomically and restores
+  only that firing, with fresh personal alert state for every current member.
   An occurrence tick must check live status in its atomic SQL update, so Done
   remains terminal even if completion races the earlier status read.
   Each grant stores personal shade prominence and original inviter attribution.

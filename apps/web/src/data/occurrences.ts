@@ -4,7 +4,7 @@
  * mutation defaults (queued + replayed on reconnect); WS events refresh here.
  */
 import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query'
-import type { CheckItemInput, Occurrence, OccurrenceList, SnoozeInput } from '@persistent/shared'
+import type { CheckItemInput, Occurrence, OccurrenceList, SnoozeInput, UndoDoneInput } from '@persistent/shared'
 import { apiFetch } from '../lib/apiClient.js'
 import { mutationKeys, queryKeys } from '../lib/queryClient.js'
 
@@ -25,8 +25,8 @@ export function useUpcomingOccurrences() {
 }
 
 /**
- * History, a page at a time. Unlike active/upcoming this feed only grows — every
- * confirmed firing stays forever — so it is the one list that pages rather than
+ * History, a page at a time. Unlike active/upcoming this feed accumulates completed
+ * firings (except explicit undo/deletion), so it is the one list that pages rather than
  * loading whole. The cursor is the last occurrence id of the previous page.
  *
  * Pages accumulate in the cache (and so in the persisted offline copy), which is
@@ -66,4 +66,9 @@ export function useCheckOccurrenceItem() {
   return useMutation<unknown, Error, { id: string; arg: CheckItemInput }>({
     mutationKey: mutationKeys.checkOccurrenceItem
   })
+}
+
+/** Reopen the specific completion selected in History. */
+export function useUndoDoneOccurrence() {
+  return useMutation<unknown, Error, { id: string; arg: UndoDoneInput }>({ mutationKey: mutationKeys.undoDoneOccurrence })
 }

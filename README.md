@@ -85,7 +85,9 @@ other products with platform labels and links, including Windows apps.
   wherever you read them; custom snooze and re-nag intervals, separate tones for a
   reminder firing and for its follow-up nags (and any single reminder can use its
   own tones instead of your device's), per-reminder notification-shade prominence
-  (Android), and a history of what you've done.
+  (Android), and a history of what you've done. Open a completed entry in History
+  and choose **Undo done** to resume its reminders after an accidental completion.
+  This works for personal and shared reminders of every type.
 - **Checklists.** A reminder can cover several things at once — a morning routine,
   a packing list. Tick items off as you go; each firing tracks its own ticks, so a
   repeating checklist starts fresh every time, and the notification lists only what
@@ -93,7 +95,9 @@ other products with platform labels and links, including Windows apps.
   stays collapsed the way you left it, on every device you use. Ticking everything
   still doesn't confirm it; only you do. Reminder cards open a reading dialog;
   click a title or note body to edit its text, or add, reorder, rename, and remove
-  checklist items there. Edit opens the full form when you need it.
+  checklist items there. A typed, nonempty new item saves when you leave its field
+  or close the reading dialog. Edit opens the full form when you need it; new rows
+  there are included on Save.
 - **Share a reminder.** Invite someone by email, including someone who has not signed up yet.
   Everyone with access can edit it and mark a firing done for the group. Snoozes and alarm
   escalation are personal, so one person's snooze does not silence another person's alert.

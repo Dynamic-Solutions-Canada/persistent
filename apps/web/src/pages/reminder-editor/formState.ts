@@ -239,7 +239,9 @@ export function toInput(form: FormState): ReminderInput {
     escalateEmail: emailing ? form.escalateEmail.trim() : null,
     escalateEmailMessage: emailing && form.escalateEmailMessage.trim() ? form.escalateEmailMessage.trim() : null,
     escalateEmailAfterMinutes: emailing ? Number(form.escalateEmailAfterMinutes) || 60 : null,
-    active: form.active,
+    // Timeless states have no future schedule to pause. In particular, switching
+    // a paused schedule to Remind now must still produce its immediate firing.
+    active: form.when === 'scheduled' ? form.active : true,
     startDate: immediate ? immediate.startDate : form.startDate,
     // Only a real schedule has a window to close: for a note `startDate` is a bare
     // record of when it was saved, with no run of firings for an end date to stop.
