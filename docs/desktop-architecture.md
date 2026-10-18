@@ -571,6 +571,9 @@ short picker rather than the feature.
   first Done re-shows the *same tag* as a "Mark this done?" variant with Confirm /
   Not yet; only Confirm acks. Windows replaces a toast sharing a tag and group, so
   it reads as the buttons changing in place.
+- **Undo done is available in the hosted History view.** The server restores the
+  selected occurrence and invalidates the alarm projection, so the existing host
+  refresh recreates its notification. It adds no native scheduling rule.
 - **A server `dismiss` clears the toast**, so confirming on the phone clears it
   here (`data-event-contract.md`).
 - **De-escalate stops a Windows escalation alarm without confirming it.** The

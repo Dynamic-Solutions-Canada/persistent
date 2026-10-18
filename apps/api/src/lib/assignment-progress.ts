@@ -5,19 +5,18 @@ import { broadcast } from './realtime.js'
 export async function broadcastAssignmentProgress(reminderId: string): Promise<void> {
   const assignment = await prisma.reminderAssignment.findUnique({
     where: { reminderId },
-    select: { id: true, creatorId: true }
+    select: { id: true, creatorId: true, recipientId: true }
   })
-  if (!assignment) return
+  if (!assignment?.recipientId) return
   const latestDone = await prisma.reminderOccurrence.findFirst({
-    where: { reminderId, status: 'ACKNOWLEDGED', acknowledgedAt: { not: null } },
+    where: { reminderId, userId: assignment.recipientId, status: 'ACKNOWLEDGED', acknowledgedAt: { not: null } },
     orderBy: { acknowledgedAt: 'desc' },
     select: { acknowledgedAt: true }
   })
-  if (latestDone?.acknowledgedAt) {
-    await prisma.reminderAssignment.update({
-      where: { id: assignment.id },
-      data: { lastCompletedAt: latestDone.acknowledgedAt }
-    })
-  }
+  // Undo can remove the latest (or only) completion from the progress record.
+  await prisma.reminderAssignment.update({
+    where: { id: assignment.id, creatorId: assignment.creatorId },
+    data: { lastCompletedAt: latestDone?.acknowledgedAt ?? null }
+  })
   broadcast(assignment.creatorId, { type: 'assignment.changed' })
 }

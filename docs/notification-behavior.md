@@ -102,6 +102,23 @@ For a one-time or unscheduled reminder, confirming its only firing removes the
 reminder from Upcoming; the confirmed firing remains in History. A repeating
 reminder stays in Upcoming for its next firing.
 
+### Undoing an accidental Done
+
+Open a completed firing in History and choose **Undo done**. Owners and current
+shared members can reopen that exact firing for any reminder type. It returns to
+Current, resumes native notifications, and preserves its checked items and schedule.
+The original firing time stays intact; old snoozes and alarm escalations are cleared,
+and that firing's automatic alarm escalation stays silenced to avoid an immediate
+past-due escalation. An inherent ALARM reminder still rings. Existing email-delivery
+guards are retained. Notes cannot gain live firings through undo.
+
+The request carries the completion timestamp the user saw. A delayed or repeated
+request cannot undo a later completion. Undo uses the canonical reminder lock and
+rechecks current sharing access, then refreshes participants' views and native alarms.
+The editor's **Schedule enabled** control only governs future scheduled firings;
+it is hidden for notes, remind-now definitions, and unchanged one-time schedules
+that have already fired. It never undoes Done.
+
 ### 1a. A checklist is ticked off, but only Done confirms it
 
 A `TODO` (Checklist) reminder carries several items, and each firing tracks which
@@ -140,6 +157,11 @@ body of whatever is nagging right now, exactly as an item added in the editor wo
 — which is why the add nudges native devices to re-post, like a tick does. It
 touches no ticks: adding a line to a list says nothing about what was done this
 time, and it neither confirms nor excuses a firing. Only Done does that.
+
+Checklist draft additions in the reading view commit when focus leaves the field
+or the view closes, including Back and backdrop dismissal. Whitespace-only drafts
+are ignored. The editor adds a row directly to its form draft, so typed text is
+included on Save and protected by its existing discard-changes prompt.
 
 **An item's text can be rewritten from the reading dialog too** (`POST
 /api/reminders/:id/items/:itemId`) — click it and type. It is the same kind of write as

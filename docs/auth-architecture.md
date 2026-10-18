@@ -220,7 +220,10 @@ claim. `ShareRecipient` keeps an owner-scoped list of past addresses for the
 sharing picker, including people whose access was later removed. Recipient reads filter
 by that row's `recipientId`; action and edit routes require that grant before
 touching the owner's reminder or firing. Every current grant permits editing,
-checklist changes, and completion. Completion dismisses the one shared firing
+checklist changes, completion, and explicit Undo done. Undo locks the canonical
+reminder and rechecks the current grant before conditionally restoring the exact
+completion timestamp supplied by the actor. An assignment creator has no undo
+permission over the assignee's reminder. Completion dismisses the one shared firing
 for everyone. Snooze and alarm escalation are per participant.
 Every current member can read the sharing roster, including the owner, and invite
 additional people directly. Only the owner or original inviter can remove a

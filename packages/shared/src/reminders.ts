@@ -769,3 +769,7 @@ export const hideCheckedInputSchema = z.object({
   hidden: z.boolean()
 })
 export type HideCheckedInput = z.infer<typeof hideCheckedInputSchema>
+
+/** Bind an undo to the completion the user actually saw; stale retries cannot undo a later Done. */
+export const undoDoneInputSchema = z.object({ acknowledgedAt: z.string().datetime() })
+export type UndoDoneInput = z.infer<typeof undoDoneInputSchema>

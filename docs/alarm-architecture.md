@@ -753,7 +753,10 @@ the supported path if it misbehaves.
 
 `dispatchToUser` sends `fire`/`escalate`/`dismiss`/`silence` through FCM, and
 `nudgeNativeSync` sends `sync` on reminder create/update/delete and on a
-checklist tick, which rewrites a live notification's body. The test is whether a
+checklist tick, which rewrites a live notification's body. Explicit Undo done also
+nudges native sync: the restored occurrence returns to the same alarm projection,
+using its original id and time, with old snoozes/escalations cleared and automatic
+alarm escalation silenced for each member. No new native action is required. The test is whether a
 device would show or play something different (an armed alarm carries the
 reminder's own tones as well as its text): collapsing a checklist's ticked items
 (`hide-checked`) is a reminder write that sends no nudge, because the body is

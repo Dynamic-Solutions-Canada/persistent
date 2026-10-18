@@ -28,7 +28,8 @@ import {
   type ReminderInput,
   type RenameTodoItemInput,
   type ReorderTodoItemsInput,
-  type SnoozeInput
+  type SnoozeInput,
+  type UndoDoneInput
 } from '@persistent/shared'
 import { apiFetch } from './apiClient.js'
 import { notify } from './toast.js'
@@ -87,6 +88,7 @@ export const mutationKeys = {
   updateReminderContent: ['reminders', 'update-content'] as const,
   deleteReminder: ['reminders', 'delete'] as const,
   ackOccurrence: ['occurrences', 'ack'] as const,
+  undoDoneOccurrence: ['occurrences', 'undo-done'] as const,
   snoozeOccurrence: ['occurrences', 'snooze'] as const,
   silenceOccurrence: ['occurrences', 'silence'] as const,
   checkOccurrenceItem: ['occurrences', 'check'] as const,
@@ -417,6 +419,16 @@ export function registerMutationDefaults(): void {
       invalidateOccurrences()
       // Refresh History after completion and reconcile a single-firing
       // reminder's place in Upcoming, including after a failed request.
+      void queryClient.invalidateQueries({ queryKey: queryKeys.occurrencesHistory })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reminders })
+    }
+  })
+
+  queryClient.setMutationDefaults(mutationKeys.undoDoneOccurrence, {
+    mutationFn: ({ id, arg }: { id: string; arg: UndoDoneInput }) =>
+      apiFetch(`/api/occurrences/${id}/undo-done`, { method: 'POST', body: JSON.stringify(arg) }),
+    onSettled: () => {
+      invalidateOccurrences()
       void queryClient.invalidateQueries({ queryKey: queryKeys.occurrencesHistory })
       void queryClient.invalidateQueries({ queryKey: queryKeys.reminders })
     }
