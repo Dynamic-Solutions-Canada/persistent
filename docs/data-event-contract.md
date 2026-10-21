@@ -3,6 +3,10 @@
 How data loads and how live updates flow. Mirrors printstream's model, scoped
 per-user instead of per-tenant.
 
+## Presentation language
+
+Same-origin authenticated `apiFetch` requests carry `X-Persistent-Locale`; external public promo requests with omitted credentials do not. API errors retain English `error` and add stable `code` and localized `message`. Device alarm reads carry language as presentation metadata, not a new schedule or authorization rule. Native language synchronization runs independently of authentication/alarm readiness, and a slow native read cannot overwrite an OS choice with older web storage. Email language is a separate account preference. Locale/region changes rerender existing UI and republish widget display strings while preserving drafts and account-bound offline caches. See [localization](localization.md).
+
 ## Loading
 
 ### Account announcements

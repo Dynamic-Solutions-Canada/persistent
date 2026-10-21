@@ -1,3 +1,4 @@
+import { nativeText } from './localization.js'
 /** Freedesktop notification adapter; the daemon controls display, DND, and action layout. */
 import dbus from '@particle/dbus-next'
 import type { EventEmitter } from 'node:events'
@@ -126,10 +127,10 @@ export class LinuxNotifications {
     const generation = this.generation
     if (!remote) throw new Error('Notification service changed before publication')
     const actions = confirming
-      ? ['default', 'Open reminder', 'cancel', 'Not yet', 'confirm', 'Confirm done']
-      : ['default', 'Open reminder', 'snooze', 'Snooze', 'done', 'Done', ...(alarm.canSilence ? ['silence', 'De-escalate'] : [])]
+      ? ['default', nativeText('Open reminder'), 'cancel', nativeText('Not yet'), 'confirm', nativeText('Confirm done')]
+      : ['default', nativeText('Open reminder'), 'snooze', nativeText('Snooze'), 'done', nativeText('Done'), ...(alarm.canSilence ? ['silence', nativeText('De-escalate')] : [])]
     const publication = remote.Notify('Persistent', this.handles.replacement(replaceId, remote), this.icon, alarm.title,
-      confirming ? 'Mark this done?' : escapeBody(alarm.body), actions, {
+      confirming ? nativeText('Mark this done?') : escapeBody(alarm.bodyTemplate === 'escalated' ? alarm.baseBody ? nativeText('{{body}} (escalated)', { body: alarm.baseBody }) : nativeText('Escalated') : alarm.body), actions, {
         'desktop-entry': new dbus.Variant('s', 'ca.persistent.desktop'),
         'resident': new dbus.Variant('b', true),
         'transient': new dbus.Variant('b', false),

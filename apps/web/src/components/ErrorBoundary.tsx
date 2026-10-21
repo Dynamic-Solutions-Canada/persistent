@@ -3,6 +3,7 @@
  * a blank screen. Transient/async errors surface via toasts (see lib/toast.ts);
  * this is the last resort for unexpected UI failures.
  */
+import { tr } from '../localization/i18n.js'
 import { Component, type ReactNode } from 'react'
 import Box from '@mui/joy/Box'
 import Sheet from '@mui/joy/Sheet'
@@ -32,13 +33,11 @@ export class ErrorBoundary extends Component<Props, State> {
     return (
       <Box sx={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
         <Sheet variant="outlined" sx={{ p: 3, borderRadius: 'md', maxWidth: 420, textAlign: 'center' }}>
-          <Typography level="title-lg" sx={{ mb: 1 }}>
-            Something went wrong
-          </Typography>
+          <Typography level="title-lg" sx={{ mb: 1 }}>{tr("Something went wrong")}</Typography>
           <Typography level="body-sm" sx={{ mb: 2 }}>
-            {this.state.error.message || 'An unexpected error occurred.'}
+            {this.state.error.message || tr("An unexpected error occurred.")}
           </Typography>
-          <Button onClick={() => window.location.reload()}>Reload</Button>
+          <Button onClick={() => window.location.reload()}>{tr("Reload")}</Button>
         </Sheet>
       </Box>
     )

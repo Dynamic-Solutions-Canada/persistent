@@ -90,9 +90,7 @@ billing. Keep lab instrumentation and diagnostic geometry helpers in test source
 never the shipping app. Its runtime gates are separate from native compilation;
 failed or contaminated captures do not replace approved Store assets.
 
-`store/listing.md` owns the listing copy and published screenshot set. The manual
-`play-listing` workflow (`scripts/play-publish.mjs --listing`) uploads both, only
-when publication is requested. Medication reminders are available, so the listing,
+`store/listings.json` owns the nine-locale titles/descriptions; `store/listing.md` mirrors its English preview and records the published screenshot set. The manual `play-listing` workflow uses `scripts/play-publish.mjs --listing-json` for text only, preserving graphics. Curated `store/releases/<version>.json` supplies version-bound localized release notes. The older `--listing` screenshot replacement requires an explicit screenshot publication request. Medication reminders are available, so the listing,
 Health apps declaration, and Data safety declaration must cover medicine names
 and doses accurately.
 

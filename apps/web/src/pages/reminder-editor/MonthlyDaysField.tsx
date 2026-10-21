@@ -7,6 +7,8 @@
  * answer to "the 31st in February": a numbered day the month doesn't have is
  * skipped, never clamped, so anyone who means "end of the month" is pointed here.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../../localization/i18n.js'
 import Stack from '@mui/joy/Stack'
 import Box from '@mui/joy/Box'
 import Button from '@mui/joy/Button'
@@ -31,6 +33,7 @@ export function MonthlyDaysField({
   onChangeDays: (days: number[]) => void
   onChangeLastDay: (lastDay: boolean) => void
 }) {
+  useTranslation()
   const toggle = (day: number) =>
     onChangeDays(
       daysOfMonth.includes(day) ? daysOfMonth.filter((d) => d !== day) : [...daysOfMonth, day].sort((a, b) => a - b)
@@ -39,7 +42,7 @@ export function MonthlyDaysField({
 
   return (
     <FormControl>
-      <FormLabel>Days of month</FormLabel>
+      <FormLabel>{tr("Days of month")}</FormLabel>
       {/* A grid rather than a wrapping row: 31 equal cells stay tappable and line
           up as a calendar-ish block at phone widths. */}
       <Box
@@ -63,16 +66,13 @@ export function MonthlyDaysField({
       </Box>
       <Stack sx={{ mt: 1 }}>
         <Checkbox
-          label="Last day of the month"
+          label={tr("Last day of the month")}
           checked={lastDayOfMonth}
           onChange={(e) => onChangeLastDay(e.target.checked)}
         />
       </Stack>
       {picksShortMonthDay && (
-        <FormHelperText>
-          A month without that day is skipped — February has no 30th or 31st. Use "Last day of the month" for the end
-          of every month.
-        </FormHelperText>
+        <FormHelperText>{tr("A month without that day is skipped, February has no 30th or 31st. Use \"Last day of the month\" for the end of every month.")}</FormHelperText>
       )}
     </FormControl>
   )

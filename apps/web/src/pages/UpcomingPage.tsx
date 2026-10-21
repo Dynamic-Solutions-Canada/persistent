@@ -15,6 +15,8 @@
  * own tab (`pages/NotesPage.tsx`). Nothing about them is upcoming or ever will be, so
  * listing them here would put them in a queue they can never reach the front of.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import Stack from '@mui/joy/Stack'
 import Typography from '@mui/joy/Typography'
 import Chip from '@mui/joy/Chip'
@@ -35,6 +37,7 @@ import { PullToRefresh } from '../components/PullToRefresh.js'
 import { useReminderDialogs } from '../components/reminderDialogContext.js'
 
 export function UpcomingPage() {
+  useTranslation()
   const dialogs = useReminderDialogs()
   const reminders = useReminders()
   const active = useActiveOccurrences()
@@ -59,11 +62,11 @@ export function UpcomingPage() {
     <PullToRefresh onRefresh={() => Promise.all([reminders.refetch(), active.refetch(), received.refetch()])}>
       <Stack spacing={3}>
         <Stack spacing={1.5}>
-          <SectionHeading title="Upcoming" subtitle="Everything coming up, soonest first." />
+          <SectionHeading title={tr("Upcoming")} subtitle={tr("Everything coming up, soonest first.")} />
 
-          {(reminders.isLoading || received.isLoading) && <Typography level="body-sm">Loading…</Typography>}
+          {(reminders.isLoading || received.isLoading) && <Typography level="body-sm">{tr("Loading…")}</Typography>}
           {reminders.data && received.data && idle.length === 0 && (
-            <Typography level="body-sm">Nothing scheduled. Anything due right now is on Current.</Typography>
+            <Typography level="body-sm">{tr("Nothing scheduled. Anything due right now is on Current.")}</Typography>
           )}
 
           <Stack spacing={1.5}>
@@ -77,7 +80,7 @@ export function UpcomingPage() {
               const isRepeating = reminder.schedule.kind !== 'once'
               const when = next
                 ? formatWhen(next, timeFormat, isReceived ? user?.timeZone : undefined)
-                : reminder.active ? 'No upcoming notification' : undefined
+                : reminder.active ? tr("No upcoming notification") : undefined
               return (
                 <ReminderPreviewCard
                   key={reminder.id}
@@ -88,9 +91,7 @@ export function UpcomingPage() {
                   secondary={isRepeating && !isReceived ? scheduleSummary(reminder.schedule, timeFormat) : undefined}
                   status={
                     !reminder.active ? (
-                      <Chip size="sm" color="neutral" variant="outlined">
-                        paused
-                      </Chip>
+                      <Chip size="sm" color="neutral" variant="outlined">{tr("paused")}</Chip>
                     ) : undefined
                   }
                 />

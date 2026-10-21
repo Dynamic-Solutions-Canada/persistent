@@ -4,6 +4,8 @@
  * anywhere else.
  */
 export * from './errors.js'
+export * from './locales.js'
+export * from './messages/catalogs.js'
 export * from './auth.js'
 export * from './admin.js'
 export * from './announcements.js'
@@ -15,3 +17,5 @@ export * from './push.js'
 export * from './ws-events.js'
 export * from './desktop-host.js'
 export * from './linux-updates.js'
+export * from './application-errors.js'
+export * from './messages/promotions.js'

@@ -1,3 +1,4 @@
+using Persistent.Localization;
 using System.IO;
 using System.Text;
 using static Persistent.Desktop.Classes.NativeMethods;
@@ -73,7 +74,7 @@ internal static class StartupDiagnostics
         {
             MessageBox(
                 IntPtr.Zero,
-                $"Persistent could not start.\n\n{stage}: {ex.Message}\n\nDetails were written to:\n{Path}",
+                UiText.Format("startup.fatal", ("stage", stage), ("error", ex.Message), ("path", Path)),
                 "Persistent",
                 MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
         }

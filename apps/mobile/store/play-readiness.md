@@ -1,4 +1,6 @@
-# Play Store readiness — blockers before the Play build can ship
+# Play Store readiness and release checks
+
+Current 0.29.0 preparation and the coordinator's 21 October 2026 Console audit are recorded in [the release audit](release-0.29.0.md). Historical completion marks below refer to earlier releases; they do not certify the current Health/Data safety/reviewer forms, native runtime or review/publication state.
 
 **Package names differ by flavor.** Play requires `ca.dynamicsolutions.persistent`,
 so that is the `play` flavor's `applicationId` used by both Play and current
@@ -429,22 +431,9 @@ failing the release.
 
 ### Store listing copy
 
-[`listing.md`](listing.md) is the source of truth for the short and full
-descriptions, and `graphics/screenshots/` for the phone screenshots. Both go up
-together via `.github/workflows/play-listing.yml` (`workflow_dispatch`, never on a
-release — the listing changes on its own schedule). `check` is the default mode and
-only diffs; `publish` writes. The same service account covers this, so no extra
-grant was needed beyond step 3.
+[`listings.json`](listings.json) is the canonical nine-locale title/short/full description source. Canadian aliases retain separate Play tags. [`listing.md`](listing.md) mirrors English text and inventories the existing eight screenshots; a test prevents preview drift. The manual `play-listing` workflow (`workflow_dispatch`) defaults to `check`, then publishes text only when requested. Existing locales use PATCH and new locales use PUT inside a single edit. No image, video, contact, default-language, policy or country endpoint is mutated. Unknown existing translations are preserved. The validator checks every locale and limit before OAuth.
 
-The descriptions are written via **PATCH** — the app title, promo video and
-localized graphics share that resource, and a PUT omitting them clears them.
-
-Screenshots are a separate API and are **replaced wholesale**: Play has no stable
-identity for "the third screenshot", so there is nothing to diff a local file
-against. The delete and the six uploads all live inside the one edit, so a failure
-part-way leaves the live listing untouched — the edit simply never commits. Upload
-order is the display order, which is why the files are numbered and the script
-sorts by name. `--no-screenshots` pushes copy alone.
+The separate legacy `--listing store/listing.md --screenshots <dir>` mode can still replace screenshots when explicitly authorized. Its delete and uploads share one edit, and file order determines carousel order. English screenshot captions are retained for this localization release, with that boundary disclosed in each translated description. Curated `releases/<version>.json` provides localized release notes only for its matching version; all nine texts must fit 500 characters without truncation.
 
 Play wants **24-bit PNG with no alpha**; `adb exec-out screencap` produces RGBA, so
 device shots need `magick … -alpha remove -alpha off`. The script checks this (plus

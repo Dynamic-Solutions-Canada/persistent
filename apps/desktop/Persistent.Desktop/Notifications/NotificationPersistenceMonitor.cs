@@ -1,5 +1,3 @@
-using System.Collections.Concurrent;
-
 namespace Persistent.Desktop.Notifications;
 
 /// <summary>
@@ -15,24 +13,27 @@ internal sealed class NotificationPersistenceMonitor : IDisposable
     private static readonly TimeSpan PresenceInterval = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan ServerRefreshInterval = TimeSpan.FromMinutes(1);
 
-    private readonly ConcurrentDictionary<string, TrackedNotification> _live;
+    private readonly Func<IEnumerable<TrackedNotification>> _live;
     private readonly ToastNotifier _toasts;
     private readonly Action<NotificationOccurrence> _show;
     private readonly Action _requestRefresh;
+    private readonly Func<Task> _retryPresentation;
 
     private CancellationTokenSource? _cts;
     private Task? _loop;
 
     public NotificationPersistenceMonitor(
-        ConcurrentDictionary<string, TrackedNotification> live,
+        Func<IEnumerable<TrackedNotification>> live,
         ToastNotifier toasts,
         Action<NotificationOccurrence> show,
-        Action requestRefresh)
+        Action requestRefresh,
+        Func<Task> retryPresentation)
     {
         _live = live;
         _toasts = toasts;
         _show = show;
         _requestRefresh = requestRefresh;
+        _retryPresentation = retryPresentation;
     }
 
     public void Start()
@@ -74,10 +75,11 @@ internal sealed class NotificationPersistenceMonitor : IDisposable
                     nextServerRefresh = now + ServerRefreshInterval;
                 }
 
+                await _retryPresentation();
                 var shown = await _toasts.GetShownOccurrenceIdsAsync();
                 if (shown != null)
                 {
-                    foreach (var tracked in _live.Values)
+                    foreach (var tracked in _live())
                     {
                         bool wasDismissed = !shown.Contains(tracked.Occurrence.OccurrenceId);
                         bool intervalElapsed = ShouldRepeatSound(tracked, now);

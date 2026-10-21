@@ -3,6 +3,7 @@
  * FCM is the server backup for Android's on-device alarms.
  */
 import { z } from 'zod'
+import { localeSchema } from './locales.js'
 
 export const pushKinds = ['FCM'] as const
 export const pushKindSchema = z.enum(pushKinds)
@@ -11,7 +12,8 @@ export type PushKind = (typeof pushKinds)[number]
 /** Body for POST /api/push/subscriptions. */
 export const registerSubscriptionSchema = z.object({
   kind: z.literal('FCM'),
-  token: z.string().min(1).max(4096)
+  token: z.string().min(1).max(4096),
+  locale: localeSchema.optional()
 })
 export type RegisterSubscriptionInput = z.infer<typeof registerSubscriptionSchema>
 
@@ -40,6 +42,11 @@ export const pushPayloadSchema = z.object({
   reminderId: z.string().optional(),
   title: z.string().optional(),
   body: z.string().optional(),
+  /** Internal/transitional literal body. FCM strips this duplicate and emits bodyRange instead. */
+  baseBody: z.string().optional(),
+  /** FCM only: UTF-16 start:length of the literal base body within localized legacy body. */
+  bodyRange: z.string().regex(/^\d+:\d+$/).optional(),
+  locale: localeSchema.optional(),
   alarm: z.boolean().optional(),
   soundIntervalSeconds: z.number().int().nullable().optional(),
   scheduledFor: z.string().datetime().optional(),

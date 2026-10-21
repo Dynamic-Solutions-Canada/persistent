@@ -87,11 +87,23 @@ class FcmService : MessagingService() {
 
     private fun startAlarm(context: Context, type: String, occurrenceId: String, data: Map<String, String>) {
         val alarm = data["alarm"] == "true" || type == "escalate"
+        val legacyBody = data["body"] ?: ""
+        val baseBody = if (type == "escalate") {
+            PushBodyRange.extract(legacyBody, data["bodyRange"])
+                // Transitional payloads from an older localized server remain readable.
+                ?: data["baseBody"]
+        } else null
         val spec = AlarmSpec(
             occurrenceId = occurrenceId,
             fireAtMs = System.currentTimeMillis(),
-            title = data["title"] ?: "Reminder",
-            body = data["body"] ?: "",
+            title = data["title"] ?: NativeText.text(context, "Reminder"),
+            // New payloads carry untouched content. Current local language outranks stale registration metadata.
+            body = if (baseBody != null) {
+                if (baseBody.isEmpty()) NativeText.text(context, "Escalated")
+                else NativeText.text(context, "{{body}} (escalated)", mapOf("body" to baseBody))
+            } else legacyBody,
+            bodyTemplate = if (baseBody != null) "escalated" else "",
+            baseBody = baseBody ?: "",
             soundIntervalSeconds = data["soundIntervalSeconds"]?.toIntOrNull() ?: 0,
             alarm = alarm,
             ongoing = true,
@@ -127,6 +139,8 @@ class FcmService : MessagingService() {
             putExtra(AlarmReceiver.EXTRA_OCCURRENCE_ID, occurrenceId)
             putExtra("title", spec.title)
             putExtra("body", spec.body)
+            putExtra("bodyTemplate", spec.bodyTemplate)
+            putExtra("baseBody", spec.baseBody)
             putExtra("soundIntervalSeconds", spec.soundIntervalSeconds)
             putExtra("alarm", spec.alarm)
             putExtra("ongoing", spec.ongoing)

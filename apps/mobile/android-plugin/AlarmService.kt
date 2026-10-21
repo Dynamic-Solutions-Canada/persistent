@@ -188,8 +188,10 @@ class AlarmService : Service() {
                     AlarmSpec(
                         occurrenceId = occurrenceId,
                         fireAtMs = 0,
-                        title = intent.getStringExtra("title") ?: "Reminder",
+                        title = intent.getStringExtra("title") ?: NativeText.text(this, "Reminder"),
                         body = intent.getStringExtra("body") ?: "",
+                        bodyTemplate = intent.getStringExtra("bodyTemplate") ?: "",
+                        baseBody = intent.getStringExtra("baseBody") ?: "",
                         soundIntervalSeconds = intent.getIntExtra("soundIntervalSeconds", 0),
                         alarm = intent.getBooleanExtra("alarm", false),
                         ongoing = intent.getBooleanExtra("ongoing", true),
@@ -583,6 +585,8 @@ class AlarmService : Service() {
                     .putExtra(AlarmReceiver.EXTRA_OCCURRENCE_ID, spec.occurrenceId)
                     .putExtra("title", spec.title)
                     .putExtra("body", spec.body)
+                    .putExtra("bodyTemplate", spec.bodyTemplate)
+                    .putExtra("baseBody", spec.baseBody)
                     .putExtra("canSilence", spec.canSilence)
                     .putExtra(AlarmActivity.EXTRA_KEEP_PAGE, keepPage)
                     // NEW_TASK without CLEAR_TASK: AlarmActivity is singleInstance, so
@@ -901,8 +905,8 @@ class AlarmService : Service() {
         }
         ensureChannels()
         val summary = NotificationCompat.Builder(this, CHANNEL_NORMAL)
-            .setContentTitle("Reminders")
-            .setContentText("$grouped active reminders")
+            .setContentTitle(NativeText.text(this, "Reminders"))
+            .setContentText(NativeText.text(this, "{{count}} active reminders", mapOf("count" to grouped)))
             .setSmallIcon(R.drawable.ic_stat_bell)
             .setColor(AlarmAppearance.palette(this).accent)
             .setGroup(GROUP_KEY)
@@ -916,6 +920,7 @@ class AlarmService : Service() {
 
     /** Cosmetic updates retain notification ids, posted times, and the existing sound loop. */
     private fun refreshAppearanceNotifications() {
+        ensureChannels()
         for ((id, spec) in active) {
             nm.notify(notifId(id), buildNotification(spec, appearanceOnly = true))
         }
@@ -930,7 +935,7 @@ class AlarmService : Service() {
     private fun placeholderNotification(): android.app.Notification {
         ensureChannels()
         return NotificationCompat.Builder(this, CHANNEL_ALARM)
-            .setContentTitle("Reminder")
+            .setContentTitle(NativeText.text(this, "Reminder"))
             .setSmallIcon(R.drawable.ic_stat_bell)
             .setColor(AlarmAppearance.palette(this).accent)
             .build()
@@ -982,6 +987,8 @@ class AlarmService : Service() {
                 .putExtra(AlarmReceiver.EXTRA_OCCURRENCE_ID, spec.occurrenceId)
                 .putExtra("title", spec.title)
                 .putExtra("body", spec.body)
+                .putExtra("bodyTemplate", spec.bodyTemplate)
+                .putExtra("baseBody", spec.baseBody)
                 .putExtra("canSilence", spec.canSilence)
                 // As with the direct launch above: no CLEAR_TASK, so tapping this
                 // alarm's notification while the surface is already up pages to it
@@ -1051,7 +1058,7 @@ class AlarmService : Service() {
         val posted = postedAt[spec.occurrenceId] ?: System.currentTimeMillis()
         val builder = NotificationCompat.Builder(this, channel)
             .setContentTitle(spec.title)
-            .setContentText(if (awaitingConfirm) "Tap \"Confirm done\" to mark complete" else spec.body)
+            .setContentText(if (awaitingConfirm) NativeText.text(this, "Tap \"Confirm done\" to mark complete") else NativeText.body(this, spec))
             .setSmallIcon(R.drawable.ic_stat_bell)
             .setColor(AlarmAppearance.palette(this).accent)
             .setCategory(if (spec.alarm) NotificationCompat.CATEGORY_ALARM else NotificationCompat.CATEGORY_REMINDER)
@@ -1087,14 +1094,14 @@ class AlarmService : Service() {
             // reminders keep opening the app to view the reminder.
             .setContentIntent(if (spec.alarm && !callBusy) fullScreen else contentPending)
         if (awaitingConfirm) {
-            builder.addAction(0, "Confirm done", confirmPending)
-            builder.addAction(0, "Not yet", cancelDonePending)
+            builder.addAction(0, NativeText.text(this, "Confirm done"), confirmPending)
+            builder.addAction(0, NativeText.text(this, "Not yet"), cancelDonePending)
         } else {
-            builder.addAction(0, "Done", donePending)
-            builder.addAction(0, "Snooze", snoozePending)
+            builder.addAction(0, NativeText.text(this, "Done"), donePending)
+            builder.addAction(0, NativeText.text(this, "Snooze"), snoozePending)
             // Escalation alarms also offer De-escalate (stop the alarm, keep nagging —
             // the user-facing label for the silence action).
-            if (spec.alarm && spec.canSilence) builder.addAction(0, "De-escalate", silencePending)
+            if (spec.alarm && spec.canSilence) builder.addAction(0, NativeText.text(this, "De-escalate"), silencePending)
         }
         // The full-screen intent is what covers the locked / screen-off case. When we
         // are launching the activity directly it adds nothing and is a second
@@ -1123,7 +1130,7 @@ class AlarmService : Service() {
             // shows the whole body when expanded. Unconditional: the car mirror below
             // is an *extension*, not a style, so unlike the MessagingStyle disguise it
             // replaced it no longer costs the phone its BigTextStyle mid-drive.
-            builder.setStyle(NotificationCompat.BigTextStyle().bigText(spec.body))
+            builder.setStyle(NotificationCompat.BigTextStyle().bigText(NativeText.body(this, spec)))
         }
         if (mirrorsToCar(spec)) {
             CarNotificationProjection.extend(this, builder, spec, DEFAULT_SNOOZE_MINUTES)
@@ -1414,7 +1421,7 @@ class AlarmService : Service() {
         }
         if (manager.getNotificationChannel(CHANNEL_NORMAL) == null) {
             manager.createNotificationChannel(
-                NotificationChannel(CHANNEL_NORMAL, "Reminders", NotificationManager.IMPORTANCE_HIGH).apply {
+                NotificationChannel(CHANNEL_NORMAL, NativeText.text(this, "Reminders"), NotificationManager.IMPORTANCE_HIGH).apply {
                     description = "Persistent reminders shown in the main shade"
                     setSound(null, null)
                     enableVibration(false)
@@ -1441,6 +1448,22 @@ class AlarmService : Service() {
                     enableVibration(false)
                 }
             )
+        }
+
+        // Update labels on the existing channels. Their ids, importance, sounds and user grants stay intact.
+        val labels = listOf(
+            Triple(CHANNEL_CALL_DEFERRED, "Reminders during calls", "Quiet reminders while a phone or voice/video call is active"),
+            Triple(CHANNEL_ALARM, "Alarms & escalations", "Ringing alarms and escalated reminders"),
+            Triple(CHANNEL_ALARM_NO_PEEK, "Alarms (surface shown)", "Ringing alarms while the full-screen alarm is already on screen"),
+            Triple(CHANNEL_NORMAL, "Reminders", "Persistent reminders shown in the main shade"),
+            Triple(CHANNEL_MINIMIZED, "Reminders (minimized)", "Reminders tucked into the collapsed section of the shade"),
+            Triple(CHANNEL_PEEK, "Reminders (periodic peek)", "Minimized reminders briefly surfaced so they aren't overlooked")
+        )
+        for ((id, name, description) in labels) {
+            val channel = manager.getNotificationChannel(id) ?: continue
+            channel.name = NativeText.text(this, name)
+            channel.description = NativeText.text(this, description)
+            manager.createNotificationChannel(channel)
         }
     }
 
@@ -1625,7 +1648,7 @@ class AlarmService : Service() {
             }
         }
 
-        /** First "Done" tap: switch the notification into its confirm state. */
+        /** First Done tap: switch the notification into its confirm state. */
         fun promptConfirm(context: Context, occurrenceId: String) {
             context.startService(
                 Intent(context, AlarmService::class.java)
@@ -1634,7 +1657,7 @@ class AlarmService : Service() {
             )
         }
 
-        /** "Not yet": restore the notification's normal Done/Snooze actions. */
+        /** Not yet: restore the notification's normal Done/Snooze actions. */
         fun cancelConfirm(context: Context, occurrenceId: String) {
             context.startService(
                 Intent(context, AlarmService::class.java)

@@ -1,3 +1,4 @@
+import { tr } from '../localization/i18n.js'
 /**
  * Shared TanStack Query client + offline support.
  *
@@ -10,27 +11,8 @@
  * reflects them immediately, even with no network.
  */
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query'
-import {
-  extractErrorMessage,
-  toReminderSounds,
-  withTodoItem,
-  withoutTodoItem,
-  withTodoItemText,
-  withTodoOrder,
-  type AddTodoItemInput,
-  type Announcement,
-  type CheckItemInput,
-  type HideCheckedInput,
-  type Occurrence,
-  type Reminder,
-  type ReminderContentInput,
-  type ReminderCreateInput,
-  type ReminderInput,
-  type RenameTodoItemInput,
-  type ReorderTodoItemsInput,
-  type SnoozeInput,
-  type UndoDoneInput
-} from '@persistent/shared'
+import { toReminderSounds, withTodoItem, withoutTodoItem, withTodoItemText, withTodoOrder, type AddTodoItemInput, type Announcement, type CheckItemInput, type HideCheckedInput, type Occurrence, type Reminder, type ReminderContentInput, type ReminderCreateInput, type ReminderInput, type RenameTodoItemInput, type ReorderTodoItemsInput, type SnoozeInput, type UndoDoneInput } from '@persistent/shared'
+import { extractErrorMessage } from '../localization/errorMessage.js'
 import { apiFetch } from './apiClient.js'
 import { notify } from './toast.js'
 import { checkedItems, optimisticChecklistChange, rollbackChecklistChange, updateSharedReminder, type ChecklistSnapshot } from './checklistCache.js'
@@ -60,11 +42,11 @@ export const queryClient = new QueryClient({
         })
         return
       }
-      notify(extractErrorMessage(error, "Couldn't load data."), 'danger')
+      notify(extractErrorMessage(error, tr("Couldn't load data.")), 'danger')
     }
   }),
   mutationCache: new MutationCache({
-    onError: (error) => notify(extractErrorMessage(error, 'Something went wrong.'), 'danger')
+    onError: (error) => notify(extractErrorMessage(error, tr('Something went wrong.')), 'danger')
   })
 })
 

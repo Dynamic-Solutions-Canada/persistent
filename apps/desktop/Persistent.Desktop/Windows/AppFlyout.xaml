@@ -2,6 +2,7 @@
 <Window
     x:Class="Persistent.Desktop.Windows.AppFlyout"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:l10n="using:Persistent.Desktop.Classes"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
     xmlns:local="using:Persistent.Desktop.Controls"
@@ -37,7 +38,7 @@
                      the app on Android. -->
                 <Button x:Name="BackButton" Click="BackButton_Click"
                         Padding="6" MinWidth="0" Background="Transparent" BorderBrush="Transparent"
-                        ToolTipService.ToolTip="Back">
+                        l10n:Localize.ToolTip="Back">
                     <FontIcon Glyph="&#xE72B;" FontSize="14" />
                 </Button>
             </StackPanel>
@@ -45,12 +46,12 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
                 <ToggleButton x:Name="PinButton" Click="PinButton_Click"
                               Padding="6" MinWidth="0" Background="Transparent" BorderBrush="Transparent"
-                              ToolTipService.ToolTip="Keep open when it loses focus">
+                              l10n:Localize.ToolTip="Keep open when it loses focus">
                     <FontIcon Glyph="&#xE718;" FontSize="14" />
                 </ToggleButton>
                 <Button x:Name="BrowserButton" Click="BrowserButton_Click"
                         Padding="6" MinWidth="0" Background="Transparent" BorderBrush="Transparent"
-                        ToolTipService.ToolTip="Open in browser">
+                        l10n:Localize.ToolTip="Open in browser">
                     <FontIcon Glyph="&#xE8A7;" FontSize="14" />
                 </Button>
                 <!-- No settings cog here. This app's settings are on the page's own
@@ -65,7 +66,7 @@
                      puts it. -->
                 <Button x:Name="CloseButton" Click="CloseButton_Click"
                         Padding="6" MinWidth="0" Background="Transparent" BorderBrush="Transparent"
-                        ToolTipService.ToolTip="Close">
+                        l10n:Localize.ToolTip="Close">
                     <FontIcon Glyph="&#xE8BB;" FontSize="14" />
                 </Button>
 
@@ -80,19 +81,19 @@
                     VerticalAlignment="Center" HorizontalAlignment="Center"
                     Spacing="10" Padding="24" MaxWidth="320">
             <FontIcon Glyph="&#xE783;" FontSize="28" HorizontalAlignment="Center" />
-            <TextBlock x:Name="ErrorTitle" Text="Can't reach Persistent"
+            <TextBlock x:Name="ErrorTitle" l10n:Localize.Text="Can't reach Persistent"
                        Style="{StaticResource BodyStrongTextBlockStyle}"
                        HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
             <TextBlock x:Name="ErrorDetail" Opacity="0.75" HorizontalAlignment="Center"
                        TextAlignment="Center" TextWrapping="Wrap" />
             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                <Button x:Name="RetryButton" Click="RetryButton_Click" Content="Try again"
+                <Button x:Name="RetryButton" Click="RetryButton_Click" l10n:Localize.Content="Try again"
                         Style="{StaticResource AccentButtonStyle}" />
                 <!-- The only route to the server address while the page is down, and
                      the reason this is here at all: the settings that stayed native
                      did so because they are needed exactly when the page will not
                      load, and the title bar no longer has a cog to reach them by. -->
-                <Button x:Name="ErrorSettingsButton" Click="ErrorSettingsButton_Click" Content="Settings" />
+                <Button x:Name="ErrorSettingsButton" Click="ErrorSettingsButton_Click" l10n:Localize.Content="Settings" />
             </StackPanel>
         </StackPanel>
         <!-- Drag to resize, done by hand.

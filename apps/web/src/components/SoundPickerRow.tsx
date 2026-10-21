@@ -8,6 +8,8 @@
  * device setting, which is what `onClear` is for; Settings' rows have nothing to
  * fall back to, so they omit it.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import Box from '@mui/joy/Box'
 import Stack from '@mui/joy/Stack'
 import Button from '@mui/joy/Button'
@@ -29,6 +31,7 @@ export function SoundPickerRow({
   /** Present only when this row overrides something it can be given back to. */
   onClear?: (() => void) | undefined
 }) {
+  useTranslation()
   return (
     <FormControl orientation="horizontal" sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
       <Box sx={{ minWidth: 0 }}>
@@ -37,14 +40,10 @@ export function SoundPickerRow({
       </Box>
       <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
         {onClear && (
-          <Button size="sm" variant="plain" color="neutral" onClick={onClear}>
-            Reset
-          </Button>
+          <Button size="sm" variant="plain" color="neutral" onClick={onClear}>{tr("Reset")}</Button>
         )}
         {onChoose && (
-          <Button size="sm" variant="outlined" onClick={onChoose}>
-            Choose
-          </Button>
+          <Button size="sm" variant="outlined" onClick={onChoose}>{tr("Choose")}</Button>
         )}
       </Stack>
     </FormControl>

@@ -46,8 +46,7 @@
 - **Validate at the boundary.** Parse request bodies with the Zod schemas from
   `@persistent/shared` (e.g. `reminderInputSchema.safeParse`) and throw
   `badRequest` on failure. Don't hand-roll shape checks.
-- **Errors:** throw `HttpError` and friends from `lib/http-error.ts`; the global
-  handler in `app.ts` turns them into `{ error }` JSON. Express 5 forwards
+- **Errors:** throw `HttpError` and friends from `lib/http-error.ts`; the global handler in `app.ts` preserves English `{ error }` and adds stable `code` plus localized `message` for newer clients. Express 5 forwards
   rejected promises automatically: async route handlers may throw directly.
 - **Env:** import `env` (and `demoMode`, `clientOrigins`) from `lib/env.ts`. Adding
   a variable takes **two** edits: the schema in `lib/env.ts` *and* the api

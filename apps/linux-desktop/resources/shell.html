@@ -1,6 +1,4 @@
-<!doctype html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
@@ -8,22 +6,23 @@
   <link rel="stylesheet" href="shell.css">
 </head>
 <body>
-  <header aria-label="App window controls">
-    <button type="button" data-action="back" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20z"/></svg></button>
+  <header aria-label="App window controls" data-i18n-aria-label="App window controls">
+    <button type="button" data-action="back" aria-label="Back" title="Back" data-i18n-title="Back" data-i18n-aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20z"></path></svg></button>
     <div class="drag-handle"></div>
-    <button type="button" data-action="pin" aria-label="Keep open when it loses focus" title="Keep open when it loses focus" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 9V4h1V2H7v2h1v5l-2 2v2h5v9h2v-9h5v-2zm-8 2 2-2V4h4v5l2 2z"/></svg></button>
-    <button type="button" data-action="reload" aria-label="Reload" title="Reload"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.1A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h9V2z"/></svg></button>
-    <button type="button" data-action="browser" aria-label="Open in browser" title="Open in browser"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z"/></svg></button>
-    <button type="button" data-action="close" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.3 5.71 16.89 4.3 12 9.17 7.11 4.3 5.7 5.71 10.59 10.59 5.7 15.47l1.41 1.41L12 12l4.89 4.88 1.41-1.41-4.88-4.88z"/></svg></button>
+    <button type="button" data-action="pin" aria-label="Keep open when it loses focus" title="Keep open when it loses focus" aria-pressed="false" data-i18n-title="Keep open when it loses focus" data-i18n-aria-label="Keep open when it loses focus"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 9V4h1V2H7v2h1v5l-2 2v2h5v9h2v-9h5v-2zm-8 2 2-2V4h4v5l2 2z"></path></svg></button>
+    <button type="button" data-action="reload" aria-label="Reload" title="Reload" data-i18n-title="Reload" data-i18n-aria-label="Reload"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.1A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h9V2z"></path></svg></button>
+    <button type="button" data-action="browser" aria-label="Open in browser" title="Open in browser" data-i18n-title="Open in browser" data-i18n-aria-label="Open in browser"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z"></path></svg></button>
+    <button type="button" data-action="close" aria-label="Close" title="Close" data-i18n-title="Close" data-i18n-aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.3 5.71 16.89 4.3 12 9.17 7.11 4.3 5.7 5.71 10.59 10.59 5.7 15.47l1.41 1.41L12 12l4.89 4.88 1.41-1.41-4.88-4.88z"></path></svg></button>
   </header>
-  <main id="status" hidden>
-    <h1 id="status-title">Loading Persistent</h1>
-    <p id="status-detail">Connecting to your reminder service.</p>
-    <div id="recovery" hidden>
-      <button type="button" data-action="reload">Try again</button>
-      <button type="button" data-action="connection">Connection settings</button>
+  <main id="status" hidden="">
+    <h1 id="status-title" data-i18n-text="Loading Persistent">Loading Persistent</h1>
+    <p id="status-detail" data-i18n-text="Connecting to your reminder service.">Connecting to your reminder service.</p>
+    <div id="recovery" hidden="">
+      <button type="button" data-action="reload" data-i18n-text="Try again">Try again</button>
+      <button type="button" data-action="connection" data-i18n-text="Connection settings">Connection settings</button>
     </div>
   </main>
-  <script src="shell.js"></script>
-</body>
-</html>
+  <script src="localization.js"></script><script src="shell.js"></script>
+
+
+</body></html>

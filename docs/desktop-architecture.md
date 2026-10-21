@@ -8,6 +8,10 @@ flyout near the notification area. Read this before changing it, and read
 [`alarm-architecture.md`](alarm-architecture.md) first for why the guarantees are
 split the way they are.
 
+## Presentation language
+
+The hosted page sends an additive validated locale payload. The host persists display preferences for native tray/settings, notifications and the separate widget process; older hosts ignore the new message. Widget rendering reloads persisted preference changes on the next snapshot rather than relying on a process-local event. Bundled catalog failures keep English fallback with safe diagnostics. Manifest shell/widget-picker strings use `ms-resource` bindings generated for nine locales from canonical catalogs before MRT input discovery. The Python-only launcher prepares byte-verified inputs under the existing narrow desktop source snapshot; no broader source root or shared-helper change is required. Current unsigned ARM64 build/package proof and the immediate-toast replacement trade-off are documented in [localization](localization.md). Windows installation/runtime and its release remain separate from the web/Android release.
+
 ## What it is, and what it deliberately is not
 
 **It lets you view and act on reminders, and can alert you while the PC is awake

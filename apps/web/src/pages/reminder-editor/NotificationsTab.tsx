@@ -4,6 +4,8 @@
  * All of it describes a firing, so a note — which never has one — gets an
  * explanation instead.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../../localization/i18n.js'
 import Stack from '@mui/joy/Stack'
 import Typography from '@mui/joy/Typography'
 import FormControl from '@mui/joy/FormControl'
@@ -33,19 +35,17 @@ export function NotificationsTab({
   form: FormState
   set: <K extends keyof FormState>(key: K, value: FormState[K]) => void
 }) {
+  useTranslation()
   if (form.when === 'never') {
     return (
-      <Alert color="neutral" variant="soft">
-        This is a note — it never notifies you, so there is nothing here to set. Give it a time on the Schedule tab
-        to use these settings.
-      </Alert>
+      <Alert color="neutral" variant="soft">{tr("This is a note, it never notifies you, so there is nothing here to set. Give it a time on the Schedule tab to use these settings.")}</Alert>
     )
   }
 
   return (
     <Stack spacing={2}>
       <FormControl>
-        <FormLabel>How it notifies</FormLabel>
+        <FormLabel>{tr("How it notifies")}</FormLabel>
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           {persistenceLevels.map((p) => (
             <Button
@@ -54,20 +54,20 @@ export function NotificationsTab({
               variant={form.persistence === p ? 'solid' : 'outlined'}
               onClick={() => set('persistence', p)}
             >
-              {PERSISTENCE_LABELS[p]}
+              {tr(PERSISTENCE_LABELS[p])}
             </Button>
           ))}
         </Stack>
         <Typography level="body-xs" sx={{ mt: 0.5 }}>
           {form.persistence === 'ALARM'
-            ? 'Rings continuously until you tap Done.'
-            : 'A notification that stays until done. Choose how often it re-sounds to nag you.'}
+            ? tr("Rings continuously until you tap Done.")
+            : tr("A notification that stays until done. Choose how often it re-sounds to nag you.")}
         </Typography>
       </FormControl>
 
       {form.persistence === 'PERSISTENT' && (
         <FormControl>
-          <FormLabel>Nag interval</FormLabel>
+          <FormLabel>{tr("Nag interval")}</FormLabel>
           <DurationField
             value={form.soundIntervalMinutes}
             onChange={(m) => set('soundIntervalMinutes', m)}
@@ -79,7 +79,7 @@ export function NotificationsTab({
       <ReminderSoundsField form={form} set={set} />
 
       <FormControl>
-        <FormLabel>Your shade prominence</FormLabel>
+        <FormLabel>{tr("Your shade prominence")}</FormLabel>
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           {shadeProminenceLevels.map((p) => (
             <Button
@@ -88,17 +88,17 @@ export function NotificationsTab({
               variant={form.shadeProminence === p ? 'solid' : 'outlined'}
               onClick={() => set('shadeProminence', p)}
             >
-              {SHADE_PROMINENCE_LABELS[p]}
+              {tr(SHADE_PROMINENCE_LABELS[p])}
             </Button>
           ))}
         </Stack>
-        <Typography level="body-xs" sx={{ mt: 0.5 }}>Only changes your notifications for this reminder.</Typography>
+        <Typography level="body-xs" sx={{ mt: 0.5 }}>{tr("Only changes your notifications for this reminder.")}</Typography>
         <Typography level="body-xs" sx={{ mt: 0.5 }}>
           {form.shadeProminence === 'MINIMIZED'
-            ? 'Android only: tucks this reminder into the collapsed section at the bottom of the notification shade, with no pop-up banner. Visual only — it does not change the sound.'
+            ? tr("Android only: tucks this reminder into the collapsed section at the bottom of the notification shade, with no pop-up banner. Visual only, it does not change the sound.")
             : form.shadeProminence === 'NORMAL'
-              ? 'Android only: shows in the main notification shade and may pop up a banner. Visual only — it does not change the sound.'
-              : 'Android only: follows your device default (Settings). Controls where the notification sits in the shade — not the sound.'}
+              ? tr("Android only: shows in the main notification shade and may pop up a banner. Visual only, it does not change the sound.")
+              : tr("Android only: follows your device default (Settings). Controls where the notification sits in the shade, not the sound.")}
         </Typography>
       </FormControl>
     </Stack>

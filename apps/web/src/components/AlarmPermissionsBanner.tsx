@@ -10,6 +10,8 @@
  * screen updates it without a restart. No-op on the web and on Android versions
  * where a given grant isn't needed (the native side reports those as satisfied).
  */
+import { tr } from '../localization/i18n.js'
+import { useTranslation } from 'react-i18next'
 import { useCallback, useEffect, useState } from 'react'
 import type { PluginListenerHandle } from '@capacitor/core'
 import { App } from '@capacitor/app'
@@ -40,7 +42,7 @@ const GAPS: Gap[] = [
   {
     key: 'overlay',
     title: 'Allow display over other apps',
-    consequence: "Alarms can't take over the screen while you're using the phone — they collapse into a banner.",
+    consequence: "Alarms can't take over the screen while you're using the phone, they collapse into a banner.",
     fix: () => AlarmPlugin.requestOverlayPermission()
   },
   {
@@ -59,6 +61,7 @@ const GAPS: Gap[] = [
 ]
 
 export function AlarmPermissionsBanner() {
+  useTranslation()
   const [missing, setMissing] = useState<Gap[]>([])
 
   const check = useCallback(async () => {
@@ -95,12 +98,12 @@ export function AlarmPermissionsBanner() {
     >
       <Box>
         <Typography level="title-sm">
-          {missing.length === 1 ? 'Alarms are not fully set up' : `${missing.length} things are limiting your alarms`}
+          {missing.length === 1 ? tr("Alarms are not fully set up") : tr("{{v0}} things are limiting your alarms", { v0: missing.length })}
         </Typography>
         <Stack spacing={1.5} sx={{ mt: 1 }}>
           {missing.map((gap) => (
             <Box key={gap.key}>
-              <Typography level="body-sm">{gap.consequence}</Typography>
+              <Typography level="body-sm">{tr(gap.consequence)}</Typography>
               <Button
                 size="sm"
                 color="danger"
@@ -110,7 +113,7 @@ export function AlarmPermissionsBanner() {
                   void gap.fix().then(() => check())
                 }}
               >
-                {gap.title}
+                {tr(gap.title)}
               </Button>
             </Box>
           ))}

@@ -3,10 +3,14 @@
  * current user, including bounded offline access to saved personal data. Confirms
  * account ownership before enabling domain requests and the WebSocket connection.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import { createContext, useCallback, useContext, useEffect, type ReactNode } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/browser'
-import { extractErrorMessage, type AuthState, type RequestCodeResponse, type SessionUser } from '@persistent/shared'
+import { type AuthState, type RequestCodeResponse, type SessionUser } from '@persistent/shared'
+import { extractErrorMessage } from '../localization/errorMessage.js'
+import { getLocale } from '../localization/localeState.js'
 import { apiFetch } from '../lib/apiClient.js'
 import { passkeyAuthenticate } from '../native/passkeyClient.js'
 import { queryKeys } from '../lib/queryClient.js'
@@ -45,6 +49,7 @@ function guessTimeZone(): string {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  useTranslation()
   const queryClient = useQueryClient()
 
   const { data, dataUpdatedAt, isPending, error, refetch } = useQuery({
@@ -119,7 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     requestCode: (email) =>
       apiFetch<RequestCodeResponse>('/api/auth/request-code', {
         method: 'POST',
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, locale: getLocale() })
       }),
     verifyCode: async (email, code) => {
       const result = await apiFetch<AuthState>('/api/auth/verify-code', {
@@ -162,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         await apiFetch('/api/auth/logout', { method: 'POST' })
       } catch (error) {
-        notify(extractErrorMessage(error, "Couldn't reach the server to sign out."), 'danger')
+        notify(extractErrorMessage(error, tr("Couldn't reach the server to sign out.")), 'danger')
       }
     },
     refreshAfterDeletion: async () => {

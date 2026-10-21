@@ -5,6 +5,10 @@ Electron because the hosted management UI remains the product, while the residen
 main process can own native delivery independently of page visibility. No reminder
 schedule, checklist wording or escalation eligibility is implemented in this host.
 
+## Presentation language
+
+Native tray menus, recovery/settings windows, update text and notification actions use the canonical catalogs. A validated additive page message persists the per-device language/formatting payload, refreshes visible host copy and notification presentation, and requests the server projection with the resolved language. User-authored notification content remains literal, except the server-designated escalation marker. These settings contain no credentials and do not change scheduling, action authorization or account clearing. Desktop build/source proof is separate from native OS runtime acceptance; see [localization](localization.md).
+
 ## Product behavior and boundaries
 
 The initial compatibility target is KDE Plasma and GNOME with AppIndicator support,

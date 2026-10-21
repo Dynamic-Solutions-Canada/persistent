@@ -1,3 +1,4 @@
+using Persistent.Localization;
 using System.Net.Http;
 using System.Text.Json;
 
@@ -56,6 +57,7 @@ internal sealed class OccurrenceSyncClient
                 HttpMethod.Get,
                 _serverUrlProvider() + "/api/sync/occurrences?alarmsOnly=true");
             request.Headers.Add("Cookie", cookie);
+            request.Headers.Add("X-Persistent-Locale", UiText.Locale);
 
             using var response = await Http.SendAsync(request);
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -126,7 +128,9 @@ internal sealed class OccurrenceSyncClient
                 ReadString(alarm, "body", MaxBodyLength),
                 rings,
                 escalation || ReadBool(alarm, "canSilence"),
-                soundIntervalSeconds);
+                soundIntervalSeconds,
+                ReadString(alarm, "bodyTemplate", 20),
+                ReadString(alarm, "baseBody", MaxBodyLength));
 
             // buildDeviceAlarms emits the base first and its escalation twin second,
             // so a due escalation intentionally upgrades the same occurrence here.

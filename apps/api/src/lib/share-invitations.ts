@@ -1,3 +1,4 @@
+import { recipientEmailLocale } from './email-locale.js'
 /** Email invitations and verified-account claiming for reminder sharing. */
 import { prisma } from './prisma.js'
 import { clientOrigins } from './env.js'
@@ -27,7 +28,7 @@ export async function sendShareInvitation(input: {
   const appUrl = clientOrigins[0]?.replace(/\/$/, '') ?? 'https://persistent.app'
   await sendCloudflareEmail({
     to: input.email,
-    ...buildShareInvitationEmail({ ownerName: input.ownerName, email: input.email, appUrl })
+    ...buildShareInvitationEmail({ ownerName: input.ownerName, email: input.email, appUrl, locale: await recipientEmailLocale(input.email) })
   })
 }
 

@@ -1,3 +1,4 @@
+using Persistent.Localization;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Persistent.Desktop.Classes.Settings;
@@ -30,14 +31,14 @@ public sealed partial class AboutPage : Page
     {
         InitializeComponent();
 
-        VersionText.Text = $"Version {UpdateService.CurrentVersion()}";
+        VersionText.Text = UiText.Format("Version {{version}}", ("version", UpdateService.CurrentVersion()));
         try { AppIcon.Source = new BitmapImage(new Uri(App.IconImagePath)); } catch { /* cosmetic */ }
 
         // Says where an update would come from, which differs by install type and is
         // the difference between "download a zip yourself" and "the Store does it".
         UpdateStatus.Text = UpdateService.IsPackaged
-            ? "Installed from the Microsoft Store, which handles updates. Nothing runs in the background."
-            : "Checks GitHub releases when you ask it to. Nothing runs in the background.";
+            ? UiText.Get("Installed from the Microsoft Store, which handles updates. Nothing runs in the background.")
+            : UiText.Get("Checks GitHub releases when you ask it to. Nothing runs in the background.");
 
         SourceLink.NavigateUri = new Uri("https://github.com/RyanEwen/persistent");
         PrivacyLink.NavigateUri = new Uri($"{SettingsManager.Current.EffectiveServerUrl}/privacy");
@@ -62,13 +63,13 @@ public sealed partial class AboutPage : Page
         }
 
         UpdateButton.IsEnabled = false;
-        UpdateStatus.Text = "Checking...";
+        UpdateStatus.Text = UiText.Get("Checking...");
         try
         {
             var result = await UpdateService.CheckAsync();
             if (result.Error != null)
             {
-                UpdateStatus.Text = $"Couldn't check for updates ({result.Error})";
+                UpdateStatus.Text = UiText.Format("Couldn't check for updates ({{error}})", ("error", result.Error));
             }
             else if (result.UpdateAvailable && result.IsStoreManaged)
             {
@@ -76,21 +77,21 @@ public sealed partial class AboutPage : Page
                 // lookup could not say which version it is. Word it without a number
                 // rather than inventing one.
                 UpdateStatus.Text = result.LatestVersion.Length > 0
-                    ? $"Version {result.LatestVersion} is available (you have {result.CurrentVersion})."
-                    : $"An update is available (you have {result.CurrentVersion}).";
+                    ? UiText.Format("Version {{latest}} is available (you have {{current}}).", ("latest", result.LatestVersion), ("current", result.CurrentVersion))
+                    : UiText.Format("An update is available (you have {{current}}).", ("current", result.CurrentVersion));
                 _action = UpdateAction.Install;
-                UpdateButton.Content = "Download & install";
+                UpdateButton.Content = UiText.Get("Download & install");
             }
             else if (result.UpdateAvailable && result.ReleaseUrl != null)
             {
                 _releaseUrl = result.ReleaseUrl;
-                UpdateStatus.Text = $"Version {result.LatestVersion} is available (you have {result.CurrentVersion}).";
+                UpdateStatus.Text = UiText.Format("Version {{latest}} is available (you have {{current}}).", ("latest", result.LatestVersion), ("current", result.CurrentVersion));
                 _action = UpdateAction.OpenRelease;
-                UpdateButton.Content = "View release";
+                UpdateButton.Content = UiText.Get("View release");
             }
             else
             {
-                UpdateStatus.Text = $"You're up to date (version {result.CurrentVersion}).";
+                UpdateStatus.Text = UiText.Format("You're up to date (version {{version}}).", ("version", result.CurrentVersion));
             }
         }
         finally
@@ -102,7 +103,7 @@ public sealed partial class AboutPage : Page
     private async Task InstallStoreUpdateAsync()
     {
         UpdateButton.IsEnabled = false;
-        UpdateStatus.Text = "Downloading...";
+        UpdateStatus.Text = UiText.Get("Downloading...");
         UpdateProgress.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
         UpdateProgress.Value = 0;
 
@@ -123,7 +124,7 @@ public sealed partial class AboutPage : Page
             {
                 // The package cannot be replaced while this process is alive, so the
                 // last step of installing is leaving.
-                UpdateButton.Content = "Restarting...";
+                UpdateButton.Content = UiText.Get("Restarting...");
                 await Task.Delay(TimeSpan.FromSeconds(2));
                 MainWindow.RequestExit();
                 return;
@@ -132,22 +133,22 @@ public sealed partial class AboutPage : Page
             if (restartMayHelp)
             {
                 _action = UpdateAction.Restart;
-                UpdateButton.Content = "Restart now";
+                UpdateButton.Content = UiText.Get("Restart now");
             }
             else
             {
                 // A real failure (cancelled, low battery, metered connection). Leave
                 // the button where it started so another check is one click away.
                 _action = UpdateAction.Check;
-                UpdateButton.Content = "Check for updates";
+                UpdateButton.Content = UiText.Get("Check for updates");
             }
         }
         catch (Exception ex)
         {
             Logger.Error(ex, "Store update failed");
-            UpdateStatus.Text = $"Update failed: {ex.Message}";
+            UpdateStatus.Text = UiText.Format("Update failed: {{error}}", ("error", ex.Message));
             _action = UpdateAction.Check;
-            UpdateButton.Content = "Check for updates";
+            UpdateButton.Content = UiText.Get("Check for updates");
         }
         finally
         {

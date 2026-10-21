@@ -1,3 +1,4 @@
+using Persistent.Localization;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Persistent.Desktop.Classes;
@@ -52,8 +53,7 @@ public partial class App : Application
                 // is running without its window, so nothing would happen and this
                 // launch would look like a no-op. Say so rather than exiting quietly.
                 StartupDiagnostics.Warn(
-                    "Persistent is already running, but its window could not be found.\n\n" +
-                    "End the Persistent.Desktop.exe task in Task Manager, then start it again.");
+                    UiText.Get("startup.already-running"));
             }
             Environment.Exit(0);
             return;

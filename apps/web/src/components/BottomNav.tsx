@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 /**
  * Fixed bottom tab bar: switch between what's due now (Current), what's scheduled
  * (Upcoming), the notes kept to be read, history (past/done), and settings.
@@ -110,6 +112,7 @@ function useKeyboardOpen(): boolean {
 }
 
 export function BottomNav() {
+  useTranslation()
   const { pathname } = useLocation()
   const reminders = useReminders()
   const received = useReceivedShares()
@@ -159,8 +162,8 @@ export function BottomNav() {
               sx={{ flex: 1, minWidth: 0, flexDirection: 'column', gap: 0.25, py: 1, px: 0.5, borderRadius: 0 }}
             >
               <Icon fontSize="small" />
-              <Typography level="body-xs" noWrap sx={{ color: 'inherit', maxWidth: '100%' }}>
-                {label}
+              <Typography level="body-xs" sx={{ color: 'inherit', maxWidth: '100%', minHeight: '2.4em', lineHeight: 1.2, textAlign: 'center', overflowWrap: 'anywhere' }}>
+                {tr(label)}
               </Typography>
             </Button>
           )

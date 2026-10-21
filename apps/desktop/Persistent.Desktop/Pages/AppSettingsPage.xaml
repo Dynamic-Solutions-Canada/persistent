@@ -2,10 +2,11 @@
 <Page
     x:Class="Persistent.Desktop.Pages.AppSettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:l10n="using:Persistent.Desktop.Classes"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <ScrollViewer Padding="32,16,32,32">
         <StackPanel Spacing="8" MaxWidth="760" HorizontalAlignment="Left">
-            <TextBlock Text="Settings" Style="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,8" />
+            <TextBlock l10n:Localize.Text="Settings" Style="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,8" />
 
             <!-- Theme. The last setting still here, and it belongs here: it themes
                  this window, which is chrome the page cannot see. Everything about
@@ -20,15 +21,15 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock Text="App theme" FontWeight="SemiBold" />
+                        <TextBlock l10n:Localize.Text="App theme" FontWeight="SemiBold" />
                         <TextBlock Opacity="0.7" TextWrapping="Wrap"
-                                   Text="Appearance of this window. Persistent itself has its own theme, set inside the app." />
+                                   l10n:Localize.Text="Appearance of this window. Persistent itself has its own theme, set inside the app." />
                     </StackPanel>
                     <ComboBox Grid.Column="1" x:Name="ThemeCombo" VerticalAlignment="Center" MinWidth="160"
                               SelectionChanged="ThemeCombo_SelectionChanged">
-                        <ComboBoxItem Content="System default" />
-                        <ComboBoxItem Content="Light" />
-                        <ComboBoxItem Content="Dark" />
+                        <ComboBoxItem l10n:Localize.Content="System default" />
+                        <ComboBoxItem l10n:Localize.Content="Light" />
+                        <ComboBoxItem l10n:Localize.Content="Dark" />
                     </ComboBox>
                 </Grid>
             </Border>
@@ -41,12 +42,12 @@
                     CornerRadius="8" Padding="16,12">
                 <StackPanel Spacing="10">
                     <StackPanel>
-                        <TextBlock Text="Notifications, startup and the flyout" FontWeight="SemiBold" />
+                        <TextBlock l10n:Localize.Text="Notifications, startup and the flyout" FontWeight="SemiBold" />
                         <TextBlock Opacity="0.7" TextWrapping="Wrap"
-                                   Text="These are in Persistent itself now, on its Settings screen, alongside its theme, sounds and time format." />
+                                   l10n:Localize.Text="These are in Persistent itself now, on its Settings screen, alongside its theme, sounds and time format." />
                     </StackPanel>
                     <Button x:Name="OpenAppSettingsButton" Click="OpenAppSettingsButton_Click"
-                            Content="Open Persistent settings" HorizontalAlignment="Left" />
+                            l10n:Localize.Content="Open Persistent settings" HorizontalAlignment="Left" />
                 </StackPanel>
             </Border>
         </StackPanel>

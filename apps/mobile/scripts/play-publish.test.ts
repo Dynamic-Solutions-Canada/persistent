@@ -398,7 +398,7 @@ describe('publish request sequence', () => {
       req.on('end', () => {
         const path = req.url ?? ''
         const body = Buffer.concat(chunks)
-        calls.push({ method: req.method ?? '', path, body: body.toString('utf8').slice(0, 2000) })
+        calls.push({ method: req.method ?? '', path, body: body.toString('utf8').slice(0, 10000) })
         const json = (payload: unknown, status = 200) => {
           res.writeHead(status, { 'Content-Type': 'application/json' })
           res.end(JSON.stringify(payload))
@@ -414,6 +414,9 @@ describe('publish request sequence', () => {
           if (req.method === 'GET') return json({ images: [{ id: 'old-1' }, { id: 'old-2' }] })
           if (req.method === 'DELETE') return json({})
           return json({ image: { id: 'new' } })
+        }
+        if (path.endsWith('/listings') && req.method === 'GET') {
+          return json({ listings: [{ language: 'en-US', video: 'https://youtu.be/promo' }] })
         }
         if (path.includes('/listings/') && req.method === 'GET') {
           return json(
@@ -835,4 +838,48 @@ describe('publish request sequence', () => {
     // Nothing reached Play — not even an edit that would linger uncommitted.
     assert.equal(calls.filter((c) => c.path.includes('/edits')).length, 0)
   })
+  it('--listing-json sends all nine text translations without images or app details', async () => {
+    const path = new URL('../store/listings.json', import.meta.url).pathname
+    const { calls, code, stderr } = await runPublish(['--listing-json', path])
+    assert.equal(code, 0, stderr)
+    const writes = calls.filter((call) => ['PUT', 'PATCH'].includes(call.method))
+    assert.equal(writes.length, 9)
+    assert.equal(writes[0].method, 'PATCH')
+    assert.equal(writes[1].method, 'PUT')
+    assert.equal(JSON.parse(writes[1].body).language, 'en-CA')
+    assert.ok(calls.every((call) => !/phoneScreenshots|details|countryavailability/.test(call.path)))
+    assert.equal(calls.filter((call) => call.path.includes(':commit')).length, 1)
+  })
+
+  it('--localized-notes reaches production upload and existing-release rewrite with nine languages', async () => {
+    const path = new URL('../store/releases/0.29.0.json', import.meta.url).pathname
+    for (const mode of ['upload', 'rewrite']) {
+      const args = mode === 'upload'
+        ? ['--aab', '{aab}', '--tracks', 'production', '--version-name', '0.29.0', '--localized-notes', path]
+        : ['--set-notes', '--version-code', '53', '--tracks', 'production', '--version-name', '0.29.0', '--localized-notes', path]
+      const { calls, code, stderr } = await runPublish(args, {
+        existingTracks: [{ track: 'production', releases: [{ versionCodes: ['53'], status: 'inProgress', userFraction: 0.2 }] }]
+      })
+      assert.equal(code, 0, stderr)
+      const write = calls.find((call) => call.method === 'PUT' && call.path.endsWith('/tracks/production'))!
+      const release = JSON.parse(write.body).releases[0]
+      assert.equal(release.releaseNotes.length, 9)
+      assert.ok(release.releaseNotes.some((note: { language: string }) => note.language === 'zh-CN'))
+      if (mode === 'rewrite') {
+        assert.equal(release.userFraction, 0.2)
+        assert.equal(release.status, 'inProgress')
+      }
+    }
+  })
+
+  it('mismatched localized release notes fail before OAuth or any Play request', async () => {
+    const path = new URL('../store/releases/0.29.0.json', import.meta.url).pathname
+    const { calls, code, stderr } = await runPublish([
+      '--aab', '{aab}', '--tracks', 'production', '--version-name', '0.30.0', '--localized-notes', path
+    ])
+    assert.equal(code, 1)
+    assert.match(stderr, /versionName/)
+    assert.equal(calls.length, 0)
+  })
+
 })

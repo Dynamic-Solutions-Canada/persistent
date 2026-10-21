@@ -15,6 +15,8 @@
  * The schedule is a quiet line beneath the title. Active firings follow the body,
  * so a notification tap brings the item and its actions into view together.
  */
+import { useTranslation, Trans } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import { useState } from 'react'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import Stack from '@mui/joy/Stack'
@@ -62,6 +64,7 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
   onClose?: () => void
   onEdit?: () => void
 } = {}) {
+  useTranslation()
   const { id: routeId } = useParams()
   const id = reminderId ?? routeId
   const reminders = useReminders()
@@ -85,13 +88,11 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
     return (
       <Stack spacing={2}>
         {reminders.isLoading || received.isLoading ? (
-          <Typography level="body-sm">Loading…</Typography>
+          <Typography level="body-sm">{tr("Loading…")}</Typography>
         ) : (
           <>
-            <Typography level="body-sm">Reminder not found.</Typography>
-            <Button component={RouterLink} to="/" variant="outlined" sx={{ alignSelf: 'flex-start' }}>
-              Back to reminders
-            </Button>
+            <Typography level="body-sm">{tr("Reminder not found.")}</Typography>
+            <Button component={RouterLink} to="/" variant="outlined" sx={{ alignSelf: 'flex-start' }}>{tr("Back to reminders")}</Button>
           </>
         )}
       </Stack>
@@ -116,9 +117,7 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
     <>
       <Stack spacing={2}>
         {!onClose && <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Button component={RouterLink} to="/" variant="plain" color="neutral" size="sm" startDecorator={<ArrowBackIcon />}>
-            Back
-          </Button>
+          <Button component={RouterLink} to="/" variant="plain" color="neutral" size="sm" startDecorator={<ArrowBackIcon />}>{tr("Back")}</Button>
           <Stack direction="row" spacing={0.5}>
             <Button
               variant="plain"
@@ -128,9 +127,7 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
                 ? <ShareCountChip count={reminder.shareCount + reminder.invitationCount} />
                 : undefined}
               onClick={() => setShareOpen(true)}
-            >
-              Share
-            </Button>
+            >{tr("Share")}</Button>
             <Button
               component={onEdit ? 'button' : RouterLink}
               to={onEdit ? undefined : `/reminders/${reminder.id}/edit`}
@@ -138,9 +135,7 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
               variant="outlined"
               size="sm"
               startDecorator={<EditIcon />}
-            >
-              Edit
-            </Button>
+            >{tr("Edit")}</Button>
           </Stack>
         </Stack>}
 
@@ -159,15 +154,13 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
               </Typography>
             )}
             {!reminder.active && (
-              <Chip size="sm" color="neutral" variant="outlined">
-                paused
-              </Chip>
+              <Chip size="sm" color="neutral" variant="outlined">{tr("paused")}</Chip>
             )}
           </Stack>
           {reminder.schedule.kind !== 'never' && (
             <Typography level="body-xs" sx={{ mt: 0.5, color: 'text.tertiary' }}>
               {reminderScheduleLine(reminder, timeFormat)}
-              {next && reminder.schedule.kind !== 'once' ? ` · Next: ${formatWhen(next, timeFormat)}` : ''}
+              {next && reminder.schedule.kind !== 'once' ? tr(" · Next: {{v0}}", { v0: formatWhen(next, timeFormat) }) : ''}
             </Typography>
           )}
           {body && (
@@ -206,15 +199,11 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
                         level="body-xs"
                         color="primary"
                         startDecorator={<SnoozeIcon sx={{ fontSize: 14 }} />}
-                      >
-                        Snoozed until {formatWhen(occurrence.snoozedUntil, timeFormat)}
-                      </Typography>
+                      ><Trans i18nKey={"Snoozed until <v0/>"} components={{ v0: <>{formatWhen(occurrence.snoozedUntil, timeFormat)}</> }} /></Typography>
                     )}
                   </Box>
                   {orphaned && (
-                    <Typography level="body-xs" sx={{ color: 'text.tertiary' }}>
-                      Notified you before this reminder was rescheduled. Clearing it won't affect the new schedule.
-                    </Typography>
+                    <Typography level="body-xs" sx={{ color: 'text.tertiary' }}>{tr("Notified you before this reminder was rescheduled. Clearing it won't affect the new schedule.")}</Typography>
                   )}
                   {reminder.type === 'TODO' && (
                     <Box>
@@ -245,12 +234,10 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
             variant="plain"
             sx={{ p: 0, bgcolor: 'transparent', boxShadow: 'none' }}
           >
-            <Typography level="title-sm">Checklist</Typography>
+            <Typography level="title-sm">{tr("Checklist")}</Typography>
             <ReminderChecklist reminder={reminder} isNote={reminder.schedule.kind === 'never'} />
             {reminder.schedule.kind !== 'never' && (
-              <Typography level="body-xs" sx={{ color: 'text.tertiary' }}>
-                Ticked off each time this reminder notifies you.
-              </Typography>
+              <Typography level="body-xs" sx={{ color: 'text.tertiary' }}>{tr("Ticked off each time this reminder notifies you.")}</Typography>
             )}
           </Card>
         )}

@@ -1,4 +1,5 @@
 /** Read-only checklist rows for cards whose whole surface opens a dialog. */
+import { useTranslation, Trans } from 'react-i18next'
 import Stack from '@mui/joy/Stack'
 import Box from '@mui/joy/Box'
 import Typography from '@mui/joy/Typography'
@@ -15,6 +16,7 @@ export function ChecklistPreview({ reminder, checkedItemIds = [] }: {
   reminder: ReminderPreviewSource
   checkedItemIds?: readonly string[]
 }) {
+  useTranslation()
   if (reminder.type !== 'TODO') return null
 
   const items = todoItems(reminder.typeData)
@@ -72,9 +74,7 @@ export function ChecklistPreview({ reminder, checkedItemIds = [] }: {
         )
       })}
       {hiddenCount > 0 && (
-        <Typography level="body-xs" sx={{ color: 'text.tertiary' }}>
-          {hiddenCount} checked hidden
-        </Typography>
+        <Typography level="body-xs" sx={{ color: 'text.tertiary' }}><Trans i18nKey={"<v0/> checked hidden"} components={{ v0: <>{hiddenCount}</> }} /></Typography>
       )}
     </Stack>
   )

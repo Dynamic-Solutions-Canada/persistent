@@ -1,4 +1,6 @@
 /** Present unread account announcements after startup and existing dialogs finish. */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Button, DialogContent, DialogTitle, ModalDialog, Stack, Typography } from '@mui/joy'
@@ -15,6 +17,7 @@ interface AnnouncementDialogContentProps {
 }
 
 export function AnnouncementDialogContent({ announcements, loaded, enabled, onViewed }: AnnouncementDialogContentProps) {
+  useTranslation()
   const ready = useStartupDataReady()
   const { pathname } = useLocation()
   const dialogOpen = useSyncExternalStore(subscribeBackAwareDialogs, hasPendingBackAwareDialog, () => false)
@@ -50,14 +53,14 @@ export function AnnouncementDialogContent({ announcements, loaded, enabled, onVi
   return (
     <BackAwareModal open={Boolean(active)} onClose={close}>
       <ModalDialog sx={{ width: 'min(480px, calc(100vw - 32px))' }}>
-        <DialogTitle>{active?.title}</DialogTitle>
+        <DialogTitle>{active ? tr(active.title) : ''}</DialogTitle>
         <DialogContent>
           <Stack spacing={1.5}>
-            {active?.paragraphs.map((paragraph) => <Typography key={paragraph}>{paragraph}</Typography>)}
+            {active?.paragraphs.map((paragraph) => <Typography key={paragraph}>{tr(paragraph)}</Typography>)}
           </Stack>
         </DialogContent>
         <Stack direction="row" justifyContent="flex-end" sx={{ mt: 1 }}>
-          <Button variant="plain" color="neutral" onClick={close}>Got it</Button>
+          <Button variant="plain" color="neutral" onClick={close}>{tr("Got it")}</Button>
         </Stack>
       </ModalDialog>
     </BackAwareModal>

@@ -5,7 +5,11 @@ import { z } from 'zod'
 
 /** Standard JSON error body the API returns for non-2xx responses. */
 export const apiErrorSchema = z.object({
-  error: z.string()
+  error: z.string(),
+  /** Additive stable identifier. Legacy clients continue reading the English error field. */
+  code: z.string().optional(),
+  message: z.string().optional(),
+  parameters: z.record(z.union([z.string(), z.number()])).optional()
 })
 
 export type ApiErrorBody = z.infer<typeof apiErrorSchema>

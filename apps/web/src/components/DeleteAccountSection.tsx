@@ -7,6 +7,8 @@
  * the Done confirm takes, for a much less reversible action. Google Play
  * requires an in-app deletion path; see apps/mobile/store/play-readiness.md.
  */
+import { useTranslation, Trans } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import { useState } from 'react'
 import Stack from '@mui/joy/Stack'
 import Typography from '@mui/joy/Typography'
@@ -18,12 +20,13 @@ import Alert from '@mui/joy/Alert'
 import ModalDialog from '@mui/joy/ModalDialog'
 import DialogTitle from '@mui/joy/DialogTitle'
 import DialogContent from '@mui/joy/DialogContent'
-import { extractErrorMessage } from '@persistent/shared'
+import { extractErrorMessage } from '../localization/errorMessage.js'
 import { apiFetch } from '../lib/apiClient.js'
 import { useAuth } from '../auth/useAuth.js'
 import { BackAwareModal } from './BackAwareModal.js'
 
 export function DeleteAccountSection() {
+  useTranslation()
   const { user, refreshAfterDeletion } = useAuth()
   const [open, setOpen] = useState(false)
   const [confirmEmail, setConfirmEmail] = useState('')
@@ -51,39 +54,31 @@ export function DeleteAccountSection() {
       // sign-in with no stale cached reminders left behind on this device.
       await refreshAfterDeletion()
     } catch (err) {
-      setError(extractErrorMessage(err, "Couldn't delete your account."))
+      setError(extractErrorMessage(err, tr("Couldn't delete your account.")))
       setBusy(false)
     }
   }
 
   return (
     <Stack spacing={1.5}>
-      <Typography level="title-sm">Delete account</Typography>
-      <Typography level="body-sm">
-        Permanently deletes your account and every reminder, history entry, and passkey attached to it. This
-        cannot be undone.
-      </Typography>
+      <Typography level="title-sm">{tr("Delete account")}</Typography>
+      <Typography level="body-sm">{tr("Permanently deletes your account and every reminder, history entry, and passkey attached to it. This cannot be undone.")}</Typography>
       <Button
         variant="soft"
         color="danger"
         onClick={() => setOpen(true)}
         sx={{ mt: 1, alignSelf: 'flex-start' }}
-      >
-        Delete account
-      </Button>
+      >{tr("Delete account")}</Button>
 
       <BackAwareModal open={open} onClose={close}>
         <ModalDialog variant="outlined" role="alertdialog" sx={{ maxWidth: 420 }}>
-          <DialogTitle>Delete your account?</DialogTitle>
+          <DialogTitle>{tr("Delete your account?")}</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 1 }}>
-              <Typography level="body-sm">
-                This deletes your reminders, your full history, your passkeys, and every device registered for
-                notifications. It is immediate and cannot be undone.
-              </Typography>
+              <Typography level="body-sm">{tr("This deletes your reminders, your full history, your passkeys, and every device registered for notifications. It is immediate and cannot be undone.")}</Typography>
               {error && <Alert color="danger">{error}</Alert>}
               <FormControl>
-                <FormLabel>Type {user?.email} to confirm</FormLabel>
+                <FormLabel><Trans i18nKey={"Type <v0/> to confirm"} components={{ v0: <>{user?.email}</> }} /></FormLabel>
                 <Input
                   value={confirmEmail}
                   onChange={(event) => setConfirmEmail(event.target.value)}
@@ -93,12 +88,8 @@ export function DeleteAccountSection() {
                 />
               </FormControl>
               <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
-                <Button variant="plain" color="neutral" onClick={close} disabled={busy}>
-                  Cancel
-                </Button>
-                <Button color="danger" onClick={() => void onDelete()} disabled={!matches} loading={busy}>
-                  Delete permanently
-                </Button>
+                <Button variant="plain" color="neutral" onClick={close} disabled={busy}>{tr("Cancel")}</Button>
+                <Button color="danger" onClick={() => void onDelete()} disabled={!matches} loading={busy}>{tr("Delete permanently")}</Button>
               </Stack>
             </Stack>
           </DialogContent>

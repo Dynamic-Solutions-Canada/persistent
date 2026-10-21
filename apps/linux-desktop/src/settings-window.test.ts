@@ -17,6 +17,7 @@ test('settings navigation preserves connection input; a late initial snapshot ca
     }, onSettings: () => {}
   } })
   try {
+    dom.window.eval(readFileSync(new URL('../resources/localization.js', import.meta.url), 'utf8'))
     dom.window.eval(readFileSync(new URL('../resources/connection.js', import.meta.url), 'utf8'))
     const document = dom.window.document
     const input = document.querySelector<HTMLInputElement>('#server')!

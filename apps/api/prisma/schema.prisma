@@ -72,6 +72,8 @@ model User {
   email       String   @unique
   displayName String?
   timeZone    String   @default("UTC")
+  /// Explicit account email language; independent of per-device interface language.
+  emailLanguage String @default("en-US")
   /// Read-only aggregate administration. Never editable through profile APIs.
   isAdmin     Boolean  @default(false)
   createdAt   DateTime @default(now())
@@ -370,6 +372,8 @@ model PushSubscription {
   id           String   @id @default(cuid())
   userId       String
   kind         PushKind
+  /// Last resolved device wording, used only for presentation.
+  locale       String @default("en-US")
   /// The FCM device token.
   endpoint     String   @unique
   userAgent    String?

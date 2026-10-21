@@ -240,8 +240,10 @@ class AlarmActivity : Activity() {
             AlarmSpec(
                 occurrenceId = id,
                 fireAtMs = 0,
-                title = intent.getStringExtra("title") ?: "Reminder",
+                title = intent.getStringExtra("title") ?: NativeText.text(this, "Reminder"),
                 body = intent.getStringExtra("body") ?: "",
+                bodyTemplate = intent.getStringExtra("bodyTemplate") ?: "",
+                baseBody = intent.getStringExtra("baseBody") ?: "",
                 soundIntervalSeconds = 0,
                 alarm = true,
                 ongoing = true,
@@ -289,10 +291,10 @@ class AlarmActivity : Activity() {
             // Inside the page, not in a header above the pager: it labels *this* title
             // and has to sit with it. Hoisting it out left it stranded at the top of the
             // screen with the reminder centred half a screen below.
-            val label = if (alarms.size > 1) "REMINDER ${position + 1} OF ${alarms.size}" else "REMINDER"
-            content.addStacked(AlarmUi.kicker(this@AlarmActivity, label))
+            val label = if (alarms.size > 1) "REMINDER {{index}} OF {{count}}" else "REMINDER"
+            content.addStacked(NativeText.bind(AlarmUi.kicker(this@AlarmActivity, label), label, mapOf("index" to position + 1, "count" to alarms.size)))
             content.addStacked(AlarmUi.title(this@AlarmActivity, spec.title), topMarginDp = 6f)
-            if (spec.body.isNotEmpty()) content.addStacked(AlarmUi.body(this@AlarmActivity, spec.body))
+            if (spec.body.isNotEmpty()) content.addStacked(AlarmUi.reminderBody(this@AlarmActivity, spec))
 
             // Done is a two-step confirm here too (matching the notification + in-app
             // button): the first tap swaps the buttons into "Confirm done" / "Not yet"
@@ -344,7 +346,7 @@ class AlarmActivity : Activity() {
                 confirming.add(spec.occurrenceId)
                 actions.removeAllViews()
                 actions.addStacked(
-                    AlarmUi.body(this@AlarmActivity, "Tap \"Confirm done\" to mark this complete."),
+                    AlarmUi.applicationBody(this@AlarmActivity, "Tap \"Confirm done\" to mark this complete."),
                     topMarginDp = 28f
                 )
                 actions.addView(

@@ -85,4 +85,23 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Shared\UiText.cs" Link="Localization\UiText.cs" />
+    <Compile Include="..\Shared\SupportedLanguages.cs" Link="Localization\SupportedLanguages.cs" />
+    <EmbeddedResource Include="$(LocalizationCatalogDirectory)\*.json" LogicalName="Persistent.Localization.%(Filename).json" />
+  </ItemGroup>
+  <!-- Generate before MRT input discovery, including on a fresh clone where no RESW exists.
+       The existing Persistent.Desktop PRI map and compiled XAML paths remain unchanged. -->
+  <Target Name="GenerateManifestLocaleResources" BeforeTargets="_GenerateProjectPriConfigurationFiles">
+    <PropertyGroup>
+      <ManifestLocaleOutput>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)ManifestResources</ManifestLocaleOutput>
+    </PropertyGroup>
+    <Exec Command="dotnet run --project &quot;$(MSBuildProjectDirectory)\..\tools\localization-resources\ManifestResources.csproj&quot; --configuration Release -- &quot;$(LocalizationCatalogDirectory)&quot; &quot;$(MSBuildProjectDirectory)\..\Persistent.DesktopMSIX\Package.appxmanifest&quot; &quot;$(ManifestLocaleOutput)&quot;" />
+    <ItemGroup>
+      <PRIResource Include="$(ManifestLocaleOutput)\**\*.resw">
+        <Link>Strings\%(RecursiveDir)%(Filename)%(Extension)</Link>
+        <TargetPath>Strings\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+      </PRIResource>
+    </ItemGroup>
+  </Target>
 </Project>

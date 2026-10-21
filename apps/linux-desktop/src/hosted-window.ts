@@ -1,3 +1,4 @@
+import { nativeText } from './localization.js'
 /** One reusable hosted management window, with a profile isolated from the user's browsers. */
 import { BrowserWindow, WebContentsView, ipcMain, nativeTheme, screen, shell, type IpcMainEvent, type Session, type WebContents } from 'electron'
 import { join } from 'node:path'
@@ -83,7 +84,7 @@ export class HostedWindow {
     this.webContents.setWindowOpenHandler(({ url }) => {
       if (isAppUrl(url, this.store.current.server) || isGoogleSignIn(url)) {
         return { action: 'allow', overrideBrowserWindowOptions: {
-          title: 'Persistent sign-in', width: 540, height: 740, parent: this.window,
+          title: nativeText('Persistent sign-in'), width: 540, height: 740, parent: this.window,
           webPreferences: { session: profile, contextIsolation: true, sandbox: true, nodeIntegration: false, preload: join(root, 'dist/external-preload.cjs'), additionalArguments: [`--persistent-server-origin=${store.current.server}`] }
         } }
       }

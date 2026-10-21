@@ -1,4 +1,6 @@
 /** Reading view for the exact History firing selected, including its saved checklist progress. */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import Stack from '@mui/joy/Stack'
 import Button from '@mui/joy/Button'
 import Typography from '@mui/joy/Typography'
@@ -13,6 +15,7 @@ import { StatusChip } from './ReminderIcons.js'
 import { SectionHeading } from './SectionHeading.js'
 
 export function PastOccurrenceDetail({ occurrence, onUndone }: { occurrence: Occurrence; onUndone: () => void }) {
+  useTranslation()
   const undo = useUndoDoneOccurrence()
   const { timeFormat } = useSettings()
   const { user } = useAuth()
@@ -25,16 +28,14 @@ export function PastOccurrenceDetail({ occurrence, onUndone }: { occurrence: Occ
       <ChecklistPreview reminder={occurrence.reminder} checkedItemIds={occurrence.checkedItemIds} />
       {occurrence.status === 'ACKNOWLEDGED' && occurrence.acknowledgedAt && (
         <>
-          <Typography level="body-sm">Marked done by mistake? Return it to Current and resume reminders. Your checklist and schedule stay unchanged.</Typography>
+          <Typography level="body-sm">{tr("Marked done by mistake? Return it to Current and resume reminders. Your checklist and schedule stay unchanged.")}</Typography>
           <Button
             variant="outlined"
             color="neutral"
             loading={undo.isPending}
             sx={{ alignSelf: { sm: 'flex-end' }, minHeight: 44 }}
             onClick={() => undo.mutate({ id: occurrence.id, arg: { acknowledgedAt: occurrence.acknowledgedAt! } }, { onSuccess: onUndone })}
-          >
-            Undo done
-          </Button>
+          >{tr("Undo done")}</Button>
         </>
       )}
     </Stack>

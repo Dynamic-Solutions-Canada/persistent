@@ -9,6 +9,7 @@
  * to **list** (a week, plus notes). Only the first can ring. See
  * `deviceAgendaEntrySchema`.
  */
+import { requestLocale } from '../lib/request-locale.js'
 import { Router } from 'express'
 import { isTimeless, type DeviceAgendaEntry, type DeviceAlarm, type Schedule } from '@persistent/shared'
 import { prisma } from '../lib/prisma.js'
@@ -44,6 +45,7 @@ const AGENDA_MAX_TIMED = 200
 // plus the wider set it should be able to show.
 syncRouter.get('/occurrences', async (request, response) => {
   const userId = requireUserId(request)
+  const locale = requestLocale(request)
   const now = new Date()
   // Native notification hosts only need the alarm contract for catch-up and
   // reconciliation. Avoid projecting the seven-day agenda on every background
@@ -111,7 +113,7 @@ syncRouter.get('/occurrences', async (request, response) => {
     if (o.scheduledFor.getTime() > armedUntil) continue
     // The server expands each occurrence into the exact alarms the device should
     // arm, so the JS bridge and the native background worker share one transform.
-    alarms.push(...buildDeviceAlarms(o, escalateAt))
+    alarms.push(...buildDeviceAlarms(o, escalateAt, locale))
     if (!alarmsOnly) {
       serialized.push({ ...toOccurrence(o), escalateAt: escalateAt?.toISOString() ?? null })
     }

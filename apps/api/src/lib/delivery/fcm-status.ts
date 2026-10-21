@@ -19,3 +19,16 @@ export function classifyFcmStatus(status: number): FcmDisposition {
   if (status === 403 || status === 404) return 'prune'
   return 'fail'
 }
+
+/** Keep an allowlisted provider status for diagnosis, never echoed tokens or reminder content. */
+export function fcmFailureCode(body: string): string | undefined {
+  try {
+    const code: unknown = JSON.parse(body)?.error?.status
+    const allowed = ['INVALID_ARGUMENT', 'UNAUTHENTICATED', 'PERMISSION_DENIED', 'NOT_FOUND',
+      'RESOURCE_EXHAUSTED', 'UNAVAILABLE', 'INTERNAL', 'DEADLINE_EXCEEDED', 'UNKNOWN']
+    return typeof code === 'string' && allowed.includes(code) ? code : undefined
+  } catch {
+    // Non-JSON proxy failures are represented by their HTTP status only.
+    return undefined
+  }
+}

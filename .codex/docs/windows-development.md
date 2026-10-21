@@ -18,6 +18,8 @@ cleaned after use. Logs and packages return to `.artifacts/windows-build/` in WS
 Tracked release versions stay unchanged; dev revisions change only in staging.
 Never uninstall to bypass an update error or silently replace a publisher.
 
+Persistent's launcher prepares hash-verified localization inputs with Python 3 before calling the shared helper. The normal narrow desktop snapshot remains self-contained without npm or copying the rest of the repository. Generated inputs are ignored; translation changes belong in the [canonical catalogs](../../docs/localization.md), not the prepared copies.
+
 The explicit `--store-identity` mode preserves the Store identity and account
 data, and requires a matching publisher certificate. It does not publish to the
 Store. Release sideloads may remain installed; remove separate dev test packages

@@ -1,3 +1,5 @@
+import { message } from '@persistent/shared'
+import { recipientEmailLocale } from './email-locale.js'
 /**
  * Scheduling engine: materialize occurrences, fire due ones, sweep snoozes and
  * escalations. The server is the source of truth; native clients additionally
@@ -492,9 +494,10 @@ async function escalate(occurrence: OccurrenceForNotification): Promise<void> {
 async function sendEscalationEmail(reminder: Reminder, checkedItemIds: readonly string[]): Promise<void> {
   const to = reminder.escalateEmail
   if (!to) return
+  const locale = await recipientEmailLocale(to)
   await sendCloudflareEmail({
     to,
-    subject: `Reminder overdue: ${reminder.title}`,
-    text: escalationEmailText(reminder, checkedItemIds)
+    subject: message(locale, 'Reminder overdue: {{title}}', { title: reminder.title }),
+    text: escalationEmailText(reminder, checkedItemIds, locale)
   })
 }

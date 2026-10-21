@@ -44,7 +44,7 @@ object SyncClient {
         // are idempotent, so racing the JS drain is harmless.
         drainPending(context, baseUrl, cookie)
 
-        val body = httpGet("$baseUrl/api/sync/occurrences", cookie)
+        val body = httpGet("$baseUrl/api/sync/occurrences?locale=${NativeText.locale(context)}", cookie)
         if (body == null) {
             android.util.Log.i("PersistAlarm", "sync GET returned no body (auth/net failure)")
             return false
@@ -90,6 +90,8 @@ object SyncClient {
             fireAtMs = json.optLong("fireAtMs"),
             title = json.optString("title", "Reminder"),
             body = json.optString("body", ""),
+            bodyTemplate = json.optString("bodyTemplate", ""),
+            baseBody = json.optString("baseBody", ""),
             soundIntervalSeconds = json.optInt("soundIntervalSeconds", 0),
             alarm = json.optBoolean("alarm", false),
             ongoing = json.optBoolean("ongoing", true),

@@ -14,7 +14,7 @@
  * whichever device the user set it from.
  */
 import type { Reminder } from '@prisma/client'
-import { type DeviceAlarm, ESC_SUFFIX } from '@persistent/shared'
+import { type DeviceAlarm, type Locale, message, ESC_SUFFIX } from '@persistent/shared'
 import { notificationBody } from './notification-format.js'
 import { firingSounds } from './reminder-sounds.js'
 import { toCheckedItemIds } from './serializers.js'
@@ -38,7 +38,7 @@ interface OccurrenceForAlarm {
  * @param escalateAt the occurrence's escalation instant (already computed and
  *   snooze-/silence-gated by the caller), or null when no future escalation applies.
  */
-export function buildDeviceAlarms(occurrence: OccurrenceForAlarm, escalateAt: Date | null): DeviceAlarm[] {
+export function buildDeviceAlarms(occurrence: OccurrenceForAlarm, escalateAt: Date | null, locale: Locale = 'en-US'): DeviceAlarm[] {
   const { reminder } = occurrence
   // A snoozed occurrence fires again when the snooze ends; everything else at its
   // scheduled time (already-fired ones sit in the past and ring immediately).
@@ -114,7 +114,9 @@ export function buildDeviceAlarms(occurrence: OccurrenceForAlarm, escalateAt: Da
       // so it carries the reminder's notification tone and its nag tone. An
       // escalation rings, so it takes the alarm tone and no nag tone at all.
       ...firingSounds(reminder.sounds, true),
-      body: main.body ? `${main.body} (escalated)` : 'Escalated',
+      bodyTemplate: 'escalated',
+      baseBody: main.body,
+      body: main.body ? message(locale, '{{body}} (escalated)', { body: main.body }) : message(locale, 'Escalated'),
       // The escalation alarm is always silenceable (escalation never applies to an
       // ALARM-persistence reminder), so the user can quiet it and keep nagging.
       canSilence: true

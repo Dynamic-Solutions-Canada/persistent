@@ -1,20 +1,8 @@
 name: play-listing
 
-# Push the Google Play store listing — the copy from apps/mobile/store/listing.md
-# and the phone screenshots from apps/mobile/store/graphics/screenshots.
-#
-# Deliberately separate from `release`: the listing changes on its own schedule,
-# and nobody cutting a version expects it to also rewrite the store page. Manual
-# dispatch only, and `check` is the default — the repo can drift from the Console
-# (anyone can edit it there), and the edits API has no merge, so a blind push
-# silently discards whatever was changed by hand.
-#
-# The descriptions go up via PATCH; the app title and promo video share that Play
-# resource and are left alone. Screenshots are replaced wholesale — Play has no
-# stable per-image identity to diff against. See apps/mobile/scripts/play-publish.mjs.
-#
-# A green run confirms the edit was committed. Verify Publishing overview in
-# Play Console separately, including whether changes were sent for review.
+# Text-only localized titles and descriptions from apps/mobile/store/listings.json.
+# A check discards its edit. Publication preserves screenshots, videos, app details
+# and country distribution. Verify review/publication in Play Console separately.
 
 on:
   workflow_dispatch:
@@ -46,5 +34,5 @@ jobs:
         env:
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
-          node scripts/play-publish.mjs --listing store/listing.md \
+          node scripts/play-publish.mjs --listing-json store/listings.json \
             ${{ inputs.mode == 'check' && '--check' || '' }}

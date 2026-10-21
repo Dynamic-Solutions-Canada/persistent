@@ -11,6 +11,10 @@ Background model lives in [`alarm-architecture.md`](alarm-architecture.md)
 [`data-event-contract.md`](data-event-contract.md). This doc is the *user-facing
 guarantee* those mechanisms exist to deliver.
 
+## Language and formatting
+
+Language changes reword application labels and the designated escalation marker, preserving user-authored text, medicine names/doses, occurrence identities, schedules and armed Done confirmation. Region, time zone and an explicit 12/24-hour choice remain separate. Windows immediately replaces already-visible notifications in the selected language; this can restart alarm audio and reset an unsubmitted snooze dropdown, an explicitly accepted trade-off. The gated native state owner serializes presentation/removal so a concurrent completion or sign-out cannot resurrect an obsolete toast. Build evidence does not establish installed OS delivery; see [localization](localization.md) for runtime limits.
+
 ## Vocabulary
 
 - **Occurrence** — one firing of a reminder (`ReminderOccurrence`). A reminder

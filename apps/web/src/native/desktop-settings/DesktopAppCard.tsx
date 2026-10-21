@@ -3,6 +3,8 @@
  * its window stays open, and how large it opens. Plus the way into the native
  * window that keeps what cannot live in here.
  */
+import { useTranslation, Trans } from 'react-i18next'
+import { tr } from '../../localization/i18n.js'
 import Card from '@mui/joy/Card'
 import Box from '@mui/joy/Box'
 import Typography from '@mui/joy/Typography'
@@ -17,53 +19,48 @@ import { openHostSettingsWindow } from '../desktopBridge.js'
 import type { HostSettingsProps } from './types.js'
 
 export function DesktopAppCard({ settings, update }: HostSettingsProps) {
+  useTranslation()
   const linux = settings.platform === 'linux'
   return (
     <Card variant="outlined">
-      <Typography level="title-sm">{linux ? 'Linux app' : 'Windows app'}</Typography>
+      <Typography level="title-sm">{linux ? tr("Linux app") : tr("Windows app")}</Typography>
 
       <FormControl orientation="horizontal" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
-          <FormLabel>Start at sign-in</FormLabel>
-          <Typography level="body-xs">
-            Keeps Persistent in the notification area. Off means no tray icon, and no {linux ? 'Linux' : 'Windows'} notifications, until
-            you launch it.
-          </Typography>
+          <FormLabel>{tr("Start at sign-in")}</FormLabel>
+          <Typography level="body-xs"><Trans i18nKey={"Keeps Persistent in the notification area. Off means no tray icon, and no <v0/> notifications, until you launch it."} components={{ v0: <>{linux ? 'Linux' : 'Windows'}</> }} /></Typography>
         </Box>
         <Switch checked={settings.startAtSignIn} onChange={(e) => update({ startAtSignIn: e.target.checked })} />
       </FormControl>
 
       {settings.flyoutPlacement && (
         <FormControl>
-          <FormLabel>Open window</FormLabel>
+          <FormLabel>{tr("Open window")}</FormLabel>
           <Select
             value={settings.flyoutPlacement}
             onChange={(_e, value) => value !== null && update({ flyoutPlacement: value })}
           >
-            <Option value="tray">Near the tray icon</Option>
-            <Option value="last">Where I left it</Option>
-            <Option value="center">Center of tray screen</Option>
+            <Option value="tray">{tr("Near the tray icon")}</Option>
+            <Option value="last">{tr("Where I left it")}</Option>
+            <Option value="center">{tr("Center of tray screen")}</Option>
           </Select>
-          <FormHelperText>Drag the window by its top bar to set a saved position.</FormHelperText>
+          <FormHelperText>{tr("Drag the window by its top bar to set a saved position.")}</FormHelperText>
         </FormControl>
       )}
 
       {linux && !settings.flyoutPlacement && (
-        <Typography level="body-xs">Wayland chooses where this window opens.</Typography>
+        <Typography level="body-xs">{tr("Wayland chooses where this window opens.")}</Typography>
       )}
       <FormControl orientation="horizontal" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
-          <FormLabel>Keep the window open</FormLabel>
-          <Typography level="body-xs">
-            Normally it closes when you click elsewhere. Pin it while you're writing a reminder so a stray click
-            doesn't lose your work.
-          </Typography>
+          <FormLabel>{tr("Keep the window open")}</FormLabel>
+          <Typography level="body-xs">{tr("Normally it closes when you click elsewhere. Pin it while you're writing a reminder so a stray click doesn't lose your work.")}</Typography>
         </Box>
         <Switch checked={settings.pinFlyout} onChange={(e) => update({ pinFlyout: e.target.checked })} />
       </FormControl>
 
       <FormControl>
-        <FormLabel>Window size</FormLabel>
+        <FormLabel>{tr("Window size")}</FormLabel>
         <Select
           value={settings.flyoutSize}
           onChange={(_e, value) => value !== null && update({ flyoutSize: value })}
@@ -73,7 +70,7 @@ export function DesktopAppCard({ settings, update }: HostSettingsProps) {
             // Joy renders once a value is picked, so passing the bare name there
             // while showing the dimensions in the list meant "Custom" collapsed to
             // exactly the case that needs its numbers: a size with no preset name.
-            const text = `${size.label} (${size.width} x ${size.height})`
+            const text = tr("{{v0}} ({{v1}} x {{v2}})", { v0: size.label, v1: size.width, v2: size.height })
             return (
               <Option key={size.id} value={size.id} label={text}>
                 {text}
@@ -81,17 +78,12 @@ export function DesktopAppCard({ settings, update }: HostSettingsProps) {
             )
           })}
         </Select>
-        <FormHelperText>How large this window opens.</FormHelperText>
+        <FormHelperText>{tr("How large this window opens.")}</FormHelperText>
       </FormControl>
 
       <Box>
-        <Typography level="body-xs" sx={{ mb: 1 }}>
-          The server this app connects to, the version it's running, its log folder and the theme of its own window
-          {' '}are in a separate window, because you may need them when this page can't load.
-        </Typography>
-        <Button variant="outlined" color="neutral" size="sm" onClick={openHostSettingsWindow}>
-          More {linux ? 'Linux' : 'Windows'} app settings
-        </Button>
+        <Typography level="body-xs" sx={{ mb: 1 }}>{tr("The server this app connects to, the version it's running, its log folder and the theme of its own window are in a separate window, because you may need them when this page can't load.")}</Typography>
+        <Button variant="outlined" color="neutral" size="sm" onClick={openHostSettingsWindow}><Trans i18nKey={"More <v0/> app settings"} components={{ v0: <>{linux ? 'Linux' : 'Windows'}</> }} /></Button>
       </Box>
     </Card>
   )

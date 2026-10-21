@@ -213,3 +213,21 @@ test('an escalated firing rings in the alarm tone even though its status came ba
   )
   assert.deepEqual(alarms[0]!.sound, TONES.alarm)
 })
+
+test('device locale changes only escalation presentation, preserving identities, times, medicine content and actions', () => {
+  const source = occurrence({ reminder: reminder({
+    title: 'Insulin <name>', details: 'Before food', type: 'MEDICATION',
+    typeData: { medications: [{ name: 'Insulin', quantity: 10, unit: 'units' }] }
+  }) })
+  const escalateAt = new Date(scheduledFor.getTime() + 15 * 60_000)
+  const english = buildDeviceAlarms(source, escalateAt, 'en-US')
+  const japanese = buildDeviceAlarms(source, escalateAt, 'ja-JP')
+  assert.deepEqual(japanese[0], english[0])
+  assert.equal(japanese[1]!.baseBody, 'Insulin 10 units · Before food')
+  assert.equal(japanese[1]!.bodyTemplate, 'escalated')
+  assert.equal(japanese[1]!.body, 'Insulin 10 units · Before food（アラート強化）')
+  const { body: englishBody, ...englishSemantics } = english[1]!
+  const { body: japaneseBody, ...japaneseSemantics } = japanese[1]!
+  assert.notEqual(japaneseBody, englishBody)
+  assert.deepEqual(japaneseSemantics, englishSemantics)
+})

@@ -14,3 +14,5 @@
 - The API consumes the built `dist/`, so after editing run a build (the dev
   orchestrator and `npm run dev` rebuild it; `npm run typecheck` builds it too).
 - Export everything through `src/index.ts`.
+
+- Localization contracts live in `src/locales.ts`; pure bundled catalogs live in `src/messages/`. Preserve ordered script-aware matching and Canadian identities. FCM `bodyRange` is an additive UTF-16 range into legacy body text; device alarm projections retain their separate literal `baseBody`. See `docs/localization.md` at the repository root.

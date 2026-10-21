@@ -26,10 +26,10 @@ The release pipeline is `.github/workflows/release.yml`: pushing a `vX.Y.Z` tag
 builds the web bundle, builds the signed Play AAB, generates
 changelog notes from the commits since the previous tag (filtered to
 end-user-facing changes only: internal/docs/tooling commits are excluded; see the
-`EXCLUDE` list in the workflow), and publishes one Play identity through both channels:
+`EXCLUDE` list in `apps/mobile/scripts/release-notes.mjs`), and publishes one Play identity through both channels:
 
 - `play` -> **AAB** released to Google Play **production**, reusing the notes
-  truncated to Play's 500-character limit. `PLAY_SERVICE_ACCOUNT_JSON` is required.
+  truncated to Play's 500-character limit unless `apps/mobile/store/releases/<version>.json` supplies curated nine-locale notes. Curated notes must match the version and fit 500 characters per language; validation rejects rather than truncates them. `PLAY_SERVICE_ACCOUNT_JSON` is required.
   Tags and manual releases have no tester-track destination. Active phone testing
   releases are retired in the same edit using `--production-only`.
 - Google Play's **signed universal APK** -> GitHub Release, named

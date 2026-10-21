@@ -33,6 +33,8 @@
  * the drag settles. Writing on every row crossed would put a request, and a push to
  * every device, on each step of a single gesture.
  */
+import { tr } from '../localization/i18n.js'
+import { useTranslation } from 'react-i18next'
 import { useRef, useState } from 'react'
 import Stack from '@mui/joy/Stack'
 import Box from '@mui/joy/Box'
@@ -117,6 +119,7 @@ export function TodoChecklist({
    */
   confirmable?: boolean
 }) {
+  useTranslation()
   // The order being dragged, before it is sent. Null except mid-gesture: the stored
   // list is the truth, and holding a copy any longer would fight an edit arriving from
   // another device. Cleared on commit, when the optimistic cache update makes `items`
@@ -209,7 +212,7 @@ export function TodoChecklist({
                   {...handleProps(index)}
                   tabIndex={0}
                   role="button"
-                  aria-label={`Reorder ${item.text}. Use the up and down arrow keys to move it.`}
+                  aria-label={tr("Reorder {{v0}}. Use the up and down arrow keys to move it.", { v0: item.text })}
                   sx={{
                     opacity: 0,
                     transition: 'opacity 150ms ease',
@@ -258,7 +261,7 @@ export function TodoChecklist({
                   variant="plain"
                   color="danger"
                   disabled={disabled}
-                  aria-label={`Remove ${item.text}`}
+                  aria-label={tr("Remove {{v0}}", { v0: item.text })}
                   onClick={() => onRemoveItem(item.id)}
                   sx={{ opacity: 0, transition: 'opacity 150ms ease', flexShrink: 0 }}
                 >
@@ -294,9 +297,9 @@ export function TodoChecklist({
         <Typography level="body-xs" color={allDone ? 'success' : undefined} sx={{ minWidth: 0 }}>
           {allDone
             ? confirmable
-              ? `All ${total} checked — tap Done to confirm`
-              : `All ${total} checked`
-            : `${done} of ${total} done`}
+              ? tr("All {{v0}} checked, tap Done to confirm", { v0: total })
+              : tr("All {{v0}} checked", { v0: total })
+            : tr("{{v0}} of {{v1}} done", { v0: done, v1: total })}
         </Typography>
         {/* Only once something is ticked: before that it would toggle nothing.
             Right-anchored, opposite the count, so it reads as a control on that
@@ -312,7 +315,7 @@ export function TodoChecklist({
             // sometimes against a ringing alarm, so it keeps a real tap target.
             sx={{ flexShrink: 0, minHeight: 32, px: 1, fontSize: 'xs', fontWeight: 'md' }}
           >
-            {hideChecked ? 'Show checked' : 'Hide checked'}
+            {hideChecked ? tr("Show checked") : tr("Hide checked")}
           </Button>
         )}
       </Stack>}

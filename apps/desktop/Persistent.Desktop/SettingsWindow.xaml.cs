@@ -34,6 +34,11 @@ public sealed partial class SettingsWindow : Window
 
         InitializeComponent();
         instance = this;
+        ContentFrame.Navigated += (_, _) =>
+        {
+            if (ContentFrame.Content is TechnicallyReal.Promo.PromotedAppsPage promo)
+                promo.EnableLocalization();
+        };
 
         SystemBackdrop = new MicaBackdrop();
         ExtendsContentIntoTitleBar = true;
@@ -76,6 +81,8 @@ public sealed partial class SettingsWindow : Window
         }
 
         RootNavigation.SelectedItem = RootNavigation.MenuItems[0];
+        if (RootNavigation.SettingsItem is NavigationViewItem settingsItem)
+            Classes.Localize.SetContent(settingsItem, "Settings");
         ContentFrame.Navigate(typeof(ConnectionPage));
         Classes.ThemeManager.ApplySavedTheme(this);
 

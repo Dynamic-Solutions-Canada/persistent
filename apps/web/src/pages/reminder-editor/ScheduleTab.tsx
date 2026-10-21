@@ -3,6 +3,8 @@
  * repeat kind, and whichever fields that kind needs — times of day, weekdays,
  * days of the month, the N-day interval, and the date range.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../../localization/i18n.js'
 import Stack from '@mui/joy/Stack'
 import FormControl from '@mui/joy/FormControl'
 import FormLabel from '@mui/joy/FormLabel'
@@ -46,6 +48,7 @@ export function ScheduleTab({
   onKindChange: (kind: ScheduleKind) => void
   isEditing: boolean
 }) {
+  useTranslation()
   const isOnce = form.kind === 'once'
   const needsDays = form.kind === 'weekly' || form.kind === 'custom'
   const needsMonthDays = form.kind === 'monthly'
@@ -57,47 +60,43 @@ export function ScheduleTab({
       {/* Shown when editing too: each of the three is a saved state, so a reminder
           has to be able to show the one it is in and to move between them. */}
       <FormControl>
-        <FormLabel>When</FormLabel>
+        <FormLabel>{tr("When")}</FormLabel>
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           <Button
             size="sm"
             variant={form.when === 'now' ? 'solid' : 'outlined'}
             onClick={() => set('when', 'now')}
           >
-            {isEditing ? 'No date or time' : 'Remind me now'}
+            {isEditing ? tr("No date or time") : tr("Remind me now")}
           </Button>
           <Button
             size="sm"
             variant={form.when === 'scheduled' ? 'solid' : 'outlined'}
             onClick={() => set('when', 'scheduled')}
-          >
-            Schedule it
-          </Button>
+          >{tr("Schedule it")}</Button>
           {/* The whole point of the mode is that it doesn't remind, so it is named
               for that rather than for a time it will never have. */}
           <Button
             size="sm"
             variant={form.when === 'never' ? 'solid' : 'outlined'}
             onClick={() => set('when', 'never')}
-          >
-            Never — just a note
-          </Button>
+          >{tr("Never, just a note")}</Button>
         </Stack>
         <FormHelperText>
           {form.when === 'scheduled'
-            ? 'Pick when it notifies you and whether it repeats.'
+            ? tr("Pick when it notifies you and whether it repeats.")
             : form.when === 'never'
-              ? 'Never notifies you and never nags — kept as a note you can read and edit. Nothing to confirm.'
+              ? tr("Never notifies you and never nags, kept as a note you can read and edit. Nothing to confirm.")
               : isEditing
-                ? 'Has no date or time. It notified you once, when you created it.'
-                : 'Notifies you as soon as you create it — nothing to pick.'}
+                ? tr("Has no date or time. It notified you once, when you created it.")
+                : tr("Notifies you as soon as you create it, nothing to pick.")}
         </FormHelperText>
       </FormControl>
 
       {form.when === 'scheduled' && (
         <>
           <FormControl>
-            <FormLabel>Repeat</FormLabel>
+            <FormLabel>{tr("Repeat")}</FormLabel>
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
               {REPEAT_KINDS.map((k) => (
                 <Button
@@ -106,7 +105,7 @@ export function ScheduleTab({
                   variant={form.kind === k ? 'solid' : 'outlined'}
                   onClick={() => onKindChange(k)}
                 >
-                  {SCHEDULE_KIND_LABELS[k]}
+                  {tr(SCHEDULE_KIND_LABELS[k])}
                 </Button>
               ))}
             </Stack>
@@ -114,7 +113,7 @@ export function ScheduleTab({
 
           {isOnce ? (
             <FormControl>
-              <FormLabel>Time</FormLabel>
+              <FormLabel>{tr("Time")}</FormLabel>
               <Input
                 type="time"
                 value={form.timesOfDay[0] ?? '08:00'}
@@ -123,7 +122,7 @@ export function ScheduleTab({
             </FormControl>
           ) : (
             <FormControl>
-              <FormLabel>Times of day</FormLabel>
+              <FormLabel>{tr("Times of day")}</FormLabel>
               <Stack spacing={1}>
                 {form.timesOfDay.map((time, index) => (
                   <Stack key={index} direction="row" spacing={1} alignItems="center">
@@ -154,21 +153,19 @@ export function ScheduleTab({
                     )}
                   </Stack>
                 ))}
-                <Button variant="outlined" size="sm" onClick={() => set('timesOfDay', [...form.timesOfDay, '12:00'])}>
-                  Add time
-                </Button>
+                <Button variant="outlined" size="sm" onClick={() => set('timesOfDay', [...form.timesOfDay, '12:00'])}>{tr("Add time")}</Button>
               </Stack>
             </FormControl>
           )}
 
           {needsDays && (
             <FormControl>
-              <FormLabel>Days of week</FormLabel>
+              <FormLabel>{tr("Days of week")}</FormLabel>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                 {DAY_NAMES.map((name, day) => (
                   <Checkbox
                     key={day}
-                    label={name}
+                    label={tr(name)}
                     checked={form.daysOfWeek.includes(day)}
                     onChange={(e) =>
                       set(
@@ -195,7 +192,7 @@ export function ScheduleTab({
 
           {needsInterval && (
             <FormControl>
-              <FormLabel>Every N days</FormLabel>
+              <FormLabel>{tr("Every N days")}</FormLabel>
               <Input
                 type="number"
                 value={form.everyNDays}
@@ -207,7 +204,7 @@ export function ScheduleTab({
 
           {canSkipWeekends && (
             <Checkbox
-              label="Skip weekends"
+              label={tr("Skip weekends")}
               checked={form.skipWeekends}
               onChange={(e) => set('skipWeekends', e.target.checked)}
             />
@@ -215,13 +212,13 @@ export function ScheduleTab({
 
           {isOnce ? (
             <FormControl>
-              <FormLabel>Date</FormLabel>
+              <FormLabel>{tr("Date")}</FormLabel>
               <Input type="date" value={form.startDate} onChange={(e) => set('startDate', e.target.value)} />
             </FormControl>
           ) : (
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
               <FormControl sx={{ flex: 1, minWidth: 0 }}>
-                <FormLabel>Start date</FormLabel>
+                <FormLabel>{tr("Start date")}</FormLabel>
                 <Input
                   type="date"
                   value={form.startDate}
@@ -230,7 +227,7 @@ export function ScheduleTab({
                 />
               </FormControl>
               <FormControl sx={{ flex: 1, minWidth: 0 }}>
-                <FormLabel>End date (optional)</FormLabel>
+                <FormLabel>{tr("End date (optional)")}</FormLabel>
                 <Input
                   type="date"
                   value={form.endDate}

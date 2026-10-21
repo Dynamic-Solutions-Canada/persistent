@@ -13,12 +13,14 @@
  * text belongs to the *reminder*, so a rename here is the definition changing — every
  * later firing says the new thing, and the notification body with it.
  */
+import { useTranslation, Trans } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import { useEffect, useRef, useState } from 'react'
 import Box from '@mui/joy/Box'
 import Button from '@mui/joy/Button'
 import Input from '@mui/joy/Input'
 import Typography from '@mui/joy/Typography'
-import { extractErrorMessage } from '@persistent/shared'
+import { extractErrorMessage } from '../localization/errorMessage.js'
 import { checklistItemTextSx } from './checklistItemTextSx.js'
 import { MAX_TODO_ITEM_TEXT } from '@persistent/shared'
 
@@ -38,6 +40,7 @@ export function TodoItemText({
   onRename?: (text: string, expectedText: string) => void | Promise<unknown>
   disabled?: boolean
 }) {
+  useTranslation()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(text)
   const baseline = useRef(text)
@@ -96,7 +99,7 @@ export function TodoItemText({
       <Box
         role="button"
         tabIndex={0}
-        aria-label={`Edit ${text}`}
+        aria-label={tr("Edit {{v0}}", { v0: text })}
         onClick={beginEditing}
         onKeyDown={(event) => {
           if (event.key === 'Enter' || event.key === ' ') {
@@ -147,16 +150,16 @@ export function TodoItemText({
         }}
         onBlur={() => { if (!saveError) void commit() }}
         slotProps={{
-          input: { ref: input, 'aria-label': `Edit ${text}`, maxLength: MAX_TODO_ITEM_TEXT, enterKeyHint: 'done' }
+          input: { ref: input, 'aria-label': tr('Edit {{text}}', { text }), maxLength: MAX_TODO_ITEM_TEXT, enterKeyHint: 'done' }
         }}
         sx={{ flex: 1, minWidth: 0 }}
       />
       {saveError && <Box>
-        <Typography level="body-xs" color="danger" role="alert">{saveError} Your draft is kept above.</Typography>
+        <Typography level="body-xs" color="danger" role="alert"><Trans i18nKey={"<v0/> Your draft is kept above."} components={{ v0: <>{saveError}</> }} /></Typography>
         <Button size="sm" variant="plain" color="neutral" onClick={() => {
           setDraft(text)
           setEditing(false)
-        }}>Cancel edit and show latest</Button>
+        }}>{tr("Cancel edit and show latest")}</Button>
       </Box>}
     </Box>
   )

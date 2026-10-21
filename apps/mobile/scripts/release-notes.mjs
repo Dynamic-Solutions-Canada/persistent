@@ -2,11 +2,10 @@
 /**
  * Build a release's "what's changed" from the commits in a tag range.
  *
- * These notes are shown verbatim in the in-app update prompt and, trimmed to
- * Play's 500-character cap, as the Play release's "what's new". They are the only
- * thing most users ever read about a release, and they are generated, so a bad
- * filter ships prose nobody can act on and the mistake is only visible once it is
- * public.
+ * These notes supply the GitHub release and the legacy English Play fallback.
+ * A version-bound store/releases/<version>.json takes precedence for localized
+ * Play notes in release.yml and play-notes.yml. Curated notes are validated as
+ * complete before publication instead of being silently truncated.
  *
  * This lives in a script rather than inline in `release.yml` because a second
  * caller now needs the identical answer: `play-notes.yml` regenerates the notes

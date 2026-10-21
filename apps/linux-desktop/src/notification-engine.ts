@@ -1,3 +1,4 @@
+import { nativeText } from './localization.js'
 /** Session-bound presentation and two-step confirmation; eligibility remains the server's decision. */
 import type { PresentedAlarm } from './projection.js'
 
@@ -7,7 +8,7 @@ export interface NotificationSurface {
   audio(active: boolean): void
   open(reminderId: string, snoozeOccurrenceId?: string): void
   write(id: string, action: 'ack' | 'silence'): Promise<boolean>
-  error(message: string): void
+  error(message: string, kind?: 'action' | 'delivery'): void
 }
 interface Tracked {
   alarm: PresentedAlarm
@@ -31,7 +32,7 @@ export class NotificationEngine {
     this.queue = this.queue.then(async () => {
       if (epoch === this.epoch) await operation()
     }).catch(() => { this.updateAudio()
-      this.surface.error('Linux notification delivery failed. Check the app log and notification service.') })
+      this.surface.error(nativeText('Linux notification delivery failed. Check the app log and notification service.'), 'delivery') })
     return this.queue
   }
 
@@ -132,7 +133,7 @@ export class NotificationEngine {
         this.updateAudio()
         await this.surface.close(entry.notificationId)
       } else if (!accepted) {
-        this.surface.error('The reminder action could not be confirmed. Open Persistent to check its current state.')
+        this.surface.error(nativeText('The reminder action could not be confirmed. Open Persistent to check its current state.'), 'action')
         await this.present(entry, false)
       }
       // Silence is refreshed from the server, never locally inferred into a soft reminder.
@@ -157,6 +158,13 @@ export class NotificationEngine {
     entry.notificationId = id
     entry.restoreAt = null
     if (audible || !entry.lastSoundAt) entry.lastSoundAt = this.now()
+  }
+
+  /** Reword actions in place without changing confirmation state or alerting again. */
+  refreshPresentation(): Promise<void> {
+    return this.enqueue(async () => {
+      for (const entry of this.entries.values()) await this.present(entry, false)
+    })
   }
 
   private updateAudio(): void {

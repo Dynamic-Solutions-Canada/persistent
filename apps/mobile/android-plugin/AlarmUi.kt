@@ -134,7 +134,7 @@ internal object AlarmUi {
     /** Small letter-spaced label that sits above the title (e.g. "REMINDER"). */
     fun kicker(context: Context, text: String): TextView =
         TextView(context).apply {
-            this.text = text
+            NativeText.bind(this, text)
             textSize = 13f
             applyAppearance(this) { setTextColor(it.kicker) }
             typeface = Typeface.DEFAULT_BOLD
@@ -161,6 +161,15 @@ internal object AlarmUi {
             setLineSpacing(dp(context, 3f).toFloat(), 1f)
             setPadding(0, dp(context, 12f), 0, 0)
         }
+
+    /** Application titles are bound separately from raw reminder titles. */
+    fun applicationTitle(context: Context, key: String): TextView = NativeText.bind(title(context, key), key)
+
+    /** User content stays literal; only an explicit server display marker is localized. */
+    fun reminderBody(context: Context, spec: AlarmSpec): TextView = NativeText.bindBody(body(context, spec.body), spec)
+
+    /** Application instructions are bound separately from raw reminder bodies. */
+    fun applicationBody(context: Context, key: String): TextView = NativeText.bind(body(context, key), key)
 
     enum class ButtonStyle { PRIMARY, DONE, SECONDARY, GHOST }
 
@@ -193,7 +202,7 @@ internal object AlarmUi {
         // pill — Button injects its own background/elevation/caps that fight the
         // GradientDrawable. This keeps the look identical across OEM skins.
         return TextView(context).apply {
-            text = label
+            NativeText.bind(this, label)
             isClickable = true
             isFocusable = true
             gravity = Gravity.CENTER
@@ -286,7 +295,7 @@ internal object AlarmUi {
         }
         labels.forEachIndexed { index, label ->
             val segment = TextView(context).apply {
-                text = label
+                NativeText.bind(this, label)
                 isClickable = true
                 isFocusable = true
                 gravity = Gravity.CENTER

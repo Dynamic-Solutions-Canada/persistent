@@ -11,6 +11,8 @@
  * back to the device setting — a choice made on a phone should not be invisible and
  * unremovable everywhere else.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../../localization/i18n.js'
 import Stack from '@mui/joy/Stack'
 import Typography from '@mui/joy/Typography'
 import FormControl from '@mui/joy/FormControl'
@@ -28,6 +30,7 @@ export function ReminderSoundsField({
   form: FormState
   set: <K extends keyof FormState>(key: K, value: FormState[K]) => void
 }) {
+  useTranslation()
   const { alarmSound, notificationSound, nagSound } = useSettings()
 
   function setSound(kind: ReminderSoundKind, choice: SoundChoice | null) {
@@ -49,8 +52,8 @@ export function ReminderSoundsField({
     const chosen = form.sounds[kind]
     return (
       <SoundPickerRow
-        label={label}
-        value={chosen ? chosen.title : `This device: ${deviceTone.uri ? deviceTone.title : (deviceFallback ?? deviceTone.title)}`}
+        label={tr(label)}
+        value={chosen ? chosen.title : tr('This device: {{tone}}', { tone: deviceTone.uri ? deviceTone.title : (deviceFallback ?? tr('Default')) })}
         onChoose={isNative() ? () => void choose(kind) : undefined}
         onClear={chosen ? () => setSound(kind, null) : undefined}
       />
@@ -59,16 +62,16 @@ export function ReminderSoundsField({
 
   return (
     <FormControl>
-      <FormLabel>Sound</FormLabel>
+      <FormLabel>{tr("Sound")}</FormLabel>
       <Stack spacing={1.5} sx={{ width: '100%' }}>
         {soft && row('notification', 'Notification sound', notificationSound)}
         {soft && form.soundIntervalMinutes > 0 &&
-          row('nag', 'Nag sound', nagSound, `same as notification (${notificationSound.title})`)}
+          row('nag', 'Nag sound', nagSound, tr("same as notification ({{v0}})", { v0: notificationSound.title }))}
         {rings && row('alarm', 'Alarm sound', alarmSound)}
         <Typography level="body-xs">
           {isNative()
-            ? 'Android only: overrides this device’s sound for this reminder alone. A device that doesn’t have the tone falls back to its own.'
-            : 'Android only. Tones are picked in the Android app; a device that doesn’t have the tone falls back to its own.'}
+            ? tr("Android only: overrides this device’s sound for this reminder alone. A device that doesn’t have the tone falls back to its own.")
+            : tr("Android only. Tones are picked in the Android app; a device that doesn’t have the tone falls back to its own.")}
         </Typography>
       </Stack>
     </FormControl>

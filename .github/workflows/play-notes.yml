@@ -8,7 +8,8 @@ name: play-notes
 # Fixing that in the Console leaves no record of what changed or why, and no way to
 # tell whether it matches what the release workflow would produce today.
 #
-# So this regenerates the notes with the same script `release.yml` uses, against the
+# Version-bound curated translations take precedence when present. Otherwise this
+# regenerates notes with the same script `release.yml` uses, against the
 # same tag, and writes them to the tracks that carry that build. Nothing else about
 # the release is touched, including a staged rollout's fraction.
 #
@@ -58,9 +59,16 @@ jobs:
       - name: Write them to production
         working-directory: apps/mobile
         env:
+          RELEASE_TAG: ${{ inputs.tag }}
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
+          VERSION_NAME="${RELEASE_TAG#v}"
+          NOTES_ARGS=(--notes ../../RELEASE_NOTES.md)
+          if [ -f "store/releases/$VERSION_NAME.json" ]; then
+            NOTES_ARGS=(--localized-notes "store/releases/$VERSION_NAME.json")
+          fi
           node scripts/play-publish.mjs --set-notes \
             --version-code '${{ inputs.version_code }}' \
             --tracks production \
-            --notes ../../RELEASE_NOTES.md
+            --version-name "$VERSION_NAME" \
+            "${NOTES_ARGS[@]}"

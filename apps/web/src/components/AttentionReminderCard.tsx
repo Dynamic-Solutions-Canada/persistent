@@ -1,4 +1,5 @@
 /** A due reminder preview. All actions live in its reading dialog. */
+import { useTranslation, Trans } from 'react-i18next'
 import Typography from '@mui/joy/Typography'
 import SnoozeIcon from '@mui/icons-material/Snooze'
 import type { Occurrence, Reminder } from '@persistent/shared'
@@ -16,6 +17,7 @@ export function AttentionReminderCard({ reminder, occurrence, timeFormat, timeZo
   timeZone?: string
   received?: boolean
 }) {
+  useTranslation()
   const dialogs = useReminderDialogs()
   const { color, variant } = firingTone(reminder, occurrence)
   return (
@@ -29,9 +31,7 @@ export function AttentionReminderCard({ reminder, occurrence, timeFormat, timeZo
       checkedItemIds={occurrence.checkedItemIds}
       when={formatWhen(occurrence.scheduledFor, timeFormat, timeZone)}
       afterWhen={occurrence.status === 'SNOOZED' && occurrence.snoozedUntil ? (
-        <Typography level="body-xs" color="primary" startDecorator={<SnoozeIcon sx={{ fontSize: 14 }} />}>
-          Snoozed until {formatWhen(occurrence.snoozedUntil, timeFormat, timeZone)}
-        </Typography>
+        <Typography level="body-xs" color="primary" startDecorator={<SnoozeIcon sx={{ fontSize: 14 }} />}><Trans i18nKey={"Snoozed until <v0/>"} components={{ v0: <>{formatWhen(occurrence.snoozedUntil, timeFormat, timeZone)}</> }} /></Typography>
       ) : undefined}
     />
   )

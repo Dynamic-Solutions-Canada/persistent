@@ -1,3 +1,4 @@
+import { applyNativeLocale, initializeNativeText, nativeLocale, nativeText, onNativeLocaleChanged } from './localization.js'
 /** Linux resident host. Native delivery consumes shared server projections; the hosted app owns management. */
 import { app, dialog, ipcMain, Menu, net, powerMonitor, session, shell } from 'electron'
 import { appendFileSync, existsSync, mkdirSync, renameSync, statSync } from 'node:fs'
@@ -50,7 +51,7 @@ if (process.platform !== 'linux') {
   console.error('This application is the Linux host. Use apps/desktop for Windows.')
   app.exit(1)
 } else if (!app.requestSingleInstanceLock()) {
-  if (process.argv.includes('--install')) dialog.showErrorBox('Persistent is running', 'Quit Persistent before running the AppImage installer.')
+  if (process.argv.includes('--install')) dialog.showErrorBox(nativeText("Persistent is running"), nativeText("Quit Persistent before running the AppImage installer."))
   app.exit(0)
 } else {
   process.on('SIGTERM', () => app.quit())
@@ -66,7 +67,7 @@ if (process.platform !== 'linux') {
   })
   void app.whenReady().then(start).catch((error: unknown) => {
     log('Linux host startup failed', error)
-    dialog.showErrorBox('Persistent could not start', 'The Linux host could not initialize. Check its log folder under persistent-linux in your user configuration directory.')
+    dialog.showErrorBox(nativeText("Persistent could not start"), nativeText("The Linux host could not initialize. Check its log folder under persistent-linux in your user configuration directory."))
     quitting = true
     app.quit()
   })
@@ -82,6 +83,7 @@ async function start(): Promise<void> {
     return
   }
   const store = new SettingsStore(app.getPath('userData'), log)
+  initializeNativeText(store.current.locale, app.getPreferredSystemLanguages())
   const profile = session.fromPartition('persist:persistent')
   const authentication = new ProfileSession(profile.cookies, () => store.current.server, log)
   // The PWA deliberately has no notification channel. No remote page receives OS permissions through this host.
@@ -137,15 +139,15 @@ async function start(): Promise<void> {
     close: (id) => notifications.close(id), audio: (active) => recovery.setAudio(active),
     open: (reminderId, occurrenceId) => window.openReminder(reminderId, occurrenceId),
     write: (id, action) => client.write(id, action),
-    error: (message) => {
+    error: (message, kind) => {
       log(message)
-      if (message.startsWith('The reminder action')) void dialog.showMessageBox(window.window, { type: 'warning', title: 'Check reminder action', message })
+      if (kind === 'action') void dialog.showMessageBox(window.window, { type: 'warning', title: nativeText("Check reminder action"), message })
     }
   })
   const client = new BackgroundClient({
     origin: () => store.current.server,
     cookie: () => authentication.cookieHeader(),
-    request: (path, init) => profile.fetch(new URL(path, store.current.server).href, { ...init, credentials: 'include', redirect: 'error', cache: 'no-store' }),
+    request: (path, init) => profile.fetch(new URL(path, store.current.server).href, { ...init, headers: { ...init.headers, 'X-Persistent-Locale': nativeLocale() }, credentials: 'include', redirect: 'error', cache: 'no-store' }),
     log
   }, engine)
   notifications.onAction = (id, action) => { void engine.action(id, action) }
@@ -178,7 +180,7 @@ async function start(): Promise<void> {
     } catch (error) {
       client.stop()
       log('Linux notification registration failed', error)
-      dialog.showErrorBox('Linux notifications unavailable', 'Persistent needs a working desktop notification service with action support. Notifications remain off. Check your desktop session and app log, then try again.')
+      dialog.showErrorBox(nativeText("Linux notifications unavailable"), nativeText("Persistent needs a working desktop notification service with action support. Notifications remain off. Check your desktop session and app log, then try again."))
       return false
     }
   }
@@ -187,7 +189,7 @@ async function start(): Promise<void> {
   ipcMain.on('persistent:host', (event, message: unknown) => {
     if (event.sender !== window.webContents || event.senderFrame !== event.sender.mainFrame || !window.trusted(event.senderFrame?.url ?? '')) return
     if (typeof message !== 'object' || message === null) return
-    const raw = message as { type?: string; settings?: unknown; mode?: string; background?: string }
+    const raw = message as { type?: string; settings?: unknown; locale?: unknown; mode?: string; background?: string }
     if (raw.type === 'signedOut') {
       client.sessionChanged(true)
       window.clearPending()
@@ -208,6 +210,11 @@ async function start(): Promise<void> {
         case 'openHostSettings': recovery.open(); return
         case 'close': window.hide(); return
         case 'signedOut': client.sessionChanged(true); window.clearPending(); return
+        case 'locale': {
+          const locale = applyNativeLocale(raw.locale)
+          if (locale) store.save({ ...store.current, locale })
+          return
+        }
         case 'appearance':
           if (typeof raw.background === 'string' && typeof raw.mode === 'string') window.appearance(raw.mode, raw.background)
           return
@@ -222,16 +229,23 @@ async function start(): Promise<void> {
     }
   })
   powerMonitor.on('resume', () => { client.resume(); window.send({ type: 'checkForUpdate' }) })
-  const menu = Menu.buildFromTemplate([
-    { label: 'Open Persistent', click: () => window.show(tray.getBounds()) },
-    { label: 'Open in browser', click: () => { void shell.openExternal(store.current.server).catch((error: unknown) => log('Browser could not open', error)) } },
+  const buildMenu = () => Menu.buildFromTemplate([
+    { label: nativeText('Open Persistent'), click: () => window.show(tray.getBounds()) },
+    { label: nativeText('Open in browser'), click: () => { void shell.openExternal(store.current.server).catch((error: unknown) => log('Browser could not open', error)) } },
     { type: 'separator' },
-    { label: 'Reload', click: () => { void window.load() } },
-    { label: 'Settings', click: () => recovery.open() },
+    { label: nativeText('Reload'), click: () => { void window.load() } },
+    { label: nativeText('Settings'), click: () => recovery.open() },
     { type: 'separator' },
-    { label: 'Exit', click: () => app.quit() }
+    { label: nativeText('Exit'), click: () => app.quit() }
   ])
-  const tray = new ResidentTray(icon, menu, (bounds) => window.toggle(bounds), log)
+  const tray = new ResidentTray(icon, buildMenu(), (bounds) => window.toggle(bounds), log)
+  onNativeLocaleChanged(() => {
+    tray.setMenu(buildMenu())
+    window.syncChrome()
+    recovery.syncLocale()
+    void engine.refreshPresentation()
+    client.resume()
+  })
   Menu.setApplicationMenu(null)
   shutdown = async () => {
     updater.stop()

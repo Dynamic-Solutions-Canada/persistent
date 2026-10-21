@@ -1,3 +1,4 @@
+using Persistent.Localization;
 using Microsoft.UI.Xaml;
 using Persistent.Desktop.Classes;
 using Persistent.Desktop.Classes.Settings;
@@ -120,8 +121,7 @@ public sealed partial class MainWindow : Window
         int err = Marshal.GetLastWin32Error();
         Logger.Warn("Shell_NotifyIcon(NIM_ADD) failed (Win32 {Error}) - falling back to the flyout", err);
         Classes.StartupDiagnostics.Warn(
-            $"Persistent could not add its notification-area icon (Windows error {err}).\n\n" +
-            "The app is running and its window will open now, but you won't have a tray icon this session.");
+            UiText.Format("startup.tray-unavailable", ("error", err)));
         App.MainDispatcherQueue.TryEnqueue(AppFlyout.Show);
     }
 
@@ -222,13 +222,13 @@ public sealed partial class MainWindow : Window
     {
         IntPtr menu = CreatePopupMenu();
 
-        AppendMenu(menu, MF_STRING, CmdOpen, "Open Persistent");
-        AppendMenu(menu, MF_STRING, CmdBrowser, "Open in browser");
+        AppendMenu(menu, MF_STRING, CmdOpen, UiText.Get("Open Persistent"));
+        AppendMenu(menu, MF_STRING, CmdBrowser, UiText.Get("Open in browser"));
         AppendMenu(menu, MF_SEPARATOR, 0, null);
-        AppendMenu(menu, MF_STRING, CmdReload, "Reload");
-        AppendMenu(menu, MF_STRING, CmdSettings, "Settings");
+        AppendMenu(menu, MF_STRING, CmdReload, UiText.Get("Reload"));
+        AppendMenu(menu, MF_STRING, CmdSettings, UiText.Get("Settings"));
         AppendMenu(menu, MF_SEPARATOR, 0, null);
-        AppendMenu(menu, MF_STRING, CmdExit, "Exit");
+        AppendMenu(menu, MF_STRING, CmdExit, UiText.Get("Exit"));
 
         GetCursorPos(out var pt);
         SetForegroundWindow(_hwnd); // required so the menu dismisses on outside click

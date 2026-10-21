@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 /**
  * Icons for a reminder's type and an occurrence's status (doneness / snoozed /
  * escalated). Centralized so the mapping stays consistent wherever
@@ -49,6 +51,7 @@ export function TypeIcon({
   /** Explicit pixel size; overrides fontSize when set. */
   size?: number
 }) {
+  useTranslation()
   const Icon = lookup(TYPE_ICON, type, NotificationsNoneIcon)
   // aria-label (not titleAccess) so no <title> text leaks into e.g. Select values.
   return (
@@ -77,8 +80,9 @@ const STATUS_TITLE: Record<OccurrenceStatus, string> = {
 }
 
 export function StatusIcon({ status, fontSize = 'small' }: { status: OccurrenceStatus; fontSize?: IconSize }) {
+  useTranslation()
   const Icon = lookup(STATUS_ICON, status, NotificationsActiveIcon)
-  return <Icon fontSize={fontSize} role="img" aria-label={lookup(STATUS_TITLE, status, status)} />
+  return <Icon fontSize={fontSize} role="img" aria-label={tr(lookup(STATUS_TITLE, status, status))} />
 }
 
 const STATUS_COLOR: Record<OccurrenceStatus, ColorPaletteProp> = {
@@ -93,6 +97,7 @@ const STATUS_COLOR: Record<OccurrenceStatus, ColorPaletteProp> = {
 
 /** A colored, labeled status chip (e.g. green "Done", red "Missed") for list rows. */
 export function StatusChip({ status }: { status: OccurrenceStatus }) {
+  useTranslation()
   const Icon = lookup(STATUS_ICON, status, NotificationsActiveIcon)
   return (
     <Chip
@@ -101,7 +106,7 @@ export function StatusChip({ status }: { status: OccurrenceStatus }) {
       color={lookup(STATUS_COLOR, status, 'neutral')}
       startDecorator={<Icon sx={{ fontSize: 16 }} />}
     >
-      {lookup(STATUS_TITLE, status, status)}
+      {tr(lookup(STATUS_TITLE, status, status))}
     </Chip>
   )
 }

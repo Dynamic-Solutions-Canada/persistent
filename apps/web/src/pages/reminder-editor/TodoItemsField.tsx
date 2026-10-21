@@ -32,6 +32,8 @@
  * `useDragReorder`), which also takes Up/Down when focused so the list stays
  * reorderable by keyboard.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../../localization/i18n.js'
 import { useEffect, useRef, useState } from 'react'
 import Stack from '@mui/joy/Stack'
 import Box from '@mui/joy/Box'
@@ -78,6 +80,7 @@ export function TodoItemsField({
   onMove: (from: number, to: number) => void
   onRemove: (index: number) => void
 }) {
+  useTranslation()
   // Keyed by item id, not index: reordering moves rows around, and an
   // index-keyed ref would focus whichever row happens to sit there afterwards.
   const inputs = useRef(new Map<string, HTMLInputElement | null>())
@@ -106,9 +109,7 @@ export function TodoItemsField({
 
   return (
     <Box role="group" aria-labelledby={labelId}>
-      <FormLabel id={labelId} sx={{ mb: 0.75 }}>
-        Checklist
-      </FormLabel>
+      <FormLabel id={labelId} sx={{ mb: 0.75 }}>{tr("Checklist")}</FormLabel>
       <Stack spacing={1} ref={listRef} {...listProps}>
         {todos.map((item, index) => (
           <Stack
@@ -141,7 +142,7 @@ export function TodoItemsField({
                 {...handleProps(index)}
                 tabIndex={0}
                 role="button"
-                aria-label={`Reorder ${item.text || `item ${index + 1}`}. Use the up and down arrow keys to move it.`}
+                aria-label={tr("Reorder {{v0}}. Use the up and down arrow keys to move it.", { v0: item.text || `item ${index + 1}` })}
                 sx={{
                   opacity: 0,
                   transition: 'opacity 150ms ease',
@@ -166,7 +167,7 @@ export function TodoItemsField({
                 size="md"
                 checked={checkedIds.has(item.id)}
                 onChange={(event) => onToggle(item.id, event.target.checked)}
-                aria-label={item.text || `Item ${index + 1}`}
+                aria-label={item.text || tr("Item {{v0}}", { v0: index + 1 })}
                 sx={{ ...checklistCheckboxSx, p: 0.5, flexShrink: 0, borderRadius: 'sm', '&:hover': { bgcolor: 'background.level1' } }}
               />
             )}
@@ -174,8 +175,8 @@ export function TodoItemsField({
               sx={{ flex: 1, minWidth: 0 }}
               // Its own name: the group's label names the set, not the row, and a
               // placeholder is not an accessible name (it vanishes once typing starts).
-              aria-label={`Checklist item ${index + 1}`}
-              placeholder={index === 0 ? 'First thing to do' : 'Next item'}
+              aria-label={tr("Checklist item {{v0}}", { v0: index + 1 })}
+              placeholder={index === 0 ? tr("First thing to do") : tr("Next item")}
               value={item.text}
               slotProps={{
                 input: {
@@ -199,7 +200,7 @@ export function TodoItemsField({
                 size="sm"
                 variant="plain"
                 color="danger"
-                aria-label={`Remove ${item.text || `item ${index + 1}`}`}
+                aria-label={tr("Remove {{v0}}", { v0: item.text || `item ${index + 1}` })}
                 onClick={() => onRemove(index)}
                 sx={{ opacity: 0, transition: 'opacity 150ms ease' }}
               >
@@ -210,9 +211,7 @@ export function TodoItemsField({
         {/* The draft row appears above its persistent Add button. Enter inside an
             existing row still inserts below that row for keyboard list entry. */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Button variant="plain" color="neutral" size="sm" startDecorator={<AddIcon />} onClick={() => insertAt(todos.length)}>
-            Add item
-          </Button>
+          <Button variant="plain" color="neutral" size="sm" startDecorator={<AddIcon />} onClick={() => insertAt(todos.length)}>{tr("Add item")}</Button>
         </Box>
       </Stack>
     </Box>

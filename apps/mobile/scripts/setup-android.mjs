@@ -39,6 +39,13 @@ if (!existsSync(join(mobileRoot, 'android'))) {
   fail("No android/ project found. Run `npx cap add android` first (needs the Android SDK).")
 }
 
+// Shared JSON catalogs are the source for every runtime; never translate generated android/ files.
+const localizationAssets = join(androidApp, 'assets', 'localization')
+mkdirSync(localizationAssets, { recursive: true })
+for (const file of readdirSync(join(mobileRoot, '../../packages/shared/src/messages')).filter((name) => name.endsWith('.json'))) {
+  copyFileSync(join(mobileRoot, '../../packages/shared/src/messages', file), join(localizationAssets, file))
+}
+
 // --- 1. Copy the Kotlin sources ---------------------------------------------
 // Most sources are shared. The exceptions belong to the `direct` flavor's source set
 // rather than main (see step 1b), each because Google Play would object to it:
@@ -262,6 +269,23 @@ if (manifest.includes('android:allowBackup=')) {
 } else {
   manifest = manifest.replace(/<application\b/, '<application android:allowBackup="false"')
 }
+
+// Explicit catalog declaration avoids advertising unrelated dependency resource languages.
+manifest = manifest.replace(/android:localeConfig="[^"]*"/g, '')
+manifest = manifest.replace(/<application\b/, '<application android:localeConfig="@xml/locale_config"')
+// Keep the live hosted editor mounted when the system per-app language changes.
+manifest = manifest.replace(/android:configChanges="([^"]*)"/g, (_match, flags) => {
+  const values = [...new Set([...flags.split('|'), 'locale', 'layoutDirection'])]
+  return `android:configChanges="${values.join('|')}"`
+})
+const localeConfigDir = join(androidApp, 'res', 'xml')
+mkdirSync(localeConfigDir, { recursive: true })
+const localeIds = ['en-US', 'en-CA', 'es-ES', 'fr-FR', 'fr-CA', 'de-DE', 'zh-CN', 'pt-BR', 'ja-JP']
+writeFileSync(join(localeConfigDir, 'locale_config.xml'), `<?xml version="1.0" encoding="utf-8"?>
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+${localeIds.map(locale => `    <locale android:name="${locale}" />`).join('\n')}
+</locale-config>
+`)
 
 writeFileSync(manifestPath, manifest)
 console.log('[setup-android] merged permissions + components into AndroidManifest.xml')

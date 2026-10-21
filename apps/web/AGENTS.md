@@ -229,3 +229,5 @@
   (not raw Joy `Modal`) so Android/browser Back closes the top dialog and dialogs
   don't linger in history. Pages are routes (Back navigates normally).
 - `verbatimModuleSyntax` is on: use `import type` for type-only imports.
+
+- Application copy uses the established localization module and canonical shared catalogs. Translate display text and accessibility labels, preserving form values, IDs, routes, medicine content and stable duration-unit keys. Device language/region preferences stay separate from account time zone, explicit clock choice and account email language; see `docs/localization.md` at the root.

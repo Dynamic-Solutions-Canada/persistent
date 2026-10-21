@@ -1,3 +1,4 @@
+import { tr } from '../localization/i18n.js'
 /** Curated doodle ink colors, restricted to pale or dark shades by the active theme. */
 import type { AppTheme } from './themes.js'
 
@@ -28,12 +29,11 @@ export function readDoodleColor(value: unknown): DoodleColorId {
 
 /** Offer only the shades appropriate to the theme; ids keep the hue across mode changes. */
 export function doodleColorOptions(theme: AppTheme): Array<{ id: DoodleColorId; name: string; color: string }> {
-  const shade = theme.mode === 'light' ? 'Light' : 'Dark'
   return [
     { id: 'theme', name: 'Match theme', color: theme.doodleColor },
     ...DOODLE_COLORS.map((color) => ({
       id: color.id,
-      name: `${shade} ${color.name}`,
+      name: tr(`doodle.${theme.mode}.${color.id}`),
       color: color[theme.mode]
     }))
   ]

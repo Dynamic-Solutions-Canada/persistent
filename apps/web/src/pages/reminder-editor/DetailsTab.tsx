@@ -1,3 +1,4 @@
+import { localizeInvalidInput, clearInputValidity } from '../../localization/inputValidation.js'
 /**
  * Details tab: title, the reminder's type, and then the body that type calls for.
  *
@@ -13,6 +14,8 @@
  * read it or change something further down, and on a phone the keyboard would
  * cover most of what the user came to see.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../../localization/i18n.js'
 import Stack from '@mui/joy/Stack'
 import FormControl from '@mui/joy/FormControl'
 import FormLabel from '@mui/joy/FormLabel'
@@ -59,22 +62,23 @@ export function DetailsTab({
   onMoveTodo: (index: number, delta: number) => void
   onRemoveTodo: (index: number) => void
 }) {
+  useTranslation()
   return (
     <Stack spacing={2}>
       <FormControl required>
-        <FormLabel>Title</FormLabel>
-        <Input value={form.title} onChange={(e) => set('title', e.target.value)} autoFocus={autoFocusTitle} />
+        <FormLabel>{tr("Title")}</FormLabel>
+        <Input slotProps={{ input: { onInvalid: localizeInvalidInput, onInput: clearInputValidity } }} value={form.title} onChange={(e) => set('title', e.target.value)} autoFocus={autoFocusTitle} />
       </FormControl>
 
       <FormControl>
-        <FormLabel>Type</FormLabel>
+        <FormLabel>{tr("Type")}</FormLabel>
         <Select
           value={form.type}
           onChange={(_e, value) => value && onTypeChange(value)}
           startDecorator={<TypeIcon type={form.type} />}
         >
           {selectableReminderTypes.map((type) => (
-            <Option key={type} value={type}>
+            <Option key={type} value={type} label={reminderTypeLabel(type)}>
               <TypeIcon type={type} />
               {reminderTypeLabel(type)}
             </Option>
@@ -94,7 +98,7 @@ export function DetailsTab({
         />
       ) : (
         <FormControl>
-          <FormLabel>Details</FormLabel>
+          <FormLabel>{tr("Details")}</FormLabel>
           <Textarea minRows={2} value={form.details} onChange={(e) => set('details', e.target.value)} />
         </FormControl>
       )}

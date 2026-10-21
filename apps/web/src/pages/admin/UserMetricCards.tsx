@@ -1,4 +1,7 @@
+import { formatNumber } from '../../lib/format.js'
 /** Shared loaded/loading layout for account totals, keeping the admin dashboard stable during refreshes. */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../../localization/i18n.js'
 import Box from '@mui/joy/Box'
 import Card from '@mui/joy/Card'
 import Skeleton from '@mui/joy/Skeleton'
@@ -11,6 +14,7 @@ export function UserMetricCards({ users, activeDays, loading }: {
   activeDays: 7 | 30
   loading: boolean
 }) {
+  useTranslation()
   const metrics = [
     ['Registered users', users?.total],
     [`Active (${activeDays} days)`, users?.active],
@@ -23,12 +27,12 @@ export function UserMetricCards({ users, activeDays, loading }: {
   ] as const
 
   return (
-    <Box aria-label="User metrics" aria-busy={loading}
+    <Box aria-label={tr("User metrics")} aria-busy={loading}
       sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 1.5 }}>
       {metrics.map(([label, count]) => <Card key={label} variant="outlined">
-        <Typography level="body-sm">{label}</Typography>
+        <Typography level="body-sm">{tr(label)}</Typography>
         <Typography level="h3" aria-hidden={loading}>
-          <Skeleton loading={loading} variant="inline">{count?.toLocaleString('en-CA') ?? '0'}</Skeleton>
+          <Skeleton loading={loading} variant="inline">{formatNumber((count ?? 0)) ?? '0'}</Skeleton>
         </Typography>
       </Card>)}
     </Box>

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "versionName": "0.29.0",
+  "locales": {
+    "en-US": {
+      "text": "Choose from nine language and locale options, with separate date, clock and email preferences. Shared members get the usual reminder controls. Undo a completed reminder and keep checklist drafts while editing. Concurrent edits now warn about conflicts instead of overwriting someone else’s changes."
+    },
+    "es-ES": {
+      "text": "Elige entre nueve opciones de idioma y región, con preferencias separadas para fechas, reloj y correo. Los miembros de recordatorios compartidos disponen de los controles habituales. Deshaz una finalización y conserva los borradores de listas al editar. Los cambios simultáneos avisan de conflictos en vez de sobrescribir los cambios de otra persona."
+    },
+    "fr-FR": {
+      "text": "Choisissez parmi neuf langues et variantes régionales, avec des préférences distinctes pour les dates, l’heure et les e-mails. Les membres des rappels partagés disposent des commandes habituelles. Annulez une validation et conservez vos brouillons de listes pendant la modification. Les modifications simultanées signalent les conflits au lieu d’écraser les changements d’une autre personne."
+    },
+    "de-DE": {
+      "text": "Neun Sprach- und Regionsoptionen mit getrennten Einstellungen für Datum, Uhrzeit und E-Mails. Mitglieder geteilter Erinnerungen erhalten die üblichen Bedienelemente. Erledigte Erinnerungen lassen sich wiederherstellen; Checklistenentwürfe bleiben beim Bearbeiten erhalten. Gleichzeitige Änderungen melden Konflikte, statt die Änderungen anderer zu überschreiben."
+    },
+    "zh-CN": {
+      "text": "新增九种语言和地区选项，日期、时钟和邮件偏好可分别设置。共享成员可使用常用的提醒控件。支持撤销完成，并在编辑时保留清单草稿。同时编辑发生冲突时会提示，而不会覆盖他人的更改。"
+    },
+    "pt-BR": {
+      "text": "Escolha entre nove opções de idioma e região, com preferências separadas para datas, relógio e e-mails. Membros de lembretes compartilhados têm os controles habituais. Desfaça uma conclusão e preserve rascunhos de listas durante a edição. Edições simultâneas agora avisam sobre conflitos em vez de sobrescrever as alterações de outra pessoa."
+    },
+    "ja-JP": {
+      "text": "9種類の言語・地域設定に対応。日付、時計、メールの設定を個別に選べます。共有メンバーも通常のリマインダー操作を使えます。完了の取り消しや、編集中のチェックリスト下書きの保持に対応。同時編集で競合した場合は、相手の変更を上書きせずにお知らせします。"
+    },
+    "en-CA": {
+      "copyFrom": "en-US"
+    },
+    "fr-CA": {
+      "copyFrom": "fr-FR"
+    }
+  }
+}

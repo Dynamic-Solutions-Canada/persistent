@@ -46,6 +46,9 @@ export class ResidentTray {
     }
   }
 
+  /** Replace only menu wording; tray identity, activation and positioning stay intact. */
+  setMenu(menu: Menu): void { this.menu = menu; this.tray.setContextMenu(menu) }
+
   getBounds(): Rectangle { return this.tray.getBounds() }
 
   destroy(): void {

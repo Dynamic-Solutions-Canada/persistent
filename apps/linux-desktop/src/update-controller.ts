@@ -1,3 +1,4 @@
+import { nativeText } from './localization.js'
 /** Automatic checks and manual actions share one prompt-gated, cancellation-safe updater. */
 import type { LinuxUpdate } from './release-check.js'
 
@@ -31,7 +32,7 @@ export class UpdateController {
   private periodic: ReturnType<typeof setInterval> | null = null
 
   constructor(private options: UpdateOptions) {
-    this.state = { phase: 'idle', message: 'Downloads and installation require your approval.', automatic: options.automatic, downloaded: false }
+    this.state = { phase: 'idle', message: nativeText("Downloads and installation require your approval."), automatic: options.automatic, downloaded: false }
   }
 
   snapshot(): UpdateState { return { ...this.state } }
@@ -56,7 +57,7 @@ export class UpdateController {
       catch (error) {
         if (this.stopped) return
         this.options.log('Linux update operation failed', error)
-        this.publish('error', error instanceof Error ? error.message : 'The update could not be completed.')
+        this.publish('error', error instanceof Error ? error.message : nativeText("The update could not be completed."))
       }
     })().finally(() => { this.operation = null })
     return this.operation
@@ -73,12 +74,12 @@ export class UpdateController {
     if (!manual && !this.state.automatic) return this.snapshot()
     await this.run(async () => {
       if (this.file) return
-      this.publish('checking', 'Checking for Linux updates...')
+      this.publish('checking', nativeText("Checking for Linux updates..."))
       const update = await this.options.find()
       if (this.stopped) return
       this.update = update
-      if (!update) { this.publish('idle', 'No newer Linux update is available for this installation.'); return }
-      this.publish('available', `Version ${update.version} is available.`)
+      if (!update) { this.publish('idle', nativeText("No newer Linux update is available for this installation.")); return }
+      this.publish('available', nativeText("Version {{v0}} is available.", { v0: update.version }))
       if (!manual && !this.state.automatic) return
       if (manual || this.offered !== update.version) {
         this.offered = update.version
@@ -92,13 +93,13 @@ export class UpdateController {
   private async downloadApproved(): Promise<void> {
     const update = this.update
     if (!update || this.file || !await this.options.confirm('download', update.version) || this.stopped) return
-    this.publish('downloading', `Downloading version ${update.version}...`, 0)
+    this.publish('downloading', nativeText("Downloading version {{v0}}...", { v0: update.version }), 0)
     const file = await this.options.download(update, this.abort.signal, (percent) => {
-      this.publish('downloading', `Downloading version ${update.version}: ${percent}%`, percent)
+      this.publish('downloading', nativeText("Downloading version {{v0}}: {{v1}}%", { v0: update.version, v1: percent }), percent)
     })
     if (this.stopped) return
     this.file = file
-    this.publish('ready', `Version ${update.version} is ready to install.`)
+    this.publish('ready', nativeText("Version {{v0}} is ready to install.", { v0: update.version }))
     await this.installApproved()
   }
 
@@ -112,7 +113,7 @@ export class UpdateController {
     const update = this.update
     const file = this.file
     if (!update || !file || !await this.options.confirm('install', update.version) || this.stopped) return
-    this.publish('installing', `Installing version ${update.version}...`)
+    this.publish('installing', nativeText("Installing version {{v0}}...", { v0: update.version }))
     await this.options.install(file, update)
   }
 

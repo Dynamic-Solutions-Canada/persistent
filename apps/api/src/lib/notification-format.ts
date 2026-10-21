@@ -4,7 +4,7 @@
  * body formatter with the web client via @persistent/shared.
  */
 import type { Reminder } from '@prisma/client'
-import { reminderBodyText, type TypeData, type ReminderType } from '@persistent/shared'
+import { message, type Locale, reminderBodyText, type TypeData, type ReminderType } from '@persistent/shared'
 
 export function notificationTitle(reminder: Pick<Reminder, 'title'>): string {
   return reminder.title
@@ -40,10 +40,11 @@ export function notificationBody(
  */
 export function escalationEmailText(
   reminder: Pick<Reminder, 'title' | 'details' | 'type' | 'typeData' | 'escalateEmailMessage'>,
-  checkedItemIds: readonly string[] = []
+  checkedItemIds: readonly string[] = [],
+  locale: Locale = 'en-US'
 ): string {
-  const message =
-    reminder.escalateEmailMessage?.trim() || `The reminder "${reminder.title}" is overdue and hasn't been confirmed.`
+  const covering =
+    reminder.escalateEmailMessage?.trim() || message(locale, "The reminder \"{{title}}\" is overdue and hasn't been confirmed.", { title: reminder.title })
   const body = notificationBody(reminder, checkedItemIds)
-  return body ? `${message}\n\n${body}` : message
+  return body ? `${covering}\n\n${body}` : covering
 }

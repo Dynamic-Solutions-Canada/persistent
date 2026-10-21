@@ -5,6 +5,8 @@
  * single-use, expire quickly, and are rate-limited per email. In demo mode the
  * cleartext code is returned to the caller instead of emailed.
  */
+import type { Locale } from '@persistent/shared'
+import { buildVerificationEmail } from './verification-email.js'
 import crypto from 'node:crypto'
 import { prisma } from './prisma.js'
 import { demoMode } from './env.js'
@@ -33,7 +35,7 @@ function hashCode(email: string, code: string): string {
   return crypto.createHash('sha256').update(`${email}:${code}`).digest('base64url')
 }
 
-export async function issueEmailCode(email: string): Promise<IssueResult> {
+export async function issueEmailCode(email: string, locale: Locale = 'en-US'): Promise<IssueResult> {
   const since = new Date(Date.now() - RATE_WINDOW_MS)
   const recent = await prisma.emailCode.count({ where: { email, createdAt: { gte: since } } })
   if (recent >= MAX_CODES_PER_WINDOW) {
@@ -53,9 +55,7 @@ export async function issueEmailCode(email: string): Promise<IssueResult> {
 
   await sendCloudflareEmail({
     to: email,
-    subject: 'Your Persistent sign-in code',
-    text: buildText(code, expiresAt),
-    html: buildHtml(code, expiresAt)
+    ...buildVerificationEmail(code, locale)
   })
   logger.info('Sent sign-in code email.', { email, expiresAt: expiresAt.toISOString() })
   return { expiresAt, previewCode: null }
@@ -90,24 +90,4 @@ export async function verifyEmailCode(email: string, code: string): Promise<bool
     data: { consumedAt: new Date() }
   })
   return true
-}
-
-function buildText(code: string, expiresAt: Date): string {
-  return [
-    'Use this one-time code to sign in to Persistent:',
-    '',
-    code,
-    '',
-    `This code expires at ${expiresAt.toUTCString()}.`,
-    'If you did not request this code, you can ignore this email.'
-  ].join('\n')
-}
-
-function buildHtml(code: string, expiresAt: Date): string {
-  return [
-    '<p>Use this one-time code to sign in to Persistent:</p>',
-    `<p><strong style="font-size:1.5rem;letter-spacing:0.12em;font-family:ui-monospace,Menlo,monospace;">${code}</strong></p>`,
-    `<p>This code expires at ${expiresAt.toUTCString()}.</p>`,
-    '<p>If you did not request this code, you can ignore this email.</p>'
-  ].join('')
 }

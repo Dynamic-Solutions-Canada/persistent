@@ -18,6 +18,8 @@
  * Tapping a card opens the reading dialog. Its actions live with the full content,
  * and native notification links open that same dialog.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import Stack from '@mui/joy/Stack'
 import Typography from '@mui/joy/Typography'
 import { SectionHeading } from '../components/SectionHeading.js'
@@ -35,6 +37,7 @@ import Button from '@mui/joy/Button'
 import { Link as RouterLink } from 'react-router-dom'
 
 export function RemindersPage() {
+  useTranslation()
   const reminders = useReminders()
   const active = useActiveOccurrences()
   const received = useReceivedShares()
@@ -60,16 +63,14 @@ export function RemindersPage() {
     <PullToRefresh onRefresh={() => Promise.all([reminders.refetch(), active.refetch(), received.refetch()])}>
       <Stack spacing={3}>
         <Stack spacing={1.5}>
-          <SectionHeading title="Current" subtitle="Reminders still waiting to be confirmed." />
+          <SectionHeading title={tr("Current")} subtitle={tr("Reminders still waiting to be confirmed.")} />
 
-          {(reminders.isLoading || received.isLoading) && <Typography level="body-sm">Loading…</Typography>}
+          {(reminders.isLoading || received.isLoading) && <Typography level="body-sm">{tr("Loading…")}</Typography>}
           {/* An empty Current is the *good* state — everything is confirmed — so it
               says so and points at the tab that has something to show, rather than
               reading like an error or an empty app. */}
           {reminders.data && received.data && attention.length === 0 && (
-            <Typography level="body-sm">
-              Nothing needs confirming right now. Check Upcoming for what's scheduled.
-            </Typography>
+            <Typography level="body-sm">{tr("Nothing needs confirming right now. Check Upcoming for what's scheduled.")}</Typography>
           )}
 
           <Stack spacing={1.5}>
@@ -88,10 +89,8 @@ export function RemindersPage() {
 
         {sentAssignments.data && sentAssignments.data.length > 0 && (
           <Stack spacing={1.5}>
-            <SectionHeading title="Assigned by me" subtitle="Track reminders you made for someone else." />
-            <Button component={RouterLink} to="/assigned" variant="outlined" color="neutral">
-              View assignments
-            </Button>
+            <SectionHeading title={tr("Assigned by me")} subtitle={tr("Track reminders you made for someone else.")} />
+            <Button component={RouterLink} to="/assigned" variant="outlined" color="neutral">{tr("View assignments")}</Button>
           </Stack>
         )}
 

@@ -29,6 +29,9 @@ export const deviceAlarmSchema = z.object({
   fireAtMs: z.number(),
   title: z.string(),
   body: z.string(),
+  /** Additive display metadata lets a closed/offline host reword the escalation marker locally. */
+  bodyTemplate: z.literal('escalated').optional(),
+  baseBody: z.string().optional(),
   /** Loop the alarm sound every N seconds until acknowledged; 0 = single sound. */
   soundIntervalSeconds: z.number(),
   /** ALARM: looping sound + full-screen until Done. Otherwise a sound-once notification. */

@@ -26,11 +26,12 @@ pushRouter.post('/subscriptions', async (request, response) => {
 
   await prisma.pushSubscription.upsert({
     where: { endpoint },
-    update: { userId, kind: 'FCM', userAgent: readUserAgent(request) },
+    update: { userId, ...(parsed.data.locale ? { locale: parsed.data.locale } : {}), kind: 'FCM', userAgent: readUserAgent(request) },
     create: {
       userId,
       kind: 'FCM',
       endpoint,
+      ...(parsed.data.locale ? { locale: parsed.data.locale } : {}),
       userAgent: readUserAgent(request)
     }
   })

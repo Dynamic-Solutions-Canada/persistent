@@ -3,8 +3,13 @@
  * 12h/24h time format used by lib/datetime.ts. These are per-device UI prefs,
  * not server-synced account settings.
  */
-import { createContext, useContext, useState, type ReactNode } from 'react'
-import type { SoundChoice } from '@persistent/shared'
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { resolveLocale, type Locale, type LocalePreferences, type SoundChoice } from '@persistent/shared'
+import { AlarmPlugin, isNative } from '../native/alarmBridge.js'
+import { connectNativeLanguage, type NativeLanguageBridge } from '../localization/nativeLanguage.js'
+import { useTranslation } from 'react-i18next'
+import { configureLocale } from '../localization/i18n.js'
+import { deviceLanguages, readLocalePreferences, resolveFormattingLocale } from '../localization/localeState.js'
 import { detectTimeFormat, type TimeFormat } from '../lib/datetime.js'
 import { readDoodleColor, type DoodleColorId } from './doodleColors.js'
 import { readThemeId, DEFAULT_THEME_ID, type ThemeId } from './themes.js'
@@ -22,7 +27,7 @@ export type { SoundChoice }
 /** Device default for where reminders sit in the Android shade (visual only). */
 export type ShadeDefault = 'NORMAL' | 'MINIMIZED'
 
-interface Settings {
+interface Settings extends LocalePreferences {
   timeFormat: TimeFormat
   themeId: ThemeId
   /** Wallpaper preference, independent of the selected color palette. */
@@ -53,6 +58,13 @@ interface StoredState extends Settings {
 }
 
 interface SettingsContextValue extends Settings {
+  nativeLanguageReady: boolean
+  locale: Locale
+  formattingLocale: string
+  timeFormatChosen: boolean
+  setLanguageOverride: (locale: Locale | null) => void
+  setFormattingLocaleOverride: (locale: string | null) => void
+  resetTimeFormat: () => void
   setTimeFormat: (format: TimeFormat) => void
   setThemeId: (id: ThemeId) => void
   setDoodles: (enabled: boolean) => void
@@ -92,6 +104,7 @@ function legacyDoodles(themeId: string): boolean {
 /** Load device preferences and persist the one-time Navy default and wallpaper migrations. */
 function loadSettings(): StoredState {
   const defaults: StoredState = {
+    ...readLocalePreferences({}),
     timeFormat: detectTimeFormat(),
     timeFormatChosen: false,
     themeDefaultMigrated: true,
@@ -120,6 +133,7 @@ function loadSettings(): StoredState {
       const settings: StoredState = {
         // Honor an explicit choice; otherwise re-detect (ignores values that were
         // auto-captured by an unrelated setting change).
+        ...readLocalePreferences(parsed),
         timeFormat: chosen ? (parsed.timeFormat as TimeFormat) : defaults.timeFormat,
         timeFormatChosen: chosen,
         themeDefaultMigrated: true,
@@ -142,8 +156,46 @@ function loadSettings(): StoredState {
 
 const SettingsContext = createContext<SettingsContextValue | null>(null)
 
-export function SettingsProvider({ children }: { children: ReactNode }) {
+export function SettingsProvider({ children, nativeBridge = isNative() ? AlarmPlugin : null }: { children: ReactNode; nativeBridge?: NativeLanguageBridge | null }) {
   const [settings, setSettings] = useState<StoredState>(loadSettings)
+  const [languages, setLanguages] = useState(deviceLanguages)
+  const [nativeLanguageReady, setNativeLanguageReady] = useState(() => nativeBridge === null)
+  const nativeLanguage = useRef<ReturnType<typeof connectNativeLanguage> | null>(null)
+  const locale = resolveLocale(languages, settings.languageOverride)
+  const formattingLocale = resolveFormattingLocale(languages, settings.formattingLocaleOverride)
+
+  useEffect(() => {
+    if (!nativeBridge) return
+    const connection = connectNativeLanguage(nativeBridge, readLocalePreferences().languageOverride, {
+      apply(state) {
+        setLanguages(state.deviceLanguages)
+        setSettings((previous) => {
+          if (previous.languageOverride === state.languageOverride) return previous
+          const next = { ...previous, languageOverride: state.languageOverride }
+          saveSettings(next)
+          return next
+        })
+      },
+      ready: () => setNativeLanguageReady(true)
+    })
+    nativeLanguage.current = connection
+    return () => {
+      connection.dispose()
+      nativeLanguage.current = null
+    }
+  }, [nativeBridge])
+
+  useEffect(() => {
+    const changed = () => { if (!isNative()) setLanguages(deviceLanguages()) }
+    window.addEventListener('languagechange', changed)
+    window.addEventListener('focus', changed)
+    return () => {
+      window.removeEventListener('languagechange', changed)
+      window.removeEventListener('focus', changed)
+    }
+  }, [])
+
+  useLayoutEffect(() => configureLocale(locale, formattingLocale), [locale, formattingLocale])
 
   function update(patch: Partial<StoredState>) {
     setSettings((prev) => {
@@ -155,6 +207,16 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   const value: SettingsContextValue = {
     ...settings,
+    locale,
+    formattingLocale,
+    nativeLanguageReady,
+    timeFormat: settings.timeFormatChosen ? settings.timeFormat : detectTimeFormat(formattingLocale),
+    setLanguageOverride: (languageOverride) => {
+      nativeLanguage.current?.manualChoice()
+      update({ languageOverride })
+    },
+    setFormattingLocaleOverride: (formattingLocaleOverride) => update({ formattingLocaleOverride }),
+    resetTimeFormat: () => update({ timeFormatChosen: false }),
     setTimeFormat: (timeFormat) => update({ timeFormat, timeFormatChosen: true }),
     setThemeId: (themeId) => update({ themeId }),
     setDoodles: (doodles) => update({ doodles }),
@@ -169,6 +231,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 }
 
 export function useSettings(): SettingsContextValue {
+  useTranslation()
   const context = useContext(SettingsContext)
   if (!context) throw new Error('useSettings must be used within a SettingsProvider')
   return context

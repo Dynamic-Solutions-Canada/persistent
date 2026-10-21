@@ -146,7 +146,7 @@ The native capture provenance is recorded in `raw/android/native/README.md`.
 ## Publishing an approved refresh
 
 After deploying the matching hosted UI, run the existing `play-listing` workflow
-in check mode, inspect its diff, then run publish mode to upload the new Play carousel.
+in check mode and inspect its diff. The workflow now publishes localized text only; an explicitly approved carousel refresh uses `node scripts/play-publish.mjs --listing store/listing.md --screenshots store/graphics/screenshots` from `apps/mobile`, first adding `--check` for comparison, then publishing without it.
 API success confirms a committed edit, not review submission. Open Publishing
 overview in Play Console, inspect all pending changes, send the approved items
 for review if needed, and confirm the phone screenshots appear under Changes

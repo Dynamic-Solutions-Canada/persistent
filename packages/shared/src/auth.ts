@@ -6,12 +6,15 @@
  * reset. See docs/auth-architecture.md.
  */
 import { z } from 'zod'
+import { localeSchema } from './locales.js'
 
 export const emailSchema = z.string().trim().toLowerCase().email().max(254)
 
 /** Body for POST /api/auth/request-code. */
 export const requestCodeSchema = z.object({
-  email: emailSchema
+  email: emailSchema,
+  /** Device language for this verification message only; never changes an existing account preference. */
+  locale: localeSchema.optional()
 })
 export type RequestCodeInput = z.infer<typeof requestCodeSchema>
 
@@ -42,6 +45,8 @@ export const sessionUserSchema = z.object({
   email: z.string(),
   displayName: z.string().nullable(),
   timeZone: z.string(),
+  /** Optional for profiles written by older servers and offline clients. */
+  emailLanguage: localeSchema.optional(),
   // Older clients and saved profiles omit this; omission grants no admin access.
   isAdmin: z.boolean().optional(),
   createdAt: z.string().datetime()

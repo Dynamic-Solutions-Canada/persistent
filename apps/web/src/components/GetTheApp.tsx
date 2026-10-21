@@ -5,6 +5,8 @@
  * ordinary browser presents all three. This keeps the cross-device story visible without advertising the app the
  * user is already running.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import { useState } from 'react'
 import Button from '@mui/joy/Button'
 import Alert from '@mui/joy/Alert'
@@ -33,6 +35,7 @@ function currentPromoHost(): NativeAppsPromoHost {
 }
 
 export function GetTheAppButton() {
+  useTranslation()
   const [dialogOpen, setDialogOpen] = useState(false)
   if (isNative() || isDesktopHost()) return null
   return (
@@ -43,15 +46,14 @@ export function GetTheAppButton() {
         color="primary"
         startDecorator={<DevicesRoundedIcon />}
         onClick={() => setDialogOpen(true)}
-      >
-        Get the app
-      </Button>
+      >{tr("Get the app")}</Button>
       <NativeAppsDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
     </>
   )
 }
 
 export function NativeAppsPromoBanner() {
+  useTranslation()
   const [hidden, setHidden] = useState(() => localStorage.getItem(APP_PROMO_DISMISSED_KEY) === '1')
   if (hidden) return null
 
@@ -74,7 +76,7 @@ export function NativeAppsPromoBanner() {
           variant="plain"
           color="neutral"
           size="sm"
-          aria-label="Dismiss app notice"
+          aria-label={tr("Dismiss app notice")}
           onClick={() => {
             localStorage.setItem(APP_PROMO_DISMISSED_KEY, '1')
             setHidden(true)
@@ -86,9 +88,9 @@ export function NativeAppsPromoBanner() {
       sx={{ mb: 2, alignItems: 'flex-start' }}
     >
       <Box>
-        <Typography level="title-sm">{promotion.title}</Typography>
+        <Typography level="title-sm">{tr(promotion.title)}</Typography>
         <Typography level="body-sm" sx={{ mt: 0.5 }}>
-          {promotion.description}
+          {tr(promotion.description)}
         </Typography>
         <Box sx={{ mt: 1 }}>
           <NativeAppButtons

@@ -1,3 +1,4 @@
+import { nativeText } from './localization.js'
 /** Translate validated machine settings into the existing capability-detected hosted Settings screen. */
 import type { DesktopHostSettings } from '@persistent/shared'
 import { WINDOW_SIZES, validatedSettings, type Autostart, type SettingsStore } from './settings.js'
@@ -14,9 +15,9 @@ export class HostSettings {
       platform: 'linux', snoozeInApp: true,
       notifications: current.notifications, pinFlyout: current.pinFlyout, startAtSignIn: this.startup.enabled(),
       // Required legacy fields keep older hosted bundles compatible; Linux hides the default-duration control.
-      snoozeMinutes: 15, snoozeChoices: [{ minutes: 15, label: '15 min' }],
+      snoozeMinutes: 15, snoozeChoices: [{ minutes: 15, label: nativeText('15 min') }],
       flyoutSize: preset?.id ?? 'custom',
-      flyoutSizes: preset ? WINDOW_SIZES : [...WINDOW_SIZES, { id: 'custom', label: 'Custom', width: current.width, height: current.height }],
+      flyoutSizes: (preset ? WINDOW_SIZES : [...WINDOW_SIZES, { id: 'custom', label: 'Custom', width: current.width, height: current.height }]).map(option => ({ ...option, label: nativeText(option.label) })),
       ...(!this.hosted.wayland ? { flyoutPlacement: current.placement } : {})
     }
     this.hosted.send({ type: 'hostSettings', settings })
