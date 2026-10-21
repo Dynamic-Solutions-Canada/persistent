@@ -1,3 +1,4 @@
+import { tr } from '../localization/i18n.js'
 /**
  * Duration presets + unit conversion shared by the reminder editor (re-sound,
  * escalation "how late") and the snooze dialogs. Duration choices use minutes;
@@ -84,7 +85,7 @@ export function toDateTimeLocalValue(date: Date): string {
 /** Compact label for an arbitrary minute total. */
 export function formatDurationMinutes(total: number): string {
   const preset = DURATION_PRESETS.find((p) => p.minutes === total)
-  if (preset) return preset.label
+  if (preset) return tr(preset.label)
   const { value, unit } = minutesToCustom(total)
-  return `${value} ${unit}`
+  return tr('{{value}} {{unit}}', { value, unit: tr(unit) })
 }

@@ -65,6 +65,7 @@ other products with platform labels and links, including Windows apps.
 
 ## What makes it different
 
+- **Your language and formats.** English (US/Canada), Spanish (Spain), French (France/Canada), German, Simplified Chinese, Brazilian Portuguese and Japanese. Match the device or choose an interface language in Settings. Date formatting, 12/24-hour display, account time zone and email language remain independent. Reminder text and medication details stay as entered. See [localization](docs/localization.md) for native compatibility and verification limits.
 - **It won't be ignored.** On Android, choose a persistent notification that
   re-sounds, or a full-screen alarm that rings continuously until you confirm,
   even with the phone locked. Windows and Linux offer persistent alerts while

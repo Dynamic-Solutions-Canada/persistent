@@ -12,6 +12,12 @@
  * dependencies — Node 20 has fetch and RS256 signing built in.
  *
  * Modes:
+ *   --listing-json <json> Validate and push all nine localized titles/descriptions
+ *                   in one edit. --check compares and discards the edit. Text
+ *                   only: never uploads images or changes app details/countries.
+ *   --localized-notes <json> Version-bound nine-locale notes for upload or
+ *                   --set-notes. Requires matching --version-name; cannot be
+ *                   combined with --notes. Over-limit notes fail before OAuth.
  *   --check         Report each track's releases and the highest versionCode in
  *                   use, then exit. With --version-code, exits non-zero when
  *                   that code is not strictly higher than everything on Play —
@@ -49,6 +55,7 @@
  *
  * Usage:
  *   node scripts/play-publish.mjs --check --version-code 40
+ *   node scripts/play-publish.mjs --listing-json store/listings.json [--check]
  *   node scripts/play-publish.mjs --listing store/listing.md [--check] [--no-screenshots]
  *   node scripts/play-publish.mjs --aab app.aab --tracks production --production-only \
  *     --version-name 0.17.0 --notes RELEASE_NOTES.md [--status completed|draft]
@@ -60,6 +67,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { getPlayAccessToken as getAccessToken, playRequest as request, readPlayServiceAccount } from './play-api.mjs'
 import { retirePhoneTestingTracks } from './play-tracks.mjs'
+import { PlayMetadata } from './play-metadata.mjs'
 
 // PLAY_API_BASE is a test seam: play-publish.test.ts points it at a local mock
 // to assert the request sequence (one edit, one upload, every track). Never set
@@ -494,7 +502,8 @@ async function main() {
 
   // Validate the invocation before authenticating: a missing flag should fail
   // instantly and unmistakably, not after a token round-trip.
-  const listingMode = Boolean(args.listing)
+  const localizedListingMode = Boolean(args['listing-json'])
+  const listingMode = Boolean(args.listing) || localizedListingMode
   const promoteMode = Boolean(args.promote)
   const setNotesMode = Boolean(args['set-notes'])
   const testersMode = Boolean(args.testers)
@@ -519,7 +528,7 @@ async function main() {
       fail('--set-notes needs --version-code <n>: the release already on Play to rewrite.')
     }
     if (!tracks.length) fail('--set-notes needs --tracks <internal[,alpha,...]>.')
-    if (!args.notes) fail('--set-notes needs --notes <file>.')
+    if (!args.notes && !args['localized-notes']) fail('--set-notes needs --notes or --localized-notes <file>.')
   }
   if (promoteMode) {
     if (!Number.isFinite(Number(args['version-code']))) {
@@ -540,6 +549,9 @@ async function main() {
       fail(`--status must be 'completed' or 'draft', got '${status}'.`)
     }
   }
+  if (args.listing && localizedListingMode) fail('Choose --listing or --listing-json, not both.')
+  if (localizedListingMode && args.screenshots) fail('--listing-json updates text only; publish screenshots separately.')
+  if (args.notes && args['localized-notes']) fail('Choose --notes or --localized-notes, not both.')
   // Read the AAB and notes up front too — a bad path is a caller error, and
   // finding it now avoids leaving an uncommitted edit behind on Play.
   const notes =
@@ -547,6 +559,15 @@ async function main() {
       ? playNotesFrom(read(args.notes, 'notes', 'utf8'))
       : NOTE_FALLBACK
   const bundle = publishing ? read(aab, 'AAB') : null
+  const localizedNotes = args['localized-notes']
+    ? PlayMetadata.notes(JSON.parse(read(args['localized-notes'], 'localized release notes', 'utf8')), versionName)
+    : null
+  const notesLog = localizedNotes
+    ? localizedNotes.map(({ language, text }) => `${language}: ${text}`).join('\n')
+    : notes
+  const localizedListings = localizedListingMode
+    ? PlayMetadata.listings(JSON.parse(read(args['listing-json'], 'localized listings', 'utf8')))
+    : null
 
   // Same reasoning for the listing: parse and length-check the copy before
   // authenticating, so a malformed file never opens an edit on Play.
@@ -554,10 +575,10 @@ async function main() {
   const shotsDir = typeof args.screenshots === 'string' ? args.screenshots : DEFAULT_SCREENSHOTS
   // `--no-screenshots` pushes copy alone, for a wording fix that shouldn't
   // re-upload six images (each upload is a fresh asset on Play's side).
-  const withShots = listingMode && !args['no-screenshots']
+  const withShots = listingMode && !localizedListingMode && !args['no-screenshots']
   let listing = null
   let shots = []
-  if (listingMode) {
+  if (listingMode && !localizedListingMode) {
     const markdown = read(listingFile, 'listing markdown', 'utf8')
     try {
       listing = listingFromMarkdown(markdown)
@@ -588,6 +609,17 @@ async function main() {
   const token = await getAccessToken(serviceAccount)
   console.log(`[play-publish] authenticated as ${serviceAccount.client_email}`)
   console.log(`[play-publish] package ${packageName}`)
+
+  if (localizedListings) {
+    await PlayMetadata.publishListings({
+      listings: localizedListings,
+      request: (path, options) => playFetch(token, path, options),
+      commit: (id) => commitEdit(token, packageName, id),
+      editPath: editsPath(packageName),
+      check: Boolean(args.check)
+    })
+    return
+  }
 
   // --- --listing: push the store copy from listing.md ------------------------
   if (listingMode) {
@@ -714,14 +746,15 @@ async function main() {
     for (const { track, release } of targets) {
       await playFetch(token, `${editsPath(packageName, edit.id)}/tracks/${track}`, {
         method: 'PUT',
-        body: { track, releases: [withReleaseNotes(release, notes)] }
+        body: { track, releases: [{ ...withReleaseNotes(release, notes),
+          ...(localizedNotes ? { releaseNotes: localizedNotes } : {}) }] }
       })
       console.log(`[play-publish] track ${track} <- new notes for versionCode ${versionCode}`)
     }
     await commitEdit(token, packageName, edit.id)
     console.log(`[play-publish] committed. notes rewritten on ${tracks.join(', ')}`)
     console.log('--- what\'s new ---')
-    console.log(notes)
+    console.log(notesLog)
     return
   }
 
@@ -841,7 +874,7 @@ async function main() {
             name: versionName,
             versionCodes: [String(versionCode)],
             status,
-            releaseNotes: [{ language: NOTE_LANGUAGE, text: notes }]
+            releaseNotes: localizedNotes ?? [{ language: NOTE_LANGUAGE, text: notes }]
           }
         ]
       }
@@ -857,7 +890,7 @@ async function main() {
 
   console.log(`[play-publish] committed. ${versionName} (versionCode ${versionCode}) -> ${tracks.join(', ')}`)
   console.log('--- what\'s new ---')
-  console.log(notes)
+  console.log(notesLog)
 }
 
 // Importable for tests; only the CLI path runs the API calls.

@@ -3,6 +3,8 @@
  * buttons (plus an optional extra like "Once"), and a Custom option that reveals
  * a number + unit selector. Value is in minutes.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import { useState } from 'react'
 import Stack from '@mui/joy/Stack'
 import Button from '@mui/joy/Button'
@@ -22,6 +24,7 @@ export function DurationField({
   presets?: DurationPreset[]
   extra?: { label: string; value: number }
 }) {
+  useTranslation()
   const isExtra = !!extra && value === extra.value
   const matchedPreset = presets.find((p) => p.minutes === value)
   const [customOpen, setCustomOpen] = useState(false)
@@ -42,7 +45,7 @@ export function DurationField({
               onChange(extra.value)
             }}
           >
-            {extra.label}
+            {tr(extra.label)}
           </Button>
         )}
         {presets.map((p) => (
@@ -55,7 +58,7 @@ export function DurationField({
               onChange(p.minutes)
             }}
           >
-            {p.label}
+            {tr(p.label)}
           </Button>
         ))}
         <Button
@@ -65,9 +68,7 @@ export function DurationField({
             setUnit(minutesToCustom(value || 5).unit)
             setCustomOpen(true)
           }}
-        >
-          Custom
-        </Button>
+        >{tr("Custom")}</Button>
       </Stack>
       {showCustom && (
         <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
@@ -81,7 +82,7 @@ export function DurationField({
           <Select value={unit} onChange={(_e, u) => u && setUnit(u)}>
             {DURATION_UNITS.map((u) => (
               <Option key={u.label} value={u.label}>
-                {u.label}
+                {tr(u.label)}
               </Option>
             ))}
           </Select>

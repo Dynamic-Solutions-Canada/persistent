@@ -25,6 +25,8 @@ class AlarmReceiver : BroadcastReceiver() {
                     putExtra(EXTRA_OCCURRENCE_ID, displayId)
                     putExtra("title", spec.title)
                     putExtra("body", spec.body)
+                    putExtra("bodyTemplate", spec.bodyTemplate)
+                    putExtra("baseBody", spec.baseBody)
                     putExtra("soundIntervalSeconds", spec.soundIntervalSeconds)
                     putExtra("alarm", spec.alarm)
                     putExtra("ongoing", spec.ongoing)

@@ -56,6 +56,45 @@ class AlarmPlugin : Plugin() {
         }
     }
 
+    /** Persist language without touching armed alarms, action queues, permissions or audio. */
+    @PluginMethod
+    fun setLocale(call: PluginCall) {
+        val locale = call.getObject("locale")
+        if (locale == null) {
+            call.reject("Missing locale")
+            return
+        }
+        activity.runOnUiThread {
+            try {
+                if (NativeText.save(context, locale)) refreshLanguage()
+                call.resolve()
+            } catch (error: Exception) {
+                android.util.Log.w("PersistLocale", "Display preferences could not be saved", error)
+                call.reject("Could not update language", error)
+            }
+        }
+    }
+
+    /** Read OS state before the hosted page publishes its possibly older localStorage choice. */
+    @PluginMethod
+    fun getLocale(call: PluginCall) {
+        activity.runOnUiThread {
+            try {
+                NativeLanguage.initialize(context, call.getString("fallbackLanguageOverride"))
+                call.resolve(JSObject(NativeLanguage.snapshot(context).toString()))
+            } catch (error: Exception) {
+                android.util.Log.w("PersistLocale", "Display preferences could not be read", error)
+                call.reject("Could not read language", error)
+            }
+        }
+    }
+
+    private fun refreshLanguage() {
+        context.sendBroadcast(Intent(AlarmAppearance.ACTION_CHANGED).setPackage(context.packageName))
+        AlarmService.refreshAppearance(context)
+        notifyListeners("localeChanged", JSObject(NativeLanguage.snapshot(context).toString()))
+    }
+
     override fun load() {
         super.load()
         live = this
@@ -65,12 +104,14 @@ class AlarmPlugin : Plugin() {
     override fun handleOnResume() {
         super.handleOnResume()
         applyAppearance(activity)
+        refreshLanguage()
     }
 
     /** Match Android night-mode changes while the web shell remains foreground. */
     override fun handleOnConfigurationChanged(newConfig: Configuration) {
         super.handleOnConfigurationChanged(newConfig)
         applyAppearance(activity)
+        refreshLanguage()
     }
 
     override fun handleOnDestroy() {

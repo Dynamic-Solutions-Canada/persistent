@@ -1,4 +1,8 @@
+import { promotionCopy } from '@persistent/shared'
+import { useSettings } from '../settings/useSettings.js'
 /** Mobile-first view of the publisher's other apps, with explicit platform destinations. */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import { Link as RouterLink } from 'react-router-dom'
 import Avatar from '@mui/joy/Avatar'
 import Button from '@mui/joy/Button'
@@ -17,15 +21,15 @@ const icons = import.meta.glob<string>(
 )
 
 export function PromotedAppsPage() {
+  useTranslation()
+  const { locale } = useSettings()
   const catalog = usePromotedApps()
   const apps = catalog.data.filter((app) => app.appId !== 'persistent')
 
   return (
     <Stack spacing={1.5}>
-      <Button component={RouterLink} to="/settings" variant="plain" sx={{ alignSelf: 'flex-start' }}>
-        Back to Settings
-      </Button>
-      <SectionHeading title="Our other apps" subtitle="More from Dynamic Solutions Canada." />
+      <Button component={RouterLink} to="/settings" variant="plain" sx={{ alignSelf: 'flex-start' }}>{tr("Back to Settings")}</Button>
+      <SectionHeading title={tr("Our other apps")} subtitle={tr("More from Dynamic Solutions Canada.")} />
       {apps.map((app) => (
         <Card key={app.appId} variant="outlined">
           <Stack direction="row" spacing={1.5} alignItems="center">
@@ -46,7 +50,7 @@ export function PromotedAppsPage() {
               </Stack>
             </Stack>
           </Stack>
-          <Typography level="body-sm">{app.blurb}</Typography>
+          <Typography level="body-sm">{promotionCopy(locale, app.blurb)}</Typography>
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
             {app.links.map((link) => (
               <Button
@@ -59,13 +63,13 @@ export function PromotedAppsPage() {
                 size="sm"
                 sx={{ width: { xs: '100%', sm: 'auto' } }}
               >
-                {link.platform}: {link.label}
+                {link.platform}: {promotionCopy(locale, link.label)}
               </Button>
             ))}
           </Stack>
         </Card>
       ))}
-      {apps.length === 0 && <Typography level="body-sm">No other apps are listed right now.</Typography>}
+      {apps.length === 0 && <Typography level="body-sm">{tr("No other apps are listed right now.")}</Typography>}
     </Stack>
   )
 }

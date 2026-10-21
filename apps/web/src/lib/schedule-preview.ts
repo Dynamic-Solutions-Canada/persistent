@@ -1,3 +1,4 @@
+import { tr } from '../localization/i18n.js'
 /**
  * Computes a human "fires next" preview for the reminder editor so the firing
  * time is visible at the point of saving. This mirrors the schedule semantics in
@@ -167,7 +168,7 @@ function hhmm(d: Date): string {
 export function fireSummary(input: SchedulePreviewInput, timeFormat: TimeFormat, now: Date = new Date()): string | null {
   const fire = nextFire(input, now)
   // No future fire, but a just-passed one-shot the server back-fills fires now.
-  if (!fire) return firesRightAway(input, now) ? 'Notifies you right away' : null
+  if (!fire) return firesRightAway(input, now) ? tr('Notifies you right away') : null
 
   const time = formatTimeOfDay(hhmm(fire), timeFormat)
   const today = new Date(now)
@@ -176,21 +177,16 @@ export function fireSummary(input: SchedulePreviewInput, timeFormat: TimeFormat,
   fireDay.setHours(0, 0, 0, 0)
   const dayDiff = Math.round((fireDay.getTime() - today.getTime()) / DAY_MS)
 
-  let dayPart: string
-  if (dayDiff === 0) dayPart = 'today'
-  else if (dayDiff === 1) dayPart = 'tomorrow'
-  else dayPart = `on ${formatDate(fire)}`
-
   const minutes = Math.round((fire.getTime() - now.getTime()) / 60_000)
   let soon = ''
   if (minutes < 60) {
-    soon = minutes < 1 ? ' — in under a minute' : ` — in ${minutes} minute${minutes === 1 ? '' : 's'}`
+    soon = minutes < 1 ? tr('preview.under-minute') : tr('preview.minutes', { count: minutes })
   } else if (minutes < 24 * 60) {
-    const hours = Math.round(minutes / 60)
-    soon = ` — in ${hours} hour${hours === 1 ? '' : 's'}`
+    soon = tr('preview.hours', { count: Math.round(minutes / 60) })
   }
 
-  return `Notifies you ${dayPart} at ${time}${soon}`
+  const key = dayDiff === 0 ? 'preview.today' : dayDiff === 1 ? 'preview.tomorrow' : 'preview.date'
+  return tr(key, { time, date: formatDate(fire), soon })
 }
 
 // Re-exported for callers building the input from a full Schedule, if needed.

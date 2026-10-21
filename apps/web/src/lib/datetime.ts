@@ -4,14 +4,17 @@
  * format stays consistent — never call toLocaleString/Date formatting directly
  * in components. Times never include seconds.
  */
+import { getFormattingLocale } from '../localization/localeState.js'
+import { tr } from '../localization/i18n.js'
+
 export type TimeFormat = '12h' | '24h'
 
 /** The locale's natural default, used when the user hasn't picked one. */
-export function detectTimeFormat(): TimeFormat {
+export function detectTimeFormat(locale: string = getFormattingLocale()): TimeFormat {
   try {
     // `hour12`/`hourCycle` are only resolved when an hour field is requested; an
     // optionless DateTimeFormat leaves them undefined (which wrongly read as 24h).
-    const resolved = new Intl.DateTimeFormat(undefined, { hour: 'numeric' }).resolvedOptions()
+    const resolved = new Intl.DateTimeFormat(locale, { hour: 'numeric' }).resolvedOptions()
     if (resolved.hour12 !== undefined) return resolved.hour12 ? '12h' : '24h'
     return resolved.hourCycle === 'h11' || resolved.hourCycle === 'h12' ? '12h' : '24h'
   } catch {
@@ -27,7 +30,7 @@ export function formatTimeOfDay(hhmm: string, format: TimeFormat): string {
   if (Number.isNaN(hours) || Number.isNaN(minutes)) return hhmm
   const date = new Date()
   date.setHours(hours, minutes, 0, 0)
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(getFormattingLocale(), {
     hour: 'numeric',
     minute: '2-digit',
     hour12: format === '12h'
@@ -38,7 +41,7 @@ export function formatTimeOfDay(hhmm: string, format: TimeFormat): string {
 export function formatDateTime(value: string | Date, format: TimeFormat, timeZone?: string): string {
   const date = typeof value === 'string' ? new Date(value) : value
   if (Number.isNaN(date.getTime())) return ''
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(getFormattingLocale(), {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -56,7 +59,7 @@ export function formatDateTime(value: string | Date, format: TimeFormat, timeZon
 export function formatWhen(value: string | Date, format: TimeFormat, timeZone?: string, now = new Date()): string {
   const date = typeof value === 'string' ? new Date(value) : value
   if (Number.isNaN(date.getTime())) return ''
-  const time = new Intl.DateTimeFormat(undefined, {
+  const time = new Intl.DateTimeFormat(getFormattingLocale(), {
     hour: 'numeric',
     minute: '2-digit',
     hour12: format === '12h',
@@ -65,15 +68,15 @@ export function formatWhen(value: string | Date, format: TimeFormat, timeZone?: 
 
   const calendarDay = (instant: Date) => {
     const parts = new Intl.DateTimeFormat('en-US', {
-      year: 'numeric', month: '2-digit', day: '2-digit', timeZone
+      year: 'numeric', month: '2-digit', day: '2-digit', timeZone, calendar: 'gregory', numberingSystem: 'latn'
     }).formatToParts(instant)
     const part = (type: string) => Number(parts.find((item) => item.type === type)?.value)
     return Date.UTC(part('year'), part('month') - 1, part('day'))
   }
   const dayDiff = Math.round((calendarDay(date) - calendarDay(now)) / 86_400_000)
-  if (dayDiff === 0) return `Today, ${time}`
-  if (dayDiff === 1) return `Tomorrow, ${time}`
-  if (dayDiff === -1) return `Yesterday, ${time}`
+  if (dayDiff === 0) return tr('Today, {{time}}', { time })
+  if (dayDiff === 1) return tr('Tomorrow, {{time}}', { time })
+  if (dayDiff === -1) return tr('Yesterday, {{time}}', { time })
   return `${formatDate(date, timeZone)}, ${time}`
 }
 
@@ -81,5 +84,5 @@ export function formatWhen(value: string | Date, format: TimeFormat, timeZone?: 
 export function formatDate(value: string | Date, timeZone?: string): string {
   const date = typeof value === 'string' ? new Date(value) : value
   if (Number.isNaN(date.getTime())) return ''
-  return new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric', timeZone }).format(date)
+  return new Intl.DateTimeFormat(getFormattingLocale(), { year: 'numeric', month: 'short', day: 'numeric', timeZone }).format(date)
 }

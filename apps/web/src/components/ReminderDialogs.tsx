@@ -1,4 +1,6 @@
 /** In-app reminder reading and editing dialogs, independent of page routes. */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import type { Occurrence } from '@persistent/shared'
 import { PastOccurrenceDetail } from './PastOccurrenceDetail.js'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
@@ -21,6 +23,7 @@ import { ReminderDialogContext, type ReminderDialogActions } from './reminderDia
 type DialogState = { kind: 'view' | 'edit'; id: string; occurrence?: Occurrence } | { kind: 'new' } | null
 
 export function ReminderDialogProvider({ children }: { children: ReactNode }) {
+  useTranslation()
   const navigate = useNavigate()
   const [dialog, setDialog] = useState<DialogState>(null)
   const [closing, setClosing] = useState(false)
@@ -133,7 +136,7 @@ export function ReminderDialogProvider({ children }: { children: ReactNode }) {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, flexShrink: 0, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
               <Stack direction="row" spacing={0.5}>
                 {canEdit && (
-                  <Button variant="outlined" size="sm" startDecorator={<EditIcon />} onClick={() => setDialog({ kind: 'edit', id: dialog.id, occurrence: dialog.occurrence })}>Edit</Button>
+                  <Button variant="outlined" size="sm" startDecorator={<EditIcon />} onClick={() => setDialog({ kind: 'edit', id: dialog.id, occurrence: dialog.occurrence })}>{tr("Edit")}</Button>
                 )}
                 {(ownerReminder || receivedReminder) && (
                   <Button
@@ -142,12 +145,10 @@ export function ReminderDialogProvider({ children }: { children: ReactNode }) {
                     startDecorator={<ShareIcon />}
                     endDecorator={sharingCount > 0 ? <ShareCountChip count={sharingCount} /> : undefined}
                     onClick={() => setShareOpen(true)}
-                  >
-                    Share
-                  </Button>
+                  >{tr("Share")}</Button>
                 )}
               </Stack>
-              <Button variant="outlined" color="neutral" onClick={close}>Close</Button>
+              <Button variant="outlined" color="neutral" onClick={close}>{tr("Close")}</Button>
             </Box>
           )}
         </ModalDialog>

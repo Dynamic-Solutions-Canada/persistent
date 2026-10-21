@@ -40,13 +40,13 @@ class ReminderDetailScreen(carContext: CarContext, private val key: String) : Sc
     override fun onGetTemplate(): Template {
         // Confirmed on another device, or the sync dropped it, while this screen was up.
         val reminder = CarReminders.find(carContext, key)
-            ?: return MessageTemplate.Builder("This reminder is no longer on this device.")
-                .setTitle("Reminders")
+            ?: return MessageTemplate.Builder(NativeText.text(carContext, "This reminder is no longer on this device."))
+                .setTitle(NativeText.text(carContext, "Reminders"))
                 .setHeaderAction(Action.BACK)
                 .build()
 
         val now = System.currentTimeMillis()
-        val message = listOf(CarReminders.timing(reminder, now), reminder.body)
+        val message = listOf(CarReminders.timing(carContext, reminder, now), reminder.body)
             .filter { it.isNotBlank() }
             .joinToString("\n\n")
         val template = MessageTemplate.Builder(message)
@@ -56,17 +56,17 @@ class ReminderDetailScreen(carContext: CarContext, private val key: String) : Sc
         if (reminder.actionable) {
             template.addAction(
                 Action.Builder()
-                    .setTitle("Done")
+                    .setTitle(NativeText.text(carContext, "Done"))
                     .setBackgroundColor(CarColor.GREEN)
                     .setOnClickListener {
                         AlarmService.markDone(carContext, reminder.occurrenceId)
-                        toastAndReturn("Marked done")
+                        toastAndReturn(NativeText.text(carContext, "Marked done"))
                     }
                     .build()
             )
             template.addAction(
                 Action.Builder()
-                    .setTitle("Snooze")
+                    .setTitle(NativeText.text(carContext, "Snooze"))
                     .setOnClickListener { screenManager.push(CarSnoozeScreen(carContext, reminder.occurrenceId)) }
                     .build()
             )
@@ -79,10 +79,10 @@ class ReminderDetailScreen(carContext: CarContext, private val key: String) : Sc
                 ActionStrip.Builder()
                     .addAction(
                         Action.Builder()
-                            .setTitle("De-escalate")
+                            .setTitle(NativeText.text(carContext, "De-escalate"))
                             .setOnClickListener {
                                 AlarmService.silence(carContext, reminder.occurrenceId)
-                                CarToast.makeText(carContext, "Alarm stopped, still nagging", CarToast.LENGTH_LONG).show()
+                                CarToast.makeText(carContext, NativeText.text(carContext, "Alarm stopped, still nagging"), CarToast.LENGTH_LONG).show()
                                 invalidate()
                             }
                             .build()

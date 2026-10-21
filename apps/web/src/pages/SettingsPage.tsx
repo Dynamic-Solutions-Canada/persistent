@@ -8,6 +8,8 @@
  * notifications, startup and window settings (`native/desktop-settings/`). One
  * Settings screen per product, whichever host is showing it.
  */
+import { useTranslation, Trans } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import { Link as RouterLink } from 'react-router-dom'
 import Stack from '@mui/joy/Stack'
 import Card from '@mui/joy/Card'
@@ -19,6 +21,7 @@ import Select from '@mui/joy/Select'
 import Option from '@mui/joy/Option'
 import FormControl from '@mui/joy/FormControl'
 import FormLabel from '@mui/joy/FormLabel'
+import { LanguageSettingsCard } from '../localization/LanguageSettingsCard.js'
 import { useAuth } from '../auth/useAuth.js'
 import { useSettings, type SoundChoice } from '../settings/useSettings.js'
 import { doodleColorOptions, type DoodleColorId } from '../settings/doodleColors.js'
@@ -35,10 +38,13 @@ import { AccountSettingsCard } from '../components/AccountSettingsCard.js'
 import { NativeAppButtons } from '../components/NativeAppButtons.js'
 
 export function SettingsPage() {
+  useTranslation()
   const { user } = useAuth()
   const {
     timeFormat,
     setTimeFormat,
+    timeFormatChosen,
+    resetTimeFormat,
     themeId,
     setThemeId,
     doodles,
@@ -80,29 +86,31 @@ export function SettingsPage() {
   return (
     <Stack spacing={1.5}>
       <SectionHeading
-        title="Settings"
-        subtitle="Appearance, sounds, notifications, and account"
+        title={tr("Settings")}
+        subtitle={tr("Appearance, sounds, notifications, and account")}
       />
 
       {user?.isAdmin && (
-        <Button component={RouterLink} to="/admin" variant="outlined">Administration</Button>
+        <Button component={RouterLink} to="/admin" variant="outlined">{tr("Administration")}</Button>
       )}
 
+      <LanguageSettingsCard />
+
       <Card variant="outlined">
-        <Typography level="title-sm">Appearance</Typography>
+        <Typography level="title-sm">{tr("Appearance")}</Typography>
         <FormControl>
-          <FormLabel>Theme</FormLabel>
+          <FormLabel>{tr("Theme")}</FormLabel>
           <Select value={themeId} onChange={(_e, value) => value && setThemeId(value)}>
             {THEME_OPTIONS.map((t) => (
               <Option key={t.id} value={t.id}>
-                {t.name}
+                {tr(t.name)}
               </Option>
             ))}
           </Select>
         </FormControl>
-        <Typography level="body-xs">Match system automatically follows your device's light or dark appearance.</Typography>
+        <Typography level="body-xs">{tr("Match system automatically follows your device's light or dark appearance.")}</Typography>
         <FormControl>
-          <FormLabel>Doodle background</FormLabel>
+          <FormLabel>{tr("Doodle background")}</FormLabel>
           <Select<DoodleColorId | 'none'>
             value={doodles ? doodleColor : 'none'}
             onChange={(_event, value) => {
@@ -117,69 +125,59 @@ export function SettingsPage() {
             }}
           >
             {doodleBackgroundOptions.map((option) => (
-              <Option key={option.id} value={option.id} sx={{ gap: 1 }}>
+              <Option key={option.id} value={option.id} label={tr(option.name)} sx={{ gap: 1 }}>
                 {option.color && (
                   <Box
                     aria-hidden="true"
                     sx={{ width: 14, height: 14, flexShrink: 0, borderRadius: '50%', bgcolor: option.color, border: '1px solid', borderColor: 'neutral.outlinedBorder' }}
                   />
                 )}
-                {option.name}
+                {tr(option.name)}
               </Option>
             ))}
           </Select>
         </FormControl>
-        <Typography level="body-xs">Choose the doodle line color. Light themes use pale colors; darker themes use dark colors.</Typography>
+        <Typography level="body-xs">{tr("Choose the doodle line color. Light themes use pale colors; darker themes use dark colors.")}</Typography>
       </Card>
 
       <Card variant="outlined">
-        <Typography level="title-sm">Sounds</Typography>
+        <Typography level="title-sm">{tr("Sounds")}</Typography>
         {isNative() ? (
           <Stack spacing={1.5}>
             <SoundPickerRow
-              label="Notification sound"
-              value={notificationSound.title}
+              label={tr("Notification sound")}
+              value={notificationSound.uri ? notificationSound.title : tr('Default')}
               onChoose={() => void chooseSound('notification', notificationSound, setNotificationSound)}
             />
             <SoundPickerRow
-              label="Nag sound"
-              value={nagSound.uri ? nagSound.title : `Same as notification (${notificationSound.title})`}
+              label={tr("Nag sound")}
+              value={nagSound.uri ? nagSound.title : tr('Same as notification ({{title}})', { title: notificationSound.uri ? notificationSound.title : tr('Default') })}
               onChoose={() => void chooseSound('notification', nagSound, setNagSound)}
             />
-            <Typography level="body-xs">
-              The notification sound plays the first time a reminder notifies you; the nag sound plays on each repeat after
-              that, for reminders with a nag interval set. Alarms ring one continuous tone, so this doesn't apply
-              to them.
-            </Typography>
+            <Typography level="body-xs">{tr("The notification sound plays the first time a reminder notifies you; the nag sound plays on each repeat after that, for reminders with a nag interval set. Alarms ring one continuous tone, so this doesn't apply to them.")}</Typography>
             <SoundPickerRow
-              label="Alarm sound"
-              value={alarmSound.title}
+              label={tr("Alarm sound")}
+              value={alarmSound.uri ? alarmSound.title : tr('Default')}
               onChoose={() => void chooseSound('alarm', alarmSound, setAlarmSound)}
             />
-            <Typography level="body-xs">
-              These are this device's tones. A single reminder can override them on its Notifications tab.
-            </Typography>
+            <Typography level="body-xs">{tr("These are this device's tones. A single reminder can override them on its Notifications tab.")}</Typography>
           </Stack>
         ) : (
-          <Typography level="body-sm">Choosing sounds is available in the Android app.</Typography>
+          <Typography level="body-sm">{tr("Choosing sounds is available in the Android app.")}</Typography>
         )}
       </Card>
 
       {isNative() && (
         <Card variant="outlined">
-          <Typography level="title-sm">Notification shade</Typography>
+          <Typography level="title-sm">{tr("Notification shade")}</Typography>
           <FormControl>
-            <FormLabel>Default prominence</FormLabel>
+            <FormLabel>{tr("Default prominence")}</FormLabel>
             <Select value={shadeProminence} onChange={(_e, value) => value && changeShadeProminence(value)}>
-              <Option value="NORMAL">Normal</Option>
-              <Option value="MINIMIZED">Minimized</Option>
+              <Option value="NORMAL">{tr("Normal")}</Option>
+              <Option value="MINIMIZED">{tr("Minimized")}</Option>
             </Select>
           </FormControl>
-          <Typography level="body-xs">
-            Where reminders sit in the Android notification shade by default. Minimized tucks them into the
-            collapsed section at the bottom with no pop-up banner. This is visual only — it doesn't change the
-            sound, and a reminder can override it. Escalations always stay prominent.
-          </Typography>
+          <Typography level="body-xs">{tr("Where reminders sit in the Android notification shade by default. Minimized tucks them into the collapsed section at the bottom with no pop-up banner. This is visual only, it doesn't change the sound, and a reminder can override it. Escalations always stay prominent.")}</Typography>
         </Card>
       )}
 
@@ -187,52 +185,40 @@ export function SettingsPage() {
       <DesktopSettings />
 
       <Card variant="outlined">
-        <Typography level="title-sm">Date &amp; time</Typography>
+        <Typography level="title-sm">{tr("Date & time")}</Typography>
         <FormControl>
-          <FormLabel>Time format</FormLabel>
-          <Select value={timeFormat} onChange={(_e, value) => value && setTimeFormat(value)}>
-            <Option value="12h">12-hour (1:30 PM)</Option>
-            <Option value="24h">24-hour (13:30)</Option>
+          <FormLabel>{tr("Time format")}</FormLabel>
+          <Select value={timeFormatChosen ? timeFormat : 'device'} onChange={(_e, value) => {
+            if (value === 'device') resetTimeFormat()
+            else if (value) setTimeFormat(value as '12h' | '24h')
+          }}>
+            <Option value="device">{tr("Match device")}</Option>
+            <Option value="12h">{tr("12-hour (1:30 PM)")}</Option>
+            <Option value="24h">{tr("24-hour (13:30)")}</Option>
           </Select>
         </FormControl>
-        <Typography level="body-xs">Example: {formatDateTime(new Date(), timeFormat, user?.timeZone)}</Typography>
+        <Typography level="body-xs"><Trans i18nKey={"Example: <v0/>"} components={{ v0: <>{formatDateTime(new Date(), timeFormat, user?.timeZone)}</> }} /></Typography>
       </Card>
 
       <AccountSettingsCard />
 
       <Card variant="outlined">
-        <Typography level="title-sm">Help</Typography>
-        <Typography level="body-sm">
-          New here, or want a refresher on how nagging, escalation, and Done/De-escalate/Snooze work?{' '}
-          <Link component={RouterLink} to="/help">
-            How Persistent works
-          </Link>
-        </Typography>
+        <Typography level="title-sm">{tr("Help")}</Typography>
+        <Typography level="body-sm"><Trans i18nKey={"New here, or want a refresher on how nagging, escalation, and Done/De-escalate/Snooze work? <c0>How Persistent works</c0>"} components={{ c0: <Link component={RouterLink} to="/help" /> }} /></Typography>
       </Card>
 
       <Card variant="outlined">
-        <Typography level="title-sm">Privacy</Typography>
-        <Typography level="body-sm">
-          What Persistent stores and who it's shared with:{' '}
-          <Link component={RouterLink} to="/privacy">
-            Privacy policy
-          </Link>
-          {' · '}
-          <Link component={RouterLink} to="/delete-account">
-            Deleting your account
-          </Link>
-        </Typography>
+        <Typography level="title-sm">{tr("Privacy")}</Typography>
+        <Typography level="body-sm"><Trans i18nKey={"What Persistent stores and who it's shared with: <c0>Privacy policy</c0> · <c1>Deleting your account</c1>"} components={{ c0: <Link component={RouterLink} to="/privacy" />, c1: <Link component={RouterLink} to="/delete-account" /> }} /></Typography>
       </Card>
 
       <UpdateSettings />
 
       <Card variant="outlined">
-        <Typography level="title-sm">Apps</Typography>
-        <Typography level="body-sm">
-          Get alarms that work offline on Android, or persistent alerts while your computer is awake with the Windows and Linux apps.
-        </Typography>
+        <Typography level="title-sm">{tr("Apps")}</Typography>
+        <Typography level="body-sm">{tr("Get alarms that work offline on Android, or persistent alerts while your computer is awake with the Windows and Linux apps.")}</Typography>
         <NativeAppButtons />
-        <Link component={RouterLink} to="/settings/apps">Our other apps</Link>
+        <Link component={RouterLink} to="/settings/apps">{tr("Our other apps")}</Link>
       </Card>
     </Stack>
   )

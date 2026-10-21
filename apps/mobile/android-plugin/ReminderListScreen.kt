@@ -59,22 +59,22 @@ class ReminderListScreen(carContext: CarContext, private val offset: Int = 0) : 
         val notes = page.filter { it.note }
 
         val template = ListTemplate.Builder()
-            .setTitle(if (offset == 0) "Reminders" else "More reminders")
+            .setTitle(if (offset == 0) NativeText.text(carContext, "Reminders") else NativeText.text(carContext, "More reminders"))
             .setHeaderAction(if (offset == 0) Action.APP_ICON else Action.BACK)
         if (due.isNotEmpty()) {
-            template.addSectionedList(SectionedItemList.create(itemList(due, now), "Needs attention"))
+            template.addSectionedList(SectionedItemList.create(itemList(due, now), NativeText.text(carContext, "Needs attention")))
         }
         if (upcoming.isNotEmpty()) {
-            template.addSectionedList(SectionedItemList.create(itemList(upcoming, now), "Coming up"))
+            template.addSectionedList(SectionedItemList.create(itemList(upcoming, now), NativeText.text(carContext, "Coming up")))
         }
         if (notes.isNotEmpty()) {
-            template.addSectionedList(SectionedItemList.create(itemList(notes, now), "Notes"))
+            template.addSectionedList(SectionedItemList.create(itemList(notes, now), NativeText.text(carContext, "Notes")))
         }
         if (more) {
             // Its own section, so it can never be mistaken for a reminder, and it SAYS how
             // many are behind it — a driver deciding whether to look deserves the number.
             val hidden = remaining.size - page.size
-            val label = if (hidden == 1) "1 more reminder" else "$hidden more reminders"
+            val label = if (hidden == 1) NativeText.text(carContext, "1 more reminder") else NativeText.text(carContext, "{{count}} more reminders", mapOf("count" to hidden))
             val row = Row.Builder()
                 .setTitle(label)
                 .setBrowsable(true)
@@ -82,7 +82,7 @@ class ReminderListScreen(carContext: CarContext, private val offset: Int = 0) : 
                     screenManager.push(ReminderListScreen(carContext, offset + page.size))
                 }
                 .build()
-            template.addSectionedList(SectionedItemList.create(ItemList.Builder().addItem(row).build(), "More"))
+            template.addSectionedList(SectionedItemList.create(ItemList.Builder().addItem(row).build(), NativeText.text(carContext, "More")))
         }
         return template.build()
     }
@@ -93,7 +93,7 @@ class ReminderListScreen(carContext: CarContext, private val offset: Int = 0) : 
             val row = Row.Builder()
                 .setTitle(reminder.title)
                 // Two texts is the per-row maximum: when it fires, then what it's for.
-                .addText(CarReminders.timing(reminder, now))
+                .addText(CarReminders.timing(carContext, reminder, now))
                 .setBrowsable(true)
                 // Addressed by CarReminder.key, not the occurrence id: a note and a
                 // projected future firing have no occurrence, and both are still openable.
@@ -114,12 +114,12 @@ class ReminderListScreen(carContext: CarContext, private val offset: Int = 0) : 
      */
     private fun emptyTemplate(): Template {
         val message = if (AlarmStore.apiBaseUrl(carContext).isEmpty()) {
-            "Open Persistent on your phone and sign in."
+            NativeText.text(carContext, "Open Persistent on your phone and sign in.")
         } else {
-            "Nothing due, and nothing scheduled this week."
+            NativeText.text(carContext, "Nothing due, and nothing scheduled this week.")
         }
         return MessageTemplate.Builder(message)
-            .setTitle("Reminders")
+            .setTitle(NativeText.text(carContext, "Reminders"))
             .setHeaderAction(Action.APP_ICON)
             .build()
     }

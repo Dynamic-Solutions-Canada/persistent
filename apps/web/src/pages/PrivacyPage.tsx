@@ -13,7 +13,7 @@ import Link from '@mui/joy/Link'
 // Also the contact address on the Play listing — Google verifies it routes.
 const CONTACT_EMAIL = 'contact@dynamic-solutions.ca'
 
-const LAST_UPDATED = '7 October 2026'
+const LAST_UPDATED = '21 October 2026'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -46,7 +46,7 @@ export function PrivacyPage() {
           <Typography level="body-sm">
             <strong>Account.</strong> Your email address, which identifies your account and receives sign-in
             codes. If you sign in with Google, the name on your Google profile. Your time zone, so reminders
-            notify you at the local time you meant. There is no password — sign-in uses a one-time email code,
+            notify you at the local time you meant, and your preferred language for account emails. There is no password; sign-in uses a one-time email code,
             Google, or a passkey.
           </Typography>
           <Typography level="body-sm">
@@ -67,7 +67,7 @@ export function PrivacyPage() {
           </Typography>
           <Typography level="body-sm">
             <strong>Devices.</strong> An FCM push token and device identifier for each Android device where you
-            enable notifications, so alarms can reach that device.
+            enable notifications, so alarms can reach that device. We store the device&apos;s notification language preference with that registration so server-sent notification wording uses the selected language. Interface language and regional formatting preferences are also saved locally on each device for offline use. Choosing a language does not translate the reminder text you enter.
           </Typography>
           <Typography level="body-sm">
             <strong>Sessions.</strong> A hashed session secret and the browser identifier for each signed-in

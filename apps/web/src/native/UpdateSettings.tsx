@@ -1,4 +1,6 @@
 /** About card, with migration guidance for the retired direct Android distribution. */
+import { useTranslation, Trans } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import Card from '@mui/joy/Card'
 import Typography from '@mui/joy/Typography'
 import Stack from '@mui/joy/Stack'
@@ -9,27 +11,27 @@ import { useAppVersion } from './useAppVersion.js'
 
 /** Choose update guidance by installed capabilities, keeping both Android download choices available. */
 function AppUpdateInformation() {
+  useTranslation()
   if (hasNativeUpdater()) return <DirectBuildNotice />
   if (isNative()) {
     return (
       <>
-        <Typography level="body-xs">
-          You can get updates through Google Play or install newer APKs from GitHub.
-        </Typography>
+        <Typography level="body-xs">{tr("You can get updates through Google Play or install newer APKs from GitHub.")}</Typography>
         <AndroidDownloads />
       </>
     )
   }
-  return <Typography level="body-xs">This web app updates automatically through your browser.</Typography>
+  return <Typography level="body-xs">{tr("This web app updates automatically through your browser.")}</Typography>
 }
 
 export function UpdateSettings() {
+  useTranslation()
   const currentVersion = useAppVersion()
 
   return (
     <Card variant="outlined">
-      <Typography level="title-sm">About</Typography>
-      <Typography level="body-sm">Version {currentVersion}</Typography>
+      <Typography level="title-sm">{tr("About")}</Typography>
+      <Typography level="body-sm"><Trans i18nKey={"Version <v0/>"} components={{ v0: <>{currentVersion}</> }} /></Typography>
       <Stack spacing={1.5}>
         <AppUpdateInformation />
       </Stack>

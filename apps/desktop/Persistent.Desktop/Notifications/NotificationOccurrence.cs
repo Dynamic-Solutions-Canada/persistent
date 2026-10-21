@@ -1,3 +1,5 @@
+using Persistent.Localization;
+
 namespace Persistent.Desktop.Notifications;
 
 /// <summary>
@@ -12,7 +14,15 @@ internal sealed record NotificationOccurrence(
     string Body,
     bool Alarm,
     bool CanSilence,
-    int SoundIntervalSeconds);
+    int SoundIntervalSeconds,
+    string? BodyTemplate = null,
+    string? BaseBody = null)
+{
+    /// <summary>Only a server-provided presentation marker is translated; reminder text stays unchanged.</summary>
+    internal string DisplayBody => BodyTemplate == "escalated"
+        ? string.IsNullOrEmpty(BaseBody) ? UiText.Get("Escalated") : UiText.Format("{{body}} (escalated)", ("body", BaseBody))
+        : Body;
+}
 
 /// <summary>
 /// A displayed occurrence plus the last instant Windows was asked to present it.

@@ -1,4 +1,6 @@
 /** Shared Store and Linux download actions for Persistent's native apps. */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import Button from '@mui/joy/Button'
 import Stack from '@mui/joy/Stack'
 import AndroidIcon from '@mui/icons-material/Android'
@@ -18,6 +20,7 @@ export function NativeAppButtons({
   showWindows = true,
   showLinux = true
 }: NativeAppButtonsProps) {
+  useTranslation()
   return (
     <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
       {showAndroid && (
@@ -30,9 +33,7 @@ export function NativeAppButtons({
           variant="outlined"
           startDecorator={<AndroidIcon />}
           sx={{ width: { xs: '100%', sm: 'auto' } }}
-        >
-          Google Play
-        </Button>
+        >{tr("Google Play")}</Button>
       )}
       {showWindows && (
         <Button
@@ -44,9 +45,7 @@ export function NativeAppButtons({
           variant="outlined"
           startDecorator={<WindowRoundedIcon />}
           sx={{ width: { xs: '100%', sm: 'auto' } }}
-        >
-          Microsoft Store
-        </Button>
+        >{tr("Microsoft Store")}</Button>
       )}
       {showLinux && (
         <Button
@@ -58,9 +57,7 @@ export function NativeAppButtons({
           variant="outlined"
           startDecorator={<DownloadRoundedIcon />}
           sx={{ width: { xs: '100%', sm: 'auto' } }}
-        >
-          Linux downloads
-        </Button>
+        >{tr("Linux downloads")}</Button>
       )}
     </Stack>
   )

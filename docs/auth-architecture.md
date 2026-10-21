@@ -16,6 +16,10 @@ auth: no tenancy or service accounts. A database admin grant allows read-only ag
 Rate limiting: per-email (`lib/email-code.ts`) and per-IP (`lib/rate-limit.ts`)
 on code requests; capped verify attempts per code.
 
+## Language preferences
+
+`POST /api/auth/request-code` optionally accepts a supported device `locale` for that verification email without changing the account preference. `PATCH /api/auth/preferences` validates the shared account-language schema and updates only the authenticated user's `emailLanguage`; existing accounts default to English. Invitation and escalation delivery reads only the exact recipient address's language preference, with English fallback for unknown recipients. It never returns an existence signal or borrows the sender's language. Interface/region choices are per device and available before sign-in. See [localization](localization.md) for the separate contracts.
+
 ## Passkeys (WebAuthn)
 
 An alternative to the email code: a signed-in user can register a passkey

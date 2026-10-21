@@ -2,6 +2,8 @@
  * The medication rows on a MEDICATION reminder: one name + qty + unit block per
  * medication, since a single dose reminder often covers several taken together.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../../localization/i18n.js'
 import Stack from '@mui/joy/Stack'
 import FormControl from '@mui/joy/FormControl'
 import FormLabel from '@mui/joy/FormLabel'
@@ -23,19 +25,20 @@ export function MedicationFields({
   onAdd: () => void
   onRemove: (index: number) => void
 }) {
+  useTranslation()
   return (
     <Stack spacing={2}>
       {medications.map((med, index) => (
         <Stack key={index} spacing={1}>
           <FormControl>
-            <FormLabel>{medications.length > 1 ? `Medication ${index + 1}` : 'Medication'}</FormLabel>
+            <FormLabel>{medications.length > 1 ? tr("Medication {{v0}}", { v0: index + 1 }) : tr("Medication")}</FormLabel>
             <Stack direction="row" spacing={1} alignItems="center">
               <Autocomplete
                 sx={{ flex: 1, minWidth: 0 }}
                 freeSolo
                 autoComplete
                 options={COMMON_MEDICATIONS}
-                placeholder="Ibuprofen"
+                placeholder={tr("Ibuprofen")}
                 value={med.name}
                 onChange={(_e, value) => onChange(index, 'name', value ?? '')}
                 inputValue={med.name}
@@ -50,7 +53,7 @@ export function MedicationFields({
           </FormControl>
           <Stack direction="row" spacing={1}>
             <FormControl sx={{ flex: 1, minWidth: 0 }}>
-              <FormLabel>Qty</FormLabel>
+              <FormLabel>{tr("Qty")}</FormLabel>
               <Input
                 type="number"
                 value={med.quantity}
@@ -59,15 +62,13 @@ export function MedicationFields({
               />
             </FormControl>
             <FormControl sx={{ flex: 1, minWidth: 0 }}>
-              <FormLabel>Unit</FormLabel>
-              <Input value={med.unit} onChange={(e) => onChange(index, 'unit', e.target.value)} placeholder="mg" />
+              <FormLabel>{tr("Unit")}</FormLabel>
+              <Input value={med.unit} onChange={(e) => onChange(index, 'unit', e.target.value)} placeholder={tr("mg")} />
             </FormControl>
           </Stack>
         </Stack>
       ))}
-      <Button variant="outlined" size="sm" onClick={onAdd} sx={{ alignSelf: 'flex-start' }}>
-        Add medication
-      </Button>
+      <Button variant="outlined" size="sm" onClick={onAdd} sx={{ alignSelf: 'flex-start' }}>{tr("Add medication")}</Button>
     </Stack>
   )
 }

@@ -1,3 +1,4 @@
+import { tr } from '../localization/i18n.js'
 /**
  * Native sync: keep on-device exact alarms in step with the server. On the
  * native Android client this schedules the alarms that actually fire (offline,
@@ -18,6 +19,7 @@ import {
   type PushConfig,
   ESC_SUFFIX
 } from '@persistent/shared'
+import { getLocale } from '../localization/localeState.js'
 import { apiFetch } from '../lib/apiClient.js'
 import { notify } from '../lib/toast.js'
 import { subscribeWs } from '../lib/wsClient.js'
@@ -85,6 +87,8 @@ function toScheduledAlarm(alarm: DeviceAlarm): ScheduledAlarm {
     fireAtMs: alarm.fireAtMs,
     title: alarm.title,
     body: alarm.body,
+    bodyTemplate: alarm.bodyTemplate,
+    baseBody: alarm.baseBody,
     soundIntervalSeconds: alarm.soundIntervalSeconds,
     alarm: alarm.alarm,
     ongoing: alarm.ongoing,
@@ -215,7 +219,7 @@ async function warnIfAlarmsCantShow(): Promise<void> {
   if (!ready) return
   if (!ready.notifications) {
     notify(
-      'Notifications are off for Persistent — alarms will sound with no way to see or stop them. Turn notifications on in system settings.',
+      tr("Notifications are off for Persistent, alarms will sound with no way to see or stop them. Turn notifications on in system settings."),
       'danger'
     )
   }
@@ -245,10 +249,8 @@ async function initFcm(): Promise<void> {
   if (!fcmEnabled) return
 
   await PushNotifications.addListener('registration', (token) => {
-    void apiFetch('/api/push/subscriptions', {
-      method: 'POST',
-      body: JSON.stringify({ kind: 'FCM', token: token.value })
-    }).catch(() => {})
+    registeredFcmToken = token.value
+    void refreshPushLocale().catch(() => {})
   })
   await PushNotifications.addListener('registrationError', () => {
     /* leave on-device alarms as the guarantee; nothing to do */
@@ -315,5 +317,17 @@ export async function initNative(): Promise<void> {
   void App.addListener('resume', () => {
     void consumePendingNavigation().catch(() => {})
     scheduleResync()
+  })
+}
+
+// Tokens remain in memory; native/FCM remains the credential owner across restarts.
+let registeredFcmToken: string | null = null
+
+/** Refresh this device's push wording when the user changes language. */
+export async function refreshPushLocale(): Promise<void> {
+  if (!registeredFcmToken) return
+  await apiFetch('/api/push/subscriptions', {
+    method: 'POST',
+    body: JSON.stringify({ kind: 'FCM', token: registeredFcmToken, locale: getLocale() })
   })
 }

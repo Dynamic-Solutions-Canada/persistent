@@ -96,7 +96,7 @@ class SnoozePickerActivity : Activity() {
         back.disable()
         content.removeAllViews()
         content.addStacked(AlarmUi.kicker(this, "SNOOZE"))
-        content.addStacked(AlarmUi.title(this, "Snooze for…"), topMarginDp = 6f)
+        content.addStacked(AlarmUi.applicationTitle(this, "Snooze for…"), topMarginDp = 6f)
         presets.forEachIndexed { index, (label, minutes) ->
             content.addView(
                 AlarmUi.pillButton(
@@ -135,7 +135,7 @@ class SnoozePickerActivity : Activity() {
                     },
                     now.get(Calendar.HOUR_OF_DAY),
                     now.get(Calendar.MINUTE),
-                    DateFormat.is24HourFormat(this)
+                    NativeText.is24Hour(this)
                 ).show()
             },
             now.get(Calendar.YEAR),
@@ -154,7 +154,7 @@ class SnoozePickerActivity : Activity() {
         var unitMinutes = customUnits[0].second
         val field = AlarmUi.numberField(this, "45", topMarginDp = 0f)
         content.addStacked(AlarmUi.kicker(this, "SNOOZE"))
-        content.addStacked(AlarmUi.title(this, "Custom snooze"), topMarginDp = 6f)
+        content.addStacked(AlarmUi.applicationTitle(this, "Custom snooze"), topMarginDp = 6f)
         content.addView(field, AlarmUi.stacked(this, 24f))
         content.addView(AlarmUi.segmented(this, customUnits.map { it.first }, 0, 12f) { index ->
             unitMinutes = customUnits[index].second

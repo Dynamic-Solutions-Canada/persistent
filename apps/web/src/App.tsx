@@ -2,6 +2,8 @@
  * Top-level routing. Unauthenticated users see the sign-in screen; everyone else
  * gets the app shell (reminders list, editor, settings).
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from './localization/i18n.js'
 import { useEffect } from 'react'
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import Stack from '@mui/joy/Stack'
@@ -37,6 +39,7 @@ import { useNativeBack } from './native/useNativeBack.js'
 import { useScrollReset } from './lib/useScrollReset.js'
 
 export function App() {
+  useTranslation()
   const { user, loading, error, refreshSession } = useAuth()
   const navigate = useNavigate()
 
@@ -55,8 +58,8 @@ export function App() {
   if (error) {
     return (
       <Stack spacing={2} sx={{ p: 3 }}>
-        <Typography>Could not check your session.</Typography>
-        <Button variant="soft" onClick={() => { void refreshSession().catch(() => {}) }}>Retry</Button>
+        <Typography>{tr("Could not check your session.")}</Typography>
+        <Button variant="soft" onClick={() => { void refreshSession().catch(() => {}) }}>{tr("Retry")}</Button>
       </Stack>
     )
   }

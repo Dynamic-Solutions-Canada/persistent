@@ -1,3 +1,4 @@
+using Persistent.Localization;
 using Microsoft.Windows.Widgets.Providers;
 using Persistent.WindowsWidget;
 using System.Collections.Concurrent;
@@ -173,19 +174,20 @@ public sealed class PersistentWidgetProvider : IWidgetProvider
     /// </summary>
     private static string BuildTemplate(WidgetSnapshot snapshot)
     {
+        UiText.ReloadPreferences();
         var body = new JsonArray
         {
-            Text("Upcoming", size: "large", weight: "bolder", color: "accent"),
-            Text("Everything coming up, soonest first.", subtle: true, spacing: "none")
+            Text(UiText.Get("Upcoming"), size: "large", weight: "bolder", color: "accent"),
+            Text(UiText.Get("Everything coming up, soonest first."), subtle: true, spacing: "none")
         };
 
         if (!snapshot.SignedIn)
         {
-            body.Add(Text("Open Persistent and sign in to show your reminders here.", wrap: true, spacing: "large"));
+            body.Add(Text(UiText.Get("Open Persistent and sign in to show your reminders here."), wrap: true, spacing: "large"));
         }
         else if (snapshot.Items.Count == 0)
         {
-            body.Add(Text("Nothing scheduled. Anything due right now is on Current.", wrap: true, spacing: "large"));
+            body.Add(Text(UiText.Get("Nothing scheduled. Anything due right now is on Current."), wrap: true, spacing: "large"));
         }
         else
         {
@@ -205,7 +207,7 @@ public sealed class PersistentWidgetProvider : IWidgetProvider
                 new JsonObject
                 {
                     ["type"] = "Action.Execute",
-                    ["title"] = snapshot.SignedIn ? "Open upcoming" : "Open Persistent",
+                    ["title"] = snapshot.SignedIn ? UiText.Get("Open upcoming") : UiText.Get("Open Persistent"),
                     ["verb"] = "open"
                 }
             }

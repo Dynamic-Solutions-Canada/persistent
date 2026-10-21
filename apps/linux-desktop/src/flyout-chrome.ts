@@ -1,3 +1,4 @@
+import { localizationSnapshot } from './localization.js'
 /** Local, draggable flyout chrome with bounded window actions and hosted-theme colors. */
 import { ipcMain, type BrowserWindow, type IpcMainEvent } from 'electron'
 import { join } from 'node:path'
@@ -43,7 +44,7 @@ export class FlyoutChrome {
   /** Echo authoritative pin, loading and appearance state to the local icon toolbar. */
   sync(): void {
     if (!this.window.isDestroyed()) this.window.webContents.send('persistent:chrome-state', {
-      pinned: this.pinned(), ...this.colors, status: this.status
+      pinned: this.pinned(), ...this.colors, status: this.status, localization: localizationSnapshot()
     })
   }
 

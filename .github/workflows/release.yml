@@ -209,20 +209,25 @@ jobs:
           path: persistent-*-play.aab
           if-no-files-found: error
 
-      # Uploads once to production and retires phone testing releases in one edit. The "what's new" text is derived from RELEASE_NOTES.md
-      # inside the script (heading and compare link stripped, truncated to Play's
-      # 500-character cap on a line boundary).
+      # Curated version-bound localized notes take precedence when present.
+      # Other versions retain generated English notes and the existing 500-char cap.
+      # Upload and testing-track retirement still share one production edit.
       - name: Release to Google Play
         working-directory: apps/mobile
         env:
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
+          NOTES_ARGS=(--notes "$GITHUB_WORKSPACE/RELEASE_NOTES.md")
+          LOCALIZED_NOTES="store/releases/${{ steps.ver.outputs.name }}.json"
+          if [ -f "$LOCALIZED_NOTES" ]; then
+            NOTES_ARGS=(--localized-notes "$LOCALIZED_NOTES")
+          fi
           node scripts/play-publish.mjs \
             --aab "$GITHUB_WORKSPACE/persistent-${{ steps.ver.outputs.name }}-play.aab" \
             --tracks production --production-only \
             --version-name "${{ steps.ver.outputs.name }}" \
             --status "${{ steps.ver.outputs.status }}" \
-            --notes "$GITHUB_WORKSPACE/RELEASE_NOTES.md"
+            "${NOTES_ARGS[@]}"
 
       - name: Locate APK inspection tools
         run: |

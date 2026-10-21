@@ -7,4 +7,5 @@ if [[ ! -f "$tools_root/windows-build.py" ]]; then
     printf 'Missing Windows build bridge: %s\n' "$tools_root" >&2
     exit 1
 fi
+python3 "$repo_root/scripts/dev/prepare-desktop-localization.py" --repo "$repo_root"
 exec python3 "$tools_root/windows-build.py" --repo "$repo_root" "$@"

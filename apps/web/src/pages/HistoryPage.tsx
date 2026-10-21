@@ -10,6 +10,8 @@
  * through, not a feed to fall into, and an explicit control keeps the page a
  * fixed, predictable length until asked otherwise.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import Button from '@mui/joy/Button'
 import Stack from '@mui/joy/Stack'
 import Typography from '@mui/joy/Typography'
@@ -41,6 +43,7 @@ function checklistProgress(occurrence: Occurrence): string | undefined {
 }
 
 export function HistoryPage() {
+  useTranslation()
   const dialogs = useReminderDialogs()
   const past = usePastOccurrences()
   const reminders = useReminders()
@@ -62,11 +65,11 @@ export function HistoryPage() {
     <PullToRefresh onRefresh={() => past.refetch()}>
     <Stack spacing={3}>
       <Stack spacing={1.5}>
-        <SectionHeading title="History" subtitle="Already dealt with, most recent first." />
+        <SectionHeading title={tr("History")} subtitle={tr("Already dealt with, most recent first.")} />
 
-        {past.isLoading && <Typography level="body-sm">Loading…</Typography>}
+        {past.isLoading && <Typography level="body-sm">{tr("Loading…")}</Typography>}
         {past.data && occurrences.length === 0 && (
-          <Typography level="body-sm">Nothing here yet. Done and missed reminders show up here.</Typography>
+          <Typography level="body-sm">{tr("Nothing here yet. Done and missed reminders show up here.")}</Typography>
         )}
 
         <Stack spacing={1.5}>
@@ -90,9 +93,7 @@ export function HistoryPage() {
               color="neutral"
               loading={past.isFetchingNextPage}
               onClick={() => void past.fetchNextPage()}
-            >
-              Show more
-            </Button>
+            >{tr("Show more")}</Button>
           )}
         </Stack>
       </Stack>

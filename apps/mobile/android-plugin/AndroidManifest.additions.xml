@@ -49,12 +49,12 @@
     android:turnScreenOn="true"
     android:excludeFromRecents="true"
     android:launchMode="singleInstance"
-    android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale"
+    android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale|locale|layoutDirection"
     android:theme="@android:style/Theme.Material.NoActionBar" />
 
 <activity
     android:name="ca.persistent.app.alarm.SnoozePickerActivity"
-    android:configChanges="uiMode"
+    android:configChanges="uiMode|locale|layoutDirection"
     android:exported="false"
     android:showWhenLocked="true"
     android:turnScreenOn="true"

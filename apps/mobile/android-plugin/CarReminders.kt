@@ -89,7 +89,7 @@ object CarReminders {
                     occurrenceId = spec.occurrenceId,
                     reminderId = spec.reminderId,
                     title = spec.title,
-                    body = spec.body,
+                    body = NativeText.body(context, spec),
                     fireAtMs = spec.fireAtMs,
                     // An armed alarm outlives its fire in the store — it's removed only on
                     // Done/snooze — so a fire time in the past means "fired, unconfirmed".
@@ -133,30 +133,30 @@ object CarReminders {
      * a driver reads "in 20 min" at a glance, and it needs no time-zone or 12/24-hour
      * handling to be right.
      */
-    fun timing(reminder: CarReminder, nowMs: Long): String {
+    fun timing(context: Context, reminder: CarReminder, nowMs: Long): String {
         // A note has no time at all, so it says what it is instead of when it is.
-        if (reminder.note) return "Kept note — never notifies you"
-        if (reminder.ringing) return "Ringing now"
+        if (reminder.note) return NativeText.text(context, "Kept note, never notifies you")
+        if (reminder.ringing) return NativeText.text(context, "Ringing now")
         val deltaMs = reminder.fireAtMs - nowMs
         if (reminder.due) {
             val overdue = -deltaMs
             // Under a minute either way reads as "just now" more honestly than "0 min ago".
-            return if (overdue < TimeUnit.MINUTES.toMillis(1)) "Due now" else "Due ${duration(overdue)} ago"
+            return if (overdue < TimeUnit.MINUTES.toMillis(1)) NativeText.text(context, "Due now") else NativeText.text(context, "Due {{duration}} ago", mapOf("duration" to duration(context, overdue)))
         }
-        return if (deltaMs < TimeUnit.MINUTES.toMillis(1)) "Due now" else "In ${duration(deltaMs)}"
+        return if (deltaMs < TimeUnit.MINUTES.toMillis(1)) NativeText.text(context, "Due now") else NativeText.text(context, "In {{duration}}", mapOf("duration" to duration(context, deltaMs)))
     }
 
     /** A coarse "2 h 15 min" / "3 days" phrasing — precision no driver needs. */
-    private fun duration(ms: Long): String {
+    private fun duration(context: Context, ms: Long): String {
         val minutes = TimeUnit.MILLISECONDS.toMinutes(ms)
-        if (minutes < 60) return "$minutes min"
+        if (minutes < 60) return NativeText.text(context, "{{count}} min", mapOf("count" to minutes))
         val hours = minutes / 60
         if (hours < 24) {
             val rest = minutes % 60
-            return if (rest == 0L) plural(hours, "hour") else "$hours h $rest min"
+            if (rest == 0L) return NativeText.text(context, if (hours == 1L) "1 hour" else "{{count}} hours", mapOf("count" to hours))
+            return NativeText.text(context, "{{hours}} h {{minutes}} min", mapOf("hours" to hours, "minutes" to rest))
         }
-        return plural(hours / 24, "day")
+        val days = hours / 24
+        return NativeText.text(context, if (days == 1L) "1 day" else "{{count}} days", mapOf("count" to days))
     }
-
-    private fun plural(value: Long, unit: String): String = if (value == 1L) "1 $unit" else "$value ${unit}s"
 }

@@ -43,8 +43,8 @@ object CarNotificationProjection {
             .setContentTitle(spec.title)
             .setSmallIcon(R.drawable.ic_stat_bell)
             .setImportance(NotificationManager.IMPORTANCE_HIGH)
-            .addAction(R.drawable.ic_action_done, "Done", donePending)
-            .addAction(R.drawable.ic_action_snooze, "Snooze ${defaultSnoozeMinutes}m", snoozePending)
+            .addAction(R.drawable.ic_action_done, NativeText.text(context, "Done"), donePending)
+            .addAction(R.drawable.ic_action_snooze, NativeText.text(context, "Snooze {{minutes}} min", mapOf("minutes" to defaultSnoozeMinutes)), snoozePending)
         if (spec.body.isNotBlank()) extender.setContentText(spec.body)
         carAppPendingIntent(context, spec)?.let { extender.setContentIntent(it) }
         builder.extend(extender.build())

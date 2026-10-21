@@ -14,6 +14,7 @@ import { AppThemeProvider } from './settings/AppThemeProvider.js'
 import { SettingsProvider } from './settings/useSettings.js'
 import { ToastProvider } from './components/ToastProvider.js'
 import { ErrorBoundary } from './components/ErrorBoundary.js'
+import { NativeLocaleSync } from './native/NativeLocaleSync.js'
 import { App } from './App.js'
 import { initializeSessionNetwork } from './auth/sessionNetwork.js'
 
@@ -40,6 +41,7 @@ createRoot(container).render(
           >
             <BrowserRouter>
               <AuthProvider>
+                <NativeLocaleSync />
                 <ToastProvider>
                   <App />
                 </ToastProvider>

@@ -1,3 +1,4 @@
+import { localizationSnapshot, nativeText } from './localization.js'
 /** Packaged recovery settings and alarm audio remain available when the hosted app cannot load. */
 import { LINUX_RELEASE_REPOSITORY } from '@persistent/shared'
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
@@ -7,7 +8,7 @@ import { once } from 'node:events'
 import { serverOrigin } from './security.js'
 import { DEFAULT_SERVER, validatedSettings, type SettingsStore } from './settings.js'
 import { settingsCatalog } from './settings-catalog.js'
-import type { UpdateController, UpdateState } from './update-controller.js'
+import type { UpdateController } from './update-controller.js'
 import { statusNotifierAvailable } from './notifications.js'
 import { attachTaskbarHints } from './window-taskbar.js'
 
@@ -63,20 +64,20 @@ export class RecoveryWindows {
           }
           case 'server': {
             const server = serverOrigin(typeof raw.value === 'string' ? raw.value : '')
-            if (server === options.store.current.server) return { ...this.snapshot(), message: 'Connection settings saved.' }
-            if (!await this.confirmClear()) return { ...this.snapshot(), message: 'Server unchanged.' }
+            if (server === options.store.current.server) return { ...this.snapshot(), message: nativeText("Connection settings saved.") }
+            if (!await this.confirmClear()) return { ...this.snapshot(), message: nativeText("Server unchanged.") }
             await options.changeServer(server)
-            return { ...this.snapshot(), message: 'Saved and reloaded.' }
+            return { ...this.snapshot(), message: nativeText("Saved and reloaded.") }
           }
           case 'reset':
-            if (options.store.current.server === DEFAULT_SERVER) return { ...this.snapshot(), message: 'Using the default server.' }
-            if (!await this.confirmClear()) return { ...this.snapshot(), message: 'Server unchanged.' }
+            if (options.store.current.server === DEFAULT_SERVER) return { ...this.snapshot(), message: nativeText("Using the default server.") }
+            if (!await this.confirmClear()) return { ...this.snapshot(), message: nativeText("Server unchanged.") }
             await options.changeServer(DEFAULT_SERVER)
-            return { ...this.snapshot(), message: 'Default server restored and reloaded.' }
+            return { ...this.snapshot(), message: nativeText("Default server restored and reloaded.") }
           case 'clear':
-            if (!await this.confirmClear()) return { message: 'Saved sign-in unchanged.' }
+            if (!await this.confirmClear()) return { message: nativeText("Saved sign-in unchanged.") }
             await options.clearSignIn()
-            return { message: 'Saved sign-in and personal cached data cleared.' }
+            return { message: nativeText("Saved sign-in and personal cached data cleared.") }
           case 'theme':
             options.store.save(validatedSettings({ appTheme: raw.value }, options.store.current))
             return this.snapshot()
@@ -124,11 +125,13 @@ export class RecoveryWindows {
   private localUrl(file: string): string { return pathToFileURL(join(this.options.root, 'resources', file)).href }
 
   /** Local theme belongs to the desktop settings window, independently of the hosted app theme. */
-  private snapshot(): { server: string; version: string; appTheme: string; maximized: boolean; update: UpdateState } {
-    return { server: this.options.store.current.server, version: this.options.version, appTheme: this.options.store.current.appTheme, maximized: this.settings?.isMaximized() ?? false, update: this.options.updater.snapshot() }
+  private snapshot() {
+    return { localization: localizationSnapshot(), server: this.options.store.current.server, version: this.options.version, appTheme: this.options.store.current.appTheme, maximized: this.settings?.isMaximized() ?? false, update: this.options.updater.snapshot() }
   }
 
   /** Background updater state reaches the local window without rebuilding its page. */
+  syncLocale(): void { this.settings?.webContents.send('persistent:local-state', { localization: localizationSnapshot() }) }
+
   syncUpdate(): void { this.settings?.webContents.send('persistent:local-state', { update: this.options.updater.snapshot() }) }
 
   /** Separate native consent for download and restart; neither action proceeds on cancellation. */
@@ -142,12 +145,12 @@ export class RecoveryWindows {
     }
     parent.webContents.send('persistent:local-state', { page: 'about' })
     const request = {
-      type: 'question' as const, title: 'Persistent update',
-      message: action === 'download' ? `Download Persistent version ${version}?` : `Install version ${version} and restart Persistent?`,
-      detail: action === 'download' ? 'The app keeps running while the update downloads.' : this.options.packageKind === 'deb'
-        ? 'Desktop alerts pause briefly during restart. Installation requests administrator approval. Finish any unsaved edits before restarting.'
-        : 'Desktop alerts pause briefly during restart. Your saved sign-in and settings are preserved. Finish any unsaved edits before restarting.',
-      buttons: ['Later', action === 'download' ? 'Download update' : 'Install and restart'], defaultId: 0, cancelId: 0
+      type: 'question' as const, title: nativeText("Persistent update"),
+      message: action === nativeText("download") ? nativeText("Download Persistent version {{v0}}?", { v0: version }) : nativeText("Install version {{v0}} and restart Persistent?", { v0: version }),
+      detail: action === nativeText("download") ? nativeText("The app keeps running while the update downloads.") : this.options.packageKind === nativeText("deb")
+        ? nativeText("Desktop alerts pause briefly during restart. Installation requests administrator approval. Finish any unsaved edits before restarting.")
+        : nativeText("Desktop alerts pause briefly during restart. Your saved sign-in and settings are preserved. Finish any unsaved edits before restarting."),
+      buttons: [nativeText("Later"), action === nativeText("download") ? nativeText("Download update") : nativeText("Install and restart")], defaultId: 0, cancelId: 0
     }
     const result = await dialog.showMessageBox(parent, request)
     return result.response === 1
@@ -167,7 +170,7 @@ export class RecoveryWindows {
       return
     }
     const saved = this.options.store.current
-    this.settings = new BrowserWindow({ title: 'Persistent', width: saved.settingsWidth ?? 760, height: saved.settingsHeight ?? 600,
+    this.settings = new BrowserWindow({ title: nativeText("Persistent"), width: saved.settingsWidth ?? 760, height: saved.settingsHeight ?? 600,
       minWidth: 500, minHeight: 400, show: false, type: this.options.wayland ? 'toolbar' : 'normal', transparent: true, frame: false, backgroundColor: '#00000000', icon: join(this.options.root, 'resources/app-icon.png'),
       ...((saved.settingsX !== undefined && saved.settingsY !== undefined) ? { x: saved.settingsX, y: saved.settingsY } : {}), webPreferences: {
       preload: join(this.options.root, 'dist/local-preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false
@@ -210,9 +213,9 @@ export class RecoveryWindows {
 
   private async confirmClear(): Promise<boolean> {
     const result = await dialog.showMessageBox(this.settings!, {
-      type: 'warning', title: 'Clear saved sign-in?',
-      message: 'This clears saved sign-in, personal cached data and pending offline changes on this Linux app.',
-      buttons: ['Cancel', 'Clear saved sign-in'], defaultId: 0, cancelId: 0
+      type: 'warning', title: nativeText("Clear saved sign-in?"),
+      message: nativeText("This clears saved sign-in, personal cached data and pending offline changes on this Linux app."),
+      buttons: [nativeText("Cancel"), nativeText("Clear saved sign-in")], defaultId: 0, cancelId: 0
     })
     return result.response === 1
   }

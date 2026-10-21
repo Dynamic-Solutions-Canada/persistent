@@ -45,6 +45,8 @@
  * screen entirely. The spacer stays in the flow, where it is the thing that
  * actually needs to occupy layout.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import { createPortal } from 'react-dom'
 import { useReminderDialogs } from './reminderDialogContext.js'
 import Box from '@mui/joy/Box'
@@ -53,6 +55,7 @@ import Button from '@mui/joy/Button'
 import AddIcon from '@mui/icons-material/Add'
 
 export function NewReminderFab() {
+  useTranslation()
   const dialogs = useReminderDialogs()
   return (
     <>
@@ -100,9 +103,7 @@ export function NewReminderFab() {
                   'linear-gradient(var(--joy-palette-primary-softBg), var(--joy-palette-primary-softBg))'
               }
             }}
-          >
-            New reminder
-          </Button>
+          >{tr("New reminder")}</Button>
         </Box>,
         document.body
       )}

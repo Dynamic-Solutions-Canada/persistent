@@ -1,3 +1,4 @@
+using Persistent.Localization;
 using System.Text.Json;
 using Persistent.Desktop.ViewModels;
 
@@ -70,7 +71,7 @@ internal static class HostSettings
         bool startAtSignIn = await StartupManager.IsEnabledAsync();
 
         var sizes = FlyoutPresets
-            .Select(preset => new { id = preset.Id, label = preset.Label, width = preset.Width, height = preset.Height })
+            .Select(preset => new { id = preset.Id, label = UiText.Get(preset.Label), width = preset.Width, height = preset.Height })
             .ToList();
         string currentSize = CurrentPresetId();
         if (currentSize == CustomPresetId)
@@ -78,7 +79,7 @@ internal static class HostSettings
             sizes.Add(new
             {
                 id = CustomPresetId,
-                label = "Custom",
+                label = UiText.Get("Custom"),
                 width = settings.FlyoutWidth,
                 height = settings.FlyoutHeight
             });

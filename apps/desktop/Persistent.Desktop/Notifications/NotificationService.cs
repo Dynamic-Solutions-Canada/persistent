@@ -1,7 +1,7 @@
 using Microsoft.Windows.AppNotifications;
 using Persistent.Desktop.Classes.Settings;
 using Persistent.Desktop.Windows;
-using System.Collections.Concurrent;
+using Persistent.Localization;
 
 namespace Persistent.Desktop.Notifications;
 
@@ -41,13 +41,16 @@ internal static class NotificationService
     private static readonly SemaphoreSlim RefreshGate = new(1, 1);
     private static volatile bool _enabled;
     private static int _lifecycleVersion;
+    private static string _presentationLocale = UiText.Locale;
 
     /// <summary>
     /// The server-projected active notification plus its local presentation state.
     /// Bounded by how many firings are unconfirmed at once; dismissing a toast does
     /// not remove an entry because restoring it is the defining behavior.
     /// </summary>
-    private static readonly ConcurrentDictionary<string, TrackedNotification> Live = new();
+    private static readonly NotificationPresentation Presentation = new(
+        occurrence => Toasts.ShowOccurrence(occurrence, SnoozeMinutes),
+        Toasts.ShowDoneConfirm, Toasts.RemoveAsync, Toasts.RemoveAllAsync, () => _enabled);
 
     /// <summary>
     /// Bring the service in line with the current setting. Safe to call repeatedly —
@@ -104,7 +107,7 @@ internal static class NotificationService
             AppFlyout.GetSessionCookieAsync,
             () => SettingsManager.Current.EffectiveServerUrl);
         _realtime ??= new RealtimeClient(AppFlyout.GetSessionCookieAsync, () => SettingsManager.Current.EffectiveServerUrl);
-        _monitor ??= new NotificationPersistenceMonitor(Live, Toasts, ShowAndTrack, RequestRefresh);
+        _monitor ??= new NotificationPersistenceMonitor(() => Presentation.Values, Toasts, RestoreTracked, RequestRefresh, Presentation.RetryPendingAsync);
 
         _realtime.Connected -= RequestRefresh;
         _realtime.Connected += RequestRefresh;
@@ -112,6 +115,9 @@ internal static class NotificationService
         _realtime.EventReceived += OnRealtimeEvent;
 
         _enabled = true;
+        _presentationLocale = UiText.Locale;
+        UiText.Changed -= RefreshPresentation;
+        UiText.Changed += RefreshPresentation;
         Interlocked.Increment(ref _lifecycleVersion);
         _realtime.Start();
         _monitor.Start();
@@ -121,9 +127,9 @@ internal static class NotificationService
     private static void Disable()
     {
         _enabled = false;
+        UiText.Changed -= RefreshPresentation;
         _monitor?.Stop();
         _realtime?.Stop();
-        Live.Clear();
         int disabledVersion = Interlocked.Increment(ref _lifecycleVersion);
         _ = ClearAndUnregisterAsync(disabledVersion);
     }
@@ -132,6 +138,7 @@ internal static class NotificationService
     public static void Shutdown()
     {
         _enabled = false;
+        UiText.Changed -= RefreshPresentation;
         _monitor?.Stop();
         _realtime?.Stop();
         Toasts.Unregister();
@@ -144,7 +151,7 @@ internal static class NotificationService
     /// </summary>
     private static async Task ClearAndUnregisterAsync(int disabledVersion)
     {
-        await Toasts.RemoveAllAsync();
+        await Presentation.ClearAsync();
         if (!_enabled && Volatile.Read(ref _lifecycleVersion) == disabledVersion)
         {
             Toasts.Unregister();
@@ -158,8 +165,8 @@ internal static class NotificationService
     /// </summary>
     public static void UserSignedOut()
     {
-        Live.Clear();
-        _ = Toasts.RemoveAllAsync();
+        Interlocked.Increment(ref _lifecycleVersion);
+        _ = Presentation.ClearAsync();
     }
 
     private static void OnRealtimeEvent(RealtimeSignal signal)
@@ -167,15 +174,13 @@ internal static class NotificationService
         switch (signal.Type)
         {
             case "dismiss":
-                Live.TryRemove(signal.OccurrenceId, out _);
-                _ = Toasts.RemoveAsync(signal.OccurrenceId);
+                _ = Presentation.RemoveAsync(signal.OccurrenceId);
                 break;
 
             case "silence":
                 // Stop the looping alarm immediately. The refresh replaces it with
                 // the server-computed soft notification.
-                Live.TryRemove(signal.OccurrenceId, out _);
-                _ = Toasts.RemoveAsync(signal.OccurrenceId);
+                _ = Presentation.RemoveAsync(signal.OccurrenceId);
                 RequestRefresh();
                 break;
 
@@ -203,8 +208,9 @@ internal static class NotificationService
         {
             if (!_enabled) return;
 
+            int version = Volatile.Read(ref _lifecycleVersion);
             var result = await _syncClient.GetActiveAsync();
-            if (result == null || !_enabled) return;
+            if (result == null || !_enabled || version != Volatile.Read(ref _lifecycleVersion)) return;
             if (!result.Authorized)
             {
                 UserSignedOut();
@@ -217,23 +223,22 @@ internal static class NotificationService
                 .Select(occurrence => occurrence.OccurrenceId)
                 .ToHashSet(StringComparer.Ordinal);
 
-            foreach (string occurrenceId in Live.Keys)
+            foreach (string occurrenceId in Presentation.Values.Select(value => value.Occurrence.OccurrenceId))
             {
                 if (incoming.Contains(occurrenceId)) continue;
 
-                Live.TryRemove(occurrenceId, out _);
-                _ = Toasts.RemoveAsync(occurrenceId);
+                await Presentation.RemoveAsync(occurrenceId);
             }
 
             foreach (var occurrence in occurrences)
             {
-                if (Live.TryGetValue(occurrence.OccurrenceId, out var tracked)
+                if (Presentation.TryGet(occurrence.OccurrenceId, out var tracked)
                     && tracked.Occurrence == occurrence)
                 {
                     continue;
                 }
 
-                ShowAndTrack(occurrence);
+                await Presentation.ShowAsync(occurrence, () => version == Volatile.Read(ref _lifecycleVersion));
             }
         }
         catch (Exception ex)
@@ -246,11 +251,17 @@ internal static class NotificationService
         }
     }
 
-    /// <summary>Show one occurrence and record the successful presentation time.</summary>
-    private static void ShowAndTrack(NotificationOccurrence occurrence)
+    /// <summary>Restore only obligations still tracked after a dismissal or rejected action.</summary>
+    private static void RestoreTracked(NotificationOccurrence occurrence) =>
+        _ = Presentation.ShowAsync(occurrence, requireTracked: true);
+
+    /// <summary>Refresh all visible wording immediately without submitting occurrence actions.</summary>
+    private static void RefreshPresentation()
     {
-        if (!_enabled || !Toasts.ShowOccurrence(occurrence, SnoozeMinutes)) return;
-        Live[occurrence.OccurrenceId] = new TrackedNotification(occurrence, DateTimeOffset.UtcNow);
+        string locale = UiText.Locale;
+        if (!_enabled || locale == _presentationLocale) return;
+        _presentationLocale = locale;
+        _ = Presentation.RelabelAsync();
     }
 
     /// <summary>
@@ -284,20 +295,12 @@ internal static class NotificationService
             {
                 case ToastNotifier.ActionDone:
                     // First tap only arms it (§1). Nothing is acknowledged yet.
-                    if (Live.TryGetValue(occurrenceId, out var armed)
-                        && Toasts.ShowDoneConfirm(armed.Occurrence))
-                    {
-                        Live[occurrenceId] = armed with
-                        {
-                            LastShownAt = DateTimeOffset.UtcNow,
-                            ConfirmingDone = true
-                        };
-                    }
+                    _ = Presentation.ConfirmAsync(occurrenceId);
                     break;
 
                 case ToastNotifier.ActionNotYet:
-                    if (Live.TryGetValue(occurrenceId, out var restored))
-                        ShowAndTrack(restored.Occurrence);
+                    if (Presentation.TryGet(occurrenceId, out var restored))
+                        RestoreTracked(restored.Occurrence);
                     break;
 
                 case ToastNotifier.ActionConfirmDone:
@@ -353,15 +356,14 @@ internal static class NotificationService
             // The server also broadcasts `dismiss`, which would remove this anyway;
             // doing it here too makes the toast go away immediately rather than at
             // socket latency, and RemoveAsync is idempotent.
-            Live.TryRemove(occurrenceId, out _);
-            await Toasts.RemoveAsync(occurrenceId);
+            await Presentation.RemoveAsync(occurrenceId);
             if (action == ToastNotifier.ActionSilence) RequestRefresh();
             return;
         }
 
         Logger.Warn("Toast {0} failed for occurrence {1}; leaving the toast up",
             action, occurrenceId);
-        if (Live.TryGetValue(occurrenceId, out var unchanged)) ShowAndTrack(unchanged.Occurrence);
+        if (Presentation.TryGet(occurrenceId, out var unchanged)) RestoreTracked(unchanged.Occurrence);
     }
 
     private static void OpenInFlyout(string? reminderId)

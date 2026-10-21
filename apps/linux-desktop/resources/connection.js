@@ -5,14 +5,15 @@ let requestGeneration = 0
 
 /** Apply only host-confirmed state, including rejected or cancelled connection changes. */
 function applySnapshot(reply, current = true) {
+  window.persistentText.applyLocalization(reply.localization)
   if (reply.update && current) applyUpdate(reply.update)
   if (current && typeof reply.maximized === 'boolean') {
     document.body.classList.toggle('maximized', reply.maximized)
-    document.querySelector('#maximize').setAttribute('aria-label', reply.maximized ? 'Restore' : 'Maximize')
-    document.querySelector('#maximize').title = reply.maximized ? 'Restore' : 'Maximize'
+    document.querySelector('#maximize').setAttribute('aria-label', window.persistentText.text(reply.maximized ? 'Restore' : 'Maximize'))
+    document.querySelector('#maximize').title = window.persistentText.text(reply.maximized ? 'Restore' : 'Maximize')
   }
   if (current && reply.server) document.querySelector('#server').value = reply.server
-  if (reply.version) document.querySelector('#version').textContent = `Version ${reply.version}`
+  if (reply.version) document.querySelector('#version').textContent = window.persistentText.text('Version {{version}}', { version: reply.version })
   if (current && reply.appTheme) {
     document.querySelector('#theme').value = reply.appTheme
     document.documentElement.style.colorScheme = reply.appTheme === 'system' ? 'light dark' : reply.appTheme
@@ -45,7 +46,7 @@ async function request(message) {
     if (generation === requestGeneration) status.textContent = reply.message || ''
     return reply
   } catch (error) {
-    status.textContent = error.message || 'The request could not be completed.'
+    status.textContent = error.message || window.persistentText.text('The request could not be completed.')
     return null
   }
 }

@@ -19,6 +19,8 @@
  * `components/NotesSection.tsx` open the reading dialog, where a note checklist
  * remains tickable.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import Stack from '@mui/joy/Stack'
 import Typography from '@mui/joy/Typography'
 import { SectionHeading } from '../components/SectionHeading.js'
@@ -31,6 +33,7 @@ import { useReceivedShares } from '../data/shares.js'
 import { receivedReminderIds, receivedReminders } from '../lib/receivedReminders.js'
 
 export function NotesPage() {
+  useTranslation()
   const reminders = useReminders()
   const received = useReceivedShares()
   const allReminders = [...(reminders.data ?? []), ...receivedReminders(received.data ?? [])]
@@ -40,17 +43,14 @@ export function NotesPage() {
     <PullToRefresh onRefresh={() => Promise.all([reminders.refetch(), received.refetch()])}>
       <Stack spacing={3}>
         <Stack spacing={1.5}>
-          {(reminders.isLoading || received.isLoading) && <Typography level="body-sm">Loading…</Typography>}
+          {(reminders.isLoading || received.isLoading) && <Typography level="body-sm">{tr("Loading…")}</Typography>}
           {/* Reachable with nothing on it — by link, or by deleting the last note while
               standing here — so it explains itself rather than showing a bare heading.
               The tab that leads here is hidden in exactly this state. */}
           {reminders.data && received.data && notes.length === 0 && (
             <>
-              <SectionHeading title="Notes" subtitle="Reminders set not to notify you." />
-              <Typography level="body-sm">
-                Nothing kept here yet. Set a reminder&apos;s When to &ldquo;Never — just a note&rdquo; and it will
-                sit here to read instead of notifying you.
-              </Typography>
+              <SectionHeading title={tr("Notes")} subtitle={tr("Reminders set not to notify you.")} />
+              <Typography level="body-sm">{tr("Nothing kept here yet. Set a reminder's When to “Never, just a note” and it will sit here to read instead of notifying you.")}</Typography>
             </>
           )}
 

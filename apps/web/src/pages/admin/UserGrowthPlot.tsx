@@ -1,4 +1,7 @@
+import { formatNumber } from '../../lib/format.js'
 /** Responsive SVG growth plot. Calendar dates are evenly spaced, including zero-signup days. */
+import { tr } from '../../localization/i18n.js'
+import { useTranslation } from 'react-i18next'
 import Box from '@mui/joy/Box'
 import type { AdminUserGrowth } from '@persistent/shared'
 import { growthDateLabel } from './userGrowth.js'
@@ -13,6 +16,7 @@ export function UserGrowthPlot({ points, metric, selectedIndex, onSelect }: {
   selectedIndex: number
   onSelect: (index: number) => void
 }) {
+  useTranslation()
   const width = 400
   const height = 240
   const left = 44
@@ -26,11 +30,11 @@ export function UserGrowthPlot({ points, metric, selectedIndex, onSelect }: {
   const line = points.map((point, index) => `${index === 0 ? 'M' : 'L'}${x(index)},${y(point[metric])}`).join(' ')
   const tickIndices = [...new Set([0, Math.floor((points.length - 1) / 2), points.length - 1])]
     .filter((index) => index >= 0 && index < points.length)
-  const title = metric === 'total' ? 'Total users over time' : 'Daily sign-ups'
+  const title = tr(metric === 'total' ? 'Total users over time' : 'Daily sign-ups')
 
   return (
     <Box sx={{ color: 'primary.500', width: '100%', '& text': { fill: 'var(--joy-palette-text-secondary)', fontFamily: 'inherit', fontSize: '15px' } }}>
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${title}. Use the date slider or data table for exact counts.`}
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={tr("{{v0}}. Use the date slider or data table for exact counts.", { v0: title })}
         style={{ display: 'block', width: '100%', height: 'auto' }}
         onPointerMove={(event) => {
           const bounds = event.currentTarget.getBoundingClientRect()
@@ -43,7 +47,7 @@ export function UserGrowthPlot({ points, metric, selectedIndex, onSelect }: {
           const value = tick * maximum / 4
           return <g key={tick}>
             <line x1={left} x2={right} y1={y(value)} y2={y(value)} stroke="var(--joy-palette-divider)" />
-            <text x={left - 8} y={y(value) + 4} textAnchor="end">{value.toLocaleString('en-CA', { notation: 'compact', maximumFractionDigits: 1 })}</text>
+            <text x={left - 8} y={y(value) + 4} textAnchor="end">{formatNumber(value, { notation: 'compact', maximumFractionDigits: 1 })}</text>
           </g>
         })}
         {metric === 'total' ? <>

@@ -1,3 +1,5 @@
+import { tr } from '../localization/i18n.js'
+import { getLocale, getFormattingLocale } from '../localization/localeState.js'
 /** Small display formatters for enum-ish values surfaced in the UI. */
 import type { ReminderType } from '@persistent/shared'
 
@@ -18,8 +20,9 @@ const REMINDER_TYPE_LABELS: Record<ReminderType, string> = {
  * actually happens.
  */
 export function reminderTypeLabel(type: ReminderType): string {
-  if (!type) return REMINDER_TYPE_LABELS.NONE
-  return (REMINDER_TYPE_LABELS as Record<string, string | undefined>)[type] ?? titleCase(type)
+  if (!type) return tr(REMINDER_TYPE_LABELS.NONE)
+  const label = (REMINDER_TYPE_LABELS as Record<string, string | undefined>)[type]
+  return label ? tr(label) : titleCase(type)
 }
 
 /** "MEDICATION" -> "Medication", "NONE" -> "None". */
@@ -29,6 +32,9 @@ export function titleCase(value: string): string {
 
 /** 1 -> "1st", 2 -> "2nd", 11 -> "11th", 22 -> "22nd". For days of the month. */
 export function ordinal(value: number): string {
+  if (!getLocale().startsWith('en')) {
+    return tr(value === 1 ? 'ordinal.first' : 'ordinal.day', { number: formatNumber(value) })
+  }
   // 11/12/13 take "th" despite ending in 1/2/3, so the teens are checked first.
   const teen = value % 100
   if (teen >= 11 && teen <= 13) return `${value}th`
@@ -38,6 +44,12 @@ export function ordinal(value: number): string {
 
 /** ["1st"] -> "1st"; ["1st","15th"] -> "1st and 15th"; three or more -> "a, b and c". */
 export function joinList(parts: string[]): string {
+  if (!getLocale().startsWith('en')) return new Intl.ListFormat(getLocale(), { style: 'long', type: 'conjunction' }).format(parts)
   if (parts.length <= 1) return parts[0] ?? ''
   return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`
+}
+
+/** Format display numbers without changing numeric input values or serialized quantities. */
+export function formatNumber(value: number, options?: Intl.NumberFormatOptions): string {
+  return new Intl.NumberFormat(getFormattingLocale(), options).format(value)
 }

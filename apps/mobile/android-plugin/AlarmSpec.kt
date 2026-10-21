@@ -35,12 +35,17 @@ data class AlarmSpec(
     val canSilence: Boolean = false,
     // Shade prominence (visual only): "INHERIT" (device default), "NORMAL", or
     // "MINIMIZED". Ignored for alarms/escalations, which always stay prominent.
-    val shadeProminence: String = "INHERIT"
+    val shadeProminence: String = "INHERIT",
+    // Optional display metadata from a newer server, never an inferred alarm rule.
+    val bodyTemplate: String = "",
+    val baseBody: String = ""
 ) {
     /** Refreshes editable notification fields while preserving local escalation and silence state. */
     fun refreshNotificationFrom(stored: AlarmSpec): AlarmSpec = copy(
         title = stored.title,
         body = stored.body,
+        bodyTemplate = stored.bodyTemplate,
+        baseBody = stored.baseBody,
         soundIntervalSeconds = stored.soundIntervalSeconds,
         soundUri = if (alarm) soundUri else stored.soundUri,
         soundTitle = if (alarm) soundTitle else stored.soundTitle,
@@ -54,6 +59,8 @@ data class AlarmSpec(
         .put("fireAtMs", fireAtMs)
         .put("title", title)
         .put("body", body)
+        .put("bodyTemplate", bodyTemplate)
+        .put("baseBody", baseBody)
         .put("soundIntervalSeconds", soundIntervalSeconds)
         .put("alarm", alarm)
         .put("ongoing", ongoing)
@@ -74,6 +81,8 @@ data class AlarmSpec(
                 fireAtMs = fireAtMs,
                 title = call.getString("title") ?: "Reminder",
                 body = call.getString("body") ?: "",
+                bodyTemplate = call.getString("bodyTemplate") ?: "",
+                baseBody = call.getString("baseBody") ?: "",
                 soundIntervalSeconds = call.getInt("soundIntervalSeconds") ?: 0,
                 alarm = call.getBoolean("alarm") ?: false,
                 ongoing = call.getBoolean("ongoing") ?: true,
@@ -96,6 +105,8 @@ data class AlarmSpec(
                 fireAtMs = json.optLong("fireAtMs"),
                 title = json.optString("title", "Reminder"),
                 body = json.optString("body", ""),
+                bodyTemplate = json.optString("bodyTemplate", ""),
+                baseBody = json.optString("baseBody", ""),
                 soundIntervalSeconds = json.optInt("soundIntervalSeconds", 0),
                 alarm = json.optBoolean("alarm", false),
                 ongoing = json.optBoolean("ongoing", true),

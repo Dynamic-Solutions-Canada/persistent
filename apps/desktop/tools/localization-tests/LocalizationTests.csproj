@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Match the shipping host/widget reference; upgrade this source check with those projects. -->
+    <PackageReference Include="NLog" Version="6.1.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../Shared/SupportedLanguages.cs" Link="SupportedLanguages.cs" />
+    <Compile Include="../../Shared/UiText.cs" Link="UiText.cs" />
+    <Compile Include="../localization-resources/ManifestResources.cs" Link="ManifestResources.cs" />
+    <Compile Include="../../Persistent.Desktop/Notifications/NotificationOccurrence.cs" Link="NotificationOccurrence.cs" />
+    <Compile Include="../../Persistent.Desktop/Notifications/NotificationPresentation.cs" Link="NotificationPresentation.cs" />
+    <EmbeddedResource Include="../../../../packages/shared/src/messages/*.json" Exclude="../../../../packages/shared/src/messages/ja-JP.json;../../../../packages/shared/src/messages/es-ES.json" LogicalName="Persistent.Localization.%(Filename).json" />
+    <EmbeddedResource Include="corrupt-catalog.json" LogicalName="Persistent.Localization.ja-JP.json" />
+  </ItemGroup>
+</Project>

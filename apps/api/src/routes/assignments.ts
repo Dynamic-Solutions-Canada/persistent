@@ -1,3 +1,4 @@
+import { recipientEmailLocale } from '../lib/email-locale.js'
 /** Create an assignee-owned reminder and expose creator-only progress. */
 import { Router } from 'express'
 import { assignmentCreateSchema, type Assignment } from '@persistent/shared'
@@ -35,7 +36,7 @@ async function sendAssignmentInvitation(creatorId: string, email: string, creato
   const appUrl = clientOrigins[0]?.replace(/\/$/, '') ?? 'https://persistent.dynamic-solutions.ca'
   await sendCloudflareEmail({
     to: email,
-    ...buildAssignmentInvitationEmail({ ownerName: creatorName, email, appUrl })
+    ...buildAssignmentInvitationEmail({ ownerName: creatorName, email, appUrl, locale: await recipientEmailLocale(email) })
   })
 }
 

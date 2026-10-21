@@ -1,4 +1,6 @@
 /** Show the retired direct-build migration notice once per installation, keeping Settings guidance available. */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import { useState } from 'react'
 import ModalDialog from '@mui/joy/ModalDialog'
 import DialogTitle from '@mui/joy/DialogTitle'
@@ -12,6 +14,7 @@ import { DirectBuildNotice } from './DirectBuildNotice.js'
 const NOTICE_SEEN_KEY = 'persistent-play-migration-notice-seen'
 
 export function DirectBuildMigrationNotice() {
+  useTranslation()
   const [open, setOpen] = useState(() => {
     if (!hasNativeUpdater()) return false
     try {
@@ -34,14 +37,14 @@ export function DirectBuildMigrationNotice() {
   return (
     <BackAwareModal open onClose={dismiss}>
       <ModalDialog>
-        <DialogTitle>A change to Android downloads</DialogTitle>
+        <DialogTitle>{tr("A change to Android downloads")}</DialogTitle>
         <DialogContent>
           <Stack spacing={1.5}>
             <DirectBuildNotice />
           </Stack>
         </DialogContent>
         <Stack direction="row" justifyContent="flex-end" sx={{ mt: 1 }}>
-          <Button variant="plain" color="neutral" onClick={dismiss}>Later</Button>
+          <Button variant="plain" color="neutral" onClick={dismiss}>{tr("Later")}</Button>
         </Stack>
       </ModalDialog>
     </BackAwareModal>

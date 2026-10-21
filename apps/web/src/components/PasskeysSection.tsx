@@ -3,6 +3,8 @@
  * (WebAuthn registration), and remove them. Passkeys let you sign in without an
  * email code. See docs/auth-architecture.md.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import Stack from '@mui/joy/Stack'
 import Box from '@mui/joy/Box'
 import Typography from '@mui/joy/Typography'
@@ -19,7 +21,8 @@ import PhoneIphoneRoundedIcon from '@mui/icons-material/PhoneIphoneRounded'
 import UsbRoundedIcon from '@mui/icons-material/UsbRounded'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { PublicKeyCredentialCreationOptionsJSON } from '@simplewebauthn/browser'
-import { extractErrorMessage, type PasskeyListResponse } from '@persistent/shared'
+import { type PasskeyListResponse } from '@persistent/shared'
+import { extractErrorMessage } from '../localization/errorMessage.js'
 import { apiFetch } from '../lib/apiClient.js'
 import { formatDate } from '../lib/datetime.js'
 import { passkeyRegister } from '../native/passkeyClient.js'
@@ -44,6 +47,7 @@ function KindIcon({ kind }: { kind: PasskeyVisualKind }) {
 }
 
 export function PasskeysSection() {
+  useTranslation()
   const queryClient = useQueryClient()
   const toast = useToast()
   const passkeys = useQuery({
@@ -64,37 +68,37 @@ export function PasskeysSection() {
       })
     },
     onSuccess: async () => {
-      toast('Passkey added')
+      toast(tr("Passkey added"))
       await queryClient.invalidateQueries({ queryKey: PASSKEYS_KEY })
     },
-    onError: (err) => toast(extractErrorMessage(err, "Couldn't add a passkey."), 'danger')
+    onError: (err) => toast(extractErrorMessage(err, tr("Couldn't add a passkey.")), 'danger')
   })
 
   const remove = useMutation({
     mutationFn: (id: string) => apiFetch(`/api/auth/passkeys/${id}`, { method: 'DELETE' }),
     onSuccess: async () => {
-      toast('Passkey removed', 'neutral')
+      toast(tr("Passkey removed"), 'neutral')
       await queryClient.invalidateQueries({ queryKey: PASSKEYS_KEY })
     },
-    onError: (err) => toast(extractErrorMessage(err, "Couldn't remove the passkey."), 'danger')
+    onError: (err) => toast(extractErrorMessage(err, tr("Couldn't remove the passkey.")), 'danger')
   })
 
   const list = passkeys.data?.passkeys ?? []
 
   return (
     <Stack spacing={1.5}>
-      <Typography level="title-sm">Passkeys</Typography>
-      <Typography level="body-sm">Sign in without an email code using your device's biometrics or PIN.</Typography>
+      <Typography level="title-sm">{tr("Passkeys")}</Typography>
+      <Typography level="body-sm">{tr("Sign in without an email code using your device's biometrics or PIN.")}</Typography>
 
       {list.length > 0 && (
         <Stack spacing={1.25} sx={{ mt: 0.5 }}>
           {list.map((pk) => {
             const meta = describePasskey(pk)
-            const title = pk.name || meta.providerLabel || meta.defaultLabel
+            const title = pk.name || meta.providerLabel || tr(meta.defaultLabel)
             const details = [
-              `Added ${formatDate(pk.createdAt)}`,
-              pk.lastUsedAt ? `last used ${formatDate(pk.lastUsedAt)}` : 'never used',
-              meta.transportLabel
+              tr("Added {{v0}}", { v0: formatDate(pk.createdAt) }),
+              pk.lastUsedAt ? tr("last used {{v0}}", { v0: formatDate(pk.lastUsedAt) }) : tr("never used"),
+              meta.transportLabel ? tr(meta.transportLabel) : null
             ].filter(Boolean)
             return (
               <Stack key={pk.id} direction="row" alignItems="center" spacing={1.25}>
@@ -112,9 +116,7 @@ export function PasskeysSection() {
                       </Chip>
                     )}
                     {pk.backedUp && (
-                      <Chip size="sm" variant="soft" color="success">
-                        synced
-                      </Chip>
+                      <Chip size="sm" variant="soft" color="success">{tr("synced")}</Chip>
                     )}
                   </Stack>
                   <Typography level="body-xs" sx={{ color: 'text.tertiary' }} noWrap>
@@ -127,7 +129,7 @@ export function PasskeysSection() {
                   color="danger"
                   loading={remove.isPending && remove.variables === pk.id}
                   onClick={() => remove.mutate(pk.id)}
-                  aria-label="Remove passkey"
+                  aria-label={tr("Remove passkey")}
                 >
                   <DeleteOutlineIcon />
                 </IconButton>
@@ -137,7 +139,7 @@ export function PasskeysSection() {
         </Stack>
       )}
 
-      {passkeys.isError && <Alert color="danger">Couldn't load passkeys.</Alert>}
+      {passkeys.isError && <Alert color="danger">{tr("Couldn't load passkeys.")}</Alert>}
 
       <Button
         variant="outlined"
@@ -145,9 +147,7 @@ export function PasskeysSection() {
         loading={add.isPending}
         onClick={() => add.mutate()}
         sx={{ alignSelf: 'flex-start', mt: 0.5 }}
-      >
-        Add a passkey
-      </Button>
+      >{tr("Add a passkey")}</Button>
     </Stack>
   )
 }

@@ -1,3 +1,4 @@
+using Persistent.Localization;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
@@ -426,7 +427,7 @@ public sealed partial class AppFlyout : Window
             // fixable user-facing condition, not a crash.
             Logger.Error(ex, "WebView2 could not be initialized");
             Classes.StartupDiagnostics.Mark($"WebView2 init failed: {ex.Message}");
-            ShowError("WebView2 is unavailable", "Persistent needs the Microsoft Edge WebView2 runtime, which is missing or failed to start.");
+            ShowError("WebView2 is unavailable", UiText.Get("Persistent needs the Microsoft Edge WebView2 runtime, which is missing or failed to start."));
             return;
         }
 
@@ -484,6 +485,9 @@ public sealed partial class AppFlyout : Window
 
             switch (type.GetString())
             {
+                case "locale":
+                    if (root.TryGetProperty("locale", out var locale)) UiText.Apply(locale);
+                    break;
                 case "appearance":
                     if (!Classes.FlyoutAppearance.TryRead(root, out bool dark, out var background))
                     {
@@ -618,7 +622,7 @@ public sealed partial class AppFlyout : Window
     private void OnProcessFailed(CoreWebView2 sender, CoreWebView2ProcessFailedEventArgs args)
     {
         Logger.Error("WebView2 process failed: {Kind}", args.ProcessFailedKind);
-        ShowError("Persistent stopped responding", "The embedded browser process ended. Reload to start it again.");
+        ShowError("Persistent stopped responding", UiText.Get("The embedded browser process ended. Reload to start it again."));
     }
 
     private static bool IsAppUrl(string? uri)
@@ -650,7 +654,7 @@ public sealed partial class AppFlyout : Window
 
     private void ShowError(string title, string detail)
     {
-        ErrorTitle.Text = title;
+        Classes.Localize.SetText(ErrorTitle, title);
         ErrorDetail.Text = detail;
         ErrorPanel.Visibility = Visibility.Visible;
         WebView.Visibility = Visibility.Collapsed;

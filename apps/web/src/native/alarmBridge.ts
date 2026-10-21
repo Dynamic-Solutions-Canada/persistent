@@ -5,7 +5,7 @@
  * docs/alarm-architecture.md.
  */
 import { Capacitor, registerPlugin } from '@capacitor/core'
-import type { DeviceAgendaEntry, SoundChoice, NativeAppearance } from '@persistent/shared'
+import type { DeviceAgendaEntry, SoundChoice, NativeAppearance, NativeLocale, NativeLanguageState, Locale } from '@persistent/shared'
 
 export interface ScheduledAlarm {
   /** Occurrence id — the alarm's stable key and what we ack against. */
@@ -14,6 +14,8 @@ export interface ScheduledAlarm {
   fireAtMs: number
   title: string
   body: string
+  bodyTemplate?: 'escalated'
+  baseBody?: string
   /** Loop the alarm sound every N seconds until acknowledged; 0 = single sound. */
   soundIntervalSeconds: number
   /** ALARM: looping sound + full-screen until Done. Otherwise a sound-once notification. */
@@ -55,6 +57,11 @@ export interface ScheduledAlarm {
 }
 
 export interface AlarmPluginPlugin {
+  /** Persist device language for alarms and background sync; unsupported in older wrappers. */
+  setLocale(options: { locale: NativeLocale }): Promise<void>
+  /** New hosts reconcile Android's per-app picker before the page publishes a stored choice. */
+  getLocale(options: { fallbackLanguageOverride: Locale | null }): Promise<NativeLanguageState>
+  addListener(eventName: 'localeChanged', listener: (state: NativeLanguageState) => void): Promise<{ remove: () => Promise<void> }>
   /** Persist the app palettes for full-screen alarms, snooze screens, and shade accents. */
   setAppearance(options: { appearance: NativeAppearance }): Promise<void>
   schedule(options: ScheduledAlarm): Promise<void>

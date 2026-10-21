@@ -1,4 +1,6 @@
 /** Recipient reading view, with canonical checklist progress and personal snooze. */
+import { useTranslation, Trans } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import { useState } from 'react'
 import Stack from '@mui/joy/Stack'
@@ -25,6 +27,7 @@ export function SharedReminderPage({ reminderId, onClose, onEdit }: {
   onClose?: () => void
   onEdit?: () => void
 } = {}) {
+  useTranslation()
   const { id: routeId } = useParams()
   const id = reminderId ?? routeId
   const received = useReceivedShares()
@@ -47,14 +50,12 @@ export function SharedReminderPage({ reminderId, onClose, onEdit }: {
   return (
     <Stack spacing={2}>
       {!onClose && (
-        <Button component={RouterLink} to="/" variant="plain" color="neutral" sx={{ alignSelf: 'flex-start' }}>
-          Back
-        </Button>
+        <Button component={RouterLink} to="/" variant="plain" color="neutral" sx={{ alignSelf: 'flex-start' }}>{tr("Back")}</Button>
       )}
       {received.isLoading ? (
-        <Typography level="body-sm">Loading...</Typography>
+        <Typography level="body-sm">{tr("Loading...")}</Typography>
       ) : !reminder ? (
-        <Typography level="body-sm">This reminder is no longer shared with you.</Typography>
+        <Typography level="body-sm">{tr("This reminder is no longer shared with you.")}</Typography>
       ) : (
         <>
           {canEdit ? (
@@ -64,20 +65,16 @@ export function SharedReminderPage({ reminderId, onClose, onEdit }: {
                 text={reminder.title}
                 onSave={(title, expectedText) => updateContent.mutateAsync({ id: reminder.id, arg: { title, expectedText } })}
               />
-              <Typography level="body-sm" sx={{ color: 'text.tertiary' }}>Shared by {reminder.ownerName}</Typography>
+              <Typography level="body-sm" sx={{ color: 'text.tertiary' }}><Trans i18nKey={"Shared by <v0/>"} components={{ v0: <>{reminder.ownerName}</> }} /></Typography>
             </Stack>
           ) : (
-            <SectionHeading title={reminder.title} subtitle={`Shared by ${reminder.ownerName}`} />
+            <SectionHeading title={reminder.title} subtitle={tr("Shared by {{v0}}", { v0: reminder.ownerName })} />
           )}
           {reminder.nextScheduledFor && (
-            <Typography level="body-sm">
-              Next notification for you: {formatWhen(reminder.nextScheduledFor, timeFormat, user?.timeZone)} (your time zone)
-            </Typography>
+            <Typography level="body-sm"><Trans i18nKey={"Next notification for you: <v0/> (your time zone)"} components={{ v0: <>{formatWhen(reminder.nextScheduledFor, timeFormat, user?.timeZone)}</> }} /></Typography>
           )}
           {!onClose && reminder.permission === 'EDIT' && (
-            <Button component={onEdit ? 'button' : RouterLink} to={onEdit ? undefined : `/reminders/${reminder.id}/edit`} onClick={onEdit} variant="outlined" sx={{ alignSelf: 'flex-start' }}>
-              Edit reminder
-            </Button>
+            <Button component={onEdit ? 'button' : RouterLink} to={onEdit ? undefined : `/reminders/${reminder.id}/edit`} onClick={onEdit} variant="outlined" sx={{ alignSelf: 'flex-start' }}>{tr("Edit reminder")}</Button>
           )}
           {(body || canEditBody || (reminder.type === 'TODO' && reminder.activeFirings.length === 0)) && <Card
             variant={reminder.type === 'TODO' && reminder.activeFirings.length === 0 ? 'plain' : 'soft'}
@@ -104,9 +101,9 @@ export function SharedReminderPage({ reminderId, onClose, onEdit }: {
           </Card>}
           {reminder.activeFirings.map((firing) => (
             <Card key={firing.id} variant="outlined">
-              <Typography level="title-sm">Needs attention: {formatDateTime(firing.scheduledFor, timeFormat, user?.timeZone)}</Typography>
+              <Typography level="title-sm"><Trans i18nKey={"Needs attention: <v0/>"} components={{ v0: <>{formatDateTime(firing.scheduledFor, timeFormat, user?.timeZone)}</> }} /></Typography>
               {firing.status === 'SNOOZED' && firing.snoozedUntil && (
-                <Typography level="body-sm">Snoozed for you until {formatDateTime(firing.snoozedUntil, timeFormat, user?.timeZone)}</Typography>
+                <Typography level="body-sm"><Trans i18nKey={"Snoozed for you until <v0/>"} components={{ v0: <>{formatDateTime(firing.snoozedUntil, timeFormat, user?.timeZone)}</> }} /></Typography>
               )}
               {reminder.type === 'TODO' && (
                 <ReminderChecklist
@@ -128,7 +125,7 @@ export function SharedReminderPage({ reminderId, onClose, onEdit }: {
             </Card>
           ))}
           {!onClose && (
-            <Button variant="plain" startDecorator={<ShareIcon />} sx={{ alignSelf: 'flex-start' }} onClick={() => setShareOpen(true)}>Share</Button>
+            <Button variant="plain" startDecorator={<ShareIcon />} sx={{ alignSelf: 'flex-start' }} onClick={() => setShareOpen(true)}>{tr("Share")}</Button>
           )}
           <ReminderSharing open={shareOpen} onClose={() => setShareOpen(false)} reminderId={reminder.id} />
           <SnoozeDialog

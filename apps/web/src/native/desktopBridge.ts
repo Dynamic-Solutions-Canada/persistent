@@ -6,6 +6,7 @@
  */
 
 import type {
+  NativeLocale,
   DesktopWindowSize as FlyoutSizeOption,
   DesktopSnoozeChoice as SnoozeChoiceOption,
   DesktopHostSettings as HostSettings,
@@ -325,4 +326,9 @@ export function announceNotificationActions(ready: boolean): void {
 /** Mirror page colors through either desktop transport without exposing implementation-specific APIs. */
 export function publishDesktopAppearance(mode: 'light' | 'dark', background: string): void {
   postToHost({ type: 'appearance', mode, background })
+}
+
+/** Display-only additive bridge message; older hosts safely ignore it. */
+export function publishDesktopLocale(locale: NativeLocale): void {
+  postToHost({ type: 'locale', locale })
 }

@@ -8,6 +8,8 @@
  * Done keeps its visible label while Snooze uses an icon with an accessible name.
  * Editing the reminder lives in the reading dialog footer.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import { useState } from 'react'
 import Stack from '@mui/joy/Stack'
 import Button from '@mui/joy/Button'
@@ -37,6 +39,7 @@ export function OccurrenceActions({
    */
   doneLabel?: 'Done' | 'Clear'
 }) {
+  useTranslation()
   const [confirming, setConfirming] = useState(false)
   return (
     // Fill the phone row, but keep actions compact beside the metadata on wider screens.
@@ -45,11 +48,9 @@ export function OccurrenceActions({
       <Stack direction="row" spacing={1} alignItems="stretch">
         {confirming ? (
           <>
-            <Button variant="outlined" color="neutral" sx={{ flex: { xs: 1, sm: '0 0 auto' }, minHeight: 44 }} disabled={doneLoading} onClick={() => setConfirming(false)}>
-              Not yet
-            </Button>
+            <Button variant="outlined" color="neutral" sx={{ flex: { xs: 1, sm: '0 0 auto' }, minHeight: 44 }} disabled={doneLoading} onClick={() => setConfirming(false)}>{tr("Not yet")}</Button>
             <Button color="success" sx={{ flex: { xs: 1, sm: '0 0 auto' }, minHeight: 44 }} loading={doneLoading} onClick={onDone}>
-              {doneLabel === 'Clear' ? 'Confirm clear' : 'Confirm done'}
+              {doneLabel === 'Clear' ? tr("Confirm clear") : tr("Confirm done")}
             </Button>
           </>
         ) : (
@@ -57,24 +58,22 @@ export function OccurrenceActions({
             <IconButton
               variant="outlined"
               color="neutral"
-              aria-label={`Snooze ${occurrence.reminder.title}`}
-              title="Snooze"
+              aria-label={tr("Snooze {{v0}}", { v0: occurrence.reminder.title })}
+              title={tr("Snooze")}
               onClick={onSnooze}
               sx={{ minWidth: 44, minHeight: 44 }}
             >
               <SnoozeIcon />
             </IconButton>
             <Button color="success" sx={{ flex: { xs: 1, sm: '0 0 auto' }, minHeight: 44 }} onClick={() => setConfirming(true)}>
-              {doneLabel}
+              {tr(doneLabel)}
             </Button>
           </>
         )}
       </Stack>
       {/* Keep the secondary action below on phones and before Snooze/Done on wider screens. */}
       {!confirming && occurrence.status === 'ESCALATED' && (
-        <Button variant="outlined" color="warning" loading={silenceLoading} onClick={onSilence} sx={{ minHeight: 44, order: { sm: -1 } }}>
-          De-escalate
-        </Button>
+        <Button variant="outlined" color="warning" loading={silenceLoading} onClick={onSilence} sx={{ minHeight: 44, order: { sm: -1 } }}>{tr("De-escalate")}</Button>
       )}
     </Stack>
   )

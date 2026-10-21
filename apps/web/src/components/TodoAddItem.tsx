@@ -15,6 +15,8 @@
  * means it also joins the body of whatever is nagging right now
  * (docs/notification-behavior.md §1a). It never touches a tick.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import { useEffect, useRef, useState } from 'react'
 import Input from '@mui/joy/Input'
 import Button from '@mui/joy/Button'
@@ -33,6 +35,7 @@ export function TodoAddItem({
   onAdd: (item: TodoItem) => void
   disabled?: boolean
 }) {
+  useTranslation()
   const [open, setOpen] = useState(false)
   const [text, setText] = useState('')
   const input = useRef<HTMLInputElement | null>(null)
@@ -68,7 +71,7 @@ export function TodoAddItem({
           size="sm"
           value={text}
           disabled={disabled}
-          placeholder="New item"
+          placeholder={tr("New item")}
           onChange={(event) => { draft.current = event.target.value; setText(event.target.value) }}
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
@@ -88,7 +91,7 @@ export function TodoAddItem({
           slotProps={{
             input: {
               ref: input,
-              'aria-label': 'New checklist item',
+              'aria-label': tr('New checklist item'),
               maxLength: MAX_TODO_ITEM_TEXT,
               enterKeyHint: 'done'
             }
@@ -98,7 +101,7 @@ export function TodoAddItem({
               size="sm"
               variant="plain"
               color="neutral"
-              aria-label={text.trim() ? 'Save new item' : 'Cancel new item'}
+              aria-label={text.trim() ? tr("Save new item") : tr("Cancel new item")}
               disabled={disabled}
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => {
@@ -128,9 +131,7 @@ export function TodoAddItem({
         // A real tap target, like "Hide checked" beside it: this is used one-handed
         // and sometimes against a ringing alarm.
         sx={{ minHeight: 32, px: 1, fontSize: 'xs', fontWeight: 'md', alignSelf: 'flex-start' }}
-      >
-        Add item
-      </Button>
+      >{tr("Add item")}</Button>
     </Stack>
   )
 }

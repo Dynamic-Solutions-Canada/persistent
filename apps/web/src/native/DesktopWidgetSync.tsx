@@ -3,6 +3,7 @@
  * The widget is deliberately read-only: selecting it returns to the hosted app,
  * where authentication and reminder actions already have one implementation.
  */
+import { tr } from '../localization/i18n.js'
 import { useEffect } from 'react'
 import { reminderBodyText, type ReminderType } from '@persistent/shared'
 import { useReminders } from '../data/reminders.js'
@@ -35,10 +36,10 @@ function makeSnapshot(
   const items = selectUpcomingReminders(reminders, active)
     .slice(0, WidgetItemLimit)
     .map(({ reminder, next }) => ({
-      type: TypeLabels[reminder.type],
+      type: tr(TypeLabels[reminder.type]),
       title: reminder.title,
       description: reminderBodyText(reminder),
-      when: next ? formatWhen(next, timeFormat) : 'Paused',
+      when: next ? formatWhen(next, timeFormat) : tr('Paused'),
       paused: !reminder.active
     }))
 
@@ -55,7 +56,7 @@ export function DesktopWidgetSync() {
   const dataReady = useStartupDataReady()
   const reminders = useReminders()
   const active = useActiveOccurrences()
-  const { timeFormat } = useSettings()
+  const { timeFormat, locale, formattingLocale } = useSettings()
   const reminderData = reminders.data
   const activeData = active.data
   const refetchReminders = reminders.refetch
@@ -64,7 +65,7 @@ export function DesktopWidgetSync() {
   useEffect(() => {
     if (!dataReady || desktopPlatform() !== 'windows' || !reminderData || !activeData) return
     publishWidgetSnapshot(makeSnapshot(reminderData, activeData, timeFormat))
-  }, [activeData, reminderData, timeFormat, dataReady])
+  }, [activeData, reminderData, timeFormat, dataReady, locale, formattingLocale])
 
   useEffect(
     () => {
@@ -78,7 +79,7 @@ export function DesktopWidgetSync() {
         })()
       })
     },
-    [refetchActive, refetchReminders, timeFormat]
+    [refetchActive, refetchReminders, timeFormat, locale, formattingLocale]
   )
 
   return null

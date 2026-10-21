@@ -17,6 +17,7 @@ internal class AlarmAppearanceObserver(private val activity: Activity, private v
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             AlarmUi.refresh(activity, root)
+        NativeText.refresh(root)
         }
     }
 
@@ -24,6 +25,7 @@ internal class AlarmAppearanceObserver(private val activity: Activity, private v
         ContextCompat.registerReceiver(activity, receiver, IntentFilter(AlarmAppearance.ACTION_CHANGED), ContextCompat.RECEIVER_NOT_EXPORTED)
         activity.registerComponentCallbacks(this)
         AlarmUi.refresh(activity, root)
+        NativeText.refresh(root)
     }
 
     override fun onViewDetachedFromWindow(view: View) {
@@ -33,7 +35,10 @@ internal class AlarmAppearanceObserver(private val activity: Activity, private v
 
     override fun onConfigurationChanged(configuration: Configuration) {
         // Configuration is propagated to the Activity's resources after application callbacks.
-        root.post { AlarmUi.refresh(activity, root) }
+        root.post {
+            AlarmUi.refresh(activity, root)
+            NativeText.refresh(root)
+        }
     }
 
     override fun onLowMemory() = Unit

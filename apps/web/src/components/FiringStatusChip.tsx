@@ -20,6 +20,8 @@
  * A snoozed or escalated unscheduled firing still gets its real chip — those are
  * genuine states worth showing. Only the FIRED case is the constant.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import Chip from '@mui/joy/Chip'
 import HistoryIcon from '@mui/icons-material/History'
 import type { Occurrence, Reminder } from '@persistent/shared'
@@ -27,11 +29,10 @@ import { isOutsideReminderWindow, isUnscheduledFiring } from '../lib/occurrenceS
 import { StatusChip } from './ReminderIcons.js'
 
 export function FiringStatusChip({ reminder, occurrence }: { reminder: Reminder; occurrence: Occurrence }) {
+  useTranslation()
   if (isOutsideReminderWindow(reminder, occurrence)) {
     return (
-      <Chip size="sm" variant="soft" color="neutral" startDecorator={<HistoryIcon sx={{ fontSize: 14 }} />}>
-        Unconfirmed
-      </Chip>
+      <Chip size="sm" variant="soft" color="neutral" startDecorator={<HistoryIcon sx={{ fontSize: 14 }} />}>{tr("Unconfirmed")}</Chip>
     )
   }
   if (isUnscheduledFiring(reminder) && occurrence.status === 'FIRED') return null

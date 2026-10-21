@@ -1,4 +1,6 @@
 /** Linux notification Snooze uses the existing picker over the current screen, preserving any editor draft. */
+import { tr } from '../localization/i18n.js'
+import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { SnoozeDialog } from '../components/SnoozeDialog.js'
 import { useToast } from '../components/ToastProvider.js'
@@ -7,6 +9,7 @@ import { useActiveOccurrences, useSnoozeOccurrence } from '../data/occurrences.j
 import { announceNotificationActions, desktopPlatform, onHostMessage } from './desktopBridge.js'
 
 export function DesktopNotificationSnooze() {
+  useTranslation()
   const active = useActiveOccurrences()
   const snooze = useSnoozeOccurrence()
   const ready = useStartupDataReady()
@@ -32,7 +35,7 @@ export function DesktopNotificationSnooze() {
   useEffect(() => {
     if (!ready || !requested || !active.data) return
     if (active.data.some((occurrence) => occurrence.id === requested)) setSnoozeFor(requested)
-    else toast('This reminder no longer needs confirmation.', 'neutral')
+    else toast(tr("This reminder no longer needs confirmation."), 'neutral')
     setRequested(null)
   }, [ready, requested, active.data, toast])
 

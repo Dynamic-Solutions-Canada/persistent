@@ -1,3 +1,4 @@
+using Persistent.Localization;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -365,8 +366,7 @@ public static class UpdateService
                 // useful move either way: it costs a relaunch if wrong, and completes a
                 // stuck update if right.
                 return (false,
-                    "No download is pending. If an update was already downloaded in the "
-                    + "background, restart Persistent to finish installing it.",
+                    UiText.Get("No download is pending. If an update was already downloaded in the background, restart Persistent to finish installing it."),
                     true);
             }
 
@@ -415,24 +415,24 @@ public static class UpdateService
                 // success from here: reporting it as a failure would leave the user
                 // pressing a button that has already done its job.
                 StorePackageUpdateState.Deploying => (true, SchedulePackagedRelaunchAfterExit(), false),
-                StorePackageUpdateState.Canceled => (false, "Update was cancelled in the Microsoft Store dialog.", false),
-                StorePackageUpdateState.ErrorLowBattery => (false, "Update paused because the device battery is too low.", false),
-                StorePackageUpdateState.ErrorWiFiRecommended => (false, "Update was paused because a non-metered connection is recommended.", false),
-                StorePackageUpdateState.ErrorWiFiRequired => (false, "Update requires Wi-Fi before the Microsoft Store can continue.", false),
+                StorePackageUpdateState.Canceled => (false, UiText.Get("Update was cancelled in the Microsoft Store dialog."), false),
+                StorePackageUpdateState.ErrorLowBattery => (false, UiText.Get("Update paused because the device battery is too low."), false),
+                StorePackageUpdateState.ErrorWiFiRecommended => (false, UiText.Get("Update was paused because a non-metered connection is recommended."), false),
+                StorePackageUpdateState.ErrorWiFiRequired => (false, UiText.Get("Update requires Wi-Fi before the Microsoft Store can continue."), false),
                 StorePackageUpdateState.OtherError => (false, BuildStoreUpdateErrorMessage(result), false),
-                _ => (false, "The Microsoft Store could not install the update.", false),
+                _ => (false, UiText.Get("The Microsoft Store could not install the update."), false),
             };
         }
         catch (OperationCanceledException)
         {
             // Not logged: a cancellation is the user's decision, not a failure, and
             // it is reported back to them rather than swallowed.
-            return (false, "Update was cancelled.", false);
+            return (false, UiText.Get("Update was cancelled."), false);
         }
         catch (Exception ex)
         {
             Logger.Error(ex, "Failed to install update from the Microsoft Store");
-            return (false, $"Microsoft Store update failed: {ex.Message}", false);
+            return (false, UiText.Format("Microsoft Store update failed: {{error}}", ("error", ex.Message)), false);
         }
     }
 
@@ -444,12 +444,12 @@ public static class UpdateService
     private static string DescribeStoreUpdateState(
         StorePackageUpdateState state, StorePackageUpdateResult result) => state switch
     {
-        StorePackageUpdateState.Canceled => "Update was cancelled in the Microsoft Store dialog.",
-        StorePackageUpdateState.ErrorLowBattery => "Update paused because the device battery is too low.",
-        StorePackageUpdateState.ErrorWiFiRecommended => "Update was paused because a non-metered connection is recommended.",
-        StorePackageUpdateState.ErrorWiFiRequired => "Update requires Wi-Fi before the Microsoft Store can continue.",
+        StorePackageUpdateState.Canceled => UiText.Get("Update was cancelled in the Microsoft Store dialog."),
+        StorePackageUpdateState.ErrorLowBattery => UiText.Get("Update paused because the device battery is too low."),
+        StorePackageUpdateState.ErrorWiFiRecommended => UiText.Get("Update was paused because a non-metered connection is recommended."),
+        StorePackageUpdateState.ErrorWiFiRequired => UiText.Get("Update requires Wi-Fi before the Microsoft Store can continue."),
         StorePackageUpdateState.OtherError => BuildStoreUpdateErrorMessage(result),
-        _ => "The Microsoft Store could not download the update.",
+        _ => UiText.Get("The Microsoft Store could not download the update."),
     };
 
     private static string BuildStoreUpdateErrorMessage(StorePackageUpdateResult result)
@@ -461,15 +461,15 @@ public static class UpdateService
 
             return status.PackageUpdateState switch
             {
-                StorePackageUpdateState.ErrorLowBattery => "Update paused because the device battery is too low.",
-                StorePackageUpdateState.ErrorWiFiRecommended => "Update was paused because a non-metered connection is recommended.",
-                StorePackageUpdateState.ErrorWiFiRequired => "Update requires Wi-Fi before the Microsoft Store can continue.",
-                StorePackageUpdateState.Canceled => "Update was cancelled in the Microsoft Store dialog.",
-                _ => "The Microsoft Store could not install the update. Try again later.",
+                StorePackageUpdateState.ErrorLowBattery => UiText.Get("Update paused because the device battery is too low."),
+                StorePackageUpdateState.ErrorWiFiRecommended => UiText.Get("Update was paused because a non-metered connection is recommended."),
+                StorePackageUpdateState.ErrorWiFiRequired => UiText.Get("Update requires Wi-Fi before the Microsoft Store can continue."),
+                StorePackageUpdateState.Canceled => UiText.Get("Update was cancelled in the Microsoft Store dialog."),
+                _ => UiText.Get("The Microsoft Store could not install the update. Try again later."),
             };
         }
 
-        return "The Microsoft Store could not install the update. Try again later.";
+        return UiText.Get("The Microsoft Store could not install the update. Try again later.");
     }
 
     /// <summary>
@@ -529,12 +529,12 @@ public static class UpdateService
                 WindowStyle = ProcessWindowStyle.Hidden,
             });
 
-            return "Persistent will relaunch after the Microsoft Store finishes applying the update.";
+            return UiText.Get("Persistent will relaunch after the Microsoft Store finishes applying the update.");
         }
         catch (Exception ex)
         {
             Logger.Warn(ex, "Failed to schedule relaunch after Microsoft Store update");
-            return "Update installed. Restart Persistent manually if it does not relaunch automatically.";
+            return UiText.Get("Update installed. Restart Persistent manually if it does not relaunch automatically.");
         }
     }
 }

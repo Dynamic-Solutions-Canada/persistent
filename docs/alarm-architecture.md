@@ -3,6 +3,10 @@
 This is the most important design doc in the project. Read it before changing
 anything about how reminders fire.
 
+## Presentation language
+
+Android shares the canonical bundled catalogs with the web and server. Native `getLocale`/`setLocale` and `localeChanged` are additive; Android 13+ uses its OS per-app picker, while earlier versions migrate a missing private override from hosted-web storage once. Existing native state, including a Match device reset, wins over later fallback reads. Background sync requests and device registration carry the resolved device language. Alarm projections retain literal `baseBody` plus a designated application template; FCM escalation instead carries one legacy display `body` and a UTF-16 `bodyRange` so a closed client can relocalize without duplicating reminder content. Invalid/missing ranges retain legacy display verbatim. FCM's [4096-byte limit](https://firebase.google.com/docs/cloud-messaging/error-codes) counts keys and values; this representation has bounded metadata overhead and does not truncate independently oversized content. Notification channel identities, permission behavior, alarm instants and queued actions are unchanged. See [localization](localization.md).
+
 ## Native appearance
 
 The hosted app mirrors a display-only `NativeAppearance` palette through

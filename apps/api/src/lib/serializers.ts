@@ -4,7 +4,7 @@
  */
 import type { Reminder as ReminderRow, ReminderOccurrence, User, Passkey } from '@prisma/client'
 import type { Occurrence, Reminder, SessionUser, Schedule, TypeData, PasskeyInfo } from '@persistent/shared'
-import { toReminderSounds } from '@persistent/shared'
+import { normalizeLocaleOverride, toReminderSounds } from '@persistent/shared'
 
 export function toPasskey(row: Passkey): PasskeyInfo {
   return {
@@ -24,6 +24,7 @@ export function toSessionUser(user: User): SessionUser {
     email: user.email,
     displayName: user.displayName,
     timeZone: user.timeZone,
+    emailLanguage: normalizeLocaleOverride(user.emailLanguage) ?? 'en-US',
     isAdmin: user.isAdmin,
     createdAt: user.createdAt.toISOString()
   }

@@ -1,11 +1,13 @@
 /** Text in the reading dialog that becomes a small editor only when selected. */
+import { useTranslation, Trans } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import { useEffect, useRef, useState } from 'react'
 import Box from '@mui/joy/Box'
 import Button from '@mui/joy/Button'
 import Input from '@mui/joy/Input'
 import Textarea from '@mui/joy/Textarea'
 import Typography from '@mui/joy/Typography'
-import { extractErrorMessage } from '@persistent/shared'
+import { extractErrorMessage } from '../localization/errorMessage.js'
 
 export function InlineReminderText({
   text,
@@ -16,6 +18,7 @@ export function InlineReminderText({
   kind: 'title' | 'body'
   onSave: (text: string, expectedText: string) => void | Promise<unknown>
 }) {
+  useTranslation()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(text)
   const baseline = useRef(text)
@@ -23,7 +26,7 @@ export function InlineReminderText({
   const [pending, setPending] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const finished = useRef(false)
-  const label = kind === 'title' ? 'Edit reminder title' : 'Edit note body'
+  const label = tr(kind === 'title' ? 'Edit reminder title' : 'Edit note body')
 
   useEffect(() => {
     if (!editing) setDraft(text)
@@ -116,11 +119,11 @@ export function InlineReminderText({
           />
         )}
         {saveError && <Box>
-          <Typography level="body-xs" color="danger" role="alert">{saveError} Your draft is kept above.</Typography>
+          <Typography level="body-xs" color="danger" role="alert"><Trans i18nKey={"<v0/> Your draft is kept above."} components={{ v0: <>{saveError}</> }} /></Typography>
           <Button size="sm" variant="plain" color="neutral" onClick={() => {
             setDraft(text)
             setEditing(false)
-          }}>Cancel edit and show latest</Button>
+          }}>{tr("Cancel edit and show latest")}</Button>
         </Box>}
       </Box>
     )
@@ -150,7 +153,7 @@ export function InlineReminderText({
         level={kind === 'title' ? 'title-lg' : 'body-sm'}
         sx={{ whiteSpace: 'pre-wrap', color: kind === 'body' && !text ? 'text.tertiary' : undefined }}
       >
-        {text || 'Add note'}
+        {text || tr("Add note")}
       </Typography>
     </Box>
   )

@@ -3,6 +3,8 @@
  * resolver, the API routers, and the JSON error handler. The HTTP server +
  * WebSocket hub + scheduler are started in server.ts.
  */
+import { localizedError } from './lib/localized-error.js'
+import { requestLocale } from './lib/request-locale.js'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import express, { type NextFunction, type Request, type Response } from 'express'
@@ -75,8 +77,8 @@ export function createApp() {
   app.use('/api/announcements', announcementsRouter)
 
   // 404 for unknown API routes.
-  app.use('/api', (_request, response) => {
-    response.status(404).json({ error: 'Not found.' })
+  app.use('/api', (request, response) => {
+    response.status(404).json(localizedError('Not found.', requestLocale(request)))
   })
 
   // In production, serve the built web app from the same origin (no CORS, cookies
@@ -107,13 +109,13 @@ export function createApp() {
   }
 
   // Centralized JSON error handler.
-  app.use((error: unknown, _request: Request, response: Response, _next: NextFunction) => {
+  app.use((error: unknown, request: Request, response: Response, _next: NextFunction) => {
     if (error instanceof HttpError) {
-      response.status(error.statusCode).json({ error: error.message })
+      response.status(error.statusCode).json(localizedError(error.message, requestLocale(request)))
       return
     }
     logger.error('unhandled error', { error: String(error) })
-    response.status(500).json({ error: 'Internal server error.' })
+    response.status(500).json(localizedError('Internal server error.', requestLocale(request)))
   })
 
   return app

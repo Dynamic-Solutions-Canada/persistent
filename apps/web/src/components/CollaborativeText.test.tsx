@@ -10,7 +10,7 @@ for (const kind of ['title', 'body', 'item'] as const) {
   test(`${kind}: a concurrent edit sends the opening text and retains a rejected draft`, async () => {
     const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/', pretendToBeVisual: true })
     const previous = new Map<string, PropertyDescriptor | undefined>()
-    for (const [key, value] of Object.entries({ React, window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, requestAnimationFrame: dom.window.requestAnimationFrame.bind(dom.window), cancelAnimationFrame: dom.window.cancelAnimationFrame.bind(dom.window), IS_REACT_ACT_ENVIRONMENT: true })) {
+    for (const [key, value] of Object.entries({ React, window: dom.window, document: dom.window.document, navigator: dom.window.navigator, HTMLElement: dom.window.HTMLElement, requestAnimationFrame: dom.window.requestAnimationFrame.bind(dom.window), cancelAnimationFrame: dom.window.cancelAnimationFrame.bind(dom.window), IS_REACT_ACT_ENVIRONMENT: true })) {
       previous.set(key, Object.getOwnPropertyDescriptor(globalThis, key))
       Object.defineProperty(globalThis, key, { configurable: true, value })
     }

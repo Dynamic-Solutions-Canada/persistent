@@ -5,6 +5,10 @@
        different content, so it is bumped per packaged build. -->
   <PropertyGroup>
     <Version>0.5.8</Version>
+    <!-- Direct source builds read the canonical catalogs. The normal Python launcher
+         prepares byte-identical generated inputs inside the helper's narrow desktop snapshot. -->
+    <LocalizationCatalogDirectory>$(MSBuildThisFileDirectory)..\..\packages\shared\src\messages</LocalizationCatalogDirectory>
+    <LocalizationCatalogDirectory Condition="!Exists('$(LocalizationCatalogDirectory)\en-US.json')">$(MSBuildThisFileDirectory)build-inputs\localization</LocalizationCatalogDirectory>
   </PropertyGroup>
 
   <!--

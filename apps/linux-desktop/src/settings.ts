@@ -1,3 +1,4 @@
+import { nativeLocaleSchema, type NativeLocale } from '@persistent/shared'
 /** Machine settings and freedesktop autostart. Credentials remain exclusively in the Chromium profile. */
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync, unlinkSync } from 'node:fs'
 import { join } from 'node:path'
@@ -9,6 +10,7 @@ export const WINDOW_SIZES = [
   { id: 'tall', label: 'Tall', width: 420, height: 960 }
 ]
 export interface LinuxSettings {
+  locale?: NativeLocale
   server: string
   notifications: boolean
   pinFlyout: boolean
@@ -32,6 +34,8 @@ export function validatedSettings(value: unknown, previous: LinuxSettings = DEFA
   const settings = { ...previous }
   if (typeof value !== 'object' || value === null) return settings
   const raw = value as Record<string, unknown>
+  const locale = nativeLocaleSchema.safeParse(raw.locale)
+  if (locale.success) settings.locale = locale.data
   if (typeof raw.server === 'string') {
     try { settings.server = serverOrigin(raw.server) } catch { /* Invalid saved origins use the previous safe origin. */ }
   }

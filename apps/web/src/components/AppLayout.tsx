@@ -12,6 +12,8 @@
  * Harmless everywhere else: on desktop browsers and non-notched devices the insets
  * resolve to 0px, so this is a no-op for the PWA.
  */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import type { ReactNode } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import Box from '@mui/joy/Box'
@@ -29,6 +31,7 @@ import { useAppTheme } from '../settings/useAppTheme.js'
 import { themeSx } from '../settings/themes.js'
 
 export function AppLayout({ children }: { children: ReactNode }) {
+  useTranslation()
   const { doodles, doodleColor } = useSettings()
   const theme = useAppTheme()
   return (
@@ -67,7 +70,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           variant="plain"
           color="neutral"
           size="sm"
-          aria-label="Help"
+          aria-label={tr("Help")}
           sx={{ ml: 0.5 }}
         >
           <HelpOutlineIcon />

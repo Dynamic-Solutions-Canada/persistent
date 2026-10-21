@@ -1,3 +1,4 @@
+using Persistent.Localization;
 using Microsoft.Windows.AppNotifications;
 using Microsoft.Windows.AppNotifications.Builder;
 
@@ -83,7 +84,7 @@ internal sealed class ToastNotifier
     /// shipped default of 10 minutes was one of the two, so the settings screen read
     /// "10 min" while every toast opened on "5 min".
     /// </summary>
-    public static (int Minutes, string Label)[] OfferedSnoozeChoices => SnoozeChoices.Take(MaxComboItems).ToArray();
+    public static (int Minutes, string Label)[] OfferedSnoozeChoices => SnoozeChoices.Take(MaxComboItems).Select(choice => (choice.Minutes, UiText.Get(choice.Label))).ToArray();
 
     /// <summary>
     /// The offered duration closest to <paramref name="minutes"/>, for a caller that
@@ -153,10 +154,10 @@ internal sealed class ToastNotifier
                 .AddArgument(OccurrenceKey, occurrence.OccurrenceId)
                 .AddArgument(ReminderKey, occurrence.ReminderId);
 
-            if (occurrence.Body.Length > 0) builder.AddText(occurrence.Body);
+            if (occurrence.DisplayBody.Length > 0) builder.AddText(occurrence.DisplayBody);
             if (occurrence.Alarm)
             {
-                builder.AddText("Alarm - still not confirmed.");
+                builder.AddText(UiText.Get("Alarm - still not confirmed."));
             }
 
             // A picker, not a fixed duration: snoozing is a choice about when to be
@@ -168,16 +169,16 @@ internal sealed class ToastNotifier
             var offered = SnoozeChoices.Take(MaxComboItems).ToArray();
             var picker = new AppNotificationComboBox(SnoozeChoiceKey)
                 .SetSelectedItem(NearestChoice(offered, defaultSnoozeMinutes).ToString());
-            foreach (var (minutes, label) in offered) picker.AddItem(minutes.ToString(), label);
+            foreach (var (minutes, label) in offered) picker.AddItem(minutes.ToString(), UiText.Get(label));
 
             builder
                 .AddComboBox(picker)
-                .AddButton(Button(ActionDone, occurrence, "Done"))
-                .AddButton(Button(ActionSnooze, occurrence, "Snooze"));
+                .AddButton(Button(ActionDone, occurrence, UiText.Get("Done")))
+                .AddButton(Button(ActionSnooze, occurrence, UiText.Get("Snooze")));
 
             if (occurrence.CanSilence)
             {
-                builder.AddButton(Button(ActionSilence, occurrence, "De-escalate"));
+                builder.AddButton(Button(ActionSilence, occurrence, UiText.Get("De-escalate")));
             }
 
             ShowHighPriority(builder);
@@ -202,15 +203,15 @@ internal sealed class ToastNotifier
         {
             var builder = new AppNotificationBuilder()
                 .AddText(occurrence.Title)
-                .AddText("Mark this done?")
+                .AddText(UiText.Get("Mark this done?"))
                 .SetTag(occurrence.OccurrenceId)
                 .SetGroup(Group)
                 .SetScenario(ScenarioFor(occurrence))
                 .AddArgument(ActionKey, ActionOpen)
                 .AddArgument(OccurrenceKey, occurrence.OccurrenceId)
                 .AddArgument(ReminderKey, occurrence.ReminderId)
-                .AddButton(Button(ActionConfirmDone, occurrence, "Confirm done"))
-                .AddButton(Button(ActionNotYet, occurrence, "Not yet"));
+                .AddButton(Button(ActionConfirmDone, occurrence, UiText.Get("Confirm done")))
+                .AddButton(Button(ActionNotYet, occurrence, UiText.Get("Not yet")));
 
             ShowHighPriority(builder);
             return true;

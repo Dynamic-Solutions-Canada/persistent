@@ -17,6 +17,7 @@ import {
 import type { AuthenticationResponseJSON, AuthenticatorTransportFuture, RegistrationResponseJSON } from '@simplewebauthn/server'
 import { OAuth2Client } from 'google-auth-library'
 import {
+  accountLanguageInputSchema,
   deleteAccountSchema,
   googleLoginSchema,
   passkeyListResponseSchema,
@@ -62,7 +63,7 @@ authRouter.post('/request-code', async (request, response) => {
     return
   }
 
-  const result = await issueEmailCode(parsed.data.email)
+  const result = await issueEmailCode(parsed.data.email, parsed.data.locale)
   response.json({
     ok: true as const,
     expiresAt: result.expiresAt.toISOString(),
@@ -169,6 +170,15 @@ authRouter.get('/me', async (request, response) => {
   }
   const user = await prisma.user.findUnique({ where: { id: request.userId } })
   response.json({ user: user ? toSessionUser(user) : null })
+})
+
+/** Update only the authenticated account's explicit email language. */
+authRouter.patch('/preferences', async (request, response) => {
+  const userId = requireUserId(request)
+  const parsed = accountLanguageInputSchema.safeParse(request.body)
+  if (!parsed.success) throw badRequest('Choose a supported email language.')
+  const user = await prisma.user.update({ where: { id: userId }, data: parsed.data })
+  response.json({ user: toSessionUser(user) })
 })
 
 /**

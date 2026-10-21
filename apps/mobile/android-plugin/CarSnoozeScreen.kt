@@ -29,10 +29,10 @@ class CarSnoozeScreen(carContext: CarContext, private val occurrenceId: String) 
         for ((label, minutes) in OPTIONS) {
             list.addItem(
                 Row.Builder()
-                    .setTitle(label)
+                    .setTitle(NativeText.text(carContext, label))
                     .setOnClickListener {
                         AlarmService.snooze(carContext, occurrenceId, minutes)
-                        CarToast.makeText(carContext, "Snoozed $label", CarToast.LENGTH_SHORT).show()
+                        CarToast.makeText(carContext, NativeText.text(carContext, "Snoozed {{duration}}", mapOf("duration" to NativeText.text(carContext, label))), CarToast.LENGTH_SHORT).show()
                         // Back to the list, not to the detail screen: the reminder it was
                         // showing is no longer waiting on anything.
                         screenManager.popToRoot()
@@ -41,7 +41,7 @@ class CarSnoozeScreen(carContext: CarContext, private val occurrenceId: String) 
             )
         }
         return ListTemplate.Builder()
-            .setTitle("Snooze for")
+            .setTitle(NativeText.text(carContext, "Snooze for"))
             .setHeaderAction(Action.BACK)
             .setSingleList(list.build())
             .build()

@@ -1,4 +1,6 @@
 /** Hide stale pages during first load and foreground refresh without discarding open dialogs or drafts. */
+import { useTranslation } from 'react-i18next'
+import { tr } from '../localization/i18n.js'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { App as CapacitorApp } from '@capacitor/app'
 import type { PluginListenerHandle } from '@capacitor/core'
@@ -11,6 +13,7 @@ import { AppLoading } from './AppLoading.js'
 import { StartupDataContext } from './startupDataContext.js'
 
 export function StartupDataGate({ children }: { children: ReactNode }) {
+  useTranslation()
   const queryClient = useQueryClient()
   const { offline, refreshSession } = useAuth()
   const [loading, setLoading] = useState(true)
@@ -101,8 +104,8 @@ export function StartupDataGate({ children }: { children: ReactNode }) {
       {loading && <AppLoading />}
       {error && (
         <Stack spacing={2} sx={{ p: 3 }}>
-          <Typography>Could not refresh your reminders.</Typography>
-          <Button variant="soft" onClick={() => { void refresh(true) }}>Retry</Button>
+          <Typography>{tr("Could not refresh your reminders.")}</Typography>
+          <Button variant="soft" onClick={() => { void refresh(true) }}>{tr("Retry")}</Button>
         </Stack>
       )}
       {/* Pages must mount to register their queries. Hidden keeps their cached
@@ -110,8 +113,7 @@ export function StartupDataGate({ children }: { children: ReactNode }) {
       <div hidden={loading || error}>
         {offline && (
           <Alert color="warning" variant="soft" sx={{ m: 2 }}>
-            Offline. Showing saved reminders. Changes will sync when you reconnect.
-            <Button variant="plain" size="sm" color="neutral" onClick={() => { void refresh(true) }}>Reconnect</Button>
+            {tr("Offline. Showing saved reminders. Changes will sync when you reconnect.")}<Button variant="plain" size="sm" color="neutral" onClick={() => { void refresh(true) }}>{tr("Reconnect")}</Button>
           </Alert>
         )}
         {children}

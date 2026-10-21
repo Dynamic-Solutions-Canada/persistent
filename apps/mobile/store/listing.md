@@ -1,10 +1,9 @@
 # Google Play store listing — Persistent
 
-Copy-paste source for the Play Console "Main store listing" page.
+English preview and Console audit guidance. The canonical nine-locale text source is [`listings.json`](listings.json), validated by `PlayMetadata`. The English fenced blocks below mirror that source for legacy screenshot tooling; update them together.
 Package: `ca.dynamicsolutions.persistent` (Play) · Category: Productivity
 
-The sideloaded GitHub build keeps `ca.persistent.app`; only the Play flavor carries
-the new applicationId, so the two can coexist on a device.
+Both Google Play and current GitHub APKs use the Google-signed `ca.dynamicsolutions.persistent` Play build. Only legacy/local direct builds use `ca.persistent.app`; these have a different signer and package and cannot update in place to the Play build.
 
 > Medication reminders are available again under the organization developer account.
 > Keep this listing, its screenshots, the privacy policy, and Play Console's Health apps
@@ -18,81 +17,51 @@ the new applicationId, so the two can coexist on a device.
 Persistent: Reminders That Nag
 ```
 
-*(30/30. Fallback if you want it plainer: `Persistent — Reminders` (22).)*
+*(30/30.)*
 
 ## Short description (max 80 chars)
 
 ```
-Reminders that nag until you confirm them done. Real alarms, not a silent ping.
+Reminders that return until confirmed. Alarms, checklists and shared reminders.
 ```
 
-*(78/80.)*
+*(79/80.)*
 
 ## Full description (max 4000 chars)
 
 ```
-Every other reminder app lets you swipe the notification away and forget. Persistent doesn't.
+A swipe should not mean done. Persistent keeps reminding you until you explicitly confirm completion.
 
-A Persistent reminder keeps nagging until you confirm it. Dismiss it and it comes back. Ignore it long enough and it can escalate into a full-screen alarm.
+Choose a returning notification, a looping alarm, or a notification that escalates to an alarm after a delay or at a chosen time. Done uses a deliberate two-tap confirmation. Snooze postpones the alert; de-escalating stops the alarm sound while the notification keeps reminding you.
 
-WON'T TAKE A SWIPE FOR AN ANSWER
-Marking a reminder Done is the only thing that ends it. Not dismissing it, not unlocking your phone, not tapping it by accident in your pocket — Done is a deliberate two-tap confirm on every surface.
+Each scheduled firing is independent. An unfinished morning reminder stays active when the afternoon one fires. Completing one never silently clears another.
 
-REAL ALARMS, NOT NOTIFICATIONS
-Choose how hard a reminder pushes:
-• Notification — reappears until confirmed, with an optional re-sound interval
-• Alarm — looping sound, vibration, and a full-screen wake-the-screen surface
-• Escalation — starts as a quiet notification and automatically becomes an alarm if you haven't confirmed it after a set number of minutes, or by a set time of day
+Alarms are scheduled on your Android device and can fire offline with the app closed. Allow notifications, exact alarms and any requested alarm permissions for the intended behavior. Android settings and force-stopping the app can prevent alerts; reopen the app after a force stop.
 
-Alarms are scheduled on the device as exact alarms, so they fire on time even with no network connection and even when the app is closed.
+Reminders for real life
+• One-time, daily, weekly, every-N-days, custom weekday and monthly schedules, including the last day of the month
+• Up to 24 times a day, start/end dates, skip weekends and pause
+• Checklists with independent progress for each firing; ticking the last item does not mark the reminder done
+• Snooze presets, a custom duration or a specific date and time
+• Your choice of notification and alarm sounds
+• History and Undo done when you need to restore a completed firing
+• Notes and checklists without alarms
 
-EVERY FIRING IS ITS OWN REMINDER
-Set a reminder for 9:00 and 13:00 and they are two separate obligations. If the 9:00 one is still unconfirmed when 13:00 fires, both nag, each with its own Done. Confirming one never silently erases the other.
+Share or assign
+Invite someone by email. Shared members can edit and complete reminders for the group; snooze and alarm escalation remain personal. Assign a reminder to one person and follow their progress without taking over their alerts. An unconfirmed reminder can also escalate to your other devices and an email contact you choose.
 
-THREE HONEST ACTIONS
-• Done — confirms it and clears it for everyone sharing that firing
-• Snooze — clears it now and rings again later (snoozing an alarm re-rings an alarm; it doesn't quietly downgrade)
-• De-escalate — stops an alarm from yelling but keeps the reminder nagging as a notification, so it still isn't finished
+Your language, your formatting
+Use English (US or Canada), Spanish (Spain), French (France or Canada), German, Simplified Chinese, Brazilian Portuguese or Japanese. Match the device or choose an interface language in Settings. Keep regional date formatting, 12/24-hour display, account time zone and email language separate. Reminder text, medicine names and doses stay exactly as you enter them. Screenshots currently show the English interface.
 
-ESCALATE TO SOMEONE WHO'LL NOTICE
-If a reminder goes unconfirmed, Persistent can escalate beyond the device in front of you — to your other devices, and to an email contact you choose. Useful when the person who needs the reminder isn't always the person who'll act on it.
+Medication reminders
+Keep medicine names and doses with your reminders. Persistent is not a medical device and does not diagnose, treat, cure or prevent any medical condition. Consult a healthcare professional for medical advice, diagnosis or treatment.
 
-SYNCS EVERYWHERE, INSTANTLY
-Confirm on your phone and it clears on your tablet and in your browser at the same moment. Manage reminders from any browser at persistent.dynamic-solutions.ca — same account, live-synced.
-
-SHARE THE REMINDER
-Invite someone by email, even if they have not signed up yet. Everyone with access can edit the reminder and mark it done for the group. Each person's snooze and alarm escalation stay personal.
-
-CHECKLISTS
-List items and tick them off as you go. Each firing tracks its own ticks, so a repeating checklist starts fresh every time. Hide finished items on every device. Ticking the last item still does not confirm the reminder.
-
-ASSIGN IT TO SOMEONE ELSE
-Create a reminder for one other person. They own the alerts and can edit, finish or decline it. Track each firing and its completion time in your Assigned by me view.
-
-MEDICATION REMINDERS
-Keep the medicine name and dose with a reminder. Persistent is not a medical device and does not diagnose, treat, cure, or prevent any medical condition. Consult a healthcare professional for medical advice, diagnosis, or treatment.
-
-SCHEDULING
-• One-off reminders at a date and time
-• Daily, weekly, every-N-days, or fully custom day-of-week schedules
-• Monthly on the days you choose — the 1st, the 1st and 15th, or the last day of every month
-• Up to 24 times per day, per reminder
-• Start and end dates, an option to skip weekends, and a pause switch
-• Snooze by preset, a custom duration, or until a specific date and time
-• Pick your own notification and alarm sounds
-• Full history of what fired, what you confirmed, and when
-
-SIGN IN WITHOUT A PASSWORD
-There is no password to forget or leak. Sign in with a one-time email code, with Google, or with a passkey.
-
-WHAT IT'S FOR
-Medication, watering, feeding, bins out, physio, timesheets and renewals. Anything where "I'll do it in a minute" has already cost you once.
-
-Persistent requires a free account so your reminders can sync across devices and escalate when you miss one.
+A free account is required for syncing and escalation. Sign in with an email code, Google or a passkey. Manage reminders in a browser at persistent.dynamic-solutions.ca without installing an app. Changes sync across your signed-in devices when connected.
 ```
 
-Validate the character count with `node apps/mobile/scripts/play-publish.mjs --listing
-apps/mobile/store/listing.md --check` before publishing.
+Validate all locale fields offline with the metadata tests. For an authenticated read-only comparison, run from `apps/mobile`: `node scripts/play-publish.mjs --listing-json store/listings.json --check`. Publication uses the same command without `--check` and is performed separately by the coordinator. It updates titles and descriptions, preserving images, video, default language, contact details and country distribution. Curated release notes are version-bound in `releases/0.29.0.json`.
+
+All nine app locale tags map identically to supported Play tags. `en-CA` explicitly aliases `en-US` copy and `fr-CA` aliases `fr-FR`; their published identities remain distinct. No Traditional Chinese listing is added. Existing English screenshot captions and screens remain English; translated descriptions disclose this. Legal pages remain canonical English, with no claim of translated legal review. Translation drafts have automated completeness/limit checks but no native-speaker qualification.
 
 ---
 
@@ -102,7 +71,7 @@ apps/mobile/store/listing.md --check` before publishing.
 > `com.google.android.gms.car.application` declaration is direct-only — see
 > `docs/alarm-architecture.md`), so the claim became false, and an Auto claim in the
 > listing is also what invites the Auto review that flagged the app as a messaging app
-> in the first place. The sideloaded build still does it; the store copy must not say so.
+> in the first place. The legacy/local direct flavor still does it; current GitHub Play APKs do not. The store copy must not say so.
 
 
 ## Graphics
@@ -134,9 +103,9 @@ includes the real status area and gesture bar, with no unrelated notification ic
 
 ## Store settings
 
-- **App category:** Productivity *(Health & Fitness is tempting but invites medical-app scrutiny; Productivity is the safer classification)*
+- **App category:** Productivity (preserve the existing category; medication functionality still requires an accurate Health declaration)
 - **Tags:** Reminders, To-Do Lists, Productivity
-- **Content rating questionnaire:** no objectionable content → Everyone. Answer **yes** to "users can communicate" only if the email-escalation contact counts as user-to-user messaging — it's a one-way system email, so **no** is defensible.
+- **Content rating and audience:** preserve the current declarations unless the actual questionnaire and product behavior require a change. Sharing, assignment invitations and user-authored escalation emails must be evaluated against the exact questions; localization alone does not change the answers.
 - **Contact email:** `contact@dynamic-solutions.ca` (required, publicly displayed — same address as the privacy policy)
 - **Privacy policy URL:** `https://persistent.dynamic-solutions.ca/privacy`
 - **Account deletion URL** (Data safety → *Provide a way for users to request account deletion*): `https://persistent.dynamic-solutions.ca/delete-account` — resolves signed out, explains the in-app route and gives an email fallback
@@ -183,7 +152,7 @@ after the production approval of 2026-09-05.
 
 ## Data safety declaration
 
-Verified against `apps/api/prisma/schema.prisma`. All types are **collected and
+Source review against `apps/api/prisma/schema.prisma`; this table is an audit proposal, not proof that the current Console form matches. All types are **collected and
 linked to the user**; none are used for advertising, analytics, or tracking (the
 repo contains **no** analytics or crash-reporting SDK — grep for sentry /
 crashlytics / firebase-analytics / posthog / amplitude / gtag returns zero hits).
@@ -195,7 +164,7 @@ crashlytics / firebase-analytics / posthog / amplitude / gtag returns zero hits)
 | Other user-generated content | Yes | Yes | App functionality | Reminder titles/details, sent in push payloads and escalation emails |
 | Health info | Yes | Yes | App functionality | Medication names and doses; reminder text can reach FCM push and user-chosen escalation email |
 | Device or other IDs | Yes | Yes | App functionality | FCM device tokens |
-| App activity / other actions | Yes | Yes | App functionality | Occurrence log: fired, acknowledged, snoozed times; assignment creators can see firing status and completion times |
+| App activity / app interactions | Yes | Yes | App functionality | Occurrence log: fired, acknowledged, snoozed times; assignment creators can see firing status and completion times |
 
 **Declare sharing = Yes.** Google FCM receives reminder titles and bodies in push
 payloads. Cloudflare Email Sending handles sign-in codes and invitation and
@@ -208,10 +177,7 @@ Security practices to declare:
 - ⚠️ **At rest, Postgres columns are plaintext** — only session secrets and email codes are hashed. Don't over-claim encryption at rest.
 - ✅ **"Users can request data deletion" is true, so claim it.** Two routes, both live: in-app at Settings → Delete account, and the public URL above for anyone who cannot sign in. `DELETE /api/auth/me` requires the caller to type their own email, so a session cookie alone will not fire it. Verified end to end against a throwaway account: the user, reminders, occurrences, sessions and the `EmailCode` rows (keyed by address, so they have no cascade and are deleted explicitly) all go.
 
-Medication reminders store medicine names and doses. The Health info row above
-must be restored in Play Console's Data safety form and Medication and Treatment
-Management selected in its Health apps declaration. Check the current published
-forms before marking this complete.
+Medication reminders store medicine names and doses. The Health apps declaration must select Medication and treatment management. On 21 October 2026 the coordinator observed the separate Health declaration still selecting no health features, and then saved the corrected Medication and treatment management selection as pending review. Final readback and submission remain coordinator-owned. Data safety must be checked using actual selected labels, not summary group counts: Health info and app interactions can already be selected even when a summary shows four groups. The optional data-deletion-without-account-deletion answer is distinct from the already configured account-deletion URL. Language preferences are app settings used for functionality, not evidence by themselves of a new sensitive data category or changed sharing purpose. See [release audit](release-0.29.0.md) for current evidence and handoff.
 
 ---
 
