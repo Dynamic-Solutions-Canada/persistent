@@ -4,7 +4,7 @@
        the `desktop-v*` tag, and MSIX refuses to reinstall the same version with
        different content, so it is bumped per packaged build. -->
   <PropertyGroup>
-    <Version>0.5.8</Version>
+    <Version>0.6.0</Version>
     <!-- Direct source builds read the canonical catalogs. The normal Python launcher
          prepares byte-identical generated inputs inside the helper's narrow desktop snapshot. -->
     <LocalizationCatalogDirectory>$(MSBuildThisFileDirectory)..\..\packages\shared\src\messages</LocalizationCatalogDirectory>
