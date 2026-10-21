@@ -60,7 +60,7 @@
     <Application Id="App" Executable="Persistent.Desktop.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         DisplayName="Persistent"
-        Description="ms-resource://Persistent.Desktop/Resources/WindowsShellDescription"
+        Description="ms-resource:Resources/WindowsShellDescription"
         BackgroundColor="transparent"
         Square150x150Logo="Images\Square150x150Logo.png"
         Square44x44Logo="Images\Square44x44Logo.png">
@@ -95,8 +95,8 @@
             <com:ExeServer Executable="Persistent.Desktop.exe" DisplayName="Persistent" Arguments="----AppNotificationActivated:">
               <com:Class Id="17864FEB-13E6-4192-8FCF-215D50A0D632" />
             </com:ExeServer>
-            <com:ExeServer Executable="Widget\Persistent.Widget.exe" DisplayName="ms-resource://Persistent.Desktop/Resources/WindowsWidgetProviderName" Arguments="-RegisterProcessAsComServer">
-              <com:Class Id="8C74E4F8-6D73-4D2D-92E8-CA3027DD1ED1" DisplayName="ms-resource://Persistent.Desktop/Resources/WindowsWidgetProviderName" />
+            <com:ExeServer Executable="Widget\Persistent.Widget.exe" DisplayName="ms-resource:Resources/WindowsWidgetProviderName" Arguments="-RegisterProcessAsComServer">
+              <com:Class Id="8C74E4F8-6D73-4D2D-92E8-CA3027DD1ED1" DisplayName="ms-resource:Resources/WindowsWidgetProviderName" />
             </com:ExeServer>
           </com:ComServer>
         </com:Extension>
@@ -123,7 +123,7 @@
                 <Definitions>
                   <Definition Id="Persistent_Launcher_Widget"
                               DisplayName="Persistent"
-                              Description="ms-resource://Persistent.Desktop/Resources/WindowsWidgetDescription">
+                              Description="ms-resource:Resources/WindowsWidgetDescription">
                     <Capabilities>
                       <Capability><Size Name="small" /></Capability>
                       <Capability><Size Name="medium" /></Capability>
@@ -134,7 +134,7 @@
                         <Icon Path="Images\WidgetIcon.png" />
                       </Icons>
                       <Screenshots>
-                        <Screenshot Path="Images\WidgetScreenshot.png" DisplayAltText="ms-resource://Persistent.Desktop/Resources/WindowsWidgetPreviewAlt" />
+                        <Screenshot Path="Images\WidgetScreenshot.png" DisplayAltText="ms-resource:Resources/WindowsWidgetPreviewAlt" />
                       </Screenshots>
                       <DarkMode />
                       <LightMode />

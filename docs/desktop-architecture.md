@@ -10,7 +10,7 @@ split the way they are.
 
 ## Presentation language
 
-The hosted page sends an additive validated locale payload. The host persists display preferences for native tray/settings, notifications and the separate widget process; older hosts ignore the new message. Widget rendering reloads persisted preference changes on the next snapshot rather than relying on a process-local event. Bundled catalog failures keep English fallback with safe diagnostics. Manifest shell/widget-picker strings use `ms-resource` bindings generated for nine locales from canonical catalogs before MRT input discovery. The Python-only launcher prepares byte-verified inputs under the existing narrow desktop source snapshot; no broader source root or shared-helper change is required. Current unsigned ARM64 build/package proof and the immediate-toast replacement trade-off are documented in [localization](localization.md). Windows installation/runtime and its release remain separate from the web/Android release.
+The hosted page sends an additive validated locale payload. The host persists display preferences for native tray/settings, notifications and the separate widget process; older hosts ignore the new message. Widget rendering reloads persisted preference changes on the next snapshot rather than relying on a process-local event. Bundled catalog failures keep English fallback with safe diagnostics. Manifest shell/widget-picker strings use package-relative `ms-resource` bindings generated for nine locales from canonical catalogs during packaging. The root `resources.pri` uses the final package identity and consolidates the original host resource candidates, including embedded XAML, with the generated metadata. The standalone host PRI remains unchanged by packaging. The Python-only launcher prepares byte-verified inputs under the existing narrow desktop source snapshot; no broader source root or shared-helper change is required. Packaging verification and the immediate-toast replacement trade-off are documented in [localization](localization.md). Windows installation/runtime and its release remain separate from the web/Android release.
 
 ## What it is, and what it deliberately is not
 
@@ -657,6 +657,7 @@ copy you last opened is the one that starts at sign-in.
   reads backwards), and this script publishes a plain layout, writes the manifest
   into it, then runs `makeappx`, so the project stays unpackaged during publish.
   The first tag ever cut (`desktop-v0.2.0`) failed on exactly that flag.
+- **Manifest localization needs a package-root index.** The host publish produces `Persistent.Desktop.pri`, which cannot by itself satisfy localized manifest references for the Store identity. After the final identity is written, `package-resources.ps1` generates the canonical nine-locale metadata and merges it with exactly one completed host PRI. The supported PRI indexer consolidates the old map into the primary map named for the package identity. This preserves the host's resource names, qualifiers, paths and embedded XAML values while keeping the original host PRI alongside it. The root must include these host resources because default WinUI resource lookups use the primary map. A metadata-only index or a loose-XBF scan would break that contract. Packaging validates both the layout and the unpacked finished MSIX before signing/bundling, requiring all manifest values/defaults, original host candidates and unchanged standalone host PRI bytes. This prevents recurrence of the Store `0.6.0` rejection, whose keys existed in the assembly PRI but had no package-root index.
 - **The release job's `files:` globs must be recursive.** `upload-artifact` roots
   each artifact at the least common ancestor of its paths — `apps/desktop` here —
   so the assets come back one level down (`release/*.zip`) and a flat
@@ -877,7 +878,7 @@ its original destination and package-family fields for compatibility.
 `Persistent.Desktop.csproj` sets `<EnableMsixTooling>true</EnableMsixTooling>`
 even though the app runs unpackaged (`WindowsPackageType=None`). The name is
 misleading: it is what enables the PRI tooling that indexes the compiled XAML
-(`.xbf`) into the app's own `resources.pri`.
+(`.xbf`) into the app's assembly resource index, currently `Persistent.Desktop.pri`.
 
 Without it the build and publish both succeed — CI was green — and then the app
 dies at runtime constructing its first window:
@@ -889,10 +890,7 @@ Microsoft.UI.Xaml.Markup.XamlParseException: XAML parsing failed.
 ```
 
 The exception names no file and no line, and `MainWindow.xaml` is an empty
-`<Grid/>`, so it reads like a XAML bug. It isn't: the published folder simply
-contains no `resources.pri` at all (only the framework's `Microsoft.UI.*.pri`),
-so `LoadComponent` cannot resolve *any* compiled XAML. If this ever recurs, check
-for `resources.pri` beside the exe before looking at the markup.
+`<Grid/>`, so it reads like a XAML bug. The published folder lacked the app's resource index and contained only framework indexes, so `LoadComponent` could not resolve compiled XAML. If this recurs, check the host PRI beside the executable before looking at the markup. For an MSIX, also verify the package-root `resources.pri` primary map contains all original host candidates. The two indexes serve distinct build/package contracts; finding an XBF key in a secondary map is insufficient.
 
 ## Residual risks
 

@@ -73,6 +73,7 @@ bool incompleteRejected = false;
 try { ManifestResources.Generate(incomplete, manifest, Path.Combine(profile, "incomplete-output")); }
 catch (InvalidDataException) { incompleteRejected = true; }
 Check(incompleteRejected && !Directory.Exists(Path.Combine(profile, "incomplete-output")), "Missing native translations fail without partial output.");
+PackageResourceTests.Run(profile, catalogs, manifest);
 
 var first = new NotificationOccurrence("occurrence-a", "reminder", "Medicine", "Insulin 10 units", true, true, 0);
 var second = first with { OccurrenceId = "occurrence-b", CanSilence = false };
