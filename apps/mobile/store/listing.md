@@ -152,10 +152,7 @@ after the production approval of 2026-09-05.
 
 ## Data safety declaration
 
-Source review against `apps/api/prisma/schema.prisma`; this table is an audit proposal, not proof that the current Console form matches. All types are **collected and
-linked to the user**; none are used for advertising, analytics, or tracking (the
-repo contains **no** analytics or crash-reporting SDK — grep for sentry /
-crashlytics / firebase-analytics / posthog / amplitude / gtag returns zero hits).
+Source review against `apps/api/prisma/schema.prisma`; this table is an audit proposal, not proof that the current Console form matches. These types are collected and linked to the account. Persistent does not use them for advertising or tracking and has no third-party analytics or crash-reporting SDK. Internal aggregate account, feature and platform statistics are analytics under Play's purpose definitions, even without a third-party SDK; the privacy policy already describes those statistics.
 
 | Play data type | Collected | Shared | Purpose | Notes |
 | --- | --- | --- | --- | --- |
@@ -164,13 +161,15 @@ crashlytics / firebase-analytics / posthog / amplitude / gtag returns zero hits)
 | Other user-generated content | Yes | Yes | App functionality | Reminder titles/details, sent in push payloads and escalation emails |
 | Health info | Yes | Yes | App functionality | Medication names and doses; reminder text can reach FCM push and user-chosen escalation email |
 | Device or other IDs | Yes | Yes | App functionality | FCM device tokens |
-| App activity / app interactions | Yes | Yes | App functionality | Occurrence log: fired, acknowledged, snoozed times; assignment creators can see firing status and completion times |
+| App activity / App interactions | Yes | Yes | Collection: app functionality and analytics. Sharing: app functionality | Occurrence activity and assignment progress; aggregate account, feature and platform usage statistics. Analytics is a collection purpose, not a new advertising or tracking use |
 
 **Declare sharing = Yes.** Google FCM receives reminder titles and bodies in push
 payloads. Cloudflare Email Sending handles sign-in codes and invitation and
 escalation emails. A user can share reminder content with other participants,
 and an assignment creator can see the assignee's firing and completion status.
 None of this is a transfer for advertising.
+
+The coordinator's detailed 21 October 2026 readback found all six data types selected. Health info already had collection and sharing for app functionality. App interactions had collection for app functionality but no sharing or analytics purpose; the coordinator is correcting those two purpose/sharing gaps. Do not replace App interactions with Other actions, infer missing types from the four-group summary, or claim the corrected form is published before final readback and review.
 
 Security practices to declare:
 - ✅ Data is encrypted in transit (HTTPS everywhere; `cleartext: false`, HSTS-style proxy, `Secure`/`HttpOnly` session cookie)
