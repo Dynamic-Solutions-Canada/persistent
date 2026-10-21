@@ -112,7 +112,7 @@ test('native supported-language declarations retain all nine canonical identitie
 
 test('installed shell and widget-picker resource bindings have canonical translations for every locale', () => {
   const manifest = readFileSync(new URL('../../../../apps/desktop/Persistent.DesktopMSIX/Package.appxmanifest', import.meta.url), 'utf8')
-  const keys = [...new Set([...manifest.matchAll(/ms-resource:\/\/Persistent\.Desktop\/Resources\/([A-Za-z0-9]+)/g)].map(match => match[1]!))]
+  const keys = [...new Set([...manifest.matchAll(/ms-resource:Resources\/([A-Za-z0-9]+)/g)].map(match => match[1]!))]
   assert.ok(keys.length >= 4, 'Shell description, provider label, widget description and accessible preview text are bound')
   for (const locale of supportedLocales) {
     for (const key of keys) {

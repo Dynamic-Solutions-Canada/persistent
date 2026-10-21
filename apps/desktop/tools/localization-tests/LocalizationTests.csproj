@@ -13,6 +13,7 @@
     <Compile Include="../../Shared/SupportedLanguages.cs" Link="SupportedLanguages.cs" />
     <Compile Include="../../Shared/UiText.cs" Link="UiText.cs" />
     <Compile Include="../localization-resources/ManifestResources.cs" Link="ManifestResources.cs" />
+    <Compile Include="../localization-resources/PackageResources.cs" Link="PackageResources.cs" />
     <Compile Include="../../Persistent.Desktop/Notifications/NotificationOccurrence.cs" Link="NotificationOccurrence.cs" />
     <Compile Include="../../Persistent.Desktop/Notifications/NotificationPresentation.cs" Link="NotificationPresentation.cs" />
     <EmbeddedResource Include="../../../../packages/shared/src/messages/*.json" Exclude="../../../../packages/shared/src/messages/ja-JP.json;../../../../packages/shared/src/messages/es-ES.json" LogicalName="Persistent.Localization.%(Filename).json" />

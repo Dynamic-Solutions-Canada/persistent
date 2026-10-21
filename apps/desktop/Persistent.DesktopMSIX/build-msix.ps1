@@ -96,6 +96,7 @@ function Resolve-SdkTool([string]$name) {
 }
 
 $makeappx = Resolve-SdkTool 'makeappx.exe'
+$makepri = Resolve-SdkTool 'makepri.exe'
 $signtool = if ($Store) { $null } else { Resolve-SdkTool 'signtool.exe' }
 
 # --- Upload: build both architectures into one real MSIX bundle -----------
@@ -292,18 +293,26 @@ if (-not $Store) {
     Write-Host "Store identity: $($doc.Package.Identity.Name) / $($doc.Package.Identity.Publisher)"
 }
 
+# --- Package resource index ------------------------------------------------
+# Resolve the same canonical/prepared catalog directory as the native projects.
+$catalogDirectory = (& dotnet msbuild $project -nologo -getProperty:LocalizationCatalogDirectory | Out-String).Trim()
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path $catalogDirectory)) { throw 'Could not resolve LocalizationCatalogDirectory.' }
+$resourceScript = Join-Path $msixDir 'package-resources.ps1'
+$resourceEvidence = Join-Path $root "artifacts\package-resources\$Platform"
+& $resourceScript -CatalogDirectory $catalogDirectory -Layout $layout -MakePri $makepri -EvidenceDirectory $resourceEvidence
+
 # --- Package --------------------------------------------------------------
-# The WinUI build already emitted Persistent.Desktop.pri, which indexes the XBF
-# copied above. Running makepri over that completed index tries to index the same
-# Files/App.xbf resource a second time, reports PRI175/PRI277, and produces no
-# package resource file. The manifest uses direct image paths and no ms-resource
-# strings, so there is no second package-level PRI to generate.
 $outName = "Persistent.Desktop_${version}_$Platform.msix"
 $outPath = Join-Path $msixDir $outName
 if (Test-Path $outPath) { Remove-Item $outPath -Force }
 
 & $makeappx pack /d $layout /p $outPath /o
 if ($LASTEXITCODE -ne 0) { throw 'makeappx failed' }
+
+# Reopen the finished package: a key in some other PRI is not manifest resolution.
+& $resourceScript -CatalogDirectory $catalogDirectory -Layout $layout -MakePri $makepri `
+    -EvidenceDirectory (Join-Path $resourceEvidence 'packaged') -PackagePath $outPath -MakeAppx $makeappx
+
 
 if (-not $Store) {
     # Store installations are bundles. Preserve that package shape for an

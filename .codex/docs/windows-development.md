@@ -20,6 +20,8 @@ Never uninstall to bypass an update error or silently replace a publisher.
 
 Persistent's launcher prepares hash-verified localization inputs with Python 3 before calling the shared helper. The normal narrow desktop snapshot remains self-contained without npm or copying the rest of the repository. Generated inputs are ignored; translation changes belong in the [canonical catalogs](../../docs/localization.md), not the prepared copies.
 
+MSIX packaging generates a root `resources.pri` after finalizing the Store or dev identity. It merges the completed host index with nine canonical manifest RESWs through an isolated input directory, leaving the standalone host PRI unchanged. The package primary map must retain all host resources, including embedded XAML, alongside the localized shell/widget metadata. The packaging script unpacks the finished MSIX and validates actual manifest references, all nine languages, English fallback, resource flags and every original host candidate. Detailed dumps and a structured report are written under `apps/desktop/artifacts/package-resources/<platform>/packaged` in staging; build logs carry the validation summary. Checking keys in the assembly PRI alone does not qualify manifest resource resolution or installed startup.
+
 The explicit `--store-identity` mode preserves the Store identity and account
 data, and requires a matching publisher certificate. It does not publish to the
 Store. Release sideloads may remain installed; remove separate dev test packages
