@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "versionName": "0.29.1",
+  "locales": {
+    "en-US": {
+      "text": "Fix an issue that caused the app to close immediately on opening and could interrupt alarms and background sync."
+    },
+    "es-ES": {
+      "text": "Corrige un problema que hacía que la aplicación se cerrara inmediatamente al abrirla y podía interrumpir las alarmas y la sincronización en segundo plano."
+    },
+    "fr-FR": {
+      "text": "Corrige un problème qui fermait l’application immédiatement à l’ouverture et pouvait interrompre les alarmes et la synchronisation en arrière-plan."
+    },
+    "de-DE": {
+      "text": "Behebt einen Fehler, durch den sich die App direkt nach dem Öffnen schloss und Alarme sowie die Synchronisierung im Hintergrund unterbrochen werden konnten."
+    },
+    "zh-CN": {
+      "text": "修复了打开应用后立即关闭，并可能中断闹钟和后台同步的问题。"
+    },
+    "pt-BR": {
+      "text": "Corrige um problema que fazia o app fechar imediatamente ao abrir e podia interromper os alarmes e a sincronização em segundo plano."
+    },
+    "ja-JP": {
+      "text": "アプリを開くとすぐに終了し、アラームやバックグラウンド同期が中断することがある問題を修正しました。"
+    },
+    "en-CA": {
+      "copyFrom": "en-US"
+    },
+    "fr-CA": {
+      "copyFrom": "fr-FR"
+    }
+  }
+}
