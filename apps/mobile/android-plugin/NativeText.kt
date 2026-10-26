@@ -17,7 +17,8 @@ internal object NativeText {
     private val bodyBindings = WeakHashMap<TextView, AlarmSpec>()
     private val bindings = WeakHashMap<TextView, Pair<String, Map<String, Any>>>()
     private val catalogs = mutableMapOf<String, JSONObject>()
-    private val placeholder = Regex("\\{\\{\\s*(\\w+)\\s*}}")
+    // Android's ICU regex parser requires literal closing braces to be escaped too.
+    private val placeholder = Regex("\\{\\{\\s*(\\w+)\\s*\\}\\}")
 
     /** Validate before replacing the display preference; it contains no credentials or reminder state. */
     fun save(context: Context, value: JSONObject): Boolean {

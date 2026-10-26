@@ -32,6 +32,8 @@ starve WSL; only raise `ANDROID_GRADLE_WORKERS` deliberately. The same command
 also runs JVM unit tests for both flavors. Keep their authoritative Kotlin tests and pure Java helpers
 in `android-tests/`; setup copies them into the generated project's test source set.
 
+Tests in `android-tests/device/` run on Android, not the desktop JVM. This matters for ICU regex parsing, including `NativeText` startup initialization. After `setup:android`, build with `./gradlew --no-daemon --max-workers=2 assembleDirectDebug assembleDirectDebugAndroidTest` from `android/`. On an explicitly authorized test device, install both APKs and run `adb shell am instrument -w -e class ca.persistent.app.alarm.NativeTextTest ca.persistent.app.test/androidx.test.runner.AndroidJUnitRunner`. `verify:android` does not execute these device tests.
+
 ## Two Android flavors
 
 `android-plugin/flavor/`: `play` for Play and GitHub distribution, `direct` for legacy installs and

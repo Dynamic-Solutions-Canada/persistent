@@ -91,6 +91,13 @@ mkdirSync(generatedTestsDir, { recursive: true })
 for (const file of readdirSync(nativeTestsDir).filter((name) => name.endsWith('.kt') || name.endsWith('.java'))) {
   copyFileSync(join(nativeTestsDir, file), join(generatedTestsDir, file))
 }
+// Regex initialization must also run on Android: desktop JVM regex semantics differ from ICU.
+const deviceTestsDir = join(nativeTestsDir, 'device')
+const generatedDeviceTestsDir = join(mobileRoot, 'android/app/src/androidTest/java/ca/persistent/app/alarm')
+mkdirSync(generatedDeviceTestsDir, { recursive: true })
+for (const file of readdirSync(deviceTestsDir).filter((name) => name.endsWith('.kt'))) {
+  copyFileSync(join(deviceTestsDir, file), join(generatedDeviceTestsDir, file))
+}
 // A pre-flavor checkout put UpdatePlugin.kt in main; leaving it there would
 // compile it into the play flavor too, so drop any stale copy.
 for (const file of DIRECT_ONLY_KT) {
