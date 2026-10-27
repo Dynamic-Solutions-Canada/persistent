@@ -200,6 +200,8 @@ The split is by which surface a setting describes, not by who stores it:
 | Version, update check, log folder | Native (`AboutPage`) | Both are needed precisely when the page is not working |
 | Settings window theme | Native (`AppSettingsPage`) | It themes that separate window; the flyout follows the page |
 
+Time format lives in the page's Language and region card. Supporting hosts add read-only `deviceTimeFormat` (`12h` or `24h`) to `hostSettings`, reading `DateTimeFormatter.ShortTime.Clock` on every send so Match device follows Windows' chosen clock independently of the app's regional format. The settings provider subscribes before requesting and refreshes on the existing resume message. An explicit saved clock choice wins. Older hosts keep the regional-locale fallback; deploying the hosted page alone does not update their native clock detection. See [localization](localization.md) for the cross-platform contract.
+
 Consequences worth knowing before changing this:
 
 - **A patch is validated, never trusted** (`HostSettings.ApplyAsync`). The page is

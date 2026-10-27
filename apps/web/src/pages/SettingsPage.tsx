@@ -21,13 +21,12 @@ import Select from '@mui/joy/Select'
 import Option from '@mui/joy/Option'
 import FormControl from '@mui/joy/FormControl'
 import FormLabel from '@mui/joy/FormLabel'
-import { LanguageSettingsCard } from '../localization/LanguageSettingsCard.js'
 import { useAuth } from '../auth/useAuth.js'
+import { LanguageSettingsCard } from '../localization/LanguageSettingsCard.js'
 import { useSettings, type SoundChoice } from '../settings/useSettings.js'
 import { doodleColorOptions, type DoodleColorId } from '../settings/doodleColors.js'
 import { useAppTheme } from '../settings/useAppTheme.js'
 import { THEME_OPTIONS } from '../settings/themes.js'
-import { formatDateTime } from '../lib/datetime.js'
 import { SectionHeading } from '../components/SectionHeading.js'
 import { SoundPickerRow } from '../components/SoundPickerRow.js'
 import { AlarmPlugin, isNative, pickSound } from '../native/alarmBridge.js'
@@ -41,10 +40,6 @@ export function SettingsPage() {
   useTranslation()
   const { user } = useAuth()
   const {
-    timeFormat,
-    setTimeFormat,
-    timeFormatChosen,
-    resetTimeFormat,
     themeId,
     setThemeId,
     doodles,
@@ -183,22 +178,6 @@ export function SettingsPage() {
 
       {/* Desktop host settings render only in the Windows and Linux apps. */}
       <DesktopSettings />
-
-      <Card variant="outlined">
-        <Typography level="title-sm">{tr("Date & time")}</Typography>
-        <FormControl>
-          <FormLabel>{tr("Time format")}</FormLabel>
-          <Select value={timeFormatChosen ? timeFormat : 'device'} onChange={(_e, value) => {
-            if (value === 'device') resetTimeFormat()
-            else if (value) setTimeFormat(value as '12h' | '24h')
-          }}>
-            <Option value="device">{tr("Match device")}</Option>
-            <Option value="12h">{tr("12-hour (1:30 PM)")}</Option>
-            <Option value="24h">{tr("24-hour (13:30)")}</Option>
-          </Select>
-        </FormControl>
-        <Typography level="body-xs"><Trans i18nKey={"Example: <v0/>"} components={{ v0: <>{formatDateTime(new Date(), timeFormat, user?.timeZone)}</> }} /></Typography>
-      </Card>
 
       <AccountSettingsCard />
 

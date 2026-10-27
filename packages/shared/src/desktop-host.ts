@@ -15,6 +15,8 @@ export interface DesktopSnoozeChoice {
 /** Hosts own persistence and echo actual state. Optional capabilities preserve older Windows builds. */
 export interface DesktopHostSettings {
   platform?: 'windows' | 'linux'
+  /** Live OS clock preference, absent on hosts without native clock detection. */
+  deviceTimeFormat?: '12h' | '24h'
   snoozeInApp?: boolean
   notifications: boolean
   snoozeMinutes: number
@@ -27,4 +29,4 @@ export interface DesktopHostSettings {
 }
 
 /** Capability/option metadata is read-only; only machine preferences can be requested by the page. */
-export type DesktopHostSettingsPatch = Partial<Omit<DesktopHostSettings, 'platform' | 'snoozeInApp' | 'flyoutSizes' | 'snoozeChoices'>>
+export type DesktopHostSettingsPatch = Partial<Omit<DesktopHostSettings, 'platform' | 'deviceTimeFormat' | 'snoozeInApp' | 'flyoutSizes' | 'snoozeChoices'>>

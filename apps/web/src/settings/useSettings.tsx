@@ -1,10 +1,11 @@
 /**
- * Client-side display preferences (persisted to localStorage). Currently the
- * 12h/24h time format used by lib/datetime.ts. These are per-device UI prefs,
- * not server-synced account settings.
+ * Per-device display, locale and sound preferences persisted to localStorage.
+ * Native clock metadata stays live and read-only; explicit 12h/24h choices win.
+ * These UI preferences are not server-synced account settings.
  */
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { resolveLocale, type Locale, type LocalePreferences, type SoundChoice } from '@persistent/shared'
+import { useHostSettings } from '../native/useHostSettings.js'
 import { AlarmPlugin, isNative } from '../native/alarmBridge.js'
 import { connectNativeLanguage, type NativeLanguageBridge } from '../localization/nativeLanguage.js'
 import { useTranslation } from 'react-i18next'
@@ -48,7 +49,7 @@ interface Settings extends LocalePreferences {
 
 /**
  * Persisted state. `timeFormat` is only stored once the user explicitly picks
- * one; until then we re-detect from the locale on every load (so a corrected
+ * one; until then we re-detect from the host or locale on every load (so a corrected
  * detection takes effect and isn't pinned by an earlier auto-captured value).
  */
 interface StoredState extends Settings {
@@ -157,6 +158,7 @@ function loadSettings(): StoredState {
 const SettingsContext = createContext<SettingsContextValue | null>(null)
 
 export function SettingsProvider({ children, nativeBridge = isNative() ? AlarmPlugin : null }: { children: ReactNode; nativeBridge?: NativeLanguageBridge | null }) {
+  const { settings: hostSettings } = useHostSettings()
   const [settings, setSettings] = useState<StoredState>(loadSettings)
   const [languages, setLanguages] = useState(deviceLanguages)
   const [nativeLanguageReady, setNativeLanguageReady] = useState(() => nativeBridge === null)
@@ -210,7 +212,11 @@ export function SettingsProvider({ children, nativeBridge = isNative() ? AlarmPl
     locale,
     formattingLocale,
     nativeLanguageReady,
-    timeFormat: settings.timeFormatChosen ? settings.timeFormat : detectTimeFormat(formattingLocale),
+    // Native clock preferences are independent of the regional locale. Older
+    // hosts and browsers retain locale detection until a supported host replies.
+    timeFormat: settings.timeFormatChosen
+      ? settings.timeFormat
+      : hostSettings?.deviceTimeFormat ?? detectTimeFormat(formattingLocale),
     setLanguageOverride: (languageOverride) => {
       nativeLanguage.current?.manualChoice()
       update({ languageOverride })

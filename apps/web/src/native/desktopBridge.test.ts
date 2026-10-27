@@ -125,3 +125,13 @@ test('host navigation rejects backslash and whitespace open-redirect forms', asy
     else Reflect.deleteProperty(globalThis, 'window')
   }
 })
+
+
+test('device clock is optional and accepts only native 12h/24h values', () => {
+  for (const deviceTimeFormat of ['12h', '24h']) {
+    assert.equal(parseHostSettings({ ...complete, deviceTimeFormat })?.deviceTimeFormat, deviceTimeFormat)
+  }
+  for (const deviceTimeFormat of [null, true, 12, '13h', {}, undefined]) {
+    assert.deepEqual(parseHostSettings({ ...complete, deviceTimeFormat }), complete)
+  }
+})
