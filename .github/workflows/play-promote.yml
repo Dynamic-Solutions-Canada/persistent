@@ -27,9 +27,9 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: '22.23.4'
 
-      # No `npm ci`: the script is dependency-free by design (Node 20 has fetch
+      # No `npm ci`: the script is dependency-free by design (Node 22 has fetch
       # and RS256 signing built in), so this needs nothing from the workspace.
       - name: Promote versionCode ${{ inputs.version_code }} to production
         working-directory: apps/mobile

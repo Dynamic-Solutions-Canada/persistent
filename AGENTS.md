@@ -94,8 +94,8 @@ See `docs/auth-architecture.md` and `apps/api/AGENTS.md`.
   `git submodule update --init --recursive` before validating or building a fresh
   checkout. Both the web app and desktop app import this shared catalog.
 - The Devkit-managed Compose stack is the complete development environment. It
-  provides Node 20, PostgreSQL, and isolated resources for concurrent checkouts.
-  The web build's service-worker generation needs Node 20.
+  provides Node 22, PostgreSQL, and isolated resources for concurrent checkouts.
+  Use the exact Node and npm versions in `package.json` for validation and builds.
 - `npm run dev`: shared (watch) + api + web concurrently.
 - `npm run db:migrate`: create/apply Prisma migrations. Regenerate the client
   (`npm run db:generate`) and update shared contracts when the schema changes.
@@ -119,7 +119,7 @@ See `docs/auth-architecture.md` and `apps/api/AGENTS.md`.
   every shell inherits, and the whole check used to die on a missing value having
   tested nothing.
 - Root dev dependencies include the small Linux transport libraries for tests.
-  Linux's standalone build tools require Node 22.12+, preserving the Node 20 web/API
+  Linux's standalone build tools use the same patched Node runtime as the web/API
   environment. Run `npm run build:linux` and relevant package/native checks;
   root validation does not establish native Linux runtime behavior.
 - `npm test` discovers `*.test.ts` under `apps/`, `packages/` **and `scripts/`**.

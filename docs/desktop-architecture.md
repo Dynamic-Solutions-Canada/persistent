@@ -613,11 +613,9 @@ sitting in the Action Center back to this app.
 
 ## Building and releasing
 
-The development container is Linux and **cannot build or run any of this**; there is no
-.NET or Windows SDK, and `npm run validate` does not cover C#. The CI workflow
-`.github/workflows/build-desktop-msix.yml` compiles both platforms on
-`windows-2025` for every push/PR touching `apps/desktop`, which checks both architectures automatically — treat a red run there the way you would a failed
-`npm run validate`.
+The Linux development container includes the .NET SDK for non-XAML C# checks and runtime-pack resolution, but cannot perform a full WinUI build or run the Windows application. `npm run validate` does not cover C#. The CI workflow `.github/workflows/build-desktop-msix.yml` compiles both platforms on `windows-2025` for every push/PR touching `apps/desktop`; treat a red run there the way you would a failed `npm run validate`.
+
+`apps/desktop/global.json` selects SDK 10.0.403 or later stable .NET 10 servicing versions. The common `Directory.Build.targets` also enforces the SDK floor when the Windows bridge invokes MSBuild outside that file's directory. Self-contained publication rejects resolved core runtime packs below 10.0.14, while leaving later patches and architecture selection to the SDK. Run `bash apps/desktop/tools/runtime-security/verify.sh` to check both application projects and architectures without executing Windows code. This supplements full Windows compilation, packaging and installed startup checks; it does not replace them.
 
 - Local WSL workflow: `npm run verify:desktop`, `npm run build:desktop` and
   `npm run install:desktop`. See [the common desktop guide](../.codex/docs/windows-development.md).

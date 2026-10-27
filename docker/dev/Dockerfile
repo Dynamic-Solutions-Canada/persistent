@@ -3,7 +3,7 @@
 # (apps/mobile) can be built from inside the container later. librsvg2-bin
 # (rsvg-convert) rasterizes the app-icon SVGs into launcher PNGs via
 # `npm run gen:icons` in apps/mobile.
-FROM node:20.20.2-trixie
+FROM node:22.23.4-trixie
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -106,7 +106,7 @@ RUN set -eux; \
 # here against the real Windows App SDK reference assemblies, which catches a
 # misremembered WinRT API without a CI round-trip. Restore needs
 # EnableWindowsTargeting=true, which the script passes.
-ARG DOTNET_CHANNEL=10.0
+ARG DOTNET_VERSION=10.0.403
 ENV DOTNET_ROOT=/opt/dotnet
 ENV PATH="${PATH}:/opt/dotnet"
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -114,7 +114,7 @@ ENV DOTNET_NOLOGO=1
 RUN set -eux; \
     curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh; \
     chmod +x /tmp/dotnet-install.sh; \
-    /tmp/dotnet-install.sh --channel "${DOTNET_CHANNEL}" --install-dir "${DOTNET_ROOT}"; \
+    /tmp/dotnet-install.sh --version "${DOTNET_VERSION}" --install-dir "${DOTNET_ROOT}"; \
     rm /tmp/dotnet-install.sh; \
     chown -R node:node "${DOTNET_ROOT}"
 

@@ -52,7 +52,7 @@ if ! python3 - . <<'PY'
 import sys, pathlib, xml.etree.ElementTree as ET
 
 root = pathlib.Path(sys.argv[1])
-patterns = ('*.csproj', '*.props', '*.appxmanifest', '*.projitems', '*.xaml', '*.slnx')
+patterns = ('*.csproj', '*.props', '*.targets', '*.appxmanifest', '*.projitems', '*.xaml', '*.slnx')
 files = [p for pat in patterns for p in root.rglob(pat)
          if 'bin/' not in str(p) and 'obj/' not in str(p)]
 
