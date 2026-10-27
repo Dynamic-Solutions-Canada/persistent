@@ -39,14 +39,14 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v7.1.0
         with:
-          node-version: '20.20.2'
+          node-version: '22.23.4'
           cache: npm
       - run: npm ci
       - run: npm run db:generate
       - run: npm run build --workspace @persistent/shared
       - uses: actions/setup-node@v7.1.0
         with:
-          node-version: '22.22.3'
+          node-version: '22.23.4'
           cache: npm
           cache-dependency-path: apps/linux-desktop/package-lock.json
       - run: npm --prefix apps/linux-desktop ci
@@ -63,11 +63,11 @@ jobs:
           JS
       - uses: actions/setup-node@v7.1.0
         with:
-          node-version: '20.20.2'
+          node-version: '22.23.4'
       - run: npm run validate
       - uses: actions/setup-node@v7.1.0
         with:
-          node-version: '22.22.3'
+          node-version: '22.23.4'
       - run: npm run package:linux -- --${{ matrix.architecture }}
       - uses: actions/upload-artifact@v7.0.2
         with:
@@ -90,11 +90,11 @@ jobs:
           ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.ref }}
       - uses: actions/setup-node@v7.1.0
         with:
-          node-version: '20.20.2'
+          node-version: '22.23.4'
       - run: npm ci
       - uses: actions/setup-node@v7.1.0
         with:
-          node-version: '22.22.3'
+          node-version: '22.23.4'
       - run: npm --prefix apps/linux-desktop ci --ignore-scripts
       - run: npm run build:linux
       - uses: actions/download-artifact@v8.0.2

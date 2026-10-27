@@ -1,0 +1,18 @@
+<Project>
+  <!-- The shared Windows bridge invokes dotnet from the staged source root,
+       outside global.json's directory. Enforce the floor on project builds too. -->
+  <Target Name="ValidateDesktopSdkSecurity" BeforeTargets="ProcessFrameworkReferences">
+    <Error Condition="$([MSBuild]::VersionLessThan('$(NETCoreSdkVersion)', '10.0.403'))"
+           Text="Persistent desktop builds require .NET SDK 10.0.403 or newer for CVE-2026-111497. Selected $(NETCoreSdkVersion)." />
+  </Target>
+
+  <!-- Self-contained packages carry their own decoder. Check the SDK-selected
+       pack after resolution so later servicing patches remain eligible and an
+       explicit RuntimeFrameworkVersion cannot restore a vulnerable runtime. -->
+  <Target Name="ValidateBundledRuntimeSecurity"
+          AfterTargets="ProcessFrameworkReferences"
+          Condition="'$(SelfContained)' == 'true'">
+    <Error Condition="'%(RuntimePack.FrameworkName)' == 'Microsoft.NETCore.App' And $([MSBuild]::VersionLessThan('%(RuntimePack.NuGetPackageVersion)', '10.0.14'))"
+           Text="Self-contained Persistent packages require .NET runtime 10.0.14 or newer for CVE-2026-111497. Resolved %(RuntimePack.NuGetPackageId) %(RuntimePack.NuGetPackageVersion)." />
+  </Target>
+</Project>

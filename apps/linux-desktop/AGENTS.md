@@ -13,7 +13,7 @@ Never expand reminder schedules here or add browser/PWA notifications.
 - Credentials stay in the Chromium profile. Only an in-memory hash distinguishes
   session replacement from sliding expiry. Never log credentials or reminder text.
 - The notification daemon cannot read ASAR paths. Its icon is an extra resource.
-- Linux tooling needs Node 22.12+; the web/API development runtime remains Node 20.
+- Linux tooling and the web/API use the patched Node runtime pinned in their manifests.
   This standalone npm package deliberately follows the mobile package convention.
 - Run `npm run validate`, `npm run build:linux` and the relevant package targets.
   Native runtime checks require a real desktop. Record compositor/backend, tray and

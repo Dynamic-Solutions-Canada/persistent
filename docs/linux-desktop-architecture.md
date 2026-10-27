@@ -167,11 +167,9 @@ replacement. The AppImage is replaced through a private staging directory and
 atomic rename. Debian uses polkit and apt with removals forbidden. Profile data
 never enters the updater. There is no automatic browser opening.
 
-Linux build tools require Node 22.12+ because current Electron requires it. This does
-not change the existing Node 20 web/API environment. Root validation includes Linux
+Linux build tools and the web/API use the same patched Node version pinned in their manifests. Root validation includes Linux
 unit tests; Linux's separate typecheck/build and native package/runtime checks are
-still required. Windows sources, build commands, Store identity and release lanes are
-unchanged. Ship the updated hosted bridge before distributing the Linux host.
+still required. Windows Store identity and release lanes remain separate. Ship the updated hosted bridge before distributing the Linux host.
 
 ## Verification record
 

@@ -21,9 +21,8 @@ layout remain desktop-dependent. See [architecture](../../docs/linux-desktop-arc
 ## Development
 
 Initialize the promo submodule and root dependencies using the normal project
-workflow. Build tools for this package need Node 22.12 or newer. Keep the existing
-web/API development environment on Node 20.
-Root validation uses small transport test dependencies and stays on Node 20.
+workflow. Use the Node version pinned in this package and the root manifest for all builds.
+Root validation uses small transport test dependencies.
 Install this standalone package separately for native tooling and packaging.
 
 ```sh
@@ -52,7 +51,7 @@ npm run install:linux -- apps/linux-desktop/artifacts/Persistent-Linux-0.1.0-x86
 
 Packaging emits AppImage and Debian packages into
 `apps/linux-desktop/artifacts`. Package on the matching Linux architecture. An
-isolated Node 22.22.3 Bookworm container can build Linux artifacts using existing
+isolated Node 22.23.4 Bookworm container can build Linux artifacts using existing
 checkout dependencies; the real graphical app needs its desktop's user session.
 
 The user installer checks the AppImage CPU, copies it into

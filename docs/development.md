@@ -75,7 +75,7 @@ reminders reach the native alarm scheduler after server sync. See
 
 ## Development
 
-The editor stays on the host. Devkit runs Node 20, PostgreSQL, and the Android
+The editor stays on the host. Devkit runs Node 22, PostgreSQL, and the Android
 SDK/JDK in a checkout-specific Compose stack and injects `DATABASE_URL` and
 `API_PORT` into the development processes.
 
@@ -306,8 +306,8 @@ AppImage/Debian packages, then publishes a complete draft with the shared checks
 manifest before making it public. Android remains GitHub Latest.
 
 Deploy the hosted Linux bridge before publishing the Linux release. Root validation
-stays on Node 20 and uses root transport test dependencies; Linux tooling requires
-its standalone install under Node 22.12+. Native tests use isolated profiles and
+uses root transport test dependencies; Linux tooling requires
+its standalone install under the same pinned Node runtime. Native tests use isolated profiles and
 synthetic data. Build evidence does not replace desktop runtime evidence.
 
 ## Codex skills (`.agents/skills/`)
@@ -329,3 +329,7 @@ Cross-cutting contracts live in `docs/`: `auth-architecture.md`,
 `data-event-contract.md`, `alarm-architecture.md`. Directory-scoped conventions
 are in the scoped `AGENTS.md` files. Reusable workflows and focused agent guides
 live under `.agents/`.
+
+## Patched build runtimes
+
+Use the exact Node and npm versions in the root manifest for production, development and Linux build tooling. Desktop SDK selection lives in `apps/desktop/global.json`: SDK 10.0.403 or a newer stable .NET 10 feature band is eligible. Self-contained builds reject resolved .NET runtime packs older than 10.0.14. These build requirements address CVE-2026-111497; existing deployed images and native packages require separate rebuilds and releases. See [HTTP2Shell review](http2shell-review.md) for evidence and remaining gates.
