@@ -23,7 +23,13 @@ async function mountTheme(context: TestContext, stored: Record<string, unknown> 
   const hostMessages: unknown[] = []
   if (desktop) {
     Object.defineProperty(dom.window, 'chrome', { value: {
-      webview: { postMessage: (message: unknown) => hostMessages.push(message) }
+      webview: {
+        postMessage: (message: unknown) => {
+          if ((message as { type: string }).type === 'appearance') hostMessages.push(message)
+        },
+        addEventListener() {},
+        removeEventListener() {}
+      }
     } })
   }
   const previous = new Map<string, PropertyDescriptor | undefined>()

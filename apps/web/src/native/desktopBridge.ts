@@ -106,11 +106,12 @@ function distinctBy<T>(options: T[], key: (option: T) => string | number): T[] {
 
 /**
  * Validate a `hostSettings` payload, returning null for anything that isn't a
- * complete one. The placement field is optional for older desktop builds.
+ * complete one. Placement and the live device clock are optional on older hosts.
  *
  * Existing fields are required so controls never show values the host does not
  * use. Newly added placement is optional: older hosts retain their other
  * controls, and the placement picker stays hidden until a supporting host replies.
+ * Invalid optional clock metadata is ignored without hiding working host controls.
  */
 export function parseHostSettings(value: unknown): HostSettings | null {
   if (typeof value !== 'object' || value === null) return null
@@ -141,6 +142,9 @@ export function parseHostSettings(value: unknown): HostSettings | null {
   // A picker whose value matches no option renders blank, which is the one
   // outcome worth ruling out here.
   return {
+    ...(raw.deviceTimeFormat === '12h' || raw.deviceTimeFormat === '24h'
+      ? { deviceTimeFormat: raw.deviceTimeFormat }
+      : {}),
     ...(raw.platform === undefined ? {} : { platform: raw.platform as HostSettings['platform'] }),
     ...(raw.snoozeInApp === undefined ? {} : { snoozeInApp: raw.snoozeInApp as boolean }),
     notifications: raw.notifications,

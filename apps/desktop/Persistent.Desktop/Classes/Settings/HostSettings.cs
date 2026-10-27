@@ -1,4 +1,5 @@
 using Persistent.Localization;
+using Windows.Globalization.DateTimeFormatting;
 using System.Text.Json;
 using Persistent.Desktop.ViewModels;
 
@@ -90,6 +91,9 @@ internal static class HostSettings
             type = "hostSettings",
             settings = new
             {
+                // Query the OS each time, including after flyout resume. Locale
+                // defaults cannot represent the user's Windows clock override.
+                deviceTimeFormat = ReadDeviceTimeFormat(),
                 notifications = settings.DesktopNotifications,
                 // Snapped to a duration a toast can actually start on, so the
                 // settings screen never claims one the notification will not use.
@@ -104,6 +108,26 @@ internal static class HostSettings
                 flyoutPlacement = settings.FlyoutPlacement
             }
         });
+    }
+
+    /// <summary>Read the Windows short-time clock without applying the app's language or region.</summary>
+    private static string? ReadDeviceTimeFormat()
+    {
+        try
+        {
+            return DateTimeFormatter.ShortTime.Clock switch
+            {
+                "12HourClock" => "12h",
+                "24HourClock" => "24h",
+                _ => null
+            };
+        }
+        catch (Exception ex)
+        {
+            // Keep other host controls usable if Windows cannot supply its clock.
+            NLog.LogManager.GetCurrentClassLogger().Warn(ex, "Could not read Windows short-time clock");
+            return null;
+        }
     }
 
     /// <summary>

@@ -26,8 +26,7 @@ submodule pointer before publishing a consuming release.
 
 ## Settings and app catalog
 
-Account details, passkeys, sign-out, and permanent deletion share one Account
-card. Help sits directly before Privacy, and Apps is the final card.
+Language, regional formatting and time format share the Language and region card. Account details, passkeys, sign-out, and permanent deletion share one Account card. Help sits directly before Privacy, and Apps is the final card.
 
 Settings links to "Our other apps" on the shared web/Android UI. The page hides
 Persistent by stable product ID and labels all other apps by platform, including
