@@ -11,6 +11,7 @@ import { settingsCatalog } from './settings-catalog.js'
 import type { UpdateController } from './update-controller.js'
 import { statusNotifierAvailable } from './notifications.js'
 import { attachTaskbarHints } from './window-taskbar.js'
+import { updatePrompt } from './update-prompt.js'
 
 interface RecoveryOptions {
   updater: UpdateController
@@ -143,13 +144,7 @@ export class RecoveryWindows {
       await once(parent.webContents, 'did-finish-load', { signal: AbortSignal.timeout(5000) })
     }
     parent.webContents.send('persistent:local-state', { page: 'about' })
-    const request = {
-      type: 'question' as const, title: nativeText("Persistent update"),
-      message: action === nativeText("download") ? nativeText("Download Persistent version {{v0}}?", { v0: version }) : nativeText("Install version {{v0}} and restart Persistent?", { v0: version }),
-      detail: action === nativeText("download") ? nativeText("The app keeps running while the update downloads.") : nativeText("Desktop alerts pause briefly during restart. Your saved sign-in and settings are preserved. Finish any unsaved edits before restarting."),
-      buttons: [nativeText("Later"), action === nativeText("download") ? nativeText("Download update") : nativeText("Install and restart")], defaultId: 0, cancelId: 0
-    }
-    const result = await dialog.showMessageBox(parent, request)
+    const result = await dialog.showMessageBox(parent, updatePrompt(action, version))
     return result.response === 1
   }
 

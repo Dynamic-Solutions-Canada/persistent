@@ -24,7 +24,15 @@ permissions:
 
 jobs:
   package:
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - architecture: x64
+            runner: ubuntu-24.04
+          - architecture: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -52,10 +60,10 @@ jobs:
       - uses: actions/setup-node@v7.1.0
         with:
           node-version: '22.23.4'
-      - run: npm run package:linux -- --x64
+      - run: npm run package:linux -- --${{ matrix.architecture }}
       - uses: actions/upload-artifact@v7.0.2
         with:
-          name: persistent-linux-x64
+          name: persistent-linux-${{ matrix.architecture }}
           path: |
             apps/linux-desktop/artifacts/*.AppImage
           if-no-files-found: error

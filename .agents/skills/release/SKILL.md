@@ -8,7 +8,7 @@ Cut a new app release.
 ## Linux lane
 
 When asked to release the Linux desktop host, use its independent `linux-vX.Y.Z`
-tag and `apps/linux-desktop/package.json` version. This first release is 0.1.0.
+tag and `apps/linux-desktop/package.json` version, independently of Android and Windows.
 Do not invoke the Android lane for Linux-only work. Keep its standalone lockfile in
 step, validate and package both architectures, review native evidence, commit/merge
 and push main, and deploy the hosted bridge before publishing the tag. Require a

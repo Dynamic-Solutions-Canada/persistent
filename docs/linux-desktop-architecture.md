@@ -184,6 +184,8 @@ checks ELF/AppImage CPU identity, atomically replaces the owned image and launch
 and preserves profiles. The app reads live freedesktop autostart state, including
 external Hidden/X-GNOME disable overrides. Automatic checks and manual update controls share one consent-gated controller.
 Downloads require approval, and installation/restart requires a second approval.
+Consent stages are selected by stable protocol actions; only their displayed
+wording is translated.
 Quitting never silently installs. Metadata and payloads come only from the official
 Linux release channel; size, SHA-512 and CPU/package identity are verified before
 replacement. The AppImage is replaced through a private staging directory and

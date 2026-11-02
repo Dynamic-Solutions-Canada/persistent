@@ -79,3 +79,20 @@ package-database detection and privileged installation have been removed from th
 publisher, CI and updater. Older manifests remain readable by ignoring their
 Debian rows before validating the strict AppImage contract. The historical Debian
 build evidence above does not describe the current support policy.
+
+## Linux 0.2.0 release review
+
+Review of the changes since 0.1.0 found an update-consent localization defect:
+recovery UI compared the internal `download` action with translated display text.
+In German, French, Spanish, Japanese and Chinese, the download step could show an
+installation prompt. A focused prompt helper now keeps protocol actions literal
+and translates only display strings. Regression checks cover every supported
+locale and preserve distinct download/install approvals with cancellation selected
+by default. No account queries, authenticated update transport or alarm guarantees
+changed. The hosted bridge and compact navigation were already deployed in
+50f0a9f before this native release.
+
+The ordinary Linux check now packages x64 and ARM64 on native CI runners, matching
+the release matrix. Root validation passes 610 tests (608 pass, two existing skips).
+Native consent verification uses the task-owned private KDE compositor and synthetic
+version metadata; real account credentials and the user's desktop are untouched.
