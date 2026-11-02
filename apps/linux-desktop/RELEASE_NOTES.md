@@ -1,13 +1,14 @@
-Persistent is now available for Linux, with a resident tray app and the same reminder-management UI as Windows.
+Persistent for Linux 0.2.0 improves sign-in, KDE Wayland integration, and native language support.
 
-- Open a reusable flyout near the tray, with familiar menus, settings, rounded borders and KDE Wayland tray placement.
-- Sign in through a regular window with native controls; signed-in windows use the tray flyout.
-- Keep reminders visible after dismissal, repeat configured nags, and loop alarm audio while the app is running and the computer is awake.
-- Confirm completion, open the full Snooze picker, or de-escalate from native notifications.
-- Check for updates automatically or manually, with approval before downloading and installing.
+- Sign in through a regular window with native controls and Settings access. Signing out restores the sign-in window without losing the hosted page.
+- Fix blank content after logout and crashes caused by launchers closing their output pipes.
+- Open the signed-in flyout near the tray on KDE Wayland, correct late compositor placement, and preserve manual dragging until the next opening.
+- Native menus, settings, notifications, and update prompts follow the selected language. Download and installation remain separate approval steps in every language.
+- Use the same hosted interface with more compact navigation tabs and improved shared-reminder editing.
+- Updated Electron and build/runtime dependencies include security fixes.
 
-Download the AppImage for a user-level installation. Choose x86_64 for an Intel or AMD PC, or arm64 for an ARM64 machine. AppImage is the only supported Linux package format. GNOME needs AppIndicator support and may require double click to open the flyout. The default follows Electron's native backend; KDE Wayland positions the flyout near the tray.
+Linux downloads are now AppImage only, for x86_64 (Intel/AMD) and ARM64. Existing AppImage installations retain their profiles and installation path when updated. Automatic update checks and Start at sign-in remain available in Settings. GNOME requires AppIndicator support and may require double click to open the flyout; other Wayland compositors control window placement.
 
-Linux does not provide Android's offline scheduled-alarm guarantees. Alerts require an awake computer and the resident app.
+Desktop alerts require the app to be running and the computer awake. Android remains the platform with offline scheduled-alarm guarantees.
 
-*AI disclosure: this comment and the related code were written with the assistance of AI.*
+*AI disclosure: these release notes and the related code were written with the assistance of AI.*

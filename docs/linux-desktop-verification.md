@@ -227,3 +227,18 @@ Root validation passed (609 tests: 607 passed, two skipped), standalone Linux
 compilation passed, and `npm run package:linux -- --x64` built an AppImage only.
 The ARM64 publisher path is covered by the checksum-manifest regression; a fresh
 ARM64 native execution was not performed for this packaging-policy change.
+
+## Linux 0.2.0 release preflight
+
+A release review found translated download action comparisons in the recovery
+consent UI. The host now uses literal protocol actions and translates only the
+prompt. Unit checks cover all supported locales. Actual German download/install
+dialogs were captured separately in private KDE; both returned Later when cancelled.
+Evidence is in `.artifacts/linux-desktop/release-0.2.0/`.
+
+Root validation passed 610 tests (608 passed, two skipped), standalone Linux build
+and local x64 AppImage packaging passed, and the shipping dependency audit reported
+no findings. This host cannot execute ARM64 binaries; the Linux check now validates
+and packages both CPU builds on native CI runners before release tagging. These
+package checks do not claim ARM64 desktop runtime acceptance. Android and Windows
+versions remain unchanged; the hosted bridge was deployed in 50f0a9f.

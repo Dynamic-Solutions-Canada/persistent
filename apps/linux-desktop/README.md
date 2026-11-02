@@ -47,7 +47,7 @@ npm run validate
 npm run build:linux
 npm run package:linux -- --x64
 npm run package:linux -- --arm64
-npm run install:linux -- apps/linux-desktop/artifacts/Persistent-Linux-0.1.0-x86_64.AppImage
+npm run install:linux -- apps/linux-desktop/artifacts/Persistent-Linux-0.2.0-x86_64.AppImage
 ```
 
 Packaging emits x64 and ARM64 AppImages into

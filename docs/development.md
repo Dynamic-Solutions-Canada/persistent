@@ -302,7 +302,8 @@ or publish the Android or Windows binary. Read
 [Linux build/install/update instructions](../apps/linux-desktop/README.md).
 `release-linux.yml` validates the main-branch tag/version, builds x64 and ARM64
 AppImages, then publishes a complete draft with the shared checksum
-manifest before making it public. Android remains GitHub Latest.
+manifest before making it public. The Linux desktop check packages both architectures
+on their native CI runners before release tagging. Android remains GitHub Latest.
 
 Deploy the hosted Linux bridge before publishing the Linux release. Root validation
 uses root transport test dependencies; Linux tooling requires
