@@ -1,6 +1,6 @@
 import { nativeText } from './localization.js'
-/** One reusable hosted management window, with a profile isolated from the user's browsers. */
-import { BrowserWindow, WebContentsView, ipcMain, nativeTheme, screen, shell, type IpcMainEvent, type Session, type WebContents } from 'electron'
+/** One warm hosted view moves between the standard sign-in window and reusable tray flyout. */
+import { BrowserWindow, Menu, WebContentsView, ipcMain, nativeTheme, screen, shell, type IpcMainEvent, type Session, type WebContents } from 'electron'
 import { join } from 'node:path'
 import { FlyoutChrome } from './flyout-chrome.js'
 import { PageDelivery } from './page-delivery.js'
@@ -10,7 +10,9 @@ import { isAppUrl, isExternalUrl, isGoogleSignIn } from './security.js'
 import type { SettingsStore } from './settings.js'
 
 export class HostedWindow {
-  readonly window: BrowserWindow
+  private readonly flyoutWindow: BrowserWindow
+  private readonly signInWindow: BrowserWindow
+  get window(): BrowserWindow { return this.signedIn ? this.flyoutWindow : this.signInWindow }
   readonly webContents: WebContents
   private view: WebContentsView
   private chrome: FlyoutChrome
@@ -19,6 +21,8 @@ export class HostedWindow {
   private delivery: PageDelivery
   private lastHidden = 0
   private resizeTimer: ReturnType<typeof setTimeout> | null = null
+  private status: 'loading' | 'ready' | 'error' = 'loading'
+  private signedIn = false
   private popups = new Set<BrowserWindow>()
 
   constructor(
@@ -28,49 +32,72 @@ export class HostedWindow {
     readonly wayland: boolean,
     private log: (message: string, error?: unknown) => void,
     private settingsChanged: () => void,
-    private hostAction: (action: 'pin' | 'connection') => void
+    private hostAction: (action: 'pin' | 'connection') => void,
+    private placeWaylandFlyout?: (title: string, trayBounds?: Electron.Rectangle) => void
   ) {
     const current = store.current
-    this.window = new BrowserWindow({
+    this.flyoutWindow = new BrowserWindow({
       title: 'Persistent', width: current.width, height: current.height, useContentSize: true,
-      minWidth: 320, minHeight: 400, show: false, frame: false, type: wayland ? 'toolbar' : 'normal', transparent: true, backgroundColor: '#00000000', icon: join(root, 'resources/app-icon.png'),
+      minWidth: 320, minHeight: 400, show: false, frame: false, type: wayland ? 'toolbar' : 'normal', skipTaskbar: true, transparent: true, backgroundColor: '#00000000', icon: join(root, 'resources/app-icon.png'),
       webPreferences: { preload: join(root, 'dist/shell-preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false }
     })
-    if (!wayland) attachTaskbarHints(this.window, log)
+    // The KWin helper matches a friendly, host-owned title and this process ID.
+    this.flyoutWindow.setTitle(`Persistent - ${nativeText('Reminders')}`)
+    this.flyoutWindow.on('page-title-updated', (event) => event.preventDefault())
+    const area = screen.getPrimaryDisplay().workArea
+    this.signInWindow = new BrowserWindow({
+      title: 'Persistent', width: Math.min(540, area.width - 24), height: Math.min(760, area.height - 24),
+      minWidth: 320, minHeight: 400, show: false,
+      icon: join(root, 'resources/app-icon.png'), backgroundColor: this.background,
+      webPreferences: { contextIsolation: true, sandbox: true, nodeIntegration: false }
+    })
+    this.signInWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+    this.signInWindow.webContents.on('will-navigate', (event) => event.preventDefault())
+    this.signInMenu()
+    if (!wayland) attachTaskbarHints(this.flyoutWindow, log)
     this.view = new WebContentsView({ webPreferences: { session: profile, preload: join(root, 'dist/preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false } })
     this.webContents = this.view.webContents
     this.delivery = new PageDelivery((message) => this.send(message))
     // Windows uses DWM's 8-DIP rounding. Clip the entire native view tree so
     // hosted content cannot paint square corners over the rounded local frame.
-    this.window.contentView.setBorderRadius(8)
-    this.view.setBorderRadius(7)
+    this.flyoutWindow.contentView.setBorderRadius(8)
     this.window.contentView.addChildView(this.view)
     this.view.setBackgroundColor(this.background)
     this.layout()
-    this.chrome = new FlyoutChrome(this.window, root, () => store.current.pinFlyout, {
+    this.chrome = new FlyoutChrome(this.flyoutWindow, root, () => store.current.pinFlyout, {
       back: () => this.send({ type: 'back' }), pin: () => this.hostAction('pin'),
       reload: () => { void this.load() }, connection: () => this.hostAction('connection'), close: () => this.hide(),
       browser: () => this.openExternal(this.trusted(this.webContents.getURL()) ? this.webContents.getURL() : store.current.server)
     }, { mode: this.mode, background: this.background }, log)
     ipcMain.on('persistent:external', this.onExternal)
-    this.window.on('close', (event) => { event.preventDefault(); this.hide() })
-    this.window.on('blur', () => {
-      if (!this.store.current.pinFlyout && this.popups.size === 0) this.hide()
+    for (const window of [this.signInWindow, this.flyoutWindow]) {
+      window.on('close', (event) => { event.preventDefault(); window.hide() })
+      window.on('resize', () => this.layout())
+      const visibility = () => {
+        if (window === this.window) this.syncVisibility()
+      }
+      window.on('show', visibility)
+      window.on('hide', visibility)
+      window.on('minimize', visibility)
+      window.on('restore', visibility)
+    }
+    this.flyoutWindow.on('blur', () => {
+      if (this.signedIn && !this.store.current.pinFlyout && this.popups.size === 0) this.hide()
     })
-    this.window.on('resize', () => {
+    this.flyoutWindow.on('resize', () => {
       this.layout()
       if (this.resizeTimer) clearTimeout(this.resizeTimer)
       this.resizeTimer = setTimeout(() => {
-        const [width = 420, height = 680] = this.window.getContentSize()
+        const [width = 420, height = 680] = this.flyoutWindow.getContentSize()
         try {
           this.store.save({ ...this.store.current, width: Math.max(320, Math.min(1200, width)), height: Math.max(400, Math.min(1600, height)) })
           this.settingsChanged()
         } catch (error) { this.log('Window size could not be saved', error) }
       }, 300)
     })
-    this.window.on('moved', () => {
+    this.flyoutWindow.on('moved', () => {
       if (this.wayland) return
-      const [x, y] = this.window.getPosition()
+      const [x, y] = this.flyoutWindow.getPosition()
       try { this.store.save({ ...this.store.current, x, y }) }
       catch (error) { this.log('Window position could not be saved', error) }
     })
@@ -102,6 +129,29 @@ export class HostedWindow {
     })
   }
 
+  /** Move the warm hosted view between a standard sign-in window and the separate flyout. */
+  setSignedIn(signedIn: boolean): void {
+    if (this.signedIn === signedIn) return
+    const previous = this.window
+    const visible = previous.isVisible() || previous.isMinimized()
+    previous.contentView.removeChildView(this.view)
+    previous.hide()
+    this.signedIn = signedIn
+    this.window.contentView.addChildView(this.view)
+    this.view.setBorderRadius(signedIn ? 7 : 0)
+    this.layout()
+    if (visible) this.show()
+    else this.view.setVisible(this.status === 'ready')
+    this.log(signedIn ? 'Hosted presentation changed to flyout' : 'Hosted presentation changed to sign-in window')
+  }
+
+  private signInMenu(): void {
+    this.signInWindow.setMenu(Menu.buildFromTemplate([{ label: nativeText('Settings'), submenu: [
+      { label: nativeText('Connection settings'), click: () => this.hostAction('connection') },
+      { label: nativeText('Reload'), click: () => { void this.load() } }
+    ] }]))
+  }
+
   /** Only the main app frame may use the host bridge, even when Google sign-in navigates the window. */
   trusted(url: string): boolean { return isAppUrl(url, this.store.current.server) }
 
@@ -125,6 +175,7 @@ export class HostedWindow {
   }
 
   async load(): Promise<void> {
+    this.setSignedIn(false)
     this.setStatus('loading')
     try {
       await this.webContents.loadURL(this.store.current.server)
@@ -138,16 +189,27 @@ export class HostedWindow {
   /** Lay out the hosted view beneath local chrome without changing the web app's viewport model. */
   private layout(): void {
     const [width = 420, height = 680] = this.window.getContentSize()
-    this.view.setBounds({ x: 1, y: 37, width: Math.max(1, width - 2), height: Math.max(1, height - 38) })
+    this.view.setBounds(this.signedIn
+      ? { x: 1, y: 37, width: Math.max(1, width - 2), height: Math.max(1, height - 38) }
+      : { x: 0, y: 0, width: Math.max(1, width), height: Math.max(1, height) })
   }
 
   private setStatus(status: 'loading' | 'ready' | 'error'): void {
+    this.status = status
     this.view.setVisible(status === 'ready')
     this.chrome.setStatus(status)
+    if (status !== 'ready') {
+      // This local document has no preload or privileged bridge. Native Settings
+      // and Reload remain available even if the hosted page cannot load.
+      const title = nativeText(status === 'error' ? "Can't reach Persistent" : 'Loading Persistent')
+      const safeTitle = title.replace(/[&<>]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[character]!)
+      void this.signInWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`<title>Persistent</title><body style="font:16px system-ui;padding:24px"><h1>${safeTitle}</h1></body>`)}`)
+        .catch((error: unknown) => this.log('Sign-in status could not load', error))
+    }
   }
 
   /** Keep the toolbar pin state in step with hosted Settings. */
-  syncChrome(): void { this.chrome.sync() }
+  syncChrome(): void { this.chrome.sync(); this.signInMenu() }
 
   appearance(mode: string, background: string): void {
     if (!['light', 'dark'].includes(mode) || !/^#[0-9a-f]{6}$/i.test(background)) return
@@ -193,15 +255,19 @@ export class HostedWindow {
 
   show(trayBounds?: Electron.Rectangle): void {
     if (this.window.isMinimized()) this.window.restore()
-    if (!this.window.isVisible() && !this.wayland) this.position(trayBounds)
+    if (this.signedIn && !this.window.isVisible() && !this.wayland) this.position(trayBounds)
     this.window.show()
+    if (this.signedIn && this.wayland) this.placeWaylandFlyout?.(this.flyoutWindow.getTitle(), trayBounds)
+    this.syncVisibility()
+    this.view.setVisible(this.status === 'ready')
     this.window.focus()
     this.webContents.focus()
     this.send({ type: 'checkForUpdate' })
   }
 
   toggle(trayBounds?: Electron.Rectangle): void {
-    if (this.window.isVisible()) this.hide()
+    if (this.window.isVisible() && this.signedIn) this.hide()
+    else if (this.window.isVisible()) this.show(trayBounds)
     else if (Date.now() - this.lastHidden > 350) this.show(trayBounds)
     else this.lastHidden = 0
   }
@@ -210,6 +276,13 @@ export class HostedWindow {
     if (!this.window.isVisible()) return
     this.lastHidden = Date.now()
     this.window.hide()
+  }
+
+  /** Reparented Chromium views can retain the previous shell's hidden lifecycle.
+   * Explicit foreground rendering restores visibility/painting; hidden and
+   * minimized windows still use Chromium's normal background throttling. */
+  private syncVisibility(): void {
+    this.webContents.setBackgroundThrottling(!this.window.isVisible() || this.window.isMinimized())
   }
 
   /** X11 positioning stays inside the selected display. Wayland placement belongs to its compositor. */
@@ -237,6 +310,7 @@ export class HostedWindow {
     this.chrome.dispose()
     ipcMain.removeListener('persistent:external', this.onExternal)
     this.webContents.close()
-    this.window.destroy()
+    this.signInWindow.destroy()
+    this.flyoutWindow.destroy()
   }
 }

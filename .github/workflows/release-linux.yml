@@ -74,7 +74,6 @@ jobs:
           name: linux-release-${{ matrix.architecture }}
           path: |
             apps/linux-desktop/artifacts/*.AppImage
-            apps/linux-desktop/artifacts/*.deb
           if-no-files-found: error
           retention-days: 7
 
@@ -110,5 +109,5 @@ jobs:
           node apps/linux-desktop/dist/release-manifest.cjs linux-release "$VERSION"
           gh release create "$RELEASE_TAG" --draft --verify-tag --latest=false \
             --title "Persistent for Linux $VERSION" --notes-file apps/linux-desktop/RELEASE_NOTES.md
-          gh release upload "$RELEASE_TAG" linux-release/*.AppImage linux-release/*.deb linux-release/*-update.json
+          gh release upload "$RELEASE_TAG" linux-release/*.AppImage linux-release/*-update.json
           gh release edit "$RELEASE_TAG" --draft=false --latest=false

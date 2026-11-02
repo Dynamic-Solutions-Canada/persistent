@@ -4,6 +4,8 @@ import { tr } from '../localization/i18n.js'
  * Fixed bottom tab bar: switch between what's due now (Current), what's scheduled
  * (Upcoming), the notes kept to be read, history (past/done), and settings.
  * Mobile-first primary navigation.
+ * Single-line labels stay compact; actual wrapping grows the row while keeping
+ * icons aligned, without reserving an empty second line for every translation.
  *
  * Order is chronological on purpose — now, next, past — so Upcoming sits between
  * Current and History, and Notes sits after them: it is the one tab with no place in
@@ -159,10 +161,10 @@ export function BottomNav() {
               // `minWidth: 0` + a small inline padding is what lets five tabs share a
               // 320px phone: a Button won't shrink below its own content otherwise, so the
               // row would overflow the centred column instead of dividing it.
-              sx={{ flex: 1, minWidth: 0, flexDirection: 'column', gap: 0.25, py: 1, px: 0.5, borderRadius: 0 }}
+              sx={{ flex: 1, minWidth: 0, flexDirection: 'column', justifyContent: 'flex-start', gap: 0.25, py: 1, px: 0.5, borderRadius: 0 }}
             >
               <Icon fontSize="small" />
-              <Typography level="body-xs" sx={{ color: 'inherit', maxWidth: '100%', minHeight: '2.4em', lineHeight: 1.2, textAlign: 'center', overflowWrap: 'anywhere' }}>
+              <Typography level="body-xs" sx={{ color: 'inherit', maxWidth: '100%', lineHeight: 1.2, textAlign: 'center', overflowWrap: 'anywhere' }}>
                 {tr(label)}
               </Typography>
             </Button>

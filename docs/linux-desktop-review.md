@@ -71,3 +71,11 @@ and npm 10.8.2). The publisher now installs root dependencies under Node 20 befo
 switching to native Node 22. A manual existing-tag retry checks out the exact tag,
 validates its version/main ancestry and uses the same publication sequence. The
 failed tag is preserved rather than moved.
+
+## AppImage-only follow-up
+
+Linux distribution now supports only x64 and ARM64 AppImages. Debian artifacts,
+package-database detection and privileged installation have been removed from the
+publisher, CI and updater. Older manifests remain readable by ignoring their
+Debian rows before validating the strict AppImage contract. The historical Debian
+build evidence above does not describe the current support policy.

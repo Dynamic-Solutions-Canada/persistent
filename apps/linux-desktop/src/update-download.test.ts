@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { downloadUpdate, verifyUpdateFile } from './update-download.js'
 import { releaseResponse, trustedUpdateUrl } from './update-transport.js'
-import { assertDebianIdentity } from './update-install.js'
+import { installUpdate } from './update-install.js'
 import { replaceImage } from '../scripts/install.js'
 import type { LinuxUpdate } from './release-check.js'
 
@@ -68,9 +68,13 @@ test('failed atomic replacement preserves the installed executable and removes p
   } finally { await rm(directory, { recursive: true, force: true }) }
 })
 
-test('Debian installation refuses another package, wrong version and wrong CPU', () => {
-  assertDebianIdentity('persistent\n0.2.0\namd64\n', '0.2.0', 'x64')
-  for (const bad of ['other\n0.2.0\namd64', 'persistent\n0.1.0\namd64', 'persistent\n0.2.0\narm64']) {
-    assert.throws(() => assertDebianIdentity(bad, '0.2.0', 'x64'))
-  }
+test('in-app installation requires an AppImage destination and the correct CPU', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'persistent-update-destination-'))
+  try {
+    const file = join(directory, update.artifact.name)
+    await writeFile(file, bytes)
+    await assert.rejects(installUpdate(file, update, 'x64', undefined), /Install and run the AppImage/)
+    await assert.rejects(installUpdate(file, update, 'x64', 'relative.AppImage'), /Install and run the AppImage/)
+    await assert.rejects(installUpdate(file, update, 'arm64', undefined), /CPU/)
+  } finally { await rm(directory, { recursive: true, force: true }) }
 })

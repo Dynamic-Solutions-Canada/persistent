@@ -288,9 +288,9 @@ export function notifyHostSignedOut(): void {
   postToHost({ type: 'signedOut' })
 }
 
-/** Resume Linux delivery after server-confirmed sign-in and prior-account alert cleanup. */
+/** Confirm desktop sign-in after server verification and prior-account cleanup. Older hosts ignore it. */
 export function notifyHostSignedIn(): void {
-  if (desktopPlatform() === 'linux') postToHost({ type: 'signedIn' })
+  postToHost({ type: 'signedIn' })
 }
 
 /**

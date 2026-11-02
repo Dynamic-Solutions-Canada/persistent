@@ -12,9 +12,8 @@ tag and `apps/linux-desktop/package.json` version. This first release is 0.1.0.
 Do not invoke the Android lane for Linux-only work. Keep its standalone lockfile in
 step, validate and package both architectures, review native evidence, commit/merge
 and push main, and deploy the hosted bridge before publishing the tag. Require a
-clean tree and HEAD equal to origin/main. `release-linux.yml` builds AppImage and
-Debian packages plus the shared checksum manifest; watch both builds and publishing
-to completion. Verify all five release assets and keep Android as GitHub Latest.
+clean tree and HEAD equal to origin/main. `release-linux.yml` builds x64 and ARM64 AppImages plus the shared checksum
+manifest; watch both builds and publishing to completion. Verify all three release assets and keep Android as GitHub Latest.
 Downloads and installation require separate native consent; automatic checks can
 be disabled. No portable tar release is offered. Report the release URL and limits.
 

@@ -67,3 +67,163 @@ explicit native Wayland does not carry the same placement/taskbar parity claim.
 
 The updated hosted web bridge must ship before distributing the Linux host.
 Windows native sources, package identity and release workflow are unchanged.
+
+## KDE follow-up (2026-11-01)
+
+The sign-in error screenshot identified an uncaught `write EPIPE` from
+`HostedWindow.log` calling `console.error` after the launcher's stderr closed.
+Host diagnostics now write only the bounded private log file, including when the
+log write fails. A subprocess regression test closes both output descriptors and
+checks successful logging, omission of error details, rotation and failure tolerance.
+Normal light dismissal is unchanged, as Ryan requested.
+
+An initial attempt to force X11 from the main script changed the reported switch
+without reliably changing Electron's already-selected native backend. That made
+host positioning/taskbar assumptions disagree with the actual window system.
+Ryan requested Wayland; the forced switch was removed. Electron now selects its
+native backend, with explicit `--ozone-platform` still honored. Native Wayland
+placement belongs to KWin; tray-adjacent positioning is not claimed.
+
+Final visible acceptance used a separate `persistent-private-kde` Docker container
+based on Little Launcher's existing Fedora KDE test image. It had its own virtual
+1280-by-800 KWin 6.7.5 compositor, Plasma, D-Bus, home and profiles, with access only
+to the GPU render node. It did not mount the host display, session bus or home.
+The packaged Electron 44.7.0 app started with the normal Chromium sandbox and
+native Wayland policy. Private compositor screenshots showed the actual hosted
+sign-in page. Injected clicks on Close hid the window, and a click on the actual
+tray icon reopened the rendered sign-in page. The Tall window exceeded this small
+test output's height; this check does not establish geometry at every display size.
+No account sign-in, real email code, Google authentication, notification/audio or
+multi-monitor acceptance was performed. Earlier main-window renderer captures
+omitted WebContentsView pixels, so they were not used as final visible evidence.
+
+The final x64 AppImage was built locally for atomic replacement at Gear Lever's
+existing `/home/rewen/AppImages/persistent.appimage` path. Its launcher, icon,
+path-keyed Gear Lever registration and account profile are preserved. Nothing was
+published. Required validation and the standalone Linux build passed.
+
+## Standard sign-in window follow-up
+
+Before authentication, Linux now uses a separate standard framed window with the
+desktop's own title bar and controls. It has no flyout chrome or light dismissal.
+A native Settings menu opens Connection/About and offers Reload. Authentication
+moves the same WebContentsView into the separately sized flyout; sign-out and
+reload move it back. Sign-in window resizing does not change flyout dimensions.
+
+The final package was exercised in the private Fedora/KWin 6.7.5 Wayland container.
+Compositor screenshots verified the native caption/menu, signed-out focus retention,
+transition into a 500-by-650 flyout, return on synthetic sign-out and native Settings
+access. Earlier checks also verified normal minimize/maximize/taskbar restoration.
+Screenshots are retained under `.artifacts/linux-desktop/signin-window/`. Test
+credentials were synthetic page messages, not a real account login. The task-owned
+container was stopped after testing. The final AppImage replaced Gear Lever's
+existing file atomically, with byte verification and its launcher/registration/profile
+preserved. Repository validation and standalone Linux build passed.
+
+Windows changes compiled with full XAML in Debug and Release in the dedicated
+`windows-dev` VM. After Ryan signed in over RDP, the shared installer installed
+signed x64 dev MSIX 0.6.1.3. Actual UI assertions and VM screenshots verified the
+standard caption/minimize/maximize controls, no signed-out topmost/light dismissal,
+native Settings access, the borderless topmost signed-in flyout and its light
+dismissal, sign-out restoring the standard frame, and one hosted page load with a
+retained synthetic draft across transitions. This used a localhost synthetic page,
+not real Google/email authentication. A foreground-verified click test exposed a
+presenter-transition edge: Windows can omit a second Deactivated event when focus
+has already left. The existing dismiss timer now rechecks once after that change.
+The final full UI sequence passed.
+
+Build/package/resource reports and native screenshots are retained under
+`.artifacts/windows-build/vm-signin-final-20261101/`. Tracked versions did not change.
+The temporary private signing copy and VM-only NuGet proxy/firewall rule were
+removed. The temporary dev package and test profiles are removed after verification;
+Ryan's RDP session and unrelated applications remain intact. Windows must receive
+the updated hosted `signedIn` bridge before its host can enter flyout mode; older
+hosted bundles leave it in regular window mode. Nothing was published.
+
+## Logout rendering and KDE placement correction
+
+Ryan's subsequent blank sign-in report exposed a gap in the earlier synthetic
+transition check: it observed existing pixels after moving the view, but did not
+prove that asynchronous page updates could repaint. The renderer remained alive
+with valid bounds while `document.visibilityState` stayed `hidden`. The host now
+disables background throttling only while the current shell is visible and not
+minimized, restoring normal throttling while hidden/minimized.
+
+In the private Fedora/KWin 6.7.5 native Wayland compositor, a regression harness
+verified three sign-in/sign-out cycles, asynchronous DOM repaint, the same hosted
+WebContents ID, hide/show and minimize/restore visibility. The final packaged app
+also completed three cycles through its real trusted preload/IPC bridge, retaining
+a synthetic draft and reporting visible page state throughout. Private input
+clicked Continue, unpinned the flyout, dismissed it by clicking the desktop, reopened
+it using the actual tray icon, and clicked Sign out again. Compositor screenshots
+showed rendered content and the separate standard sign-in frame.
+Graceful exit unloaded the process's KWin script (confirmed through D-Bus).
+
+The KDE-only helper was measured by a fixture-only KWin observer. Its 500-by-650
+flyout moved from compositor-centered `(390,52)` to tray-corner `(768,92)` on the
+1280-by-800 output, with the intended work-area inset. The sign-in shell retained
+normal compositor geometry. The generated script uses KWin-compatible syntax;
+object spread was rejected by QJSEngine during development. Unit checks cover
+PID/title ownership, scaled native-pixel anchors, negative origins, and explicit
+center/saved placement. Actual multi-output and scaled-output acceptance, real
+email/Google authentication, notifications and audio were not exercised here.
+
+Evidence and the synthetic fixtures are retained under
+`.artifacts/linux-desktop/logout-placement-followup/`. Final root validation passed
+(607 tests: 605 passed, two skipped), as did the standalone Linux build and x64
+AppImage packaging. The Gear Lever replacement uses its existing registered path;
+launcher and registration hashes are checked unchanged and the old image is backed
+up before replacement. No account profile is modified by installation.
+The installed image's SHA-256 is
+`c383b0b59270821705aeb360c50271cd638b4b5dd5309c534cb102424240b758`.
+
+## Intermittent placement and navigation height follow-up
+
+Ryan reported that the previous package still often opened centered. Thirty
+regular-sized and twenty Tall-window openings finished in the expected corner
+in private KWin 6.7.5 testing; that fixture did not reproduce the natural failure
+on his KWin 6.8.2 desktop. Inspection identified an uncovered ordering: the
+script handled mapping/caption changes, but not a later centered geometry commit.
+The script now reconciles frame-geometry changes idempotently, guards reentrancy,
+and stops correcting after an interactive move/resize starts.
+
+A deterministic native stress test deliberately centered the mapped flyout after
+each initial placement. All twenty openings recovered the requested corner.
+The final packaged app was also dragged with private compositor input: it stayed
+at the manually chosen position, then returned to the tray corner after closing
+and reopening through the actual tray icon. This is evidence for the late-commit
+ordering, not a claim of naturally reproducing every host-specific failure.
+
+BottomNav also reserved two label lines even for short English labels. Removing
+that minimum and aligning columns at the top reduced the actual rendered bar at
+420 CSS pixels wide from 67.8 to 53.4 CSS pixels tall. At 320 pixels, German labels
+wrap to two lines, grow the row naturally, and keep icons aligned. These checks
+rendered the actual Joy UI component with synthetic query caches and canonical
+translations in isolated Chromium. The hosted navigation change requires a web
+deployment; an AppImage replacement alone does not deliver it.
+
+Final root validation passed (608 tests: 606 passed, two skipped), as did standalone
+Linux compilation, x64 AppImage packaging and the production web build. Native
+evidence is under `.artifacts/linux-desktop/placement-repeat/`; navigation render
+measurements and images are under `.artifacts/web/nav-height/`.
+The revised AppImage replaced Gear Lever's existing registered file atomically;
+its launcher and registration hashes stayed unchanged. The installed SHA-256 is
+`37ada3f82b06d06971d011c7ea820a6da3b53cfe49b60d67220ef8edbe694867`.
+
+## AppImage-only distribution
+
+The current distribution policy is AppImage only, for x64 and ARM64. Earlier
+Debian package/build entries above are historical. Package scripts and CI upload
+only AppImages, and the publisher requires both CPU images before writing the
+checksum manifest. The updater has no privileged installer or package-database
+query. Strict current metadata rejects Debian artifacts; release discovery ignores
+legacy Debian rows so older AppImage release manifests remain readable.
+
+Regression checks cover missing CPU images, exact payload checksums, obsolete
+package files being excluded, current/legacy manifest discovery, and refusal to
+install without an AppImage destination. Navigation's hosted deployment is separate
+from local AppImage replacement.
+Root validation passed (609 tests: 607 passed, two skipped), standalone Linux
+compilation passed, and `npm run package:linux -- --x64` built an AppImage only.
+The ARM64 publisher path is covered by the checksum-manifest regression; a fresh
+ARM64 native execution was not performed for this packaging-policy change.

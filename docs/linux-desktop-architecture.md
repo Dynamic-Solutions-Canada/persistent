@@ -11,6 +11,17 @@ Native tray menus, recovery/settings windows, update text and notification actio
 
 ## Product behavior and boundaries
 
+Before confirmed sign-in, the hosted page lives in its own standard framed
+window, with the desktop's title bar and minimize/maximize controls. Its native
+Settings menu opens Connection/About and provides Reload if the server is down.
+It has no flyout strip, pin, special frame or light dismissal; tray activation
+focuses it. Confirmed `signedIn` moves the same warm WebContentsView into the
+separate reusable flyout. `signedOut`, cleared credentials and reload move it
+back. The two shells keep their own geometry, and no page reload is required by
+the transition. The saved pin applies only in flyout mode. Visible shells explicitly
+disable Chromium background throttling so a reparented view cannot retain its
+previous shell's hidden lifecycle; hiding or minimizing restores normal throttling.
+
 The initial compatibility target is KDE Plasma and GNOME with AppIndicator support,
 on X11 and Wayland. The flyout is created once and reused, preserving its current
 page, dialogs and drafts. Closing hides it; quitting ends the resident process.
@@ -36,7 +47,8 @@ automatically or when requested, with separate download and installation consent
 and offers source, privacy and log links. Publisher cards reuse the
 shared catalog, with actions below their descriptions.
 
-Both windows have an 8-DIP rounded frame and thin border. The default X11 backend
+The flyout and Settings have an 8-DIP rounded frame and thin border; the sign-in
+window uses the standard desktop frame. The optional X11 backend
 uses standard additive EWMH taskbar/pager exclusion requests after mapping, without
 changing the normal window type or disabling resize/maximize. Minimize hides
 Settings so it remains recoverable through the tray. The X11 connection is bounded
@@ -46,12 +58,23 @@ X11 positioning uses reported tray bounds or activation coordinates to choose th
 nearest work-area corner, inset by 12 DIP like Windows. If icon geometry is absent,
 the cursor chooses the monitor and its reserved panel edge chooses the corner.
 It clamps to the work area. Saved and centered placement remain available.
-Native Wayland does not support absolute top-level positioning: its compositor
-chooses placement. X11/XWayland is the approved default for closer Windows flyout
-parity and requires an available X server. Explicit `--ozone-platform=wayland`
-chooses native Wayland; `--ozone-platform=x11` selects X11/XWayland explicitly.
-Native Wayland also leaves taskbar treatment and window capabilities to the
-compositor; use the default XWayland backend for the verified Windows parity.
+The default follows Electron's native backend selection, including Wayland on KDE.
+Electron cannot position native Wayland top-level windows. On KDE, a transient KWin
+script places only this process's signed-in flyout (matching PID and host-owned
+title) at the tray-side work-area corner, or honors center/saved-position settings.
+Plasma activation coordinates are converted from native pixels per output. Missing
+coordinates use the active output's reserved panel edge. The script also keeps the
+flyout above other windows and out of the taskbar/switcher. It never alters sign-in
+or Settings windows, desktop rules, or another process's windows. It is replaced
+on opening and unloaded on exit; its private physical script file is removed.
+It also reconciles later frame-geometry changes: Wayland commits can arrive after
+the initial positioning request. Equal geometry is left alone and reentrant
+signals are guarded. An interactive move/resize disables correction for that
+mapped window, allowing manual dragging until the next opening.
+KWin failures are logged and fall back to compositor placement. Other Wayland
+compositors retain their own placement and taskbar policy. X11/XWayland remains
+available with an X server. Explicit `--ozone-platform=wayland` chooses native
+Wayland; `--ozone-platform=x11` selects X11/XWayland explicitly.
 New profiles use the Windows 420-by-960-DIP Tall flyout; saved sizes are preserved.
 
 Electron can initially select a legacy tray adapter if the StatusNotifier watcher
@@ -155,7 +178,7 @@ Local settings use a separate bundled icon copy because packaging moves the
 notification extra-resource icon out of ASAR.
 
 Root commands cover build, package, typecheck and a user-level AppImage installer.
-Packaging emits x64/ARM64 AppImage and Debian artifacts; portable tar downloads
+Packaging emits only x64/ARM64 AppImages; Debian and portable tar downloads
 are not offered. The installer
 checks ELF/AppImage CPU identity, atomically replaces the owned image and launcher,
 and preserves profiles. The app reads live freedesktop autostart state, including
@@ -164,7 +187,9 @@ Downloads require approval, and installation/restart requires a second approval.
 Quitting never silently installs. Metadata and payloads come only from the official
 Linux release channel; size, SHA-512 and CPU/package identity are verified before
 replacement. The AppImage is replaced through a private staging directory and
-atomic rename. Debian uses polkit and apt with removals forbidden. Profile data
+atomic rename. No package database or privileged package-manager path is used.
+Old manifests may contain Debian rows, which discovery discards before validating
+the AppImage-only contract. Profile data
 never enters the updater. There is no automatic browser opening.
 
 Linux build tools and the web/API use the same patched Node version pinned in their manifests. Root validation includes Linux

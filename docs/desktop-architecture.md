@@ -65,6 +65,25 @@ the shipped PWA instead means:
 The cost is that the host is coupled to the web bundle's behavior, which is what
 the bridge below is for.
 
+## Signed-out window and signed-in flyout
+
+Before the hosted page confirms sign-in, `AppFlyout` uses a regular overlapped
+presenter with a system caption, taskbar/switcher entry and minimize/maximize.
+It has no custom flyout strip or resize grips while signed out. A standard
+Settings button opens the native Connection/About window, including when the
+server cannot load. It stays open when focus moves away; tray activation focuses it. The additive
+`signedIn` page message switches the same window and warm WebView2 to the existing
+borderless, always-on-top, light-dismiss flyout. `signedOut`, local profile clearing
+and reload restore regular window mode. The saved pin applies only after sign-in. Switching presenters schedules the existing
+foreground check once after settling, covering a focus loss that happened before
+Windows could emit a new deactivation event.
+Close hides either presentation; only Exit ends the resident process.
+
+The hosted bridge sends session confirmation to Windows as well as Linux after
+online server verification and prior-account cleanup. Older hosts ignore the
+message. Ship that hosted bridge before the new Windows host; an older page that
+never confirms sign-in leaves the new host safely in regular window mode.
+
 ## Process model
 
 One resident process. `App.OnLaunched` takes a named-mutex single-instance lock

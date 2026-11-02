@@ -32,8 +32,10 @@ Architecture and conventions are borrowed, thinned, from the sibling
 - **`packages/shared`**: the single source of truth for request/response shapes;
   do not duplicate them elsewhere.
 - **`apps/linux-desktop`**: Electron Linux tray host of the same hosted UI and
-  server-computed alarm projection. X11/XWayland is the default for Windows flyout
-  parity; GNOME AppIndicator can require double click. See
+  server-computed alarm projection. AppImage is the only supported Linux package
+  format, for x64 and ARM64. The native backend follows Electron by default;
+  explicit X11/XWayland supports Windows flyout positioning parity; GNOME
+  AppIndicator can require double click. See
   `docs/linux-desktop-architecture.md` and its nested guidance. No PWA notifications
   or duplicated reminder scheduling rules.
 
