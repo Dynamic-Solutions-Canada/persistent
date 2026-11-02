@@ -14,7 +14,6 @@ import { attachTaskbarHints } from './window-taskbar.js'
 
 interface RecoveryOptions {
   updater: UpdateController
-  packageKind: 'AppImage' | 'deb'
   wayland: boolean
   root: string
   version: string
@@ -147,9 +146,7 @@ export class RecoveryWindows {
     const request = {
       type: 'question' as const, title: nativeText("Persistent update"),
       message: action === nativeText("download") ? nativeText("Download Persistent version {{v0}}?", { v0: version }) : nativeText("Install version {{v0}} and restart Persistent?", { v0: version }),
-      detail: action === nativeText("download") ? nativeText("The app keeps running while the update downloads.") : this.options.packageKind === nativeText("deb")
-        ? nativeText("Desktop alerts pause briefly during restart. Installation requests administrator approval. Finish any unsaved edits before restarting.")
-        : nativeText("Desktop alerts pause briefly during restart. Your saved sign-in and settings are preserved. Finish any unsaved edits before restarting."),
+      detail: action === nativeText("download") ? nativeText("The app keeps running while the update downloads.") : nativeText("Desktop alerts pause briefly during restart. Your saved sign-in and settings are preserved. Finish any unsaved edits before restarting."),
       buttons: [nativeText("Later"), action === nativeText("download") ? nativeText("Download update") : nativeText("Install and restart")], defaultId: 0, cancelId: 0
     }
     const result = await dialog.showMessageBox(parent, request)

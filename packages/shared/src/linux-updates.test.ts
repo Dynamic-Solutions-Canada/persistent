@@ -8,7 +8,8 @@ const manifest = { format: 1, version: '0.2.0', artifacts: [asset] }
 test('release metadata rejects traversal, duplicate artifacts, CPU/version mismatch and unbounded data', () => {
   assert.equal(linuxUpdateManifestSchema.safeParse(manifest).success, true)
   for (const artifacts of [[{ ...asset, name: '../app' }], [asset, asset], [{ ...asset, architecture: 'arm64' }],
-    [{ ...asset, name: 'Persistent-Linux-0.1.0-x86_64.AppImage' }], [{ ...asset, size: 1024 ** 3 }], [{ ...asset, sha512: 'invalid' }]]) {
+    [{ ...asset, name: 'Persistent-Linux-0.1.0-x86_64.AppImage' }], [{ ...asset, size: 1024 ** 3 }], [{ ...asset, sha512: 'invalid' }],
+    [{ ...asset, kind: 'deb', name: 'Persistent-Linux-0.2.0-amd64.deb' }]]) {
     assert.equal(linuxUpdateManifestSchema.safeParse({ ...manifest, artifacts }).success, false)
   }
 })

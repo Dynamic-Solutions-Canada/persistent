@@ -10,15 +10,14 @@ export async function releaseManifest(directory: string, version: string): Promi
   linuxVersionSchema.parse(version)
   const artifacts: LinuxUpdateArtifact[] = []
   for (const architecture of ['x64', 'arm64'] as const) {
-    for (const kind of ['AppImage', 'deb'] as const) {
-      const cpu = architecture === 'arm64' ? 'arm64' : kind === 'deb' ? 'amd64' : 'x86_64'
-      const name = `Persistent-Linux-${version}-${cpu}.${kind}`
-      const file = join(directory, name)
-      const hash = createHash('sha512')
-      for await (const chunk of createReadStream(file)) hash.update(chunk as Buffer)
-      artifacts.push({ architecture, kind, name, size: (await stat(file)).size, sha512: hash.digest('base64') })
-    }
+    const cpu = architecture === 'arm64' ? 'arm64' : 'x86_64'
+    const name = `Persistent-Linux-${version}-${cpu}.AppImage`
+    const file = join(directory, name)
+    const hash = createHash('sha512')
+    for await (const chunk of createReadStream(file)) hash.update(chunk as Buffer)
+    artifacts.push({ architecture, kind: 'AppImage', name, size: (await stat(file)).size, sha512: hash.digest('base64') })
   }
+
   const manifest = linuxUpdateManifestSchema.parse({ format: 1, version, artifacts })
   await writeFile(join(directory, `Persistent-Linux-${version}-update.json`), JSON.stringify(manifest, null, 2) + '\n')
 }

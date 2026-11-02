@@ -73,6 +73,9 @@
             </StackPanel>
         </Grid>
 
+        <Button x:Name="SignedOutSettingsButton" Grid.Row="0" HorizontalAlignment="Right"
+                Margin="12,6" Click="SignedOutSettingsButton_Click" l10n:Localize.Content="Settings" />
+
         <controls:WebView2 x:Name="WebView" Grid.Row="1" />
 
         <!-- Shown instead of the WebView when the runtime is missing or the page

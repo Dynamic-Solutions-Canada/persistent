@@ -58,6 +58,5 @@ jobs:
           name: persistent-linux-x64
           path: |
             apps/linux-desktop/artifacts/*.AppImage
-            apps/linux-desktop/artifacts/*.deb
           if-no-files-found: error
           retention-days: 7

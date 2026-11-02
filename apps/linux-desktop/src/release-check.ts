@@ -59,8 +59,8 @@ async function publicJson(url: string, fetcher: UpdateFetch): Promise<unknown> {
   return JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown
 }
 
-/** Resolve a checksum-bearing artifact of the current installation type and CPU. */
-export async function findLinuxUpdate(version: string, architecture: string, kind: 'AppImage' | 'deb', fetcher: UpdateFetch): Promise<LinuxUpdate | null> {
+/** Resolve a checksum-bearing artifact of the current CPU. */
+export async function findLinuxUpdate(version: string, architecture: string, fetcher: UpdateFetch): Promise<LinuxUpdate | null> {
   const releases: unknown[] = []
   for (let page = 1; page <= 5; page++) {
     const batch = await publicJson(`https://api.github.com/repos/${LINUX_RELEASE_REPOSITORY}/releases?per_page=100&page=${page}`, fetcher)
@@ -72,9 +72,15 @@ export async function findLinuxUpdate(version: string, architecture: string, kin
   const release = linuxRelease(releases, architecture)
   if (!release || !newerVersion(release.version, version)) return null
   const base = `${RELEASE_ROOT}/download/${release.tag}/`
-  const manifest = linuxUpdateManifestSchema.parse(await publicJson(`${base}Persistent-Linux-${release.version}-update.json`, fetcher))
+  const raw = await publicJson(`${base}Persistent-Linux-${release.version}-update.json`, fetcher)
+  // Older releases contain Debian rows. Discard those before validating the
+  // AppImage-only contract; they can never become downloadable/installable updates.
+  const compatible = typeof raw === 'object' && raw !== null && 'artifacts' in raw && Array.isArray(raw.artifacts)
+    ? { ...raw, artifacts: raw.artifacts.filter((entry: unknown) => !(typeof entry === 'object' && entry !== null && 'kind' in entry && entry.kind === 'deb')) }
+    : raw
+  const manifest = linuxUpdateManifestSchema.parse(compatible)
   if (manifest.version !== release.version) throw new Error('Update metadata does not match its release.')
-  const artifact = manifest.artifacts.find((entry) => entry.architecture === architecture && entry.kind === kind)
-  if (!artifact) throw new Error('This release has no update for the installed package type.')
+  const artifact = manifest.artifacts.find((entry) => entry.architecture === architecture)
+  if (!artifact) throw new Error('This release has no AppImage update for this CPU.')
   return { ...release, artifact, downloadUrl: `${base}${artifact.name}` }
 }

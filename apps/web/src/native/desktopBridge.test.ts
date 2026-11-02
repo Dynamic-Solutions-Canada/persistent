@@ -7,7 +7,7 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { parseHostSettings } from './desktopBridge.js'
+import { notifyHostSignedIn, parseHostSettings } from './desktopBridge.js'
 
 const complete = {
   notifications: true,
@@ -133,5 +133,25 @@ test('device clock is optional and accepts only native 12h/24h values', () => {
   }
   for (const deviceTimeFormat of [null, true, 12, '13h', {}, undefined]) {
     assert.deepEqual(parseHostSettings({ ...complete, deviceTimeFormat }), complete)
+  }
+})
+
+// Both desktop hosts must receive session confirmation before entering flyout mode.
+test('online session confirmation reaches Windows and Linux desktop hosts', () => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'window')
+  try {
+    for (const platform of ['windows', 'linux']) {
+      const messages: unknown[] = []
+      const postMessage = (message: unknown) => messages.push(message)
+      const host = platform === 'windows'
+        ? { chrome: { webview: { postMessage } } }
+        : { persistentDesktop: { platform: 'linux', postMessage } }
+      Object.defineProperty(globalThis, 'window', { value: host, configurable: true })
+      notifyHostSignedIn()
+      assert.deepEqual(messages, [{ type: 'signedIn' }], platform)
+    }
+  } finally {
+    if (previous) Object.defineProperty(globalThis, 'window', previous)
+    else Reflect.deleteProperty(globalThis, 'window')
   }
 })

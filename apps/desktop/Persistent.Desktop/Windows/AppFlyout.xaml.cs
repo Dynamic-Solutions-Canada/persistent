@@ -46,6 +46,7 @@ public sealed partial class AppFlyout : Window
     private readonly AppWindow _appWindow;
     private bool _webViewReady;
     private bool _visible;
+    private bool _signedIn;
 
     /// <summary>The tray-side corner currently held fixed during resizing.</summary>
     private bool _anchorRight = true;
@@ -162,6 +163,15 @@ public sealed partial class AppFlyout : Window
         EnsureCreated();
         if (_instance == null) return;
 
+        if (_instance._visible && !_instance._signedIn)
+        {
+            if (_instance._appWindow.Presenter is OverlappedPresenter regular &&
+                regular.State == OverlappedPresenterState.Minimized) regular.Restore();
+            _instance.Activate();
+            _instance.TakeForeground();
+            return;
+        }
+
         if (_instance._visible)
         {
             // A DOUBLE-click on the tray icon delivers LBUTTONUP, LBUTTONDBLCLK,
@@ -208,6 +218,7 @@ public sealed partial class AppFlyout : Window
         if (instance is not { _webViewReady: true }) return false;
         try
         {
+            instance.SetSignedIn(false);
             await instance.WebView.CoreWebView2.Profile.ClearBrowsingDataAsync();
             instance.NavigateToApp();
             return true;
@@ -323,49 +334,16 @@ public sealed partial class AppFlyout : Window
 
         _hwnd = WindowNative.GetWindowHandle(this);
         _appWindow = AppWindow.GetFromWindowId(Microsoft.UI.Win32Interop.GetWindowIdFromWindow(_hwnd));
-        _appWindow.IsShownInSwitchers = false;
+        ApplyWindowMode();
+        _appWindow.Closing += (_, args) =>
+        {
+            if (_instance != this) return; // CloseForExit clears the instance first.
+            args.Cancel = true;
+            HideFlyout("window close button");
+        };
 
-        // A CONTEXT-MENU presenter, not OverlappedPresenter.Create().
-        //
-        // This matters and cost several rounds to pin down. An overlapped window
-        // always keeps a frame: stripping the border and title bar and disabling
-        // resize shrinks it but never reaches zero. Measured on a 150%-scaled
-        // display it left 3 physical pixels of non-client area on *every* edge —
-        // area the app cannot paint, so it showed as a pale hairline whatever
-        // colour the content was. No DWM colour attribute fixes that, because the
-        // region is not ours to colour; setting DWMWA_BORDER_COLOR to COLOR_NONE
-        // actively made it worse by removing the fill and letting the desktop show
-        // through.
-        //
-        // A context-menu presenter is popup-based and has no frame at all, which is
-        // what the sibling tray app (ImmichDrive) uses for the same job. Light
-        // dismiss is still implemented by hand below rather than inherited, because
-        // this window hosts a web app with text entry and must keep ordinary
-        // activation and keyboard focus.
-        var presenter = OverlappedPresenter.CreateForContextMenu();
-        presenter.SetBorderAndTitleBar(false, false);
-        presenter.IsAlwaysOnTop = true;
-        // NOT presenter.IsResizable = true, even though it is accepted here without
-        // throwing. Measured on the 150%-scaled target it reads back true and brings
-        // the frame straight back: `non-client top=10 left=10 bottom=10` where a
-        // fixed context-menu presenter logs 0/0/0, and the client area drops from
-        // 690x1230 to 670x1210. That is 10 physical pixels of area the app cannot
-        // paint on every edge, worse than the 3 an overlapped presenter costs.
-        // Dragging to resize is done by hand instead (see the grips below), which
-        // cannot reintroduce non-client area because it never asks for any.
-        _appWindow.SetPresenter(presenter);
-
-        // NO ExtendsContentIntoTitleBar / SetTitleBar here, deliberately.
-        //
-        // Those are for a window that HAS a title bar and wants to draw its own
-        // content into it. This window asked the presenter for none at all, and
-        // setting both anyway left WinUI reserving a caption strip it then painted
-        // with the system caption colour: a full-width white band across the top on
-        // a light-mode desktop. Removing the acrylic backdrop did not touch it,
-        // because the strip was never the backdrop.
-        //
-        // The client-area header handles moving without asking Windows for a frame.
-        //
+        // Signed-out windows use the system caption. The signed-in presenter has
+        // no non-client frame; its existing client strip handles moving.
         // Opaque chrome avoids acrylic gaps. Until the page sends its resolved
         // preference, initialize the frame and loading background from the OS.
         var systemForeground = new global::Windows.UI.ViewManagement.UISettings()
@@ -400,6 +378,38 @@ public sealed partial class AppFlyout : Window
         Classes.StartupDiagnostics.Mark("Flyout window constructed");
 
         _ = InitializeWebViewAsync();
+    }
+
+    /// <summary>Keep sign-in in an ordinary window without replacing the warm WebView.</summary>
+    private void SetSignedIn(bool signedIn)
+    {
+        if (_signedIn == signedIn) return;
+        _signedIn = signedIn;
+        _dismissTimer?.Stop();
+        StopOpeningAnimation();
+        ApplyWindowMode();
+        // Changing presenters can happen after focus has already left the sign-in
+        // window. Windows need not deliver another Deactivated for that change.
+        if (_signedIn && _visible) ScheduleDismissCheck(SettleMs);
+        Logger.Info("Window presentation changed to {0}", signedIn ? "flyout" : "sign-in window");
+    }
+
+    private void ApplyWindowMode()
+    {
+        _appWindow.IsShownInSwitchers = !_signedIn;
+        var presenter = _signedIn
+            ? OverlappedPresenter.CreateForContextMenu()
+            : OverlappedPresenter.Create();
+        // Only the signed-in popup removes the frame. Its resize grips avoid
+        // reintroducing the context-menu presenter's non-client border.
+        presenter.SetBorderAndTitleBar(!_signedIn, !_signedIn);
+        presenter.IsAlwaysOnTop = _signedIn;
+        _appWindow.SetPresenter(presenter);
+        TitleBar.Visibility = _signedIn ? Visibility.Visible : Visibility.Collapsed;
+        SignedOutSettingsButton.Visibility = _signedIn ? Visibility.Collapsed : Visibility.Visible;
+        ResizeHeightEdge.Visibility = _signedIn ? Visibility.Visible : Visibility.Collapsed;
+        ResizeWidthEdge.Visibility = _signedIn ? Visibility.Visible : Visibility.Collapsed;
+        ResizeCorner.Visibility = _signedIn ? Visibility.Visible : Visibility.Collapsed;
     }
 
     // ── WebView2 ────────────────────────────────────────────────────
@@ -452,6 +462,7 @@ public sealed partial class AppFlyout : Window
     private void NavigateToApp()
     {
         if (!_webViewReady) return;
+        SetSignedIn(false);
         HideError();
         // The page about to be replaced is the one that was listening; the next one
         // has not subscribed yet and says so itself when it has.
@@ -541,7 +552,12 @@ public sealed partial class AppFlyout : Window
                     DispatcherQueue.TryEnqueue(() => StoreWidgetSnapshot(snapshot));
                     break;
 
+                case "signedIn":
+                    DispatcherQueue.TryEnqueue(() => SetSignedIn(true));
+                    break;
+
                 case "signedOut":
+                    DispatcherQueue.TryEnqueue(() => SetSignedIn(false));
                     Notifications.NotificationService.UserSignedOut();
                     break;
 
@@ -675,7 +691,7 @@ public sealed partial class AppFlyout : Window
         if (!MainWindow.TryGetTrayIconCenter(out var anchor)) GetCursorPos(out anchor);
         var destination = OpeningRect(anchor);
         StopOpeningAnimation();
-        bool animate = new global::Windows.UI.ViewManagement.UISettings().AnimationsEnabled;
+        bool animate = _signedIn && new global::Windows.UI.ViewManagement.UISettings().AnimationsEnabled;
         int offset = _anchorBottom ? 20 : -20;
         _appWindow.MoveAndResize(new global::Windows.Graphics.RectInt32(
             destination.X, destination.Y + (animate ? offset : 0),
@@ -697,10 +713,10 @@ public sealed partial class AppFlyout : Window
     {
         var trayRect = TrayRect(anchor);
         var settings = SettingsManager.Current;
-        if (settings.FlyoutPlacement == "tray" ||
-            (settings.FlyoutPlacement == "last" && !settings.HasFlyoutPosition)) return trayRect;
+        if (_signedIn && (settings.FlyoutPlacement == "tray" ||
+            (settings.FlyoutPlacement == "last" && !settings.HasFlyoutPosition))) return trayRect;
 
-        var desired = settings.FlyoutPlacement == "last"
+        var desired = _signedIn && settings.FlyoutPlacement == "last"
             ? new POINT { X = settings.FlyoutX, Y = settings.FlyoutY }
             : anchor;
         var mi = new MONITORINFOEX { cbSize = System.Runtime.InteropServices.Marshal.SizeOf<MONITORINFOEX>() };
@@ -708,10 +724,10 @@ public sealed partial class AppFlyout : Window
 
         int width = Math.Min(trayRect.Width, mi.rcWork.Right - mi.rcWork.Left);
         int height = Math.Min(trayRect.Height, mi.rcWork.Bottom - mi.rcWork.Top);
-        int x = settings.FlyoutPlacement == "center"
+        int x = !_signedIn || settings.FlyoutPlacement == "center"
             ? mi.rcWork.Left + (mi.rcWork.Right - mi.rcWork.Left - width) / 2
             : settings.FlyoutX;
-        int y = settings.FlyoutPlacement == "center"
+        int y = !_signedIn || settings.FlyoutPlacement == "center"
             ? mi.rcWork.Top + (mi.rcWork.Bottom - mi.rcWork.Top - height) / 2
             : settings.FlyoutY;
         return new global::Windows.Graphics.RectInt32(
@@ -1137,7 +1153,7 @@ public sealed partial class AppFlyout : Window
     private void OnActivated(object sender, WindowActivatedEventArgs args)
     {
         if (args.WindowActivationState != WindowActivationState.Deactivated) return;
-        if (SettingsManager.Current.PinFlyout) return;
+        if (!_signedIn || SettingsManager.Current.PinFlyout) return;
         if (!_visible) return;
         // Never dismiss mid-resize. The drag repeatedly moves and resizes the window,
         // and closing it out from under the pointer would end the gesture by making
@@ -1187,7 +1203,7 @@ public sealed partial class AppFlyout : Window
     /// </summary>
     private void CheckLightDismiss()
     {
-        if (!_visible || SettingsManager.Current.PinFlyout || _resizing) return;
+        if (!_signedIn || !_visible || SettingsManager.Current.PinFlyout || _resizing) return;
         IntPtr foreground = GetForegroundWindow();
         if (foreground != IntPtr.Zero && GetAncestor(foreground, GA_ROOT) == _hwnd) return;
         // Logged because a flyout that closes when it shouldn't is invisible in
@@ -1254,6 +1270,8 @@ public sealed partial class AppFlyout : Window
     }
 
     // ── Chrome handlers ─────────────────────────────────────────────
+    private void SignedOutSettingsButton_Click(object sender, RoutedEventArgs e) => MainWindow.ShowSettings();
+
     private void PinButton_Click(object sender, RoutedEventArgs e)
     {
         SettingsManager.Current.PinFlyout = PinButton.IsChecked == true;

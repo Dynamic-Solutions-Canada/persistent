@@ -20,7 +20,7 @@
     <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Download Persistent for Windows from the Microsoft Store" height="56">
   </a>
   <a href="https://github.com/Dynamic-Solutions-Canada/persistent/releases?q=Linux&amp;expanded=true">
-    <img src="https://img.shields.io/badge/Linux-Download%20the%20app-fcc624?style=for-the-badge&amp;logo=linux&amp;logoColor=black" alt="Download Persistent for Linux (AppImage and Debian)" height="56">
+    <img src="https://img.shields.io/badge/Linux-Download%20the%20app-fcc624?style=for-the-badge&amp;logo=linux&amp;logoColor=black" alt="Download Persistent for Linux (AppImage)" height="56">
   </a>
 </p>
 
@@ -135,8 +135,9 @@ and resume after the call if you have not handled them.
 ### Desktop
 
 Persistent is available for Windows and Linux, with installation details for each
-below. Both keep the same reminder interface in the tray, with a tall, resizable
-flyout for viewing, editing, sharing and confirming reminders.
+below. Sign-in uses a regular window with native controls. After sign-in, both
+keep the same reminder interface in a tall, resizable tray flyout for viewing,
+editing, sharing and confirming reminders.
 You can enable **Persistent notifications on this PC** in Settings; notifications
 are off by default on both platforms. Once enabled, the app restores dismissed
 reminders, repeats configured nags and loops alarm audio for Alarm reminders and
@@ -164,30 +165,31 @@ expanded rows at large size.
 
 #### Linux
 
-**Install:** download an AppImage or Debian package from the
+**Install:** download an AppImage from the
 [Linux releases](https://github.com/Dynamic-Solutions-Canada/persistent/releases?q=Linux&expanded=true).
 Both formats are available for Intel/AMD 64-bit and ARM64 computers.
 
-| Computer | AppImage filename ends with | Debian/Ubuntu filename ends with |
-| --- | --- | --- |
-| 64-bit Intel or AMD | `x86_64.AppImage` | `amd64.deb` |
-| ARM64 | `arm64.AppImage` | `arm64.deb` |
+| Computer | AppImage filename ends with |
+| --- | --- |
+| 64-bit Intel or AMD | `x86_64.AppImage` |
+| ARM64 | `arm64.AppImage` |
 
 For AppImage, mark the download executable and run it. Use `--install` to add a
 user-level application-menu launcher and keep a stable path for updates; no Node
-toolchain is needed. On Debian/Ubuntu, open the `.deb` with your package installer;
-installation needs administrator approval. See
+toolchain is needed. AppImage is the only supported Linux package format. See
 [Linux installation details](apps/linux-desktop/README.md#build-package-and-install)
 for requirements and troubleshooting.
 
 **Updates:** the app can check automatically or manually, then asks separately
-before downloading and installing. AppImage updates are user-level; Debian updates
-need administrator approval.
+before downloading and installing. AppImage updates are user-level and preserve
+the existing installation path. Enable Start at sign-in in Settings for automatic
+startup when you log into your desktop.
 
 **Desktop integration:** targets KDE Plasma and GNOME with AppIndicator support,
-on X11 and Wayland. GNOME may require double click to open the flyout. XWayland is
-the default on Wayland desktops for tray-corner placement; native Wayland lets the
-compositor choose placement. Tray and notification presentation vary by desktop.
+on X11 and Wayland. GNOME may require double click to open the flyout. The default
+follows Electron's native backend. KDE Wayland uses a process-scoped KWin helper
+for tray-corner placement; other Wayland compositors choose placement. Tray and
+notification presentation vary by desktop.
 
 ### Web
 

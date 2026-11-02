@@ -1,7 +1,7 @@
 import { applyNativeLocale, initializeNativeText, nativeLocale, nativeText, onNativeLocaleChanged } from './localization.js'
 /** Linux resident host. Native delivery consumes shared server projections; the hosted app owns management. */
 import { app, dialog, ipcMain, Menu, net, powerMonitor, session, shell } from 'electron'
-import { appendFileSync, existsSync, mkdirSync, renameSync, statSync } from 'node:fs'
+import { createHostLog } from './host-log.js'
 import { join, resolve } from 'node:path'
 import { homedir } from 'node:os'
 import { ProfileSession } from './profile-session.js'
@@ -10,6 +10,8 @@ import { NotificationEngine } from './notification-engine.js'
 import { LinuxNotifications, statusNotifierAvailable } from './notifications.js'
 import { Autostart, SettingsStore } from './settings.js'
 import { HostedWindow } from './hosted-window.js'
+import { KwinFlyoutPlacement } from './kwin-placement.js'
+import { activationAnchor } from './window-placement.js'
 import { RecoveryWindows } from './recovery-window.js'
 import { ResidentTray } from './resident-tray.js'
 import { HostSettings } from './host-settings.js'
@@ -17,32 +19,17 @@ import { UpdateController } from './update-controller.js'
 import { findLinuxUpdate } from './release-check.js'
 import { downloadUpdate } from './update-download.js'
 import { installUpdate } from './update-install.js'
-import { installedPackageKind } from './installed-package.js'
 import { installImage } from '../scripts/install.js'
 
 app.setName('Persistent')
 app.setPath('userData', join(app.getPath('appData'), 'persistent-linux'))
 app.setDesktopName('ca.persistent.desktop.desktop')
-// X11/XWayland permits tray-adjacent placement for Windows flyout parity.
-// Explicit native Wayland remains available with compositor-controlled placement.
-if (process.platform === 'linux' && !app.commandLine.hasSwitch('ozone-platform')) {
-  app.commandLine.appendSwitch('ozone-platform', 'x11')
-}
+// Let Electron select the native backend. Explicit --ozone-platform remains
+// available for desktops that need X11/XWayland positioning compatibility.
 const root = resolve(__dirname, '..')
 const logDirectory = join(app.getPath('userData'), 'logs')
-mkdirSync(logDirectory, { recursive: true, mode: 0o700 })
-
-/** Keep diagnostics bounded and free of tokens, server response bodies and reminder text. */
-function log(message: string, error?: unknown): void {
-  const detail = error instanceof Error ? ` (${error.name})` : ''
-  const line = `${new Date().toISOString()} ${message}${detail}\n`
-  console.error(line.trim())
-  try {
-    const file = join(logDirectory, 'host.log')
-    if (existsSync(file) && statSync(file).size > 1_000_000) renameSync(file, `${file}.previous`)
-    appendFileSync(file, line, { mode: 0o600 })
-  } catch { console.error('Linux host log could not be written') }
-}
+// Launcher-owned output pipes can close while the resident process is still alive.
+const log = createHostLog(logDirectory)
 
 let hosted: HostedWindow | null = null
 let shutdown: (() => Promise<void>) | null = null
@@ -91,22 +78,26 @@ async function start(): Promise<void> {
   profile.setPermissionCheckHandler(() => false)
   const ozone = app.commandLine.getSwitchValue('ozone-platform')
   const wayland = ozone === 'wayland' || ozone !== 'x11' && Boolean(process.env.WAYLAND_DISPLAY)
+  const kwin = wayland && /kde/i.test(process.env.XDG_CURRENT_DESKTOP ?? '')
+    ? new KwinFlyoutPlacement(app.getPath('userData'), log) : undefined
   const startup = new Autostart(process.env.XDG_CONFIG_HOME || join(homedir(), '.config'), process.env.APPIMAGE || process.execPath, app.isPackaged ? [] : [app.getAppPath()])
   hosted = new HostedWindow(profile, store, root, wayland, log, () => settings.send(), (action) => {
     if (action === 'pin') void settings.apply({ pinFlyout: !store.current.pinFlyout })
     else recovery.open()
+  }, (title, bounds) => {
+    const current = store.current
+    kwin?.place({ title, placement: current.placement, anchor: bounds ? activationAnchor(bounds) : undefined,
+      saved: current.x !== undefined && current.y !== undefined ? { x: current.x, y: current.y } : undefined })
   })
   const window = hosted
   let clearingProfile = false
-  const installedKind = await installedPackageKind(app.isPackaged, process.env.APPIMAGE, process.execPath)
-  const kind = installedKind ?? 'AppImage'
-  const canInstall = installedKind !== null
+  const canInstall = app.isPackaged && Boolean(process.env.APPIMAGE)
   const publicFetch = (input: string, init?: RequestInit) => net.fetch(input, init)
   const updater = new UpdateController({
     automatic: store.current.checkUpdatesAutomatically,
-    find: () => findLinuxUpdate(app.getVersion(), process.arch, kind, publicFetch),
+    find: () => findLinuxUpdate(app.getVersion(), process.arch, publicFetch),
     confirm: async (action, version) => {
-      if (!canInstall) throw new Error('Install and run an AppImage or Debian package to use in-app updates.')
+      if (!canInstall) throw new Error('Install and run an AppImage to use in-app updates.')
       return recovery.confirmUpdate(action, version)
     },
     download: (update, signal, progress) => downloadUpdate(update, join(app.getPath('userData'), 'updates'), publicFetch, signal, progress),
@@ -121,7 +112,6 @@ async function start(): Promise<void> {
   })
   const recovery = new RecoveryWindows({
     updater,
-    packageKind: kind,
     wayland,
     root, version: app.getVersion(), logDirectory, store, openAppSettings: () => window.navigate('/settings'), log,
     changeServer: async (server) => {
@@ -156,6 +146,7 @@ async function start(): Promise<void> {
 
   /** Clear the complete private profile, including personal offline cache and pending writes. */
   async function clearSignIn(): Promise<void> {
+    window.setSignedIn(false)
     clearingProfile = true
     client.sessionChanged(true)
     window.clearPending()
@@ -191,11 +182,13 @@ async function start(): Promise<void> {
     if (typeof message !== 'object' || message === null) return
     const raw = message as { type?: string; settings?: unknown; locale?: unknown; mode?: string; background?: string }
     if (raw.type === 'signedOut') {
+      window.setSignedIn(false)
       client.sessionChanged(true)
       window.clearPending()
       return
     }
     if (raw.type === 'signedIn') {
+      window.setSignedIn(true)
       client.sessionConfirmed()
       return
     }
@@ -224,6 +217,7 @@ async function start(): Promise<void> {
   })
   await authentication.watch((paused) => {
     if (!clearingProfile) {
+      if (paused) window.setSignedIn(false)
       window.discardPending()
       client.sessionChanged(paused)
     }
@@ -256,6 +250,7 @@ async function start(): Promise<void> {
     tray.destroy()
     recovery.dispose()
     window.dispose()
+    await kwin?.dispose()
   }
   if (store.current.notifications) store.save({ ...store.current, notifications: await enableNotifications(true) })
   settings.send()

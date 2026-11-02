@@ -301,7 +301,7 @@ Linux uses a separate standalone package and `linux-vX.Y.Z` tags. It does not bu
 or publish the Android or Windows binary. Read
 [Linux build/install/update instructions](../apps/linux-desktop/README.md).
 `release-linux.yml` validates the main-branch tag/version, builds x64 and ARM64
-AppImage/Debian packages, then publishes a complete draft with the shared checksum
+AppImages, then publishes a complete draft with the shared checksum
 manifest before making it public. Android remains GitHub Latest.
 
 Deploy the hosted Linux bridge before publishing the Linux release. Root validation

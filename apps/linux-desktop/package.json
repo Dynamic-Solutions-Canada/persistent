@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && node scripts/build.mjs",
     "dev": "npm run build && electron .",
-    "package": "npm run build && electron-builder --linux AppImage deb",
+    "package": "npm run build && electron-builder --linux AppImage",
     "package:dir": "npm run build && electron-builder --linux dir"
   },
   "dependencies": {
