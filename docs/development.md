@@ -140,7 +140,7 @@ For the Android app (build, wireless adb, signing), see `apps/mobile/README.md`.
 
 ### Multi-checkout development
 
-`@ryanewen/devkit` 0.13.0 lets several repositories or linked worktrees run together
+`@ryanewen/devkit` 0.16.2 lets several repositories or linked worktrees run together
 while the editor remains on the host. Each checkout gets a hostname and a private
 Compose stack containing Node and PostgreSQL. Container ports stay fixed; the
 published web port is derived from the checkout path.
