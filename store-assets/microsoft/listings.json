@@ -1,0 +1,263 @@
+{
+  "schemaVersion": 1,
+  "locales": {
+    "en-US": {
+      "title": "Persistent",
+      "shortDescription": "Your reminders, one click from the Windows tray. Optional notifications return until you confirm, while Persistent is running and your PC is awake. Includes shared reminders, checklists and a Windows 11 widget.",
+      "fullDescription": "Keep your reminders close at your desk. Persistent is a Windows tray companion: open the flyout to view, edit, share, snooze or confirm reminders on the same account you use on the web and Android.\n\nWindows alerts, with clear limits\nNotifications are optional and off by default on each PC. While you are signed in, the tray process is running and your PC is awake, dismissed notifications return, configured nags repeat and alarm reminders can loop Windows alarm audio. Done takes two deliberate steps. Snooze postpones an alert; stopping its alarm sound keeps the reminder active.\n\nWindows does not schedule exact offline alarms or wake a sleeping or shut-down PC. It cannot alert you after you exit the tray app. It catches up when the app and network are available again. Use the Android app for previously scheduled exact on-device alarms that can sound offline with the app closed.\n\nFor everyday plans\n• One-time and repeating schedules, chosen weekdays, every N days and monthly dates, including the last day of the month\n• Checklists with separate progress for each firing, plus notes without alerts\n• Independent firings: confirming the afternoon reminder never clears an unfinished morning one\n• History and Undo done to restore the completed firing you selected\n• Concurrent-edit warnings that help prevent overwriting someone else's changes\n\nShare or assign\nInvite people by email to edit and complete shared reminders together. Snooze and alarm escalation stay personal. Assign a reminder to one person and follow progress without controlling their alerts. An ignored reminder can also escalate to your other devices and an email contact you choose.\n\nOn your desktop\nThe Microsoft Store app includes a read-only Upcoming widget on supported Windows 11 systems. Open a row to continue in the app.\n\nYour language and formatting\nChoose English (en-US, en-CA), Spanish (es-ES), French (fr-FR, fr-CA), German (de-DE), Simplified Chinese (zh-CN), Brazilian Portuguese (pt-BR) or Japanese (ja-JP). Match your device or choose in Settings. Interface language, regional date formatting, 12/24-hour display, account time zone and email language remain separate. Your reminder text, medicine names, doses, quantities and units are not translated. Screenshots show the English interface.\n\nA free account and internet access are required for sign-in and sync. Sign in with an email code, Google or a passkey. No ads, tracking or third-party analytics SDK. The service uses internal aggregate account, feature and platform usage statistics. You can delete your account and its data in Settings.\n\nPersistent is a reminder tool, not a medical device. Ask a qualified healthcare professional for medical advice.",
+      "features": [
+        "Open your reminders from the Windows tray in a resizable flyout.",
+        "Optional notifications return while you are signed in, the tray app runs and the PC is awake.",
+        "Two-step Done confirmation and separate confirmation for every firing.",
+        "Checklists track progress for each firing; the final tick does not mark a reminder done.",
+        "One-time and repeating schedules, flexible snooze, notes and history.",
+        "Share reminders for group editing and completion; snooze and alarm escalation stay personal.",
+        "Assign a reminder to one person and follow their progress.",
+        "Undo done restores the selected firing; edit-conflict warnings help prevent overwrites.",
+        "Nine locale options with separate language, regional date, clock and email preferences.",
+        "Your reminder wording, medicine names, doses, quantities and units stay literal.",
+        "Read-only Upcoming widget on supported Windows 11 systems.",
+        "Sync with the web and Android using a free account; email code, Google or passkey sign-in.",
+        "No ads, tracking or third-party analytics SDK; internal aggregate usage statistics only."
+      ],
+      "releaseNotes": "Choose among nine locale options in Settings. Language, regional date formatting, 12/24-hour display and account email language have separate preferences. Your own reminder and medicine text stays unchanged.\nWindows tray controls, notifications and widget text now follow your language choice. Shell descriptions and widget-picker text use Windows language preferences. Changing language updates visible Windows notifications and may restart a ringing alarm or reset an open action menu.\nEdit and complete shared reminders, track assigned tasks, restore a selected firing with Undo done and receive a warning when concurrent edits conflict.\nWindows alerts remain optional and require a signed-in session, the tray process running and an awake PC. Use Android for previously scheduled exact alarms that can sound offline with the app closed.",
+      "keywords": [
+        "reminders",
+        "checklists",
+        "recurring tasks",
+        "shared reminders",
+        "medication reminders",
+        "Windows widget",
+        "persistent notifications"
+      ],
+      "screenshotCaptions": [
+        "Current reminders in the Windows tray flyout, Enjoy Light. English interface; desktop wallpaper and taskbar visible.",
+        "Checklist reading dialog in the Windows tray flyout, Enjoy Dark. English interface; wallpaper and taskbar visible.",
+        "Synthetic vitamin reminder editor with dose and Save in the Windows tray flyout, Enjoy Light. English interface; wallpaper and taskbar visible.",
+        "Synthetic assigned-task progress in the Windows tray flyout, Enjoy Dark. English interface; wallpaper and taskbar visible."
+      ]
+    },
+    "en-CA": {
+      "copyFrom": "en-US"
+    },
+    "es-ES": {
+      "title": "Persistent",
+      "shortDescription": "Tus recordatorios, a un clic desde la bandeja de Windows. Las notificaciones opcionales reaparecen hasta confirmar, con Persistent en ejecución y el PC despierto. Incluye recordatorios compartidos, listas y un widget de Windows 11.",
+      "fullDescription": "Ten tus recordatorios a mano en el escritorio. Persistent es una aplicación de bandeja para Windows: abre su panel para ver, editar, compartir, posponer o confirmar recordatorios con la misma cuenta que usas en la web y Android.\n\nAvisos de Windows con límites claros\nLas notificaciones son opcionales y están desactivadas inicialmente en cada PC. Con la sesión iniciada, el proceso de bandeja en ejecución y el PC despierto, las notificaciones descartadas reaparecen, los avisos se repiten según lo configurado y las alarmas pueden repetir el sonido de alarma de Windows. Hecho requiere dos pasos. Posponer retrasa el aviso; detener el sonido mantiene activo el recordatorio.\n\nWindows no programa alarmas exactas sin conexión ni despierta un PC suspendido o apagado. No puede avisarte tras salir de la aplicación de bandeja. Recupera los avisos cuando la aplicación y la red vuelven a estar disponibles. Usa Android para alarmas exactas ya programadas en el dispositivo, que pueden sonar sin conexión con la aplicación cerrada.\n\nPara tus planes diarios\n• Programación única o periódica, días de la semana, cada N días y fechas mensuales, incluido el último día del mes\n• Listas con progreso independiente por aviso y notas sin alertas\n• Avisos independientes: confirmar el de la tarde no borra el de la mañana sin completar\n• Historial y Deshacer finalización para restaurar el aviso seleccionado\n• Advertencias de edición simultánea para evitar sobrescribir cambios ajenos\n\nCompartir o asignar\nInvita por correo a editar y completar recordatorios en grupo. Posponer y la intensificación de alarma son personales. Asigna un recordatorio a una persona y sigue su progreso sin controlar sus avisos. Un recordatorio ignorado también puede avisar a tus otros dispositivos y a un contacto de correo que elijas.\n\nEn el escritorio\nLa aplicación de Microsoft Store incluye un widget de Próximos, de solo lectura, en sistemas Windows 11 compatibles. Abre una fila para continuar en la aplicación.\n\nTu idioma y tus formatos\nElige inglés (en-US, en-CA), español (es-ES), francés (fr-FR, fr-CA), alemán (de-DE), chino simplificado (zh-CN), portugués de Brasil (pt-BR) o japonés (ja-JP). Usa el idioma del dispositivo o elige en Ajustes. El idioma de interfaz, el formato regional de fecha, el reloj de 12/24 horas, la zona horaria de la cuenta y el idioma del correo son independientes. Tus textos, nombres de medicamentos, dosis, cantidades y unidades no se traducen. Las capturas muestran la interfaz en inglés.\n\nSe necesitan una cuenta gratuita y conexión a internet para acceder y sincronizar. Accede con un código por correo, Google o una clave de acceso. Sin anuncios, seguimiento ni SDK de análisis de terceros. El servicio usa estadísticas internas agregadas de cuentas, funciones y plataformas. Puedes eliminar tu cuenta y sus datos en Ajustes.\n\nPersistent es una herramienta de recordatorios, no un producto sanitario. Consulta a un profesional sanitario para obtener asesoramiento médico.",
+      "features": [
+        "Abre tus recordatorios desde la bandeja de Windows en un panel de tamaño ajustable.",
+        "Las notificaciones opcionales reaparecen con la sesión iniciada, la aplicación de bandeja en marcha y el PC despierto.",
+        "Hecho requiere dos pasos y cada aviso se confirma por separado.",
+        "Las listas guardan el progreso de cada aviso; marcar el último elemento no completa el recordatorio.",
+        "Programación única o periódica, opciones flexibles para posponer, notas e historial.",
+        "Comparte recordatorios para editarlos y completarlos en grupo; posponer y la intensificación de alarma son personales.",
+        "Asigna un recordatorio a una persona y sigue su progreso.",
+        "Deshacer finalización restaura el aviso seleccionado; las advertencias de conflicto ayudan a evitar sobrescrituras.",
+        "Nueve opciones de idioma y región con preferencias independientes de idioma, fecha, reloj y correo.",
+        "Tus textos, nombres de medicamentos, dosis, cantidades y unidades permanecen tal como los escribes.",
+        "Widget de Próximos, de solo lectura, en sistemas Windows 11 compatibles.",
+        "Sincroniza con la web y Android mediante una cuenta gratuita; accede con código por correo, Google o clave de acceso.",
+        "Sin anuncios, seguimiento ni SDK de análisis de terceros; solo estadísticas internas agregadas de uso."
+      ],
+      "releaseNotes": "Elige entre nueve opciones de idioma y región en Ajustes. El idioma, el formato regional de fecha, el reloj de 12/24 horas y el idioma del correo tienen preferencias independientes. Tus textos y nombres de medicamentos no cambian.\nLos controles de bandeja, las notificaciones y el widget siguen el idioma elegido. Las descripciones del sistema y el selector de widgets usan las preferencias de idioma de Windows. Cambiar el idioma actualiza las notificaciones visibles y puede reiniciar una alarma que esté sonando o restablecer un menú de acciones abierto.\nEdita y completa recordatorios compartidos, sigue tareas asignadas, restaura un aviso con Deshacer finalización y recibe advertencias ante conflictos de edición simultánea.\nLos avisos de Windows siguen siendo opcionales y requieren sesión iniciada, proceso de bandeja en ejecución y PC despierto. Usa Android para alarmas exactas ya programadas que puedan sonar sin conexión con la aplicación cerrada.",
+      "keywords": [
+        "recordatorios",
+        "listas",
+        "tareas recurrentes",
+        "recordatorios compartidos",
+        "medicación",
+        "widget Windows",
+        "notificaciones persistentes"
+      ],
+      "screenshotCaptions": [
+        "Recordatorios actuales en el panel de bandeja de Windows, Enjoy Light. Interfaz en inglés; fondo de escritorio y barra de tareas visibles.",
+        "Vista de una lista en el panel de bandeja de Windows, Enjoy Dark. Interfaz en inglés; fondo y barra de tareas visibles.",
+        "Editor de un recordatorio de vitaminas ficticio, con dosis y Guardar, en la bandeja de Windows, Enjoy Light. Interfaz en inglés; fondo y barra de tareas visibles.",
+        "Progreso de una tarea asignada ficticia en la bandeja de Windows, Enjoy Dark. Interfaz en inglés; fondo y barra de tareas visibles."
+      ]
+    },
+    "fr-FR": {
+      "title": "Persistent",
+      "shortDescription": "Vos rappels à un clic dans la zone de notification Windows. Les notifications facultatives reviennent jusqu’à confirmation, avec Persistent actif et le PC éveillé. Rappels partagés, listes et widget Windows 11 inclus.",
+      "fullDescription": "Gardez vos rappels à portée de main. Persistent se loge dans la zone de notification Windows : ouvrez son volet pour consulter, modifier, partager, reporter ou confirmer vos rappels avec le même compte que sur le Web et Android.\n\nDes alertes Windows aux limites claires\nLes notifications sont facultatives et désactivées par défaut sur chaque PC. Si vous êtes connecté, que le processus de l’application fonctionne et que le PC est éveillé, les notifications écartées reviennent, les relances configurées se répètent et les alarmes peuvent répéter le son d’alarme Windows. Terminer demande deux étapes. Reporter décale l’alerte ; arrêter le son garde le rappel actif.\n\nWindows ne programme pas d’alarmes exactes hors connexion et ne réveille pas un PC en veille ou éteint. Aucune alerte après la fermeture du processus de l’application. Les rappels sont récupérés au retour de l’application et du réseau. Utilisez Android pour les alarmes exactes déjà programmées sur l’appareil, qui peuvent sonner hors connexion avec l’application fermée.\n\nPour le quotidien\n• Une fois ou à répétition, certains jours de la semaine, tous les N jours ou à des dates mensuelles, dont le dernier jour du mois\n• Listes avec un suivi distinct par déclenchement et notes sans alerte\n• Déclenchements indépendants : terminer celui de l’après-midi ne supprime pas celui du matin encore en attente\n• Historique et annulation de validation pour rétablir le déclenchement sélectionné\n• Avertissements de modifications simultanées pour éviter d’écraser les changements d’une autre personne\n\nPartager ou attribuer\nInvitez par e-mail des personnes à modifier et terminer des rappels ensemble. Le report et le renforcement d’alarme restent personnels. Attribuez un rappel à une personne et suivez son avancement sans gérer ses alertes. Un rappel ignoré peut aussi alerter vos autres appareils et un contact e-mail choisi.\n\nSur votre bureau\nL’application Microsoft Store inclut un widget À venir en lecture seule sur les systèmes Windows 11 compatibles. Ouvrez une ligne pour continuer dans l’application.\n\nVotre langue et vos formats\nAnglais (en-US, en-CA), espagnol (es-ES), français (fr-FR, fr-CA), allemand (de-DE), chinois simplifié (zh-CN), portugais du Brésil (pt-BR) ou japonais (ja-JP). Suivez l’appareil ou choisissez dans les paramètres. Langue d’interface, format régional des dates, affichage 12/24 heures, fuseau horaire du compte et langue des e-mails restent distincts. Vos textes, noms de médicaments, doses, quantités et unités ne sont pas traduits. Les captures montrent l’interface anglaise.\n\nUn compte gratuit et Internet sont nécessaires pour la connexion et la synchronisation. Utilisez un code reçu par e-mail, Google ou une clé d’accès. Sans publicité, suivi ni SDK d’analyse tiers. Le service utilise des statistiques internes agrégées sur les comptes, les fonctions et les plateformes. Supprimez votre compte et ses données dans les paramètres.\n\nPersistent est un outil de rappel, pas un dispositif médical. Consultez un professionnel de santé pour tout conseil médical.",
+      "features": [
+        "Ouvrez vos rappels depuis la zone de notification Windows dans un volet redimensionnable.",
+        "Les notifications facultatives reviennent si vous êtes connecté, que l’application reste active et que le PC est éveillé.",
+        "Terminer demande deux étapes et chaque déclenchement se confirme séparément.",
+        "Les listes suivent chaque déclenchement ; la dernière case cochée ne termine pas le rappel.",
+        "Horaires uniques ou répétés, report flexible, notes et historique.",
+        "Modifiez et terminez des rappels en groupe ; le report et le renforcement d’alarme restent personnels.",
+        "Attribuez un rappel à une personne et suivez son avancement.",
+        "Annulez une validation pour rétablir le déclenchement choisi ; les avertissements de conflit aident à éviter les écrasements.",
+        "Neuf options de langue et de région et des préférences distinctes pour la langue, les dates, l’horloge et les e-mails.",
+        "Vos textes, noms de médicaments, doses, quantités et unités restent inchangés.",
+        "Widget À venir en lecture seule sur les systèmes Windows 11 compatibles.",
+        "Synchronisez avec le Web et Android via un compte gratuit ; connexion par code e-mail, Google ou clé d’accès.",
+        "Sans publicité, suivi ni SDK d’analyse tiers ; uniquement des statistiques internes agrégées d’utilisation."
+      ],
+      "releaseNotes": "Choisissez parmi neuf options de langue et de région dans les paramètres. Langue, format régional des dates, affichage 12/24 heures et langue des e-mails ont des préférences distinctes. Vos textes et noms de médicaments ne changent pas.\nLes commandes Windows, notifications et textes du widget suivent votre langue. Les descriptions système et le sélecteur de widgets utilisent la langue de Windows. Changer de langue actualise les notifications visibles et peut relancer une alarme sonore ou réinitialiser un menu d’actions ouvert.\nModifiez et terminez des rappels partagés, suivez les tâches attribuées, rétablissez un déclenchement en annulant sa validation et recevez un avertissement en cas de conflit de modifications simultanées.\nLes alertes Windows restent facultatives et nécessitent une session connectée, l’application active et le PC éveillé. Utilisez Android pour des alarmes exactes déjà programmées pouvant sonner hors connexion avec l’application fermée.",
+      "keywords": [
+        "rappels",
+        "listes",
+        "tâches récurrentes",
+        "rappels partagés",
+        "médicaments",
+        "widget Windows",
+        "notifications persistantes"
+      ],
+      "screenshotCaptions": [
+        "Rappels actuels dans le volet Windows, thème Enjoy Light. Interface anglaise ; fond d’écran et barre des tâches visibles.",
+        "Lecture d’une liste dans le volet Windows, thème Enjoy Dark. Interface anglaise ; fond d’écran et barre des tâches visibles.",
+        "Éditeur d’un rappel fictif de vitamines, dose et action Enregistrer, volet Windows, Enjoy Light. Interface anglaise ; fond d’écran et barre des tâches visibles.",
+        "Avancement d’une tâche attribuée fictive, volet Windows, Enjoy Dark. Interface anglaise ; fond d’écran et barre des tâches visibles."
+      ]
+    },
+    "fr-CA": {
+      "copyFrom": "fr-FR"
+    },
+    "de-DE": {
+      "title": "Persistent",
+      "shortDescription": "Deine Erinnerungen direkt im Windows-Infobereich. Optionale Benachrichtigungen kehren bis zur Bestätigung zurück, solange Persistent läuft und der PC wach ist. Mit geteilten Erinnerungen, Checklisten und Windows-11-Widget.",
+      "fullDescription": "Behalte deine Erinnerungen am Schreibtisch im Blick. Persistent sitzt im Windows-Infobereich: Öffne das Fenster zum Ansehen, Bearbeiten, Teilen, Schlummern oder Bestätigen. Du nutzt dasselbe Konto wie im Web und auf Android.\n\nWindows-Hinweise mit klaren Grenzen\nBenachrichtigungen sind optional und auf jedem PC zunächst ausgeschaltet. Solange du angemeldet bist, der Prozess im Infobereich läuft und der PC wach ist, kehren weggewischte Hinweise zurück, eingestellte Folgehinweise wiederholen sich und Alarme können den Windows-Alarmton wiederholt abspielen. Erledigt braucht zwei Schritte. Schlummern verschiebt den Hinweis; das Stoppen des Tons lässt die Erinnerung aktiv.\n\nWindows plant keine genauen Offline-Alarme und weckt keinen schlafenden oder ausgeschalteten PC. Nach dem Beenden der App gibt es keine Hinweise. Sobald App und Netzwerk wieder verfügbar sind, wird der Stand abgeglichen. Nutze Android für bereits auf dem Gerät geplante genaue Alarme, die offline bei geschlossener App auslösen können.\n\nFür deine Pläne\n• Einmalige oder wiederholte Termine, gewählte Wochentage, alle N Tage und monatliche Daten, auch der letzte Tag des Monats\n• Checklisten mit eigenem Fortschritt je Auslösung und Notizen ohne Hinweise\n• Unabhängige Auslösungen: Eine Bestätigung am Nachmittag erledigt keinen offenen Hinweis vom Morgen\n• Verlauf und Rückgängig-Funktion zum Wiederherstellen der gewählten Auslösung\n• Warnungen bei gleichzeitigen Änderungen helfen, fremde Änderungen nicht zu überschreiben\n\nTeilen oder zuweisen\nLade Personen per E-Mail zum gemeinsamen Bearbeiten und Erledigen ein. Schlummern und Alarmverstärkung bleiben persönlich. Weise eine Erinnerung einer Person zu und verfolge ihren Fortschritt, ohne ihre Hinweise zu steuern. Eine ignorierte Erinnerung kann auch deine anderen Geräte und einen gewählten E-Mail-Kontakt benachrichtigen.\n\nAuf deinem Desktop\nDie Microsoft-Store-App enthält auf unterstützten Windows-11-Systemen ein schreibgeschütztes Demnächst-Widget. Öffne eine Zeile, um in der App fortzufahren.\n\nDeine Sprache und Formate\nEnglisch (en-US, en-CA), Spanisch (es-ES), Französisch (fr-FR, fr-CA), Deutsch (de-DE), vereinfachtes Chinesisch (zh-CN), brasilianisches Portugiesisch (pt-BR) oder Japanisch (ja-JP). Übernimm die Gerätesprache oder wähle in den Einstellungen. Oberflächensprache, regionales Datumsformat, 12/24-Stunden-Anzeige, Kontozeitzone und E-Mail-Sprache bleiben getrennt. Deine Texte, Medikamentennamen, Dosen, Mengen und Einheiten werden nicht übersetzt. Die Screenshots zeigen die englische Oberfläche.\n\nFür Anmeldung und Synchronisierung brauchst du ein kostenloses Konto und Internet. Melde dich mit E-Mail-Code, Google oder Passkey an. Keine Werbung, kein Tracking und kein Analyse-SDK von Dritten. Der Dienst nutzt interne, aggregierte Statistiken zu Konten, Funktionen und Plattformen. Konto und Daten kannst du in den Einstellungen löschen.\n\nPersistent ist eine Erinnerungshilfe, kein Medizinprodukt. Wende dich für medizinischen Rat an qualifiziertes Fachpersonal.",
+      "features": [
+        "Öffne deine Erinnerungen aus dem Windows-Infobereich in einem größenverstellbaren Fenster.",
+        "Optionale Benachrichtigungen kehren zurück, solange du angemeldet bist, die App läuft und der PC wach ist.",
+        "Erledigt erfordert zwei Schritte; jede Auslösung wird einzeln bestätigt.",
+        "Checklisten speichern den Fortschritt je Auslösung; der letzte Haken erledigt nicht die Erinnerung.",
+        "Einmalige und wiederholte Termine, flexible Schlummeroptionen, Notizen und Verlauf.",
+        "Bearbeite und erledige geteilte Erinnerungen gemeinsam; Schlummern und Alarmverstärkung bleiben persönlich.",
+        "Weise eine Erinnerung einer Person zu und verfolge ihren Fortschritt.",
+        "Rückgängig stellt die gewählte Auslösung wieder her; Konfliktwarnungen helfen, Überschreiben zu verhindern.",
+        "Neun Sprachregionen mit getrennten Einstellungen für Sprache, Datum, Uhrzeit und E-Mails.",
+        "Deine Texte, Medikamentennamen, Dosen, Mengen und Einheiten bleiben unverändert.",
+        "Schreibgeschütztes Demnächst-Widget auf unterstützten Windows-11-Systemen.",
+        "Mit kostenlosem Konto mit Web und Android synchronisieren; Anmeldung per E-Mail-Code, Google oder Passkey.",
+        "Keine Werbung, kein Tracking, kein Analyse-SDK von Dritten; nur interne, aggregierte Nutzungsstatistiken."
+      ],
+      "releaseNotes": "Wähle in den Einstellungen aus neun Sprachregionen. Sprache, regionales Datumsformat, 12/24-Stunden-Anzeige und E-Mail-Sprache haben getrennte Einstellungen. Deine eigenen Texte und Medikamentennamen bleiben unverändert.\nWindows-Steuerung, Benachrichtigungen und Widget folgen deiner Sprachwahl. Systembeschreibungen und Widget-Auswahl nutzen die Windows-Sprache. Ein Sprachwechsel aktualisiert sichtbare Benachrichtigungen und kann einen klingelnden Alarm neu starten oder ein offenes Aktionsmenü zurücksetzen.\nBearbeite und erledige geteilte Erinnerungen, verfolge zugewiesene Aufgaben, stelle eine gewählte Auslösung mit Rückgängig wieder her und erhalte Warnungen bei gleichzeitigen Änderungskonflikten.\nWindows-Hinweise bleiben optional und brauchen eine angemeldete Sitzung, den laufenden App-Prozess und einen wachen PC. Nutze Android für bereits geplante genaue Alarme, die offline bei geschlossener App auslösen können.",
+      "keywords": [
+        "Erinnerungen",
+        "Checklisten",
+        "wiederkehrende Aufgaben",
+        "geteilte Erinnerungen",
+        "Medikamentenerinnerung",
+        "Windows-Widget",
+        "Benachrichtigungen"
+      ],
+      "screenshotCaptions": [
+        "Aktuelle Erinnerungen im Fenster des Windows-Infobereichs, Enjoy Light. Englische Oberfläche; Desktophintergrund und Taskleiste sichtbar.",
+        "Checklistenansicht im Fenster des Windows-Infobereichs, Enjoy Dark. Englische Oberfläche; Desktophintergrund und Taskleiste sichtbar.",
+        "Fiktiver Vitamin-Erinnerungseditor mit Dosis und Speichern im Windows-Infobereich, Enjoy Light. Englische Oberfläche; Desktophintergrund und Taskleiste sichtbar.",
+        "Fortschritt einer fiktiven zugewiesenen Aufgabe im Windows-Infobereich, Enjoy Dark. Englische Oberfläche; Desktophintergrund und Taskleiste sichtbar."
+      ]
+    },
+    "zh-CN": {
+      "title": "Persistent",
+      "shortDescription": "在 Windows 系统托盘中，一键查看提醒。可选通知会持续返回，直到你确认完成，前提是 Persistent 正在运行且电脑处于唤醒状态。支持共享提醒、清单和 Windows 11 小组件。",
+      "fullDescription": "让提醒在桌面上触手可及。Persistent 是一款 Windows 托盘应用。打开面板，即可查看、编辑、共享、稍后提醒或确认完成，并使用与网页版和 Android 相同的账号。\n\nWindows 提醒的适用范围\n通知为可选功能，在每台电脑上默认关闭。当你已登录、托盘进程正在运行且电脑处于唤醒状态时，被划掉的通知会重新出现，按设置重复提醒，闹钟提醒可循环播放 Windows 闹钟声音。完成需要两步确认。稍后提醒会推迟通知；停止闹钟声音不会结束提醒。\n\nWindows 不会安排精确的离线闹钟，也不会唤醒处于睡眠或关机状态的电脑。退出托盘应用后，它无法发出提醒。应用和网络重新可用时会更新提醒状态。对于已在设备上安排的精确闹钟，请使用 Android 应用；这些闹钟可在离线、应用关闭时响起。\n\n安排日常事项\n• 一次性或重复日程、指定星期、每 N 天及每月指定日期，包括每月最后一天\n• 每次触发单独记录清单进度，也可保存不发出通知的笔记\n• 每次触发都独立：确认下午的提醒不会清除早上尚未完成的提醒\n• 查看历史记录，撤销完成以恢复选中的那次提醒\n• 同时编辑出现冲突时发出提示，帮助避免覆盖他人的修改\n\n共享或指派\n通过电子邮件邀请他人共同编辑和完成共享提醒。稍后提醒和闹钟升级设置仍各自独立。将提醒指派给一个人后，你可以查看进度，而不控制对方的提醒。未处理的提醒也可以升级通知你的其他设备和指定的电子邮件联系人。\n\n桌面小组件\nMicrosoft Store 应用在受支持的 Windows 11 系统上提供只读的“即将到来”小组件。打开其中一行即可返回应用继续操作。\n\n语言与格式分别设置\n可选英语（en-US、en-CA）、西班牙语（es-ES）、法语（fr-FR、fr-CA）、德语（de-DE）、简体中文（zh-CN）、巴西葡萄牙语（pt-BR）或日语（ja-JP）。可以匹配设备或在设置中自行选择。界面语言、地区日期格式、12/24 小时制、账号时区和邮件语言保持独立。你输入的提醒内容、药品名称、剂量、数量和单位不会被翻译。截图展示英文界面。\n\n登录和同步需要免费账号及互联网连接。可使用邮件验证码、Google 或通行密钥登录。无广告、无跟踪，也不使用第三方分析 SDK。服务会使用内部汇总的账号、功能和平台使用统计。你可以在设置中删除账号及其数据。\n\nPersistent 是提醒工具，不是医疗器械。如需医疗建议，请咨询合格的医疗专业人员。",
+      "features": [
+        "从 Windows 系统托盘打开提醒，面板大小可调整。",
+        "可选通知会重新出现，前提是已登录、托盘应用正在运行且电脑处于唤醒状态。",
+        "完成需要两步确认，每次触发都须单独确认。",
+        "每次触发单独记录清单进度；勾选最后一项不会将提醒标为完成。",
+        "支持一次性及重复日程、灵活的稍后提醒、笔记和历史记录。",
+        "共同编辑和完成共享提醒；稍后提醒和闹钟升级设置仍各自独立。",
+        "将提醒指派给一个人，并查看对方的进度。",
+        "撤销完成可恢复选中的那次提醒；编辑冲突提示帮助避免覆盖修改。",
+        "九种语言/地区选项，界面语言、日期、时钟和邮件偏好分别设置。",
+        "你输入的内容、药品名称、剂量、数量和单位保持原样。",
+        "在受支持的 Windows 11 系统上提供只读的“即将到来”小组件。",
+        "使用免费账号与网页版和 Android 同步；支持邮件验证码、Google 或通行密钥登录。",
+        "无广告、无跟踪、无第三方分析 SDK；仅使用内部汇总的使用统计。"
+      ],
+      "releaseNotes": "在设置中选择九种语言/地区选项。语言、地区日期格式、12/24 小时制和账号邮件语言均可独立设置。你输入的提醒内容和药品名称保持不变。\nWindows 托盘控件、通知和小组件文字会跟随你的语言选择。系统说明和小组件选择器文字使用 Windows 语言偏好。切换语言会立即更新可见通知，可能重新开始播放正在响铃的闹钟，或重置已打开的操作菜单。\n共同编辑和完成共享提醒，查看指派任务进度，撤销完成以恢复选中的那次提醒，并在同时编辑产生冲突时收到提示。\nWindows 通知仍是可选功能，需要已登录的会话、正在运行的托盘进程和处于唤醒状态的电脑。如需已安排、可在离线及应用关闭时响起的精确闹钟，请使用 Android。",
+      "keywords": [
+        "提醒",
+        "清单",
+        "重复任务",
+        "共享提醒",
+        "用药提醒",
+        "Windows 小组件",
+        "持续通知"
+      ],
+      "screenshotCaptions": [
+        "Windows 托盘面板中的当前提醒，采用 Enjoy Light 主题。界面为英文，可见桌面壁纸和任务栏。",
+        "Windows 托盘面板中的清单阅读对话框，采用 Enjoy Dark 主题。界面为英文，可见桌面壁纸和任务栏。",
+        "Windows 托盘面板中的虚构维生素提醒编辑器，含剂量和保存操作，采用 Enjoy Light 主题。界面为英文，可见桌面壁纸和任务栏。",
+        "Windows 托盘面板中的虚构指派任务进度，采用 Enjoy Dark 主题。界面为英文，可见桌面壁纸和任务栏。"
+      ]
+    },
+    "pt-BR": {
+      "title": "Persistent",
+      "shortDescription": "Seus lembretes a um clique na bandeja do Windows. As notificações opcionais voltam até a confirmação, com o Persistent em execução e o PC acordado. Inclui lembretes compartilhados, listas e widget do Windows 11.",
+      "fullDescription": "Tenha seus lembretes à mão na sua mesa. O Persistent fica na bandeja do Windows: abra o painel para ver, editar, compartilhar, adiar ou confirmar lembretes com a mesma conta usada na web e no Android.\n\nAlertas do Windows com limites claros\nAs notificações são opcionais e vêm desativadas em cada PC. Com a sessão conectada, o processo da bandeja em execução e o PC acordado, as notificações dispensadas voltam, os avisos configurados se repetem e os alarmes podem repetir o som de alarme do Windows. Concluir exige duas etapas. Adiar posterga o alerta; parar o som mantém o lembrete ativo.\n\nO Windows não agenda alarmes exatos offline nem acorda um PC suspenso ou desligado. Não há alertas depois de sair do aplicativo da bandeja. Os lembretes são atualizados quando o aplicativo e a rede ficam disponíveis novamente. Use o Android para alarmes exatos já agendados no dispositivo, que podem tocar offline com o aplicativo fechado.\n\nPara os seus planos\n• Agendamentos únicos ou recorrentes, dias da semana, a cada N dias e datas mensais, incluindo o último dia do mês\n• Listas com progresso separado por disparo e notas sem alertas\n• Disparos independentes: concluir o lembrete da tarde não apaga o da manhã ainda pendente\n• Histórico e Desfazer conclusão para restaurar o disparo selecionado\n• Avisos de edição simultânea para evitar sobrescrever alterações de outra pessoa\n\nCompartilhar ou atribuir\nConvide pessoas por e-mail para editar e concluir lembretes em grupo. Adiamento e intensificação do alarme são pessoais. Atribua um lembrete a uma pessoa e acompanhe o progresso sem controlar os alertas dela. Um lembrete ignorado também pode alertar seus outros dispositivos e um contato de e-mail escolhido.\n\nNa sua área de trabalho\nO aplicativo da Microsoft Store inclui um widget Próximos, somente leitura, em sistemas Windows 11 compatíveis. Abra uma linha para continuar no aplicativo.\n\nSeu idioma e seus formatos\nEscolha inglês (en-US, en-CA), espanhol (es-ES), francês (fr-FR, fr-CA), alemão (de-DE), chinês simplificado (zh-CN), português do Brasil (pt-BR) ou japonês (ja-JP). Siga o dispositivo ou escolha nas Configurações. Idioma da interface, formato regional de data, relógio de 12/24 horas, fuso horário da conta e idioma dos e-mails são independentes. Seus textos, nomes de medicamentos, doses, quantidades e unidades não são traduzidos. As capturas mostram a interface em inglês.\n\nUma conta gratuita e internet são necessárias para entrar e sincronizar. Entre com código por e-mail, Google ou chave de acesso. Sem anúncios, rastreamento ou SDK de análise de terceiros. O serviço usa estatísticas internas agregadas de contas, recursos e plataformas. Você pode excluir sua conta e seus dados nas Configurações.\n\nO Persistent é uma ferramenta de lembretes, não um dispositivo médico. Consulte um profissional de saúde para obter orientação médica.",
+      "features": [
+        "Abra seus lembretes na bandeja do Windows em um painel redimensionável.",
+        "As notificações opcionais voltam com a sessão conectada, o aplicativo da bandeja em execução e o PC acordado.",
+        "Concluir exige duas etapas e cada disparo é confirmado separadamente.",
+        "As listas acompanham cada disparo; marcar o último item não conclui o lembrete.",
+        "Agendamentos únicos ou recorrentes, adiamento flexível, notas e histórico.",
+        "Compartilhe lembretes para editar e concluir em grupo; adiamento e intensificação do alarme são pessoais.",
+        "Atribua um lembrete a uma pessoa e acompanhe o progresso.",
+        "Desfazer conclusão restaura o disparo escolhido; avisos de conflito ajudam a evitar sobrescritas.",
+        "Nove opções de idioma/região com preferências independentes de idioma, data, relógio e e-mail.",
+        "Seus textos, nomes de medicamentos, doses, quantidades e unidades permanecem como você escreveu.",
+        "Widget Próximos, somente leitura, em sistemas Windows 11 compatíveis.",
+        "Sincronize com a web e Android usando uma conta gratuita; entre com código por e-mail, Google ou chave de acesso.",
+        "Sem anúncios, rastreamento ou SDK de análise de terceiros; apenas estatísticas internas agregadas de uso."
+      ],
+      "releaseNotes": "Escolha entre nove opções de idioma/região nas Configurações. Idioma, formato regional de data, relógio de 12/24 horas e idioma dos e-mails têm preferências independentes. Seus textos e nomes de medicamentos não mudam.\nOs controles do Windows, as notificações e o widget seguem seu idioma. As descrições do sistema e o seletor de widgets usam as preferências de idioma do Windows. Mudar o idioma atualiza notificações visíveis e pode reiniciar um alarme que esteja tocando ou redefinir um menu de ações aberto.\nEdite e conclua lembretes compartilhados, acompanhe tarefas atribuídas, restaure um disparo com Desfazer conclusão e receba avisos quando edições simultâneas entrarem em conflito.\nOs alertas do Windows continuam opcionais e exigem sessão conectada, processo da bandeja em execução e PC acordado. Use o Android para alarmes exatos já agendados que possam tocar offline com o aplicativo fechado.",
+      "keywords": [
+        "lembretes",
+        "listas",
+        "tarefas recorrentes",
+        "lembretes compartilhados",
+        "medicamentos",
+        "widget Windows",
+        "notificações persistentes"
+      ],
+      "screenshotCaptions": [
+        "Lembretes atuais no painel da bandeja do Windows, Enjoy Light. Interface em inglês; papel de parede e barra de tarefas visíveis.",
+        "Leitura de uma lista no painel da bandeja do Windows, Enjoy Dark. Interface em inglês; papel de parede e barra de tarefas visíveis.",
+        "Editor de lembrete fictício de vitaminas, com dose e Salvar, na bandeja do Windows, Enjoy Light. Interface em inglês; papel de parede e barra de tarefas visíveis.",
+        "Progresso de tarefa atribuída fictícia na bandeja do Windows, Enjoy Dark. Interface em inglês; papel de parede e barra de tarefas visíveis."
+      ]
+    },
+    "ja-JP": {
+      "title": "Persistent",
+      "shortDescription": "Windows のタスクトレイからリマインダーにすぐアクセス。Persistent が動作し、PC がスリープしていない間、任意の通知が完了確認まで戻ってきます。共有リマインダー、チェックリスト、Windows 11 ウィジェットも利用できます。",
+      "fullDescription": "デスクでリマインダーをすぐ確認。Persistent は Windows のタスクトレイに常駐するアプリです。パネルを開き、Web や Android と同じアカウントで、リマインダーの表示、編集、共有、スヌーズ、完了確認ができます。\n\nWindows の通知と制約\n通知は任意の機能で、各 PC で初期設定はオフです。サインイン中で、トレイのプロセスが動作し、PC がスリープしていない間、消した通知が再表示され、設定した間隔で再通知されます。アラームは Windows のアラーム音を繰り返せます。完了は2段階で確認します。スヌーズは通知を延期し、音だけを止めてもリマインダーは有効なままです。\n\nWindows では正確なオフラインアラームを予約せず、スリープ中や電源オフの PC を起動しません。トレイアプリを終了すると通知できません。アプリとネットワークが再び利用可能になると、最新の状態を取得します。端末に予約済みの正確なアラームを、オフラインでアプリを閉じていても鳴らしたい場合は Android アプリをご利用ください。\n\n毎日の予定に\n• 1回限り、繰り返し、指定曜日、N日ごと、月末を含む毎月の指定日\n• 各回の進捗を個別に記録するチェックリストと、通知しないメモ\n• 各回は独立。午後の完了確認で、未完了の朝のリマインダーが消えることはありません\n• 履歴と完了の取り消しで、選んだ回のリマインダーを復元\n• 同時編集の競合を知らせ、他の人の変更を上書きするのを防ぐお手伝い\n\n共有と割り当て\nメールで招待し、リマインダーを共同編集して完了できます。スヌーズとアラームの強化は各自の設定です。1人にリマインダーを割り当てて、相手の通知を操作せずに進捗を確認できます。未対応のリマインダーは、他の端末や指定したメール連絡先にも通知を強化できます。\n\nデスクトップでも\nMicrosoft Store 版には、対応する Windows 11 環境で利用できる読み取り専用の「今後」ウィジェットがあります。行を開くとアプリで操作を続けられます。\n\n言語と表示形式を別々に\n英語（en-US、en-CA）、スペイン語（es-ES）、フランス語（fr-FR、fr-CA）、ドイツ語（de-DE）、簡体字中国語（zh-CN）、ブラジルポルトガル語（pt-BR）、日本語（ja-JP）に対応。端末に合わせるか、設定で選べます。画面の言語、地域の日付形式、12/24時間表示、アカウントのタイムゾーン、メールの言語は別々です。入力した文章、薬の名前、用量、数量、単位は翻訳しません。スクリーンショットは英語の画面です。\n\nサインインと同期には無料アカウントとインターネットが必要です。メールのコード、Google、パスキーでサインインできます。広告、トラッキング、第三者の分析 SDK は使用しません。サービス内部でアカウント、機能、プラットフォームの集計利用統計を使用します。設定からアカウントとデータを削除できます。\n\nPersistent はリマインダーツールであり、医療機器ではありません。医療上の助言は有資格の医療専門家にご相談ください。",
+      "features": [
+        "Windows のタスクトレイから、サイズ変更できるパネルでリマインダーを開けます。",
+        "任意の通知は、サインイン中でトレイアプリが動作し、PC がスリープしていない間に再表示されます。",
+        "完了は2段階で確認。繰り返しの各回を個別に確認します。",
+        "チェックリストの進捗は各回で独立。最後の項目をチェックしても完了にはなりません。",
+        "1回限りや繰り返しの予定、柔軟なスヌーズ、メモ、履歴に対応。",
+        "リマインダーを共同編集して完了。スヌーズとアラームの強化は各自の設定です。",
+        "1人にリマインダーを割り当て、進捗を確認できます。",
+        "完了の取り消しで選んだ回を復元。編集の競合を知らせ、上書きを防ぐお手伝いをします。",
+        "9つの言語・地域オプション。言語、日付、時計、メールを別々に設定できます。",
+        "入力した文章、薬の名前、用量、数量、単位はそのまま保持します。",
+        "対応する Windows 11 環境で、読み取り専用の「今後」ウィジェットを利用できます。",
+        "無料アカウントで Web や Android と同期。メールのコード、Google、パスキーでサインイン。",
+        "広告、トラッキング、第三者の分析 SDK は不使用。内部の集計利用統計のみ使用します。"
+      ],
+      "releaseNotes": "設定で9つの言語・地域オプションから選べます。言語、地域の日付形式、12/24時間表示、アカウントのメール言語は別々に設定できます。入力した文章や薬の名前は変わりません。\nWindows のトレイ操作、通知、ウィジェットの文章が選択した言語に対応。システムの説明やウィジェット選択画面には Windows の言語設定を使います。言語を変更すると表示中の通知が更新され、鳴っているアラームが最初から鳴り直したり、開いている操作メニューがリセットされたりする場合があります。\n共有リマインダーの編集と完了、割り当てたタスクの進捗確認、完了の取り消しによる選択した回の復元に対応。同時編集の競合もお知らせします。\nWindows の通知は引き続き任意の機能で、サインイン中、トレイのプロセスが動作中、PC がスリープしていないことが条件です。予約済みの正確なアラームを、オフラインでアプリを閉じても鳴らしたい場合は Android をご利用ください。",
+      "keywords": [
+        "リマインダー",
+        "チェックリスト",
+        "繰り返し",
+        "共有",
+        "服薬",
+        "ウィジェット",
+        "通知"
+      ],
+      "screenshotCaptions": [
+        "Windows のトレイパネルで現在のリマインダーを表示。Enjoy Light テーマ、英語の画面です。壁紙とタスクバーが見えます。",
+        "Windows のトレイパネルでチェックリストの閲覧画面を表示。Enjoy Dark テーマ、英語の画面です。壁紙とタスクバーが見えます。",
+        "Windows のトレイパネルで架空のビタミンのリマインダーを編集。用量と保存操作を表示。Enjoy Light テーマ、英語の画面です。壁紙とタスクバーが見えます。",
+        "Windows のトレイパネルで架空の割り当てタスクの進捗を表示。Enjoy Dark テーマ、英語の画面です。壁紙とタスクバーが見えます。"
+      ]
+    }
+  }
+}
