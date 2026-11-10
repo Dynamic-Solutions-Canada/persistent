@@ -45,6 +45,7 @@
     "android:build": "scripts/dev/android-debug-build.sh",
     "android:connect": "scripts/dev/adb-connect.sh",
     "android:discover": "python3 scripts/dev/adb-discover.py",
+    "android:emulator": "scripts/dev/android-emulator-attach.sh",
     "android:install": "adb install -r apps/mobile/android/app/build/outputs/apk/direct/debug/app-direct-debug.apk",
     "android:launch": "adb shell am start -W -n ca.persistent.app/.MainActivity",
     "android:logs": "scripts/dev/android-logcat.sh",
