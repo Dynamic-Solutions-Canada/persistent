@@ -174,6 +174,16 @@ unchanged. Keepalives prevent idle locking of an already-unlocked phone; they do
 not unlock a secured lock screen. Select a device with `ANDROID_SERIAL` if more
 than one is connected.
 
+### Shared Android emulator
+
+The shared emulator is a separate container, documented in its [README](../../../android-vm/README.md). It is for testing Android builds only and is not part of `npm run dev`. Start it on demand and stop it when finished. Never run it alongside the Windows build VM, because both share the same WSL memory.
+
+With the emulator running and the development stack up, attach it from WSL with `npm run android:emulator`. The script joins the dev container to the emulator's network, streams the emulator's adb key into the container's `/tmp` (not the persisted volume), and connects to `android-vm:5556`. Re-running it is safe. If the emulator is not running, the script stops with a message saying so.
+
+Attaching restarts the container's adb server, which resets a phone connected over wireless debugging. Reconnect the phone with `npm run android:connect`; its saved endpoint is not changed. When both are attached, pick the emulator with `ANDROID_SERIAL=android-vm:5556`. Detaching is `docker network disconnect android-vm_default <dev container>` and `adb disconnect android-vm:5556`, or restart the dev stack.
+
+The emulator trusts only its own key, and the attached container can use that key for as long as it stays attached. Treat the emulator as a local test device, not a secret store.
+
 ## Rebuild + run after web changes
 
 ```bash

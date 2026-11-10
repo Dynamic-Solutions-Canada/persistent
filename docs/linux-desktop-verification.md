@@ -98,7 +98,7 @@ multi-monitor acceptance was performed. Earlier main-window renderer captures
 omitted WebContentsView pixels, so they were not used as final visible evidence.
 
 The final x64 AppImage was built locally for atomic replacement at Gear Lever's
-existing `/home/rewen/AppImages/persistent.appimage` path. Its launcher, icon,
+existing user AppImage path. Its launcher, icon,
 path-keyed Gear Lever registration and account profile are preserved. Nothing was
 published. Required validation and the standalone Linux build passed.
 
