@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "versionName": "0.30.0",
+  "locales": {
+    "en-US": {
+      "text": "Persistent now explains each permission before sending you to Android settings, one at a time, and tells you what to turn on there. When you come back, it shows whether it worked. Allow exact alarms now opens the right screen, and Persistent checks battery settings before asking."
+    },
+    "es-ES": {
+      "text": "Persistent ahora explica cada permiso antes de llevarte a los ajustes de Android, uno a uno, y te indica qué activar allí. Al volver, muestra si funcionó. Permitir alarmas exactas ahora abre la pantalla correcta, y Persistent revisa los ajustes de batería antes de preguntar."
+    },
+    "fr-FR": {
+      "text": "Persistent explique désormais chaque autorisation avant de vous envoyer dans les paramètres d’Android, une à la fois, et indique quoi activer. À votre retour, il affiche si cela a fonctionné. Autoriser les alarmes exactes ouvre maintenant le bon écran, et Persistent vérifie les paramètres de batterie avant de demander."
+    },
+    "de-DE": {
+      "text": "Persistent erklärt jetzt jede Berechtigung, bevor es dich zu den Android-Einstellungen schickt, eine nach der anderen, und sagt dir, was du dort einschalten musst. Danach zeigt es, ob es geklappt hat. Exakte Alarme erlauben öffnet jetzt den richtigen Bildschirm, und Persistent prüft die Akkueinstellungen, bevor es fragt."
+    },
+    "zh-CN": {
+      "text": "Persistent 现在会在带你前往 Android 设置之前逐一说明每项权限，并告诉你需要开启什么。返回后会显示是否已成功。“允许精确闹钟”现在会打开正确的界面，Persistent 也会在询问前先检查电池设置。"
+    },
+    "pt-BR": {
+      "text": "O Persistent agora explica cada permissão antes de levar você às configurações do Android, uma de cada vez, e diz o que ativar lá. Ao voltar, mostra se deu certo. Permitir alarmes exatos agora abre a tela certa, e o Persistent verifica as configurações de bateria antes de perguntar."
+    },
+    "ja-JP": {
+      "text": "Persistent は Android の設定画面に移動する前に、権限を一つずつ説明し、そこで何をオンにすればよいかを案内するようになりました。戻ると、設定できたかどうかが表示されます。「正確なアラームを許可」で正しい画面が開くようになり、確認の前にバッテリー設定もチェックします。"
+    },
+    "en-CA": {
+      "copyFrom": "en-US"
+    },
+    "fr-CA": {
+      "copyFrom": "fr-FR"
+    }
+  }
+}
