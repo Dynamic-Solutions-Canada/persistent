@@ -32,6 +32,10 @@ Language changes reword application labels and the designated escalation marker,
   the shade and peeks like a newly-arrived notification. A reminder the user has to
   confirm is worth interrupting for twice, and a sound is missable — under a stack
   of newer notifications, or on a muted phone, a re-sound alone is nothing.
+  On Android the interval holds while the phone sleeps with the screen off: each
+  follow-up wakes the phone itself rather than waiting for something else to. Only
+  in Android's deepest idle state are follow-ups spaced out (at least 90 seconds
+  apart across all reminders), so they never delay another reminder's first fire.
 - **Alarm:** the hard nag. Android uses looping sound, vibration, and a
   full-screen surface that is not dismissable. The Windows companion uses its
   looping Alarm notification while the PC is awake and the app is running. A

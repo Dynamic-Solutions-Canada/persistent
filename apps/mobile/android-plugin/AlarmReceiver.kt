@@ -85,6 +85,25 @@ class AlarmReceiver : BroadcastReceiver() {
                     context.startService(serviceIntent)
                 }
             }
+            NagWakeups.ACTION_NAG -> {
+                // A follow-up nag is due (see NagWakeups). An exact alarm may start a
+                // foreground service from the background; the inexact fallback (no
+                // exact-alarm grant) may not. Then this occurrence's follow-ups stop,
+                // though its notification stays up.
+                val serviceIntent = Intent(context, AlarmService::class.java)
+                    .setAction(AlarmService.ACTION_NAG)
+                    .putExtra(EXTRA_OCCURRENCE_ID, occurrenceId)
+                    .putExtra(NagWakeups.EXTRA_GENERATION, intent.getLongExtra(NagWakeups.EXTRA_GENERATION, 0))
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(serviceIntent)
+                    } else {
+                        context.startService(serviceIntent)
+                    }
+                } catch (error: IllegalStateException) {
+                    android.util.Log.w("PersistAlarm", "nag wake-up could not start the service occ=$occurrenceId", error)
+                }
+            }
         }
     }
 
