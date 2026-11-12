@@ -1,4 +1,4 @@
-/** Route behavior: private unread lists, authentication, and durable idempotent dismissals. */
+/** Route behavior: private unread lists, audiences, authentication, and durable idempotent dismissals. */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import type { Request, Response } from 'express'
@@ -11,8 +11,12 @@ const delegate = {
   findMany: async () => [] as { announcementId: string }[],
   createMany: async () => ({ count: 0 })
 }
+// Accounts default to one created before every announcement's audience cutoff.
+const users = {
+  findUnique: async (): Promise<{ createdAt: Date } | null> => ({ createdAt: new Date('2026-01-01T00:00:00Z') })
+}
 const testGlobal = globalThis as unknown as { prisma: PrismaClient }
-testGlobal.prisma = { announcementView: delegate } as unknown as PrismaClient
+testGlobal.prisma = { announcementView: delegate, user: users } as unknown as PrismaClient
 const { announcementsRouter } = await import('./announcements.js')
 
 interface RouteLayer {
@@ -42,10 +46,12 @@ async function invoke(method: 'get' | 'post', path: string, userId?: string, id 
 test('anonymous readers and dismissals are rejected before database access', async (context) => {
   const read = context.mock.method(delegate, 'findMany', () => { throw new Error('Database accessed') })
   const write = context.mock.method(delegate, 'createMany', () => { throw new Error('Database accessed') })
+  const account = context.mock.method(users, 'findUnique', () => { throw new Error('Database accessed') })
   await assert.rejects(invoke('get', '/'), { statusCode: 401 })
   await assert.rejects(invoke('post', '/:id/viewed'), { statusCode: 401 })
   assert.equal(read.mock.callCount(), 0)
   assert.equal(write.mock.callCount(), 0)
+  assert.equal(account.mock.callCount(), 0)
 })
 
 test('viewed announcements disappear only for the account that dismissed them', async (context) => {
@@ -78,4 +84,19 @@ test('unknown or malformed announcement ids cannot create viewed records', async
     await assert.rejects(invoke('post', '/:id/viewed', 'alice', id), { statusCode: 404 })
   }
   assert.equal(write.mock.callCount(), 0)
+})
+
+test('news about a change reaches only accounts that existed before it', async (context) => {
+  const createdAt = { alice: new Date('2026-10-01T00:00:00Z'), carol: new Date('2026-10-10T00:00:00Z') }
+  context.mock.method(users, 'findUnique', async ({ where }: { where: { id: keyof typeof createdAt } }) => ({ createdAt: createdAt[where.id] }))
+  const existing = (await invoke('get', '/', 'alice')).body as { announcements: Record<string, unknown>[] }
+  assert.deepEqual(existing.announcements.map((item) => item.id), ['themes-match-system'])
+  // The audience cutoff is server-side policy, not part of the shared response.
+  assert.deepEqual(Object.keys(existing.announcements[0]!).sort(), ['id', 'paragraphs', 'title'])
+  assert.deepEqual((await invoke('get', '/', 'carol')).body, { announcements: [] })
+})
+
+test('a deleted account reads no announcements', async (context) => {
+  context.mock.method(users, 'findUnique', async () => null)
+  assert.deepEqual((await invoke('get', '/', 'gone')).body, { announcements: [] })
 })

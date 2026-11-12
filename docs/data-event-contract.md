@@ -12,7 +12,10 @@ Same-origin authenticated `apiFetch` requests carry `X-Persistent-Locale`; exter
 ### Account announcements
 
 `GET /api/announcements` returns the curated announcements this account has not
-viewed. The dialog waits for refreshed startup data and any existing dialog;
+viewed and is in the audience for. News about a change to something people
+already had (the themes default, for example) sets `existingAccountsBefore` to the
+release that made the change, so accounts created afterwards never see it. The
+audience stays on the server; the response carries only the shared fields. The dialog waits for refreshed startup data and any existing dialog;
 reminder deep links take priority. Opening, refreshing, backgrounding, or closing
 the app does not count as viewing. Closing the announcement (including Back,
 Escape, or the backdrop) queues `POST /api/announcements/:id/viewed`.
