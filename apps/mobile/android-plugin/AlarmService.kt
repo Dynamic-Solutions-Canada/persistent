@@ -1,5 +1,6 @@
 package ca.persistent.app.alarm
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -67,10 +68,18 @@ class AlarmService : Service() {
     private var soundingTone: Pair<String, String>? = null
     private var vibrator: Vibrator? = null
     private val handler = Handler(Looper.getMainLooper())
+    // Follow-up nags wake the device through AlarmManager, not this Handler: a
+    // Handler counts uptime, which stops in deep sleep (see NagWakeups).
+    private var lastNagGeneration = 0L
     private val nagLoops = NotificationNagLoop(
-        schedule = { callback, delayMs -> handler.postDelayed(callback, delayMs) },
-        cancel = { callback -> handler.removeCallbacks(callback) },
-        notify = { occurrenceId -> reNotify(occurrenceId) }
+        schedule = { occurrenceId, generation, delayMs -> NagWakeups.schedule(this, occurrenceId, generation, delayMs) },
+        cancel = { occurrenceId -> NagWakeups.cancel(this, occurrenceId) },
+        notify = { occurrenceId -> reNotify(occurrenceId) },
+        // Boot-relative nanoseconds never repeat within a boot, and AlarmManager drops
+        // pending alarms on reboot, so no wake-up from an earlier process can match.
+        newGeneration = {
+            maxOf(lastNagGeneration + 1, android.os.SystemClock.elapsedRealtimeNanos()).also { lastNagGeneration = it }
+        }
     )
     // The occurrence whose notification the foreground service is bound to.
     private var foregroundId: String? = null
@@ -228,7 +237,7 @@ class AlarmService : Service() {
             ACTION_APPEARANCE -> {
                 // In-place cosmetic refresh: never cancel, reorder, re-alert, or touch audio.
                 if (active.isEmpty()) {
-                    startForeground(SENTINEL_ID, placeholderNotification())
+                    startForegroundOrPost(SENTINEL_ID, placeholderNotification(), postIfRefused = false)
                     clearAll()
                 } else {
                     refreshAppearanceNotifications()
@@ -238,7 +247,7 @@ class AlarmService : Service() {
                 // The device-default prominence changed (already persisted by the
                 // caller). Re-post live notifications so the new channel applies now.
                 if (active.isEmpty()) {
-                    startForeground(SENTINEL_ID, placeholderNotification())
+                    startForegroundOrPost(SENTINEL_ID, placeholderNotification(), postIfRefused = false)
                     clearAll()
                 } else {
                     restyleActive()
@@ -249,7 +258,7 @@ class AlarmService : Service() {
                 // per-reminder shade prominence); re-post any active notification
                 // whose text or channel changed.
                 if (active.isEmpty()) {
-                    startForeground(SENTINEL_ID, placeholderNotification())
+                    startForegroundOrPost(SENTINEL_ID, placeholderNotification(), postIfRefused = false)
                     clearAll()
                 } else {
                     refreshActive()
@@ -262,7 +271,7 @@ class AlarmService : Service() {
                 // intent may reach us, but every reminder must come back.
                 if (active.isEmpty()) {
                     // Satisfy the FGS start contract, then stop cleanly.
-                    startForeground(SENTINEL_ID, placeholderNotification())
+                    startForegroundOrPost(SENTINEL_ID, placeholderNotification(), postIfRefused = false)
                     clearAll()
                 } else {
                     repostActive()
@@ -272,7 +281,7 @@ class AlarmService : Service() {
                 // Android Auto just connected. Only the nags that are actually happening
                 // gain the car form; the backlog is left alone (see mirrorEligibleToCar).
                 if (active.isEmpty()) {
-                    startForeground(SENTINEL_ID, placeholderNotification())
+                    startForegroundOrPost(SENTINEL_ID, placeholderNotification(), postIfRefused = false)
                     clearAll()
                 } else {
                     mirrorEligibleToCar()
@@ -283,7 +292,7 @@ class AlarmService : Service() {
                 // everything — so the whole standing backlog gets its car form, not just
                 // what happened to alert since the connection came up.
                 if (active.isEmpty()) {
-                    startForeground(SENTINEL_ID, placeholderNotification())
+                    startForegroundOrPost(SENTINEL_ID, placeholderNotification(), postIfRefused = false)
                     clearAll()
                 } else {
                     if (carRequestedSince != CarProjection.projectingSince) {
@@ -296,6 +305,10 @@ class AlarmService : Service() {
                 }
             }
             ACTION_ENSURE -> ensureNags()
+            ACTION_NAG -> deliverNag(
+                intent.getStringExtra(AlarmReceiver.EXTRA_OCCURRENCE_ID),
+                intent.getLongExtra(NagWakeups.EXTRA_GENERATION, 0)
+            )
         }
         reconcileCallAudio()
         return START_STICKY
@@ -379,22 +392,110 @@ class AlarmService : Service() {
             startAlarm(spec, silent = true)
         }
         // Guarantee the foreground-start contract (we're started via
-        // startForegroundService): rebind to a live notification, or — if there is
-        // nothing to show at all — post the placeholder and stop cleanly.
-        val fg = foregroundId?.let { active[it] }
-        if (fg != null) {
-            startForeground(notifId(fg.occurrenceId), buildNotification(fg))
-            updateGroupSummary()
-        } else {
-            startForeground(SENTINEL_ID, placeholderNotification())
-            clearAll()
-            return
-        }
+        // startForegroundService).
+        if (!bindForegroundOrStop()) return
         // Buried nags (minimized section) get a brief, throttled peek into the main
         // shade so the user can actually notice them (the silent-section stack only
         // previews a couple of entries).
         peekMinimized()
     }
+
+    /**
+     * Make [notification] the service's foreground notification, without crashing when
+     * Android refuses.
+     *
+     * Android 12+ refuses `startForeground` while the app is in the background unless
+     * it follows a `startForegroundService` (a fired alarm, a nag wake-up, a
+     * notification action). Some paths run outside that window: the call-audio
+     * callback restyles live notifications when a call starts or ends, and a restyle
+     * has to drop foreground and take it back to move a notification's channel. The
+     * refusal used to be an uncaught exception that killed the process, ringing alarm
+     * included. Now the notification is posted normally instead (when
+     * [postIfRefused]), so it stays visible, and the service regains foreground at its
+     * next `startForegroundService` entry, such as the next nag wake-up.
+     *
+     * Pass `postIfRefused = false` for the placeholder, which is only there to satisfy
+     * the foreground contract and must never be left behind on its own.
+     * Returns whether the service is now in the foreground with this notification.
+     */
+    private fun startForegroundOrPost(id: Int, notification: Notification, postIfRefused: Boolean = true): Boolean {
+        try {
+            startForeground(id, notification)
+            return true
+        } catch (error: IllegalStateException) {
+            val refused = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                error is android.app.ForegroundServiceStartNotAllowedException
+            if (!refused) throw error
+            android.util.Log.w("PersistAlarm", "foreground refused in the background; posting id=$id normally", error)
+            if (postIfRefused) nm.notify(id, notification)
+            return false
+        }
+    }
+
+    /**
+     * Satisfy the foreground-start contract of a startForegroundService call: rebind
+     * to a live notification, or, when there is nothing to show at all, post the
+     * placeholder and stop cleanly. Returns whether anything is live.
+     */
+    private fun bindForegroundOrStop(): Boolean {
+        val fg = foregroundId?.let { active[it] }
+        if (fg != null) {
+            startForegroundOrPost(notifId(fg.occurrenceId), buildNotification(fg))
+            updateGroupSummary()
+            return true
+        }
+        startForegroundOrPost(SENTINEL_ID, placeholderNotification(), postIfRefused = false)
+        clearAll()
+        return false
+    }
+
+    /**
+     * A follow-up nag's wake-up arrived ([NagWakeups]). Always satisfies the
+     * foreground contract (the receiver used startForegroundService), and does so
+     * before the nag itself so the alerting post is the last write to the shade.
+     *
+     * In a live service the loop decides: a current wake-up nags and schedules the
+     * next, a stale one (interval edited, nag cleared) is ignored. In a fresh process
+     * nothing is tracked, because the alarm outlived the process that set it. Then the
+     * occurrence is rebuilt from [AlarmStore] when it is still a fired soft nag, it
+     * nags now, and its schedule resumes from here. The store is the authority: Done,
+     * remote dismiss and resync remove the entry and snooze moves it into the future,
+     * while the notification itself may be gone because Android removes a foreground
+     * notification along with its dead process.
+     */
+    private fun deliverNag(occurrenceId: String?, generation: Long) {
+        if (occurrenceId == null) {
+            bindForegroundOrStop()
+            return
+        }
+
+        if (nagLoops.isTracking(occurrenceId)) {
+            bindForegroundOrStop()
+            nagLoops.fire(occurrenceId, generation)
+            return
+        }
+
+        // Live but not nagging (an alarm, or nags turned off), or no longer a fired
+        // soft nag at all: the wake-up is stale.
+        val spec = if (active.containsKey(occurrenceId)) null else AlarmStore.find(this, occurrenceId)
+        if (spec == null || !isFiredSoftNag(spec)) {
+            NagWakeups.cancel(this, occurrenceId)
+            bindForegroundOrStop()
+            return
+        }
+
+        android.util.Log.i("PersistAlarm", "nag restored in a fresh process occ=$occurrenceId")
+        // Rebuild the in-memory state, repost the notification quietly and re-arm the
+        // schedule; then deliver the follow-up that was due.
+        startAlarm(spec, silent = true)
+        bindForegroundOrStop()
+        reNotify(occurrenceId)
+    }
+
+    /** Whether [spec] is a soft nag with follow-ups that has already fired (not snoozed into the future). */
+    private fun isFiredSoftNag(spec: AlarmSpec): Boolean =
+        !spec.alarm && spec.soundIntervalSeconds > 0 && spec.fireAtMs <= System.currentTimeMillis() &&
+            !spec.occurrenceId.endsWith(AlarmReceiver.ESC_SUFFIX)
 
     /**
      * Briefly elevate every buried (minimized, non-alarm) nag into the main shade
@@ -439,7 +540,7 @@ class AlarmService : Service() {
         if (foregroundId == occurrenceId) {
             stopForeground(STOP_FOREGROUND_DETACH)
             nm.cancel(notifId(occurrenceId))
-            startForeground(notifId(occurrenceId), notif)
+            startForegroundOrPost(notifId(occurrenceId), notif)
         } else {
             nm.cancel(notifId(occurrenceId))
             nm.notify(notifId(occurrenceId), notif)
@@ -478,7 +579,7 @@ class AlarmService : Service() {
         val notif = buildNotification(spec)
         if (foregroundId == null) {
             foregroundId = spec.occurrenceId
-            startForeground(notifId(spec.occurrenceId), notif)
+            startForegroundOrPost(notifId(spec.occurrenceId), notif)
         } else {
             nm.notify(notifId(spec.occurrenceId), notif)
         }
@@ -616,7 +717,7 @@ class AlarmService : Service() {
         val spec = active[occurrenceId] ?: return
         if (confirm) confirming.add(occurrenceId) else confirming.remove(occurrenceId)
         val notif = buildNotification(spec)
-        if (foregroundId == occurrenceId) startForeground(notifId(occurrenceId), notif)
+        if (foregroundId == occurrenceId) startForegroundOrPost(notifId(occurrenceId), notif)
         else nm.notify(notifId(occurrenceId), notif)
     }
 
@@ -679,7 +780,7 @@ class AlarmService : Service() {
         silenceableIds.remove(occurrenceId)
         ringingSpecs.remove(occurrenceId)
         val notif = buildNotification(downgraded)
-        if (foregroundId == occurrenceId) startForeground(notifId(occurrenceId), notif)
+        if (foregroundId == occurrenceId) startForegroundOrPost(notifId(occurrenceId), notif)
         else nm.notify(notifId(occurrenceId), notif)
         nagLoops.update(occurrenceId, downgraded.soundIntervalSeconds)
         // Hand the ring to the newest alarm still going, exactly as `clear` does. This
@@ -714,7 +815,7 @@ class AlarmService : Service() {
     /** (Re)bind the foreground notification to a specific occurrence. */
     private fun bindForeground(spec: AlarmSpec) {
         foregroundId = spec.occurrenceId
-        startForeground(notifId(spec.occurrenceId), buildNotification(spec))
+        startForegroundOrPost(notifId(spec.occurrenceId), buildNotification(spec))
     }
 
     /** Re-post every active notification (one bound to the foreground service). */
@@ -724,7 +825,7 @@ class AlarmService : Service() {
             val notif = buildNotification(spec)
             if (!bound) {
                 foregroundId = id
-                startForeground(notifId(id), notif)
+                startForegroundOrPost(notifId(id), notif)
                 bound = true
             } else {
                 nm.notify(notifId(id), notif)
@@ -749,7 +850,7 @@ class AlarmService : Service() {
                 stopForeground(STOP_FOREGROUND_DETACH)
                 nm.cancel(notifId(id))
                 foregroundId = id
-                startForeground(notifId(id), notif)
+                startForegroundOrPost(notifId(id), notif)
                 bound = true
             } else {
                 nm.cancel(notifId(id))
@@ -789,13 +890,13 @@ class AlarmService : Service() {
                 if (foregroundId == id) {
                     stopForeground(STOP_FOREGROUND_DETACH)
                     nm.cancel(notifId(id))
-                    startForeground(notifId(id), notif)
+                    startForegroundOrPost(notifId(id), notif)
                 } else {
                     nm.cancel(notifId(id))
                     nm.notify(notifId(id), notif)
                 }
             } else if (foregroundId == id) {
-                startForeground(notifId(id), notif)
+                startForegroundOrPost(notifId(id), notif)
             } else {
                 nm.notify(notifId(id), notif)
             }
@@ -862,7 +963,7 @@ class AlarmService : Service() {
             if (!mirrorsToCar(spec)) continue
             android.util.Log.i("PersistAlarm", "car mirror occ=$id alarm=${spec.alarm}")
             val notif = buildNotification(spec)
-            if (foregroundId == id) startForeground(notifId(id), notif) else nm.notify(notifId(id), notif)
+            if (foregroundId == id) startForegroundOrPost(notifId(id), notif) else nm.notify(notifId(id), notif)
         }
     }
 
@@ -1488,6 +1589,7 @@ class AlarmService : Service() {
         private const val ACTION_APPEARANCE = "ca.persistent.app.SERVICE_APPEARANCE"
         const val ACTION_REFRESH = "ca.persistent.app.SERVICE_REFRESH"
         const val ACTION_ENSURE = "ca.persistent.app.SERVICE_ENSURE"
+        const val ACTION_NAG = "ca.persistent.app.SERVICE_NAG"
         const val ACTION_MIRROR_CAR = "ca.persistent.app.SERVICE_MIRROR_CAR"
         const val ACTION_MIRROR_CAR_ALL = "ca.persistent.app.SERVICE_MIRROR_CAR_ALL"
         const val ACTION_SNOOZE_LOCAL = "ca.persistent.app.SERVICE_SNOOZE_LOCAL"

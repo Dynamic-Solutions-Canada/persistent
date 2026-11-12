@@ -131,6 +131,42 @@ drives them lives in `apps/web/src/native`.
     at all. Only real nags do this — the keep-alive and other bookkeeping re-posts
     below stay silent and non-alerting (`setOnlyAlertOnce`), or every resync would
     pop a banner for something that hasn't changed.
+
+    **Follow-ups are AlarmManager wake-ups (`NagWakeups`), not in-process timers.**
+    They used to be `Handler` callbacks, which count uptime; uptime stops in deep
+    sleep, so a follow-up due with the screen off waited for whatever woke the phone
+    next. Measured on a Pixel 9 Pro (Android 16, on battery): a 60-second nag due
+    with the screen off arrived 5 minutes 13 seconds late, and the four in between
+    never came. With wake-ups, the same phone delivered every follow-up within a
+    second of schedule for ten minutes, including those due with the screen off,
+    and the follow-up after a killed process arrived on time through the restore
+    path below. Now each follow-up is one exact allow-while-idle alarm per occurrence
+    (keyed by the occurrence, so rescheduling replaces it) carrying a generation
+    number, so a wake-up already in flight when the interval is edited or the nag is
+    cleared is ignored instead of nagging early (`NotificationNagLoop`). The
+    wake-up also outlives the process: in a fresh process `AlarmService.deliverNag`
+    rebuilds the occurrence from `AlarmStore` (the authority, since Done, remote
+    dismiss and resync remove the entry and snooze moves it into the future), re-posts
+    it quietly, nags, and resumes the schedule. Before, a process death ended the
+    follow-ups for good.
+
+    In deep idle Android allows each app 72 allow-while-idle alarms an hour, and a
+    first fire draws on the same allowance, so follow-ups could otherwise delay a new
+    reminder's first fire (the interval can be as short as 5 seconds). While the
+    device is in deep idle, follow-up wake-ups are spaced at least 90 seconds apart
+    across all reminders (`NagIdleSpacing`), capping them at 40 an hour.
+
+    **Every `startForeground` goes through `startForegroundOrPost`.** Android 12+
+    refuses `startForeground` while the app is in the background unless it follows a
+    `startForegroundService` (a fire, a nag wake-up, a notification action). Several
+    paths run outside that window, most visibly the call-audio callback, whose restyle
+    drops foreground and takes it back to move a notification's channel. The refusal
+    was an uncaught `ForegroundServiceStartNotAllowedException` that killed the
+    process, ringing alarm included, and the redelivered intent then crashed the new
+    process too (seen on a Pixel 9 Pro when the audio mode changed; reproduced on the
+    emulator through a background restyle). Now a refusal posts the notification
+    normally (the placeholder is never posted on its own), and the next
+    `startForegroundService` entry, such as a nag wake-up, rebinds foreground.
   - **Alarm (`ALARM`)** — full-screen intent + **continuously looping** the chosen
     alarm sound + vibration (no interval; it's relentless). Like the system clock's
     alarm, the full-screen `AlarmActivity` is kept on screen whether locked or not:
