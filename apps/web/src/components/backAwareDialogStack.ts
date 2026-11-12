@@ -35,7 +35,27 @@ export function hasOpenBackAwareDialog(): boolean {
   return probe()
 }
 
-/** New automatic dialogs also wait for a previous dialog's history pop to finish. */
+let reservations = 0
+
+/** New automatic dialogs also wait for a previous dialog's history pop, or a reserved slot. */
 export function hasPendingBackAwareDialog(): boolean {
-  return pendingProbe()
+  return pendingProbe() || reservations > 0
+}
+
+/**
+ * Claim the automatic-dialog slot from the moment a dialog decides to open until
+ * it closes. A dialog registers with the stack only once its modal mounts, which
+ * can be a render later; without a claim, a sibling deciding in between would
+ * open too and the two would stack. Returns a release function (safe to call twice).
+ */
+export function reserveBackAwareDialog(): () => void {
+  reservations += 1
+  notifyBackAwareDialogs()
+  let released = false
+  return () => {
+    if (released) return
+    released = true
+    reservations -= 1
+    notifyBackAwareDialogs()
+  }
 }

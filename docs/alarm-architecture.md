@@ -360,12 +360,15 @@ drives them lives in `apps/web/src/native`.
 
 Permissions: `SCHEDULE_EXACT_ALARM`/`USE_EXACT_ALARM`, `POST_NOTIFICATIONS`,
 `FOREGROUND_SERVICE` (+ `_SPECIAL_USE`), `USE_FULL_SCREEN_INTENT`,
-`SYSTEM_ALERT_WINDOW`, `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED`; prompt for
-battery-optimization exemption. On Android 14+ `USE_FULL_SCREEN_INTENT` is a
-user-grantable runtime permission (off by default for non-calling/alarm apps), so
-`AlarmPlugin.ensureFullScreenIntent()` checks `canUseFullScreenIntent()` and opens
-the per-app setting to grant it — without it the escalation only shows a heads-up
-banner that collapses instead of the full-screen alarm. The alarm notification is
+`SYSTEM_ALERT_WINDOW`, `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED`, and
+`REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`. Several are user grants changed on system
+screens: on Android 14+ `USE_FULL_SCREEN_INTENT` is off by default for
+non-calling/alarm apps, and without it the escalation only shows a heads-up banner
+that collapses instead of the full-screen alarm. `AlarmPermissions.kt` owns both
+halves for every such grant: whether it is held (reporting `true` wherever the
+grant does not exist or does not matter on that Android version) and opening the
+one per-app screen that changes it. See "Asking for alarm permissions" below.
+The alarm notification is
 `VISIBILITY_PUBLIC` so its content shows on the lock screen (the user can see
 which reminder is firing).
 
@@ -417,15 +420,64 @@ Done/Snooze for after the user leaves the surface. If the launch throws anyway,
 the loud notification is re-posted, because a ringing alarm with neither a surface
 nor a banner is the one outcome this service must never produce.
 
-`AlarmPlugin.alarmReadiness()` reports notifications / full-screen / exact-alarm /
-**overlay**; `AlarmPermissionsBanner` (web) renders a non-dismissible banner for
-every gap, with a button that opens the right system screen, and re-checks on app
-resume. Non-dismissible is deliberate: each of these fails silently, so the only
-thing that should clear the warning is actually granting it. If
-`POST_NOTIFICATIONS` is denied the app also warns on startup
-(`warnIfAlarmsCantShow`), because a fired alarm would otherwise sound with no shade
-surface — and the native force-launch above is the last-resort backstop, not a
-substitute for the grant.
+`AlarmPlugin.alarmReadiness()` reports notifications / exact-alarm / full-screen /
+**overlay** / battery; `AlarmPermissionsBanner` (web) renders a non-dismissible
+banner for every gap and re-checks on app resume. Non-dismissible is deliberate:
+each of these fails silently, so the only thing that should clear the warning is
+actually granting it. The banner is red while any gap can hide, delay or collapse
+an alarm, and a softer warning when only the battery exemption is missing: exact
+allow-while-idle alarms still fire through Doze without it, so that gap costs
+background re-sync and resistance to OEM battery managers, not the alarm itself. If `POST_NOTIFICATIONS` is denied, the native
+force-launch above is the last-resort backstop, not a substitute for the grant.
+
+### Asking for alarm permissions
+
+**Nothing leaves the app without an explanation first.** Every request goes
+through the permission guide (`apps/web/src/native/permissions/`): a dialog that
+explains one grant (why Persistent needs it, and what to choose on the screen
+that comes next), and opens that screen only when the user presses Continue. The
+banner's buttons open the same guide for their one grant. The copy for each grant
+lives in `alarmGrants.ts`, shared by both.
+
+- **First run walks through what is missing, once.** After sign-in,
+  `PermissionOnboarding` opens the guide for every missing grant, waiting for
+  startup data and for any other dialog (a notification deep link opens first).
+  It reserves the dialog slot (`reserveBackAwareDialog`) the moment it decides, so
+  the announcement dialog cannot open in the render before the guide's modal
+  registers. Grants whose explanation the user actually saw are remembered per
+  device (`guideOffers.ts`), so a later launch opens it again only for a grant this
+  device never saw explained. Anything the user put off stays in the banner.
+  Nothing in `initNative()` waits on it.
+- **One readiness value.** `useAlarmReadiness` is a shared store: one resume
+  listener and one bridge read feed the banner, the onboarding and any open guide,
+  so they never disagree and a guide can open on its first render.
+- **The guide closes through `open`, never by unmounting.** `BackAwareModal` pops
+  the history entry it pushed only on an open-to-closed change; an unmounted modal
+  left that entry behind, and the next Back did nothing.
+
+- **One at a time, and progress comes only from readiness.** A settings screen is
+  a separate activity, so the call that opens it returns before the user has done
+  anything. The guide therefore advances only on a fresh readiness read (on
+  resume, after the notification prompt answers, or on Check again): granted moves
+  to the next explanation, still off offers Try again. `permissionGuide.ts` is the
+  pure reducer for this, and its tests pin the sequencing.
+- **Declining never traps the user.** Not now works in every state. When a device
+  has no such screen, `openPermissionSettings` reports `opened: false` instead of
+  swallowing the failure, and the guide names the path to find it by hand.
+  `opened: false` also means the grant was already on, so the guide re-reads
+  readiness before saying the screen could not be opened.
+- **Notifications fall back to settings.** Android stops showing the runtime prompt
+  after repeated denials, and below Android 13 there is no prompt at all, so once
+  the prompt has been tried the guide opens the app's notification settings.
+- **Older hosts.** The hosted web bundle reaches installed wrappers before a new
+  APK does. A readiness flag the host doesn't send (`battery` before this change)
+  counts as unknown, never as missing, and an `UNIMPLEMENTED`
+  `openPermissionSettings` falls back to the older per-grant request methods,
+  which remain for that reason. Exact alarms have no older route, so the guide
+  shows the manual path there.
+- **Exact alarms rarely show up.** The app declares `USE_EXACT_ALARM`, which
+  Android 13+ grants automatically to alarm apps, so this gap appears mainly on
+  Android 12, where the user can revoke `SCHEDULE_EXACT_ALARM`.
 
 ## Back behaves like an app, not a browser
 

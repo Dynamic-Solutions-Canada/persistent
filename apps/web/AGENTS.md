@@ -227,7 +227,11 @@
   `scrollRestoration`.
 - **Dialogs are back-aware:** build modals with `components/BackAwareModal.tsx`
   (not raw Joy `Modal`) so Android/browser Back closes the top dialog and dialogs
-  don't linger in history. Pages are routes (Back navigates normally).
+  don't linger in history. Pages are routes (Back navigates normally). Close one by
+  setting `open={false}`, not by unmounting it: only the open-to-closed change pops
+  the history entry it pushed. A dialog that opens by itself (announcements, the
+  permission guide) waits on `hasPendingBackAwareDialog()` and reserves the slot
+  with `reserveBackAwareDialog()` as soon as it decides, so two never stack.
 - `verbatimModuleSyntax` is on: use `import type` for type-only imports.
 
 - Application copy uses the established localization module and canonical shared catalogs. Translate display text and accessibility labels, preserving form values, IDs, routes, medicine content and stable duration-unit keys. Device language/region preferences stay separate from account time zone, explicit clock choice and account email language; see `docs/localization.md` at the root.

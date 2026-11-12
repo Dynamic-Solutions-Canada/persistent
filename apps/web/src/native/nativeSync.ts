@@ -1,4 +1,3 @@
-import { tr } from '../localization/i18n.js'
 /**
  * Native sync: keep on-device exact alarms in step with the server. On the
  * native Android client this schedules the alarms that actually fire (offline,
@@ -21,7 +20,6 @@ import {
 } from '@persistent/shared'
 import { getLocale } from '../localization/localeState.js'
 import { apiFetch } from '../lib/apiClient.js'
-import { notify } from '../lib/toast.js'
 import { subscribeWs } from '../lib/wsClient.js'
 import { AlarmPlugin, isNative, type ScheduledAlarm } from './alarmBridge.js'
 import { navigateApp } from './navTo.js'
@@ -188,46 +186,6 @@ function scheduleResync(): void {
   }, 500)
 }
 
-async function requestPermissions(): Promise<void> {
-  // POST_NOTIFICATIONS (Android 13+) — without it the alarm notification is
-  // silently dropped. requestPermissions() drives the runtime prompt without
-  // touching Firebase.
-  await PushNotifications.requestPermissions().catch(() => {})
-  await AlarmPlugin.canScheduleExactAlarms().catch(() => ({ allowed: false }))
-  await AlarmPlugin.requestBatteryExemption().catch(() => ({ granted: false }))
-  // Without the full-screen-intent grant (Android 14+) the escalation alarm only
-  // shows a collapsing heads-up; ask for it so the alarm stays on screen / locked.
-  await AlarmPlugin.ensureFullScreenIntent().catch(() => ({ allowed: false }))
-  // "Display over other apps" — on Android 15 this is what lets a ringing alarm
-  // take over the screen while the phone is unlocked; without it the launch is
-  // refused as a background activity start. No-op once granted, and on older
-  // versions where it isn't needed.
-  await AlarmPlugin.requestOverlayPermission().catch(() => ({ granted: false }))
-  await warnIfAlarmsCantShow()
-}
-
-/**
- * If notifications are denied, a fired alarm rings with no visible, identifiable,
- * stoppable surface (the native side forces the full-screen activity as a backstop,
- * but the user should fix the root cause). Warn loudly so it's caught before an
- * alarm strikes — this is exactly the "sound going, no idea what app or how to stop
- * it" state. Full-screen / exact-alarm gaps already open their own settings prompts
- * in requestPermissions, so they aren't re-surfaced here.
- */
-async function warnIfAlarmsCantShow(): Promise<void> {
-  const ready = await AlarmPlugin.alarmReadiness().catch(() => null)
-  if (!ready) return
-  if (!ready.notifications) {
-    notify(
-      tr("Notifications are off for Persistent, alarms will sound with no way to see or stop them. Turn notifications on in system settings."),
-      'danger'
-    )
-  }
-  // `overlay`, `fullScreen` and `exactAlarms` gaps are surfaced by
-  // AlarmPermissionsBanner instead — a toast disappears, and these need to stay
-  // visible until they're actually granted.
-}
-
 /**
  * Register for FCM so the server can push fire/escalate/dismiss/sync to this
  * device (the cross-device / ad-hoc / closed-app backup to on-device alarms). The
@@ -267,7 +225,9 @@ let started = false
 export async function initNative(): Promise<void> {
   if (!isNative() || started) return
   started = true
-  await requestPermissions()
+  // Alarm permissions are not requested here. Each one is explained first, one at
+  // a time, by the permission guide and the alarm banner (native/permissions/), so
+  // nothing in this await chain waits on the user reading a dialog.
   // Sync the device-default prominence so the native INHERIT fallback matches the
   // local setting even if it was changed while the app was closed (no-op natively
   // if unchanged, so this won't needlessly re-post).

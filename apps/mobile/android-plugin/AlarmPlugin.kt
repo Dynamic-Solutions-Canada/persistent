@@ -11,7 +11,6 @@ import androidx.core.view.WindowCompat
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import androidx.activity.result.ActivityResult
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
@@ -232,62 +231,43 @@ class AlarmPlugin : Plugin() {
 
     @PluginMethod
     fun canScheduleExactAlarms(call: PluginCall) {
-        val manager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val allowed = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) manager.canScheduleExactAlarms() else true
-        call.resolve(JSObject().put("allowed", allowed))
+        call.resolve(JSObject().put("allowed", AlarmPermissions.canScheduleExactAlarms(context)))
     }
 
     /**
-     * Whether a fired alarm can actually be presented to the user. `notifications`
-     * false (POST_NOTIFICATIONS denied) is the worst case — the alarm would ring
-     * with no visible/stoppable surface — so the app warns the user to fix it before
-     * an alarm strikes. `fullScreen`/`exactAlarms` degrade reliability without fully
-     * hiding the alarm.
+     * Whether a fired alarm can actually be presented to the user, one flag per
+     * grant in [AlarmPermissions.Grant]. `notifications` false (POST_NOTIFICATIONS
+     * denied) is the worst case: the alarm would ring with no visible, stoppable
+     * surface. The others degrade reliability without fully hiding the alarm.
+     * `battery` was added later, so the WebView treats its absence (an older host)
+     * as unknown rather than missing.
      */
     @PluginMethod
     fun alarmReadiness(call: PluginCall) {
-        val notifications = androidx.core.app.NotificationManagerCompat.from(context).areNotificationsEnabled()
-        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-        val fullScreen =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) nm.canUseFullScreenIntent() else true
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val exactAlarms =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) alarmManager.canScheduleExactAlarms() else true
-        call.resolve(
-            JSObject()
-                .put("notifications", notifications)
-                .put("fullScreen", fullScreen)
-                .put("exactAlarms", exactAlarms)
-                .put("overlay", canShowAlarmSurfaceWhileUnlocked())
-        )
+        val result = JSObject()
+        for ((key, satisfied) in AlarmPermissions.readiness(context)) result.put(key, satisfied)
+        call.resolve(result)
     }
 
     /**
-     * Whether a ringing alarm can take over the screen while the device is *unlocked*.
-     *
-     * Android 15 refuses the activity launch from our foreground service unless the
-     * app is exempt from the background-activity-launch rules, and "display over
-     * other apps" is the exemption we hold (see AlarmService.presentAlarmSurface).
-     * Below Android 15 the launch is allowed regardless, so report true there rather
-     * than nagging for a permission that would change nothing.
+     * Open the system screen that changes one grant (`grant` is a readiness key).
+     * Resolves immediately with whether a screen was opened; the WebView learns the
+     * outcome by re-reading readiness when the app resumes. See [AlarmPermissions].
      */
-    private fun canShowAlarmSurfaceWhileUnlocked(): Boolean =
-        if (Build.VERSION.SDK_INT >= 35) Settings.canDrawOverlays(context) else true
+    @PluginMethod
+    fun openPermissionSettings(call: PluginCall) {
+        val grant = AlarmPermissions.Grant.fromKey(call.getString("grant")) ?: run {
+            call.reject("unknown grant")
+            return
+        }
+        call.resolve(JSObject().put("opened", AlarmPermissions.openSettings(context, grant)))
+    }
 
-    /** Open the system "display over other apps" screen for this app. */
+    /** Older web bundles' entry point; new ones call [openPermissionSettings] after explaining. */
     @PluginMethod
     fun requestOverlayPermission(call: PluginCall) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(context)) {
-            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
-                .setData(Uri.parse("package:${context.packageName}"))
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            try {
-                context.startActivity(intent)
-            } catch (_: Exception) {
-                // Some OEMs don't expose this screen; the heads-up banner remains.
-            }
-        }
-        call.resolve(JSObject().put("granted", canShowAlarmSurfaceWhileUnlocked()))
+        AlarmPermissions.openSettings(context, AlarmPermissions.Grant.OVERLAY)
+        call.resolve(JSObject().put("granted", AlarmPermissions.canShowAlarmSurfaceWhileUnlocked(context)))
     }
 
     @PluginMethod
@@ -353,46 +333,21 @@ class AlarmPlugin : Plugin() {
         call.resolve(JSObject().put("uri", uri?.toString() ?: "").put("title", title))
     }
 
-    /**
-     * Ensure the app may launch its full-screen alarm over the lock screen. On
-     * Android 14+ `USE_FULL_SCREEN_INTENT` is user-grantable and off by default for
-     * non-calling/alarm apps; without it the escalation only shows a heads-up that
-     * collapses, so the user can lose the alarm among other notifications. Returns
-     * whether it's allowed and, if not, opens the per-app settings to grant it.
-     */
+    /** Older web bundles' entry point; new ones call [openPermissionSettings] after explaining. */
     @PluginMethod
     fun ensureFullScreenIntent(call: PluginCall) {
-        var allowed = true
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-            allowed = manager.canUseFullScreenIntent()
-            if (!allowed) {
-                val intent = Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT)
-                    .setData(Uri.parse("package:${context.packageName}"))
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                try {
-                    context.startActivity(intent)
-                } catch (_: Exception) {
-                    // Some OEMs don't expose this screen; the heads-up banner remains.
-                }
-            }
-        }
+        val grant = AlarmPermissions.Grant.FULL_SCREEN
+        val allowed = AlarmPermissions.isSatisfied(context, grant)
+        AlarmPermissions.openSettings(context, grant)
         call.resolve(JSObject().put("allowed", allowed))
     }
 
+    /** Older web bundles' entry point; new ones call [openPermissionSettings] after explaining. */
     @PluginMethod
     fun requestBatteryExemption(call: PluginCall) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-                .setData(Uri.parse("package:${context.packageName}"))
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            try {
-                context.startActivity(intent)
-            } catch (_: Exception) {
-                // Some OEMs don't expose this intent; ignore and report not-granted.
-            }
-        }
-        call.resolve(JSObject().put("granted", false))
+        val grant = AlarmPermissions.Grant.BATTERY
+        AlarmPermissions.openSettings(context, grant)
+        call.resolve(JSObject().put("granted", AlarmPermissions.isSatisfied(context, grant)))
     }
 
     companion object {

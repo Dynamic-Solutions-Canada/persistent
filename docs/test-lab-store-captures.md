@@ -312,7 +312,7 @@ reminders through the same authenticated demo API when finished.
 The runner grants notification, exact alarm, overlay and full-screen permissions
 only on its disposable direct demo install. It also uses Android's device-idle
 whitelist on that disposable install and verifies the exemption with PowerManager,
-so the first-run battery sheet does not cover a capture. This lab-only grant is
+so the first-run permission guide does not cover a capture. This lab-only grant is
 recorded in provenance. It keeps its activity awake without
 changing display timeout settings. Actual OEM permission behavior and successful
 alarm display remain runtime gates. Native screens must be inspected, not inferred

@@ -5,6 +5,7 @@
  * docs/alarm-architecture.md.
  */
 import { Capacitor, registerPlugin } from '@capacitor/core'
+import type { AlarmGrant } from './permissions/alarmGrants.js'
 import type { DeviceAgendaEntry, SoundChoice, NativeAppearance, NativeLocale, NativeLanguageState, Locale } from '@persistent/shared'
 
 export interface ScheduledAlarm {
@@ -100,7 +101,20 @@ export interface AlarmPluginPlugin {
     fullScreen: boolean
     exactAlarms: boolean
     overlay: boolean
+    /**
+     * Exempt from battery optimization. Absent from hosts built before it was
+     * reported; read it through `permissions/alarmGrants.ts`, which treats a
+     * missing flag as unknown rather than missing.
+     */
+    battery?: boolean
   }>
+  /**
+   * Open the system screen that changes one readiness grant. Resolves straight
+   * away with whether a screen opened (false when already granted, or the device
+   * has no such screen); the outcome arrives by re-reading readiness on resume.
+   * Missing from older hosts, which reject with `UNIMPLEMENTED`.
+   */
+  openPermissionSettings(options: { grant: AlarmGrant }): Promise<{ opened: boolean }>
   /**
    * Set the device default shade prominence (for reminders set to INHERIT) and
    * re-post any live notifications so the change applies immediately.
