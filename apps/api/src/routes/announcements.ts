@@ -1,7 +1,7 @@
-/** Unread announcements and idempotent, account-scoped viewed records. */
+/** Unread announcements for the account's audience, and idempotent, account-scoped viewed records. */
 import { Router } from 'express'
 import { announcementIdSchema } from '@persistent/shared'
-import { announcements } from '../lib/announcements.js'
+import { announcements, unreadAnnouncementsFor } from '../lib/announcements.js'
 import { requireUserId } from '../lib/auth-middleware.js'
 import { notFound } from '../lib/http-error.js'
 import { prisma } from '../lib/prisma.js'
@@ -12,13 +12,17 @@ export const announcementsRouter = Router()
 
 announcementsRouter.get('/', async (request, response) => {
   const userId = requireUserId(request)
-  const views = await prisma.announcementView.findMany({
-    where: { userId },
-    select: { announcementId: true }
-  })
+  const [account, views] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { createdAt: true } }),
+    prisma.announcementView.findMany({
+      where: { userId },
+      select: { announcementId: true }
+    })
+  ])
   const viewedIds = new Set(views.map((view) => view.announcementId))
   response.setHeader('Cache-Control', 'no-store')
-  response.json({ announcements: announcements.filter((announcement) => !viewedIds.has(announcement.id)) })
+  // An account that no longer exists has nothing to read.
+  response.json({ announcements: account ? unreadAnnouncementsFor(account.createdAt, viewedIds) : [] })
 })
 
 announcementsRouter.post('/:id/viewed', async (request, response) => {
