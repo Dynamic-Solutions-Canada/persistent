@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "versionName": "0.30.1",
+  "locales": {
+    "en-US": {
+      "text": "Repeating reminders now keep nagging on time while your phone is asleep, and carry on if Android closes the app. Fixes a crash that could stop a ringing alarm when a call started or ended."
+    },
+    "es-ES": {
+      "text": "Los recordatorios que se repiten ahora siguen avisando a tiempo mientras el teléfono está en reposo, y continúan si Android cierra la app. Corrige un fallo que podía detener una alarma sonando al empezar o terminar una llamada."
+    },
+    "fr-FR": {
+      "text": "Les rappels qui se répètent continuent désormais à l’heure pendant que le téléphone est en veille, et reprennent si Android ferme l’application. Corrige un plantage qui pouvait arrêter une alarme en train de sonner au début ou à la fin d’un appel."
+    },
+    "de-DE": {
+      "text": "Wiederholte Erinnerungen melden sich jetzt pünktlich, auch wenn das Telefon im Ruhezustand ist, und laufen weiter, wenn Android die App schließt. Behebt einen Absturz, der einen klingelnden Alarm zu Beginn oder Ende eines Anrufs stoppen konnte."
+    },
+    "zh-CN": {
+      "text": "重复提醒现在会在手机休眠时按时继续提醒，即使 Android 关闭了应用也会继续。修复了通话开始或结束时可能导致正在响铃的闹钟停止的崩溃问题。"
+    },
+    "pt-BR": {
+      "text": "Os lembretes que se repetem agora continuam avisando no horário enquanto o telefone está em repouso, e seguem funcionando se o Android fechar o app. Corrige uma falha que podia interromper um alarme tocando quando uma ligação começava ou terminava."
+    },
+    "ja-JP": {
+      "text": "繰り返し通知するリマインダーが、スマートフォンのスリープ中も時間どおりに通知し、Android がアプリを終了しても続くようになりました。通話の開始時や終了時に、鳴っているアラームが止まることがあるクラッシュを修正しました。"
+    },
+    "en-CA": {
+      "copyFrom": "en-US"
+    },
+    "fr-CA": {
+      "copyFrom": "fr-FR"
+    }
+  }
+}
