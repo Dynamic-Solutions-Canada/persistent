@@ -32,7 +32,7 @@ function NotificationsOnThisDevice() {
   if (isNative()) {
     return (
       <Section title={tr("Permissions on this device")}>
-        <Typography level="body-sm"><Trans i18nKey={"For alarms to ring reliably, Android needs permission to schedule exact alarms, to show full-screen alarms, and to ignore battery optimizations for Persistent. You can set notification and alarm sounds and the default shade prominence in <c0>Settings</c0>."} components={{ c0: <Link component={RouterLink} to="/settings" /> }} /></Typography>
+        <Typography level="body-sm"><Trans i18nKey={"For alarms to ring reliably, Android needs Persistent to send notifications, set exact alarms, show full-screen alarms, display over other apps, and run in the background. Anything missing is listed at the top of the app, with a button that explains it before opening Android settings. You can set notification and alarm sounds and the default shade prominence in <c0>Settings</c0>."} components={{ c0: <Link component={RouterLink} to="/settings" /> }} /></Typography>
       </Section>
     )
   }

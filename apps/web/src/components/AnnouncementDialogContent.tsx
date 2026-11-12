@@ -1,12 +1,12 @@
 /** Present unread account announcements after startup and existing dialogs finish. */
 import { useTranslation } from 'react-i18next'
 import { tr } from '../localization/i18n.js'
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Button, DialogContent, DialogTitle, ModalDialog, Stack, Typography } from '@mui/joy'
 import type { Announcement } from '@persistent/shared'
 import { BackAwareModal } from './BackAwareModal.js'
-import { hasPendingBackAwareDialog, subscribeBackAwareDialogs } from './backAwareDialogStack.js'
+import { hasPendingBackAwareDialog, reserveBackAwareDialog, subscribeBackAwareDialogs } from './backAwareDialogStack.js'
 import { useStartupDataReady } from './startupDataContext.js'
 
 interface AnnouncementDialogContentProps {
@@ -23,6 +23,8 @@ export function AnnouncementDialogContent({ announcements, loaded, enabled, onVi
   const dialogOpen = useSyncExternalStore(subscribeBackAwareDialogs, hasPendingBackAwareDialog, () => false)
   const [active, setActive] = useState<Announcement | null>(null)
   const [dismissed, setDismissed] = useState<Set<string>>(() => new Set())
+  // Holds the automatic-dialog slot from the decision to open until this dialog closes.
+  const releaseSlot = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     // A reminder deep link or editor has priority over product news. Keep an
@@ -32,8 +34,18 @@ export function AnnouncementDialogContent({ announcements, loaded, enabled, onVi
     if (hasPendingBackAwareDialog()) return
     if (pathname.startsWith('/reminders/') || pathname.startsWith('/shared/')) return
     const next = announcements?.find((announcement) => !dismissed.has(announcement.id))
-    if (next) setActive(next)
+    if (!next) return
+    releaseSlot.current = reserveBackAwareDialog()
+    setActive(next)
   }, [active, ready, enabled, dialogOpen, announcements, dismissed, pathname])
+
+  // Release the slot whenever no announcement is showing, including on unmount.
+  useEffect(() => {
+    if (active) return
+    releaseSlot.current?.()
+    releaseSlot.current = null
+  }, [active])
+  useEffect(() => () => releaseSlot.current?.(), [])
 
   // A dismissal on another device closes this account's matching dialog too.
   useEffect(() => {

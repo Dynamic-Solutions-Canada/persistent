@@ -32,6 +32,7 @@ const { AnnouncementDialogContent } = require('./AnnouncementDialogContent.tsx')
 const { StartupDataContext } = require('./startupDataContext.ts') as typeof import('./startupDataContext.js')
 const { MemoryRouter } = require('react-router-dom') as typeof import('react-router-dom')
 const { BackAwareModal } = require('./BackAwareModal.tsx') as typeof import('./BackAwareModal.js')
+const { reserveBackAwareDialog } = require('./backAwareDialogStack.ts') as typeof import('./backAwareDialogStack.js')
 
 const announcement: Announcement = { id: 'themes-match-system', title: 'New themes', paragraphs: ['Navy is no longer the default.'] }
 
@@ -116,4 +117,14 @@ test('queued announcements wait for the previous history pop and are viewed indi
   await app.close()
   assert.deepEqual(app.viewed, ['themes-match-system', 'another-update'])
   assert.equal(app.title('Another update'), false)
+})
+
+test('a dialog that has reserved the slot but not yet mounted holds news back', async (context) => {
+  const app = await mount(context)
+  const release = reserveBackAwareDialog()
+  await app.render()
+  assert.equal(app.title(), false)
+  release()
+  await app.render()
+  assert.equal(app.title(), true)
 })
