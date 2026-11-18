@@ -211,7 +211,7 @@ and add optional native notifications and alarm audio:
 
 ## License
 
-Licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE.md).
+Licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE).
 Copyright (c) 2026 Ryan Ewen.
 
 ## Remote development with Devkit
