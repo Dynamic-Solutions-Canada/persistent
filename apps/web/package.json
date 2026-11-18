@@ -8,7 +8,8 @@
     "predev": "npm run build --workspace @persistent/shared",
     "dev": "vite",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "gen:icons": "node scripts/gen-icons.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^6.0.3",

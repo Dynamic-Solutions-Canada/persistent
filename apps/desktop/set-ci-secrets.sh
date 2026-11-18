@@ -39,7 +39,7 @@
 # Usage:
 #   ./set-ci-secrets.sh
 #   ./set-ci-secrets.sh --only AZURE_AD_APPLICATION_SECRET   # rotate just the secret
-#   ./set-ci-secrets.sh --repo RyanEwen/persistent           # repeatable
+#   ./set-ci-secrets.sh --repo Dynamic-Solutions-Canada/persistent   # repeatable
 #   ./set-ci-secrets.sh --all --only AZURE_AD_APPLICATION_SECRET
 #
 # --all targets every Store app backed by the same Entra registration and seller
@@ -47,12 +47,15 @@
 #
 set -euo pipefail
 
-# Every Store app backed by the shared publishing credentials.
+# Every Store app backed by the shared publishing credentials: the apps under the
+# 27766TechnicallyReal Partner Center identity. Hub Display Switch and WSL Monitor
+# are reserved under a different publisher, so they are not listed. Names follow
+# the BRAND-10 registry.
 STORE_REPOS=(
-  RyanEwen/persistent
-  RyanEwen/LittleLauncher
-  RyanEwen/Repilot
-  RyanEwen/ImmichDrive
+  Dynamic-Solutions-Canada/persistent
+  Dynamic-Solutions-Canada/little-launcher
+  Dynamic-Solutions-Canada/repilot
+  Dynamic-Solutions-Canada/immich-drive
 )
 
 REPOS=()
@@ -89,7 +92,7 @@ done
 # Default to this repo alone. Fanning out is opt-in: the Store credentials only
 # mean anything here, and quietly writing them to three unrelated repos would be a
 # surprising thing for a bare invocation to do.
-[[ ${#REPOS[@]} -eq 0 ]] && REPOS=(RyanEwen/persistent)
+[[ ${#REPOS[@]} -eq 0 ]] && REPOS=(Dynamic-Solutions-Canada/persistent)
 
 if ! command -v gh >/dev/null 2>&1; then
   echo "GitHub CLI (gh) not found." >&2
@@ -119,7 +122,7 @@ wanted() {
   return 1
 }
 
-# Dedupe, so `--all --repo RyanEwen/persistent` does not write it twice.
+# Dedupe, so `--all --repo Dynamic-Solutions-Canada/persistent` does not write it twice.
 TARGETS=()
 for repo in "${REPOS[@]}"; do
   seen=0
@@ -219,7 +222,7 @@ done
 
 # Only worth suggesting where the Store workflow actually lives.
 for repo in "${TARGETS[@]}"; do
-  if [[ "$repo" == "RyanEwen/persistent" ]]; then
+  if [[ "$repo" == "Dynamic-Solutions-Canada/persistent" ]]; then
     cat <<EOF
 
 Next: a draft submission, which uploads but sends nothing for review.

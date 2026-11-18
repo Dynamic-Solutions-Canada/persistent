@@ -881,7 +881,7 @@ path validates assets without credentials or remote calls.
 ## The `external/promo` submodule
 
 `apps/desktop/external/promo` is a public git submodule
-(`RyanEwen/technicallyreal-promo`) shared with the sibling Store apps. It supplies
+(`Dynamic-Solutions-Canada/apps-promo`) shared with the sibling Store apps. It supplies
 the settings window's "Our other apps" page as a shared-items project imported by
 `Persistent.Desktop.csproj`, and hides whichever app it is running inside by
 package family name.

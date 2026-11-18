@@ -40,7 +40,7 @@ public sealed partial class AboutPage : Page
             ? UiText.Get("Installed from the Microsoft Store, which handles updates. Nothing runs in the background.")
             : UiText.Get("Checks GitHub releases when you ask it to. Nothing runs in the background.");
 
-        SourceLink.NavigateUri = new Uri("https://github.com/RyanEwen/persistent");
+        SourceLink.NavigateUri = UpdateService.RepositoryUri;
         PrivacyLink.NavigateUri = new Uri($"{SettingsManager.Current.EffectiveServerUrl}/privacy");
     }
 
