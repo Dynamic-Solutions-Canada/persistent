@@ -28,6 +28,15 @@ services:
       network: host
     container_name: persistent-api
     restart: unless-stopped
+    # Liveness (SEC-7, PLAT-15). Node's own fetch, because the slim image has no
+    # curl or wget. The start period covers migrations running before the server
+    # listens.
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:' + (process.env.API_PORT || 4000) + '/api/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     depends_on:
       db:
         condition: service_healthy

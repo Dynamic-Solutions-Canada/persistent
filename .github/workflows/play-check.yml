@@ -18,6 +18,11 @@ on:
         description: 'Optional: a versionCode to test for headroom (defaults to this run number, which is not the release run number)'
         required: false
 
+# Least privilege (CI-5): read-only by default. A job that needs more widens it
+# at job level only.
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-latest

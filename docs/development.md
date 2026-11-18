@@ -268,6 +268,12 @@ declared in `compose.server.yml` or as a `Dockerfile ENV`.
 So to add config: schema in `env.ts` → `environment:` in `compose.server.yml` →
 value in the server's `.env` → redeploy.
 
+The API container runs as the image's unprivileged `node` user (uid 1000), so a
+file mounted into it, such as the FCM service-account key under `.secrets/`, must
+be readable by uid 1000 on the host. An unreadable key does not stop the API: it
+stays healthy and logs `fcm auth failed` on every push. Compose marks the
+container healthy once `GET /api/health` answers.
+
 ## Releases & updates
 
 Pushing a `vX.Y.Z` tag runs `.github/workflows/release.yml`, which builds the web

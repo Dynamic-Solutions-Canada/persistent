@@ -39,10 +39,12 @@ test('the image never bakes in a .env', () => {
   // lib/env.ts imports dotenv/config, so a .env copied into the image would be
   // read in preference to nothing — embedding secrets in a distributable layer
   // and hiding the container's real configuration. .dockerignore must exclude it.
+  // The `**/` form is required: a bare `.env` matches only at the context root,
+  // so nested copies (local test-lab sources under tmp/) reached the image.
   const ignored = read('.dockerignore')
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line && !line.startsWith('#'))
-  assert.ok(ignored.includes('.env'), '.dockerignore must exclude .env')
-  assert.ok(ignored.includes('.env.*'), '.dockerignore must exclude .env.* (backups, per-env files)')
+  assert.ok(ignored.includes('**/.env'), '.dockerignore must exclude **/.env')
+  assert.ok(ignored.includes('**/.env.*'), '.dockerignore must exclude **/.env.* (backups, per-env files)')
 })

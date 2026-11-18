@@ -8,11 +8,24 @@
 # token) in a distributable layer and make the container's real configuration
 # invisible to `docker inspect`. Config comes from compose.server.yml instead —
 # every key the schema reads is declared there or as a Dockerfile ENV.
-.env
-.env.*
-.secrets/
-*.keystore
-*.jks
+# `**/` because a pattern without it matches only at the context root, and local
+# test-lab copies under tmp/ carry their own .env files.
+**/.env
+**/.env.*
+**/.secrets/
+**/.aws/
+# Signing material, matching the shared .gitignore block (HYG-6). The desktop
+# tree must stay in the context (the web build imports its promo catalog), and a
+# local dev build leaves its certificate there, so exclude by type.
+/.windows-build/
+**/*.pfx
+**/*.cer
+**/*.der
+**/*.keystore
+**/*.jks
+# Scratch and local backups (HYG-6), never build inputs.
+tmp
+.backups
 
 # --- Not needed to build or run the server ---
 .git
