@@ -3,6 +3,7 @@
 # ASCII ONLY (Windows PowerShell 5.1 reads a BOM-less .ps1 as ANSI).
 #
 #   .\build-msix.ps1                 signed sideload build (dev cert, updates in place)
+#                                    (signed modes need -CertPath and -CertPassword)
 #   .\build-msix.ps1 -Store          unsigned, real Store identity, for Partner Center
 #   .\build-msix.ps1 -StoreIdentity  signed Release bundle, updates the Store installation
 #   .\build-msix.ps1 -Upload         both architectures in a verified bundle and upload container
@@ -22,8 +23,10 @@ param(
     [switch]$Store,
     [switch]$StoreIdentity,
     [switch]$Upload,
-    [string]$CertPath = "$PSScriptRoot\Persistent.Desktop.pfx",
-    [string]$CertPassword = 'persistent'
+    # Signing material is always passed in (the build tooling supplies the shared
+    # dev certificate), never defaulted, so no password lives in this file.
+    [string]$CertPath = "",
+    [string]$CertPassword = ""
 )
 
 $ErrorActionPreference = 'Stop'
@@ -34,8 +37,15 @@ $ErrorActionPreference = 'Stop'
 if ($Upload) { $Store = $true }
 if ($Upload -and $Platform) { throw '-Upload builds both architectures; drop -Platform.' }
 if ($StoreIdentity -and $Store) { throw '-StoreIdentity cannot be combined with -Store or -Upload.' }
-if ($StoreIdentity -and -not (Test-Path $CertPath)) {
-    throw '-StoreIdentity requires an existing matching publisher certificate.'
+# Every build except -Store signs, so check the signing inputs before any work.
+# There is no fallback: no default certificate, password or self-signed cert.
+if (-not $Store) {
+    if ([string]::IsNullOrEmpty($CertPath) -or -not (Test-Path $CertPath)) {
+        throw 'No signing certificate. Pass -CertPath and -CertPassword (the build tooling does), or use -Store for an unsigned package.'
+    }
+    if ([string]::IsNullOrEmpty($CertPassword)) {
+        throw 'No signing certificate password. Pass -CertPassword with -CertPath (the build tooling does), or use -Store for an unsigned package.'
+    }
 }
 
 $msixDir    = $PSScriptRoot
@@ -259,19 +269,9 @@ $manifestOut = Join-Path $layout 'AppxManifest.xml'
 # package that builds, signs, and then fails at install with a bare
 # "publisher name doesn't match".
 if (-not $Store) {
-    $cert = $null
-    if (Test-Path $CertPath) {
-        $secure = ConvertTo-SecureString $CertPassword -AsPlainText -Force
-        $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($CertPath, $secure)
-    } else {
-        Write-Host "Creating a self-signed dev certificate..."
-        $cert = New-SelfSignedCertificate -Type Custom -Subject 'CN=Persistent Dev' `
-            -KeyUsage DigitalSignature -FriendlyName 'Persistent Desktop dev' `
-            -CertStoreLocation 'Cert:\CurrentUser\My' `
-            -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3', '2.5.29.19={text}')
-        $secure = ConvertTo-SecureString $CertPassword -AsPlainText -Force
-        Export-PfxCertificate -Cert $cert -FilePath $CertPath -Password $secure | Out-Null
-    }
+    # The certificate was checked at the top; load it to read its subject.
+    $secure = ConvertTo-SecureString $CertPassword -AsPlainText -Force
+    $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($CertPath, $secure)
 
     # Edited through the XML DOM, not a -replace: Name="..." also appears on
     # TargetDeviceFamily and on every Capability, so a string substitution broad
