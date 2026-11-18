@@ -41,7 +41,9 @@ public static class UpdateService
 {
     private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
-    private const string Owner = "RyanEwen";
+    // The one place the app names its GitHub owner and repo (BRAND-5); the update
+    // check and the About page's source link are both built from these.
+    private const string Owner = "Dynamic-Solutions-Canada";
     private const string Repo = "persistent";
     public const string TagPrefix = "desktop-v";
 
@@ -52,6 +54,9 @@ public static class UpdateService
     private const string PackagedApplicationId = "App";
 
     private static readonly Uri ReleasesUri = new($"https://api.github.com/repos/{Owner}/{Repo}/releases?per_page=30");
+
+    /// <summary>The source repository page, linked from About.</summary>
+    public static readonly Uri RepositoryUri = new($"https://github.com/{Owner}/{Repo}");
 
     private static readonly HttpClient Http = CreateHttpClient();
 
