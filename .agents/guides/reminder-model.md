@@ -1,5 +1,8 @@
 # Reminder model
 
+Read when: changing reminder types, checklists, notes, schedule transitions, the occurrence lifecycle, or notification content.
+Governs: `apps/api/src/**`, `packages/shared/src/reminders*`, `apps/web/src/**`, `apps/mobile/android-plugin/**`
+
 This guide condenses the reminder invariants that span the API, web, mobile, and
 shared package. The detailed user-facing guarantee lives in
 `docs/notification-behavior.md`; delivery mechanics live in

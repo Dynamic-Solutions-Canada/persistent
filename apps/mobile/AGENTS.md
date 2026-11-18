@@ -5,6 +5,10 @@ plugin: where the hard alarm guarantee actually lives. Architecture is in
 [`docs/alarm-architecture.md`](../../docs/alarm-architecture.md); build, wireless
 adb and signing are in `README.md`.
 
+## Standards
+
+This shell follows the Capacitor rules of the shared Android stack index, https://github.com/Dynamic-Solutions-Canada/app-standards/blob/main/stacks/android.md, on top of the root file's web standards. Where this file differs, it says why.
+
 ## Verifying native changes
 
 Both distributions require Android 7.0 (API 24) to retain Play automatic

@@ -1,6 +1,6 @@
 ---
 name: audit-docs
-description: "Audit Persistent documentation and Codex guidance against the current codebase and workflow."
+description: Audit Persistent documentation and agent guidance against the current codebase and workflow. Use when asked to check docs, agent files or skills for drift.
 ---
 
 Audit the repository documentation and bring it back in sync with the current codebase.

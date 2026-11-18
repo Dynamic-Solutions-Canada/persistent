@@ -1,6 +1,6 @@
 ---
 name: test-android-device
-description: "Build, connect, install, launch, and inspect Persistent on a physical Android device over wireless ADB. Use for Android device smoke tests; do not use for emulator-only or web-only validation."
+description: Build, connect, install, launch and inspect Persistent on a physical Android device over wireless ADB. Use for Android device smoke tests. Do not use for emulator-only or web-only validation.
 ---
 
 # Test Android Device

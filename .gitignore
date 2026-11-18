@@ -68,6 +68,10 @@ apps/linux-desktop/resources/alarm.wav
 apps/linux-desktop/resources/promo/
 apps/linux-desktop/artifacts/
 
+# Personal Claude Code settings; the tracked .claude/settings.json holds the
+# project's hooks (AI-10).
+.claude/settings.local.json
+
 # Shared block (HYG-6), from winui-app-kit build/shared.gitignore. Paste it unchanged as the last part
 # of every repo's .gitignore, so no earlier line can un-ignore what it covers. Change it in the kit.
 /.artifacts/

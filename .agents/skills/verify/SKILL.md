@@ -1,6 +1,6 @@
 ---
 name: verify
-description: "Run Persistent and observe a change on the web, Android, or desktop surface, clearly separating runtime evidence from compile checks."
+description: Run Persistent and observe a change on the web, Android or desktop surface, separating runtime evidence from compile checks. Use when asked to confirm a change works in the running app.
 ---
 
 # Verifying Persistent
@@ -46,7 +46,7 @@ and exercised. Wireless ADB support is documented by
 
 Run `npm run verify:desktop` from WSL for the full Windows Debug compile, including
 XAML and code-behind. `npm run verify:desktop:csharp` retains the additional Linux
-non-XAML compile check. Neither establishes startup or runtime behavior. Read
-`.codex/docs/windows-development.md`. The meaningful end-to-end check is
+non-XAML compile check. Neither establishes startup or runtime behavior. The
+`desktop` skill covers the build bridge. The meaningful end-to-end check is
 `npm run install:desktop`, which builds and installs the working tree on the
 configured Windows machine. Report which level was actually observed.

@@ -1,14 +1,6 @@
 # Web guidance (`apps/web`)
 
-- **Mobile-first.** Every UI change must work at phone widths first, then scale
-  up. The shell is a single centered column (`components/AppLayout.tsx`).
-- **Only autofocus a field when filling it is the reason the screen opened.** On a
-  phone the focus raises the keyboard, which covers most of the form. Creating a
-  reminder qualifies: the empty title is the next thing to do; opening an existing
-  one does not, since the user is usually there to read it or change something
-  further down (`pages/reminder-editor/DetailsTab.tsx`, `autoFocusTitle`).
-- **Joy UI only** for components; theme in `src/theme.ts`. Don't pull in MUI
-  Material or other component kits.
+- **UI conventions** (layout, emphasis, headings, dialogs, fixed controls, viewport) live in [`.agents/guides/ui-conventions.md`](../../.agents/guides/ui-conventions.md). Read it before changing any screen.
 - **Reminder lists are previews.** Current, Upcoming, Notes, and History cards open the
   reading dialog with a full-card tap. Notification and saved detail URLs open
   that same dialog through `components/ReminderDialogLink.tsx`. Keep Edit,
@@ -32,46 +24,6 @@
   Undo restores that firing, never a fresh schedule. The editor's Schedule enabled
   control is hidden for timeless definitions and consumed one-time schedules;
   an older completion must not hide it for a new future schedule.
-- **The loudest control on a screen is the one that finishes work.** Done
-  (`components/OccurrenceActions.tsx`, solid `success`) is the app's entire
-  guarantee, so nothing that merely *creates* or navigates may outrank it:
-  no solid accent fill, no larger size, no position above it. Done is also the only
-  **labelled** control on that row: Snooze is icon-only (`aria-label` +
-  `title`), which is what makes Done the thing you reach for. Edit and Share sit
-  in the reading dialog footer with Close. This row belongs in the reading
-  dialog, after the reminder body and firing checklist. On phones the action row
-  fills the available width; at the `sm` breakpoint it uses compact buttons aligned
-  to the right. Don't reverse
-  that trade: an icon-only
-  Done would make the app's one terminal action the hardest to find. "New reminder" was
-  exactly that mistake: a full-width solid `primary` bar sitting directly on top
-  of the Done it competed with. It is a soft floating button now
-  (`components/NewReminderFab.tsx`), accent-*tinted* so it reads as tappable but
-  never accent-*filled*: that line is the whole rule, and solid is what crossed
-  it last time. The rule is about emphasis, not position:
-  that button sits in the conventional bottom-right corner.
-- **A checklist row uses the same controls everywhere.** The leading handle drags,
-  the checkbox ticks, the text opens for editing, and the trailing X deletes: in the
-  reading dialog (`components/TodoChecklist.tsx`) and in the editor's field
-  (`pages/reminder-editor/TodoItemsField.tsx`) alike. The reading view's
-  `components/TodoAddItem.tsx` commits nonempty drafts on blur or unmount;
-  the editor inserts a row directly into its form so Save and its discard guard
-  include every typed line. Don't reintroduce a surface-specific gesture
-  (the whole row used to tick, which left nowhere to put editing); if a region has to
-  earn its tap, give it a bigger hit area rather than a second meaning. The editor's
-  checkbox writes the *firing* immediately and is not part of the draft, so it is shown
-  only when there is a firing (or a note) whose ticks it can write.
-- **One heading treatment.** Every screen and in-page section opens with
-  `components/SectionHeading.tsx` (`title-md` + an optional `body-sm`
-  `text.tertiary` line): don't hand-roll a `Typography` pair. It carries **no
-  margin of its own**: put it first inside a `Stack` and that `Stack`'s `spacing`
-  is the single number setting the gap to the content. The tabs had drifted to
-  `title-lg` on Settings/Help versus `title-md` on the lists, with the gap built
-  from `mb` on the subtitle in some places and a `mt: -1` pulling it back up in
-  others; keeping the spacing in the container is what stops those corrections
-  reappearing. `1.5` (12px) is the app's rhythm for stacked items: list rows,
-  cards and heading-to-content alike. Signed-out documents (`PrivacyPage`,
-  `DeleteAccountPage`) are prose, not app screens, and keep their own convention.
 - **No god files.** Break components into their own files: one primary
   component per file, with its tightly-coupled subcomponents/helpers extracted
   into sibling files under a feature folder (e.g. `pages/reminder-editor/`)
@@ -174,10 +126,6 @@
   dropdown combines Match theme, No doodles, and the permitted line colors.
   Format dates/times via `lib/datetime.ts`, never
   `toLocaleString` directly.
-- **System-bar spacing:** use `lib/safeArea.ts` for shell bars and floating controls.
-  It takes the greater of browser CSS insets and `WebViewSystemInsets` native
-  measurements, covering older Android WebViews without double padding. Native
-  measurements do not consume keyboard insets.
 - **Native bridge:** `src/native/` (bundled into this app, which Capacitor loads)
   drives the on-device alarm plugin: schedules alarms from `/api/sync/occurrences`,
   re-syncs live on WS events, and exposes `pickSound`. Guard every call behind
@@ -200,38 +148,5 @@
   put them in `useSettings`, and don't cache them. The cards render nothing until
   the host answers. A newly added field must be optional at the bridge boundary
   so older hosts retain their existing controls and hide only the new one.
-- **Anything `position: fixed` on a list screen must be portalled to `document.body`**
-  (`components/NewReminderFab.tsx`). `PullToRefresh` wraps those pages and sets
-  `transform: translateY(...)`, and *any* transform other than `none` makes that
-  element the containing block for fixed descendants, so a floating control
-  rendered in place resolves against the page-tall pull container and lands off
-  screen instead of above the nav. It still computes as `position: fixed`, which is
-  what makes it confusing to debug. Such a control also has to clear `BottomNav`
-  **and** the shared `lib/safeArea.ts` spacing, and anchor to the 640px centred column
-  rather than the viewport.
-- **The viewport is not always phone-shaped: the Windows flyout is a window the
-  user can drag to resize**, and its WebView is suspended and resumed rather than
-  reloaded. So a heuristic that reads "the viewport got shorter" as a phone event
-  is wrong there, and wrong in a desktop browser too. `BottomNav`'s keyboard
-  detection is the cautionary case: it compared height against a running maximum
-  that only ever grew, so one resize left the tab bar hidden for the life of the
-  page with no keyboard involved. It is now guarded on whether anything typeable
-  has focus. Anything new that measures the viewport needs the same question asked
-  of it: what does this do when the window simply gets smaller?
-- **No native dialogs:** don't use `alert`/`confirm`/`prompt` (eslint enforces).
-- **A new screen starts at the top.** `lib/useScrollReset.ts` (called once in
-  `App.tsx`) scrolls to 0 on route change, because the app is one scrolling
-  document and nothing else resets it: without it, leaving a scrolled-down
-  History dropped you part-way down Settings. It exempts `POP` deliberately, so
-  Back returns you to where you were rather than fighting the browser's own
-  `scrollRestoration`.
-- **Dialogs are back-aware:** build modals with `components/BackAwareModal.tsx`
-  (not raw Joy `Modal`) so Android/browser Back closes the top dialog and dialogs
-  don't linger in history. Pages are routes (Back navigates normally). Close one by
-  setting `open={false}`, not by unmounting it: only the open-to-closed change pops
-  the history entry it pushed. A dialog that opens by itself (announcements, the
-  permission guide) waits on `hasPendingBackAwareDialog()` and reserves the slot
-  with `reserveBackAwareDialog()` as soon as it decides, so two never stack.
 - `verbatimModuleSyntax` is on: use `import type` for type-only imports.
-
 - Application copy uses the established localization module and canonical shared catalogs. Translate display text and accessibility labels, preserving form values, IDs, routes, medicine content and stable duration-unit keys. Device language/region preferences stay separate from account time zone, explicit clock choice and account email language; see `docs/localization.md` at the root.
