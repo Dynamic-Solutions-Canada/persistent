@@ -53,13 +53,14 @@ concurrency:
 jobs:
   store-publish:
     runs-on: windows-2025
+    timeout-minutes: 30 # about 3x the slowest recent run
     defaults:
       run:
         working-directory: apps/desktop
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: true
 
@@ -105,16 +106,16 @@ jobs:
           STORE_SECRET_EXPIRES: ${{ vars.STORE_SECRET_EXPIRES }}
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
-          node-version: '22.23.4'
+          node-version-file: .nvmrc
 
       - name: Validate approved listing assets
         shell: pwsh
         run: node ../../scripts/deploy/publish-windows-store-assets.mjs --check
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: apps/desktop/global.json
 
@@ -144,7 +145,7 @@ jobs:
       # never run (its STORE_* secrets were never created), so it is not evidence
       # the action still works.
       - name: Setup Microsoft Store Developer CLI
-        uses: microsoft/microsoft-store-apppublisher@v1.1
+        uses: microsoft/microsoft-store-apppublisher@15abd1c50fcc164b19cb240fb04ef3c49bf715a2 # v1.1
 
       - name: Configure credentials
         shell: pwsh

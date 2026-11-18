@@ -30,9 +30,17 @@ on:
 permissions:
   contents: read
 
+# Publishes, so a run in progress is never cancelled. The group is per workflow:
+# GitHub drops an already-pending run when a third joins a group, and a group
+# shared across the Play workflows could drop a queued release that way.
+concurrency:
+  group: play-notes
+  cancel-in-progress: false
+
 jobs:
   notes:
     runs-on: ubuntu-latest
+    timeout-minutes: 10 # about 3x the slowest recent run
     steps:
       - uses: actions/checkout@v7
         with:
@@ -40,9 +48,9 @@ jobs:
           # tag, which a shallow clone cannot see.
           fetch-depth: 0
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
-          node-version: '22.23.4'
+          node-version-file: .nvmrc
 
       - name: Regenerate the notes for ${{ inputs.tag }}
         env:
