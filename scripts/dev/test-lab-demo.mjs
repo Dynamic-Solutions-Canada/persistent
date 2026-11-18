@@ -10,7 +10,7 @@ import { copyDemoSource, createDemoCompose } from './test-lab-demo-config.mjs'
 
 // Devkit 0.13's background runner is reused without preflight, which would inherit primary .env/data.
 const { isBackgroundChild, launchBackgroundRunner, reportBackgroundReady } = await import(
-  new URL('./background-runner.mjs', import.meta.resolve('@ryanewen/devkit'))
+  new URL('./background-runner.mjs', import.meta.resolve('@dynamic-solutions-canada/devkit'))
 )
 const backgroundChild = isBackgroundChild()
 
