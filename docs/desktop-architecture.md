@@ -687,8 +687,10 @@ copy you last opened is the one that starts at sign-in.
   empty release is worse than a failed run, since the in-app update check would
   offer it.
 - Package: `.\Persistent.DesktopMSIX\build-msix.ps1` (`-Store` for a Store
-  upload, `-Upload` for both architectures at once). MSIX is for shipping, not
-  testing — sideloading it means trusting a self-signed certificate first. It buys
+  upload, `-Upload` for both architectures at once); a signed sideload build takes
+  `-CertPath` and `-CertPassword`, which `npm run build:desktop` passes. MSIX is
+  for shipping, not testing: sideloading it means trusting the dev certificate
+  first. It buys
   a real install, a Start menu entry and the `windows.startupTask` registration;
   unpackaged, "start at sign-in" falls back to the per-user `Run` key
   (`Classes/StartupManager.cs`), so that feature works either way.
@@ -740,6 +742,11 @@ of the app's immutable Store identity. It must not be renamed when the publisher
 display name changes.
 
 **`build-msix.ps1` selects packaging identity and signing explicitly.**
+
+Signed builds (everything except `-Store`) need `-CertPath` and `-CertPassword`
+passed in; the build tooling supplies the shared dev certificate. The script has no
+default certificate or password and never creates a self-signed one, so it stops
+before any work when either is missing.
 
 - Default (**sideload**): rewrites `Name` to `Persistent.Desktop` and `Publisher`
   to the dev certificate's subject, then signs. Both attributes have to move
