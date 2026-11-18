@@ -1,7 +1,7 @@
 /**
  * What devkit cannot derive about this repo: its ports, migration table, local configuration, and
  * the environment its dev servers read. Shared checkout naming, databases, proxying, and baseline
- * mechanics live in @ryanewen/devkit.
+ * mechanics live in @dynamic-solutions-canada/devkit.
  *
  * Counterpart: `scripts/dev/run-dev.mjs`, the only caller of `preflight()`.
  */

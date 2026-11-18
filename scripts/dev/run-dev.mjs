@@ -13,7 +13,7 @@ import {
   checkoutComposeLifecycle,
   inheritWorktreeFiles,
   preflight
-} from '@ryanewen/devkit'
+} from '@dynamic-solutions-canada/devkit'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 
