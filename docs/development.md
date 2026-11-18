@@ -272,7 +272,8 @@ The API container runs as the image's unprivileged `node` user (uid 1000), so a
 file mounted into it, such as the FCM service-account key under `.secrets/`, must
 be readable by uid 1000 on the host. An unreadable key does not stop the API: it
 stays healthy and logs `fcm auth failed` on every push. Compose marks the
-container healthy once `GET /api/health` answers.
+container healthy once `GET /api/health` answers. The `Image check` workflow
+builds this image on every change that affects it and fails if it runs as root.
 
 ## Releases & updates
 
