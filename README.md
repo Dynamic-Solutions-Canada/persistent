@@ -204,7 +204,7 @@ Setup, architecture, and the release/deploy workflow are in
 [docs/development.md](docs/development.md). Both desktop apps host the web interface
 and add optional native notifications and alarm audio:
 
-- **Windows:** [development and packaging](.codex/docs/windows-development.md),
+- **Windows:** [development and packaging](https://github.com/Dynamic-Solutions-Canada/windows-build-tools#readme),
   [architecture and platform behavior](docs/desktop-architecture.md).
 - **Linux:** [development and packaging](apps/linux-desktop/README.md),
   [architecture and platform behavior](docs/linux-desktop-architecture.md).

@@ -1,162 +1,109 @@
-# Persistent
+# Persistent: Agent Instructions
 
-## What this is
+Persistent is a reminder app whose defining feature is persistence: a reminder nags (a notification that won't dismiss, re-fires after dismissal, an optional repeating alarm sound) until the user explicitly confirms completion, with optional escalation of ignored reminders to the user's other devices and an email contact. It is a hosted web service with public sign-ups, plus a native Android client (Google Play and GitHub) where the hard alarm guarantees live, and Windows (Microsoft Store) and Linux (AppImage) tray hosts of the same web UI. devkit provides the development environment.
 
-A reminder app whose defining feature is **persistence**: a reminder nags (a
-notification that won't dismiss, re-fires after dismissal, optional repeating
-alarm sound) until the user **explicitly confirms completion**, with optional
-**escalation** of ignored reminders (own devices + an email contact). Hosted web
-service (public sign-ups) + a native Android client where the hard alarm
-guarantees live.
+## Standards
 
-Architecture and conventions are borrowed, thinned, from the sibling
-`../printstream` monorepo.
+This repo follows the shared standards at https://github.com/Dynamic-Solutions-Canada/app-standards. Read the index for this stack, https://github.com/Dynamic-Solutions-Canada/app-standards/blob/main/stacks/web.md, then the topic file for the area you are changing. `apps/desktop/AGENTS.md` and `apps/mobile/AGENTS.md` name the Windows and Android stack indexes for those hosts. Where this file differs from the standards, this file wins and says why.
 
 ## Architecture
 
-- `apps/mobile`, `apps/desktop` and `apps/linux-desktop` sit outside the npm
-  **workspaces** graph. Mobile and Linux have standalone packages; Windows is C#.
-- **`apps/api`** owns auth, reminder CRUD, the scheduling/escalation engine, push
-  delivery, and a per-user WebSocket at `/ws`.
-- **`apps/mobile`**: Capacitor (Android) wrapper of the built web app plus a
-  custom native alarm plugin. The web/PWA manages reminders but does not notify;
-  the native app is the real persistence guarantee. See `docs/alarm-architecture.md`.
-- **`apps/desktop`**: WinUI 3 (C#) Windows tray app that shows the **hosted PWA**
-  in a WebView2 flyout. The host adds optional, session-bound persistent Windows
-  notifications: dismissed reminders return, configured nags repeat, and alarms
-  loop audio while the PC is awake and the tray process is running. It consumes the
-  server-computed device alarm projection, with `/ws` as the invalidation path, so
-  it does not duplicate reminder rules. It cannot guarantee delivery through sleep,
-  shutdown or an exited process; Android remains the hard guarantee. See
-  `docs/desktop-architecture.md`.
-- **`packages/shared`**: the single source of truth for request/response shapes;
-  do not duplicate them elsewhere.
-- **`apps/linux-desktop`**: Electron Linux tray host of the same hosted UI and
-  server-computed alarm projection. AppImage is the only supported Linux package
-  format, for x64 and ARM64. The native backend follows Electron by default;
-  explicit X11/XWayland supports Windows flyout positioning parity; GNOME
-  AppIndicator can require double click. See
-  `docs/linux-desktop-architecture.md` and its nested guidance. No PWA notifications
-  or duplicated reminder scheduling rules.
+- `apps/api` owns auth, reminder CRUD, the scheduling and escalation engine, push delivery, and a per-user WebSocket at `/ws`.
+- `apps/web` is the React PWA. It manages reminders and deliberately sends no notifications. Every native host shows it.
+- `apps/mobile` is the Capacitor (Android) wrapper of the built web app plus a custom native alarm plugin: the real persistence guarantee. See `docs/alarm-architecture.md`.
+- `apps/desktop` is the WinUI 3 (C#) Windows tray app showing the hosted PWA in a WebView2 flyout, with optional session-bound notifications built from the server-computed alarm projection, so it duplicates no reminder rules. See `docs/desktop-architecture.md`.
+- `apps/linux-desktop` is the Electron Linux tray host of the same UI and alarm projection, shipped only as an x64 and ARM64 AppImage. See `docs/linux-desktop-architecture.md`.
+- `packages/shared` is the single source of truth for request and response shapes; never duplicate them elsewhere.
+- `apps/mobile`, `apps/desktop` and `apps/linux-desktop` sit outside the npm workspaces graph.
 
-## The persistence reality (read before touching notifications)
+Nested `AGENTS.md` files hold area rules. List them with `git ls-files '*AGENTS.md'` and read the ones for the folders you touch.
 
-Truly undismissable notifications and repeating alarm sound while the app is
-closed are **native-OS capabilities**, not web/PWA ones. The model is
-**device-scheduled + server backup**: the server is the source of truth and
-materializes occurrences; the native client schedules on-device exact alarms so
-they fire offline; FCM is the cross-device / escalation / ad-hoc backup. The web
-PWA is a management surface and deliberately does not send notifications.
+## Behaviour
 
-## Core data model
+- **Persistence is native.** Truly undismissable notifications and repeating alarm sound while the app is closed are native-OS capabilities, not web ones. The model is device-scheduled plus server backup: the server is the source of truth and materialises occurrences, the native client schedules on-device exact alarms so they fire offline, and FCM is the cross-device, escalation and ad-hoc backup. Read `docs/alarm-architecture.md` and `docs/notification-behavior.md` before touching notifications.
+- **Reminders and occurrences.** A `Reminder` is the definition a user manages; the scheduler expands it into independent `ReminderOccurrence` rows, one per firing. A live obligation is an occurrence that is `FIRED` and not yet `ACKNOWLEDGED`. The schedule kinds `none` (remind now) and `never` (a note) are both timeless but behave differently. Read `.agents/guides/reminder-model.md` before changing reminder types, checklists, notes, schedule transitions, the occurrence lifecycle or notification content.
+- **Data isolation.** There is no multi-tenancy; ownership is per user. Domain queries filter by the authenticated `userId` (`requireUserId(request)`), with these exceptions only:
+  - Sharing: recipient reads and permitted actions must prove an explicit `ReminderShare` grant for that recipient and reminder, and firings stay owned by the creator.
+  - Assignment: an assigned reminder belongs to the assignee, and its creator reads only the `ReminderAssignment` progress record scoped by `creatorId`.
+  - Administrators may read aggregate cross-user counts after a fresh database admin grant check, exposing no account identities or reminder content.
+  See `docs/auth-architecture.md` and `apps/api/AGENTS.md`.
 
-`Reminder` is the definition a user manages; the scheduler expands it into
-independent `ReminderOccurrence` rows, one per firing. A live obligation is an
-occurrence that is `FIRED` and not yet `ACKNOWLEDGED`. The schedule kinds `none`
-(remind now) and `never` (a note) are both timeless but deliberately behave
-differently. Read `.agents/guides/reminder-model.md` before changing reminder
-types, checklists, notes, schedule transitions, occurrence lifecycle, or
-notification content.
+## Conventions and gotchas
 
-## Code style
-
-- TypeScript everywhere; keep strict mode intact. `verbatimModuleSyntax` is on,
-  so use `import type` for type-only imports.
-- Keep modules focused and small. Non-trivial modules carry a short JSDoc header
-  naming what they own and any non-obvious invariants.
-- ASCII unless the file already needs Unicode.
-- Names must track function: rename when behavior shifts.
-
-## Data isolation (the one rule)
-
-There is no multi-tenancy. Ownership is per-user. Domain queries must filter by
-the authenticated `userId` (`requireUserId(request)`), except reminder sharing:
-recipient reads and permitted actions must prove an explicit `ReminderShare`
-grant for that recipient and reminder. Firings remain owned by the creator.
-An assigned reminder belongs to the assignee; its creator reads only the
-`ReminderAssignment` progress record scoped by `creatorId`.
-Administrators may read aggregate cross-user counts after a fresh database admin
-grant check; this exception exposes no account identities or reminder content.
-See `docs/auth-architecture.md` and `apps/api/AGENTS.md`.
+- TypeScript everywhere with strict mode intact. `verbatimModuleSyntax` is on, so type-only imports use `import type`.
+- Non-trivial modules carry a short JSDoc header naming what they own and any non-obvious invariants.
+- Source is ASCII unless the file already needs Unicode.
+- Initialise `apps/desktop/external/promo` with `git submodule update --init --recursive` in a fresh checkout before validating or building: the web app and the desktop app both import its catalog.
+- Never point `prisma migrate diff --shadow-database-url` at `DATABASE_URL`: Prisma resets the shadow database, which wipes the dev data. `prisma migrate status` answers "is the schema in step?" without touching anything.
+- When the schema changes, regenerate the client (`npm run db:generate`) and update the shared contracts.
+- A version bump does not regenerate the lockfile. `scripts/dev/workspace-versions.test.ts` catches the mismatch; fix it with `npm install --package-lock-only`.
+- Tests import `@persistent/shared` from its built `dist/`, which `validate` does not rebuild. After changing shared code, run `npm run build --workspace @persistent/shared` or a test can fail against the stale build.
+- Generated files are not edited by hand: a Claude Code hook (`scripts/hooks/README.md`) rejects edits under `apps/mobile/android/` and to files whose header says they are generated.
 
 ## Shared helpers (do not duplicate)
 
-- API HTTP errors: throw `HttpError`/`badRequest`/`notFound`/… from `apps/api/src/lib/http-error.ts`.
+- API HTTP errors: throw `HttpError`, `badRequest`, `notFound` and friends from `apps/api/src/lib/http-error.ts`.
 - API env: import `env` from `apps/api/src/lib/env.ts`; never read `process.env` in feature code.
 - Prisma: import `prisma` from `apps/api/src/lib/prisma.ts`.
 - Realtime: `broadcast(userId, event)` from `apps/api/src/lib/realtime.ts`.
 - Push: `dispatchToUser(userId, payload)` from `apps/api/src/lib/delivery/`.
 - Email: `sendCloudflareEmail` from `apps/api/src/lib/cloudflare-email.ts`.
-- Web HTTP: `apiFetch` from `apps/web/src/lib/apiClient.ts` (never bare fetch for JSON).
-- Web realtime/caches: WS events invalidate TanStack Query keys (`apps/web/src/lib/wsClient.ts`); do not poll in components.
+- Web HTTP: `apiFetch` from `apps/web/src/lib/apiClient.ts`; never bare `fetch` for JSON.
+- Web realtime and caches: WebSocket events invalidate TanStack Query keys (`apps/web/src/lib/wsClient.ts`); components never poll.
+- Repository owner and name: `SOURCE_REPOSITORY` from `packages/shared/src/repository.ts`; the Windows app's equivalent is the `Owner`/`Repo` pair in `UpdateService.cs`.
 
-## Build & validation
+## Commands
 
-- Initialize `apps/desktop/external/promo` with
-  `git submodule update --init --recursive` before validating or building a fresh
-  checkout. Both the web app and desktop app import this shared catalog.
-- The Devkit-managed Compose stack is the complete development environment. It
-  provides Node 22, PostgreSQL, and isolated resources for concurrent checkouts.
-  Use the exact Node and npm versions in `package.json` for validation and builds.
-- `npm run dev`: shared (watch) + api + web concurrently.
-- `npm run db:migrate`: create/apply Prisma migrations. Regenerate the client
-  (`npm run db:generate`) and update shared contracts when the schema changes.
-  **Never point `prisma migrate diff --shadow-database-url` at `DATABASE_URL`.**
-  Prisma resets the shadow database, so that wipes the dev data. `prisma migrate
-  status` answers "is the schema in step?" without touching anything.
-- `npm run db:seed`: fill a dev account with reminders covering every type,
-  schedule kind and occurrence state (due, escalated, snoozed, orphaned, part-ticked
-  checklist, a checklist left collapsed, paused, history). It replaces that
-  user's reminders only; the account,
-  passkeys and sessions survive, so it never signs you out. `-- --keep` to append,
-  `-- --email=…` to pick the user.
-- Before finishing a task run `npm run validate` (lint + test + typecheck +
-  prisma validate). Add focused tests for non-trivial behavior. **It needs no
-  database and no `DATABASE_URL`**: `prisma validate` only parses the schema, but
-  it still refuses to start without the variable its datasource interpolates, so
-  `apps/api`'s `prisma:validate` script supplies a placeholder when the real one is
-  absent (`${DATABASE_URL:-...}`, so a set value always wins). Nothing is masked:
-  the command never connects, and a malformed schema still fails. This matters
-  because the variable normally comes from the development environment, which not
-  every shell inherits, and the whole check used to die on a missing value having
-  tested nothing.
-- Root dev dependencies include the small Linux transport libraries for tests.
-  Linux's standalone build tools use the same patched Node runtime as the web/API
-  environment. Run `npm run build:linux` and relevant package/native checks;
-  root validation does not establish native Linux runtime behavior.
-- `npm test` discovers `*.test.ts` under `apps/`, `packages/` **and `scripts/`**.
-  The last is for repo-hygiene checks belonging to no single workspace: currently
-  that the lockfile's recorded workspace versions match their `package.json`
-  (`scripts/dev/workspace-versions.test.ts`), since a version bump doesn't
-  regenerate the lockfile on its own. Fix with `npm install --package-lock-only`.
-- **`npm run validate` covers neither native surface.** Kotlin/Java changes have
-  their own compile check (`apps/mobile/AGENTS.md`) and the C# desktop app has its
-  own too, plus a CI job (`apps/desktop/AGENTS.md`). Neither is optional before
-  finishing. For the desktop app, **compiling is not the check that matters**:
-  `npm run install:desktop` builds the working tree into a dev-signed MSIX on the
-  Windows machine and installs it, which is the only thing that sees XAML, packaging
-  and whether the app still starts.
+The devkit-managed Compose stack is the complete development environment. Use the exact Node and npm versions in `package.json`.
 
-## How project guidance is organized for Codex
+| Command | Proves | Does not prove |
+| --- | --- | --- |
+| `npm run dev` | Shared (watch), API and web run together | Anything native |
+| `npm run validate` | Lint, tests, typecheck and Prisma schema validity; needs no database or `DATABASE_URL` | Native Android, Windows or Linux behaviour |
+| `npm run db:migrate` | Creates and applies Prisma migrations | |
+| `npm run db:seed` | Fills a dev account with reminders in every type, schedule kind and state, replacing only that user's reminders (`-- --keep`, `-- --email=...`) | |
+| `npm run build:linux` | The Linux host builds under the pinned Node runtime | Linux desktop runtime behaviour |
+| `npm run verify:desktop` | Full Windows Debug compile, including XAML | That the app starts |
+| `npm run install:desktop` | Installs a dev-signed build on Windows: the only check that sees packaging and startup | Store certification |
 
-- This root `AGENTS.md` is always loaded.
-- Directory-scoped conventions live in nested `AGENTS.md` files and load for
-  work in that subtree. List them with `git ls-files '*AGENTS.md'`.
-- Reusable workflows live in `.agents/skills/` and are invoked as `$commit`,
-  `$deploy`, `$release`, `$audit-docs`, and `$verify`.
-- `.agents/guides/reminder-model.md` contains the detailed reminder and
-  occurrence invariants extracted from this always-loaded file.
-- Cross-cutting sources of truth live in `docs/`: `auth-architecture.md`,
-  `data-event-contract.md`, `alarm-architecture.md`,
-  `notification-behavior.md`, and `desktop-architecture.md`. Read the relevant
-  contract before related work.
+`npm test` discovers `*.test.ts` under `apps/`, `packages/` and `scripts/`; the last holds repo-hygiene checks that belong to no single workspace. Kotlin and Java changes have their own compile check (`apps/mobile/AGENTS.md`), and the Windows app has its own plus a CI job (`apps/desktop/AGENTS.md`); neither is optional before finishing. Windows builds go through the shared build bridge from WSL: use the `desktop` skill.
 
-## Windows desktop workflow
+## Release
 
-Source is authoritative in WSL. Read `.codex/docs/windows-development.md` and use
-`npm run build:desktop`, `npm run verify:desktop`, `npm run install:desktop`, and
-`npm run package:desktop` from the repository root. The common bridge builds in
-a disposable C: Windows TEMP directory and cleans it after use. Never use a D:
-checkout or build directly against WSL source with Windows tools. Dev install
-versions change only in the temporary copy; never uninstall to bypass an update
-error. Store releases keep their existing project-specific release workflow.
+Android and web releases use the `release` skill (a `vX.Y.Z` tag builds the Play AAB and the GitHub APK); server deploys use the `deploy` skill. Windows releases are `desktop-v*` tags plus the `store-publish` workflow, and Linux releases are `linux-v*` tags. Details are in `docs/development.md`.
+
+## Guidance map
+
+| Guide, doc, or skill | Read or use when | Governs |
+| --- | --- | --- |
+| `.agents/guides/reminder-model.md` | Changing reminder types, schedules, occurrences or notification content | `apps/api`, `apps/web`, `apps/mobile`, `packages/shared` |
+| `.agents/guides/ui-conventions.md` | Changing any screen, dialog or control | `apps/web/src/**` |
+| `docs/auth-architecture.md` | Touching auth, sessions, passkeys or data isolation | `apps/api/src/routes/auth.ts`, domain queries |
+| `docs/data-event-contract.md` | Changing HTTP or WebSocket data flow or offline sync | `apps/api`, `apps/web/src/lib`, `apps/web/src/data` |
+| `docs/alarm-architecture.md` | Changing the notification, alarm or escalation mechanism | `apps/api/src/lib/delivery`, `apps/mobile` |
+| `docs/notification-behavior.md` | Changing the user-facing done, silence or snooze guarantee | every surface |
+| `docs/desktop-architecture.md` | Changing the Windows tray app | `apps/desktop/**` |
+| `docs/linux-desktop-architecture.md` | Changing the Linux tray host | `apps/linux-desktop/**` |
+| `docs/localization.md` | Changing copy, catalogs or locale handling | `packages/shared/src/messages/**`, all UIs |
+| `docs/development.md` | Running, deploying or releasing | repo-wide |
+| `scripts/hooks/README.md` | A Claude Code hook blocked an edit | `scripts/hooks/**`, `.claude/settings.json` |
+| `commit` skill | Committing here | repo-wide |
+| `deploy`, `release` skills | Deploying the server, releasing Android and web | `compose.server.yml`, `.github/workflows/release.yml` |
+| `desktop` skill | Building, packaging or installing the Windows app | `apps/desktop/**` |
+| `verify` skill | Confirming a change works in the running app | all surfaces |
+| `audit-docs` skill | Checking docs and agent files for drift | `docs/**`, `**/AGENTS.md`, `.agents/**` |
+| `test-android-device`, `store-screenshots` skills | Testing on a physical phone; refreshing store images | `apps/mobile`, `store-assets/**` |
+
+Skills live in `.agents/skills/`; Claude Code reads them through the `.claude/skills` symlink.
+
+## Keeping docs current
+
+| What changed | Update |
+| --- | --- |
+| A file, command, script or setting that agent files name | Every `AGENTS.md`, guide and skill naming it, in the same commit |
+| Reminder types, schedules or occurrence lifecycle | `.agents/guides/reminder-model.md` |
+| A UI convention | `.agents/guides/ui-conventions.md` |
+| Auth, data flow, alarms, notification guarantee, a desktop host | The matching contract in the guidance map |
+| An environment variable | `.env.example`, `compose.server.yml` (enforced by `apps/api/src/lib/env.test.ts`) |
+| A generated directory or generator | `scripts/hooks/generated-file-guard.json` and `scripts/hooks/README.md` |
+| A skill | The guidance map above and `docs/development.md`'s skill list |

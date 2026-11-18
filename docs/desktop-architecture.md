@@ -639,7 +639,7 @@ The Linux development container includes the .NET SDK for non-XAML C# checks and
 `apps/desktop/global.json` selects SDK 10.0.403 or later stable .NET 10 servicing versions. The common `Directory.Build.targets` also enforces the SDK floor when the Windows bridge invokes MSBuild outside that file's directory. Self-contained publication rejects resolved core runtime packs below 10.0.14, while leaving later patches and architecture selection to the SDK. Run `bash apps/desktop/tools/runtime-security/verify.sh` to check both application projects and architectures without executing Windows code. This supplements full Windows compilation, packaging and installed startup checks; it does not replace them.
 
 - Local WSL workflow: `npm run verify:desktop`, `npm run build:desktop` and
-  `npm run install:desktop`. See [the common desktop guide](../.codex/docs/windows-development.md).
+  `npm run install:desktop`. See [the shared Windows build guide](https://github.com/Dynamic-Solutions-Canada/windows-build-tools#readme).
 - Icons: `.\Persistent.DesktopMSIX\generate-msix-images.ps1` (renders the same
   bell mark as `apps/web/public/favicon.svg`; keep the two in step)
 **Start at sign-in works in the portable build**, via the unpackaged fallback in

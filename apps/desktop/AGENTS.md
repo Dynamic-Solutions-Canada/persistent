@@ -5,13 +5,17 @@ flyout. Architecture, and the reasoning behind the WebView decision, live in
 [`docs/desktop-architecture.md`](../../docs/desktop-architecture.md): read that
 first.
 
+## Standards
+
+This app follows the Windows stack index of the shared standards, https://github.com/Dynamic-Solutions-Canada/app-standards/blob/main/stacks/windows.md, on top of the root file's web standards. Where this file differs, it says why.
+
 **This is C#, so `npm run validate` does not cover it.** From the WSL
 repository root, `npm run verify:desktop` runs a full Debug compile with Windows
 tools, including XAML. `npm run build:desktop` makes a signed dev MSIX;
 `npm run install:desktop` builds, updates in place and launches on Windows.
 Use `-- --skip-build` to reuse the last successful dev package. All staging is
 under the Windows user's C: TEMP and is cleaned after use; there is no D: checkout.
-Read `.codex/docs/windows-development.md` before building or installing.
+Use the `desktop` skill, which links the shared Windows build guide, before building or installing.
 
 Before committing changes to XAML, code-behind or packaging, install and check
 the changed runtime behavior. Compilation does not establish startup or UI behavior.

@@ -1,6 +1,6 @@
 ---
 name: release
-description: "Cut a new release: derive the next version from changes since the last release, bump it, tag, and let CI build the signed APK (GitHub Release) and the AAB (Google Play)."
+description: Cut a release by deriving the next version from changes since the last one, bumping it, tagging, and letting CI build the signed APK for the GitHub Release and the AAB for Google Play. Use when asked to release the Android and web app.
 ---
 
 Cut a new app release.
@@ -49,7 +49,7 @@ The manual `replace-github-apk` workflow exports an existing Play versionCode,
 preserves approved notes, and replaces the direct asset without uploading an AAB.
 
 Production is open. The first production release was versionCode 47 (v0.23.0)
-on 2026-09-05. Ryan changed the release policy to production-only on 2026-10-02.
+on 2026-09-05. The maintainer changed the release policy to production-only on 2026-10-02.
 An explicit request to cut a release authorizes its production publication.
 The manual `play-promote` workflow is only for an existing uploaded versionCode
 or a production rollout adjustment. It targets production, carries forward the
@@ -68,14 +68,14 @@ This command decides the next version, records it, and pushes the tag.
 
 Requirements:
 - The working tree must be clean and `HEAD` must equal `origin/<default branch>`
-  before tagging (commit and push first; use `$commit` or `$deploy` if there are
+  before tagging (commit and push first; use `commit` or `deploy` if there are
   pending changes). If it isn't, stop and say so.
 - Determine the **last release version** from `gh release list` (newest `vX.Y.Z`),
   falling back to the latest `git tag -l 'v*'`. If there are no releases yet,
   start from the current `apps/web/package.json` version.
 - **Gate the Android release before bumping anything.** Compare the last Android
   tag with `HEAD` for native Android runtime code, resources, plugins, manifest,
-  or build configuration. Web and server changes delivered by `$deploy`, desktop
+  or build configuration. Web and server changes delivered by `deploy`, desktop
   changes, Store listing assets, documentation, and tooling do not justify an
   Android version. An APK would bundle a newer web fallback, but that alone is
   not a reason to release it. If there is no qualifying native change, stop
@@ -117,7 +117,7 @@ Recommended steps:
 4. If `confirm first` / `dry run`: print the summary and stop.
 5. Otherwise bump `apps/web/package.json` to the new version, run
    `npm install --package-lock-only` so the lockfile follows, and commit both
-   (`Bump version to X.Y.Z`; no `Co-Authored-By` trailer or AI attribution).
+   (`Bump version to X.Y.Z`).
    Run `npm run validate` first; fix failures before continuing.
 6. `git push`, then `git tag vX.Y.Z && git push origin vX.Y.Z`.
 7. Watch the workflow: `gh run watch <id> --exit-status` (find it via
@@ -131,7 +131,7 @@ Recommended steps:
 8. Report the new version, the bump reasoning, and the release URL.
 
 Notes:
-- Web and server changes reach devices through the production deploy (`$deploy`).
+- Web and server changes reach devices through the production deploy (`deploy`).
   Their presence in the bundled web fallback does not override the Android
   release gate.
 - `ANDROID_*` secrets sign the AAB with the upload key. Google signs the

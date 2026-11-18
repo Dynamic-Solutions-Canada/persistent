@@ -1,6 +1,6 @@
 ---
 name: deploy
-description: "Review, document, commit, push, and deploy Persistent through its SSH and Docker production workflow."
+description: Review, document, commit, push and deploy Persistent through its SSH and Docker production workflow. Use when asked to deploy the server.
 ---
 
 # Deploying Persistent

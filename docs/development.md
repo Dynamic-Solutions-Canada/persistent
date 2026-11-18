@@ -111,8 +111,8 @@ with a temporary HTTPS tunnel. Its complete carousel is still gated on real alar
 escalation and removal of unrelated lab icons. Ordinary development databases,
 production credentials and cached personal data must never be exposed by this path.
 
-The `$test-android-device` Codex skill follows that same physical-device
-workflow. The repository-local Codex hook rejects patches to generated files
+The `test-android-device` skill follows that same physical-device
+workflow. A Claude Code hook ([scripts/hooks](../scripts/hooks/README.md)) rejects edits to generated files
 and to `apps/mobile/android/`; change the tracked native overlay or setup script
 and regenerate instead.
 
@@ -122,7 +122,7 @@ compile, including XAML. `npm run build:desktop` builds a signed dev MSIX and
 `npm run install:desktop` updates it in place and launches it in the signed-in
 Windows session. Builds use a disposable C: TEMP copy of the working tree;
 tracked release versions stay unchanged. Read
-[the desktop workflow](../.codex/docs/windows-development.md) for prerequisites,
+[the shared Windows build guide](https://github.com/Dynamic-Solutions-Canada/windows-build-tools#readme) for prerequisites,
 container delegation and package reuse. CI still compiles both architectures.
 
 Compilation does not establish startup, packaging or UI behavior. Before committing
@@ -317,17 +317,19 @@ uses root transport test dependencies; Linux tooling requires
 its standalone install under the same pinned Node runtime. Native tests use isolated profiles and
 synthetic data. Build evidence does not replace desktop runtime evidence.
 
-## Codex skills (`.agents/skills/`)
+## Agent skills (`.agents/skills/`)
 
-- `$commit`: review (docs, data isolation, and logging), validate, and commit.
-- `$deploy`: `$commit`, then push and deploy through SSH and Docker.
-- `$release`: derive the next version from changes since the last release, tag,
+Claude Code reads them through the `.claude/skills` symlink.
+
+- `commit`: review (docs, data isolation, and logging), validate, and commit.
+- `deploy`: `commit`, then push and deploy through SSH and Docker.
+- `release`: derive the next version from changes since the last release, tag,
   and let CI publish the AAB to Google Play production and the verified
   Google-signed universal APK to GitHub.
-- `$audit-docs`: resync all docs and project guidance with the code.
-- `$verify`: observe web behavior or run the appropriate Android/desktop check.
-- `$desktop`: build, verify or install the working tree through the shared Windows bridge.
-- `$store-screenshots`: prepare synthetic data and refresh both stores' images using
+- `audit-docs`: resync all docs and project guidance with the code.
+- `verify`: observe web behavior or run the appropriate Android/desktop check.
+- `desktop`: build, verify or install the working tree through the shared Windows bridge.
+- `store-screenshots`: prepare synthetic data and refresh both stores' images using
   Paseo and the actual Windows flyout. See [the repeatable workflow](../store-assets/README.md).
 
 ## Docs

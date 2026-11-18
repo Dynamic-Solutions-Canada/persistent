@@ -1,7 +1,9 @@
 ---
 name: commit
-description: "Stage, review, and commit the current changes with mandatory documentation, data-isolation, and logging-coverage reviews."
+description: Stage, review and commit the current changes, with the documentation, data-isolation and logging-coverage reviews this repo requires. Use when asked to commit here. Do not use for a release or deploy, which have their own skills.
 ---
+
+This replaces the generic commit workflow and adds three mandatory reviews: documentation drift, per-user data isolation, and logging coverage.
 
 Commit the current changes to git.
 
@@ -25,7 +27,7 @@ not gate this on whether the change "feels user-visible". Drift is a bug. Review
 **all documentation surfaces** and update any that no longer match the code:
 
 - `README.md` (root): stack, features, auth, sync model, development,
-  deployment, releases, and the Codex skill list.
+  deployment, releases, and the skill list.
 - `apps/mobile/README.md`: Android build, run, signing, update, and native plugin flow.
 - Every tracked `AGENTS.md` plus `.agents/guides/`: conventions, helper
   inventories, and invariants affected by the change. Enumerate scoped files
@@ -68,7 +70,7 @@ Recommended steps:
 3. Run the documentation, data-isolation, and logging reviews above. For docs, walk every surface in the (exhaustive) Documentation review scope, update what drifted, and report per-surface what you reviewed/updated (or why none was needed): never skip a surface silently.
 4. Draft a commit message in imperative mood with a short subject; add a short body if the change is non-trivial.
 5. Run `npm run validate` and fix any failures before committing.
-6. Run `git commit`. Do NOT add any `Co-Authored-By` trailer or other AI/agent attribution to the message.
+6. Run `git commit`.
 7. If the invocation asked for `push`, run `git push`.
 
 Notes:
