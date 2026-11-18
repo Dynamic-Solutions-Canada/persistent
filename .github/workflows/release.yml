@@ -20,12 +20,23 @@ on:
         type: choice
         options: [completed, draft]
 
+# Least privilege (CI-5): read-only by default; the job widens it.
 permissions:
-  contents: write
+  contents: read
+
+# Publishes, so a run in progress is never cancelled. The group is per workflow:
+# GitHub drops an already-pending run when a third joins a group, and a group
+# shared across the Play workflows could drop a queued release that way.
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   android:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
+    timeout-minutes: 30 # about 3x the slowest recent run
     steps:
       - uses: actions/checkout@v7
         with:
@@ -70,9 +81,9 @@ jobs:
             --repo "${{ github.repository }}" > RELEASE_NOTES.md
           cat RELEASE_NOTES.md
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
-          node-version: '22.23.4'
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Require Play publishing config
@@ -115,7 +126,7 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v4
+      - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
 
       - name: Decode release keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.keystore"
@@ -203,7 +214,7 @@ jobs:
       # the Play Console, and publishing it next to the installable APK would invite
       # installing the wrong one.
       - name: Upload Play bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: play-bundle-${{ steps.ver.outputs.name }}
           path: persistent-*-play.aab
@@ -249,7 +260,7 @@ jobs:
           printf '\n*AI disclosure: this comment and the related code were written with the assistance of AI.*\n' >> RELEASE_NOTES.md
 
       - name: Publish release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
           tag_name: ${{ steps.ver.outputs.tag }}
           name: ${{ steps.ver.outputs.tag }}

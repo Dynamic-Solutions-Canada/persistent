@@ -31,9 +31,16 @@ on:
 permissions:
   contents: read
 
+# A tag publishes a release, so only branch and pull request builds cancel an
+# older run of the same ref.
+concurrency:
+  group: build-desktop-msix-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
 jobs:
   build:
     runs-on: windows-2025
+    timeout-minutes: 20 # about 3x the slowest recent run
 
     strategy:
       fail-fast: false
@@ -46,12 +53,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: true
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: apps/desktop/global.json
 
@@ -88,7 +95,7 @@ jobs:
         run: .\publish-portable.ps1 -Platform ${{ matrix.platform }} -NoZip
 
       - name: Upload portable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Persistent.Desktop-${{ steps.version.outputs.VERSION }}-${{ matrix.platform }}-portable
           path: apps/desktop/artifacts/Persistent.Desktop-*-portable/
@@ -110,7 +117,7 @@ jobs:
 
       - name: Upload Store package
         if: inputs.store_packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: store-msix-${{ steps.version.outputs.VERSION }}-${{ matrix.platform }}
           path: apps/desktop/Persistent.DesktopMSIX/*.msix
@@ -129,7 +136,7 @@ jobs:
 
       - name: Upload release assets
         if: startsWith(github.ref, 'refs/tags/desktop-v')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-assets-${{ matrix.platform }}
           path: apps/desktop/release/*.zip
@@ -139,21 +146,22 @@ jobs:
     needs: build
     if: startsWith(github.ref, 'refs/tags/desktop-v')
     runs-on: ubuntu-latest
+    timeout-minutes: 10 # about 3x the slowest recent run
     permissions:
       contents: write
     steps:
       - name: Checkout approved release notes
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download release assets
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: release-assets-*
           path: artifacts
           merge-multiple: true
 
       - name: Create release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
           # The portable zip and nothing else. An MSIX belongs to the Store,
           # which needs a different package entirely: unsigned, carrying the real
