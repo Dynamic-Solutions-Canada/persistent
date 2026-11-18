@@ -42,7 +42,13 @@ ENV WEB_DIST_DIR=/app/apps/web/dist
 
 # Copy the built workspace (node_modules carries the generated Prisma client and
 # the @persistent/shared workspace symlink; prisma CLI is present for migrations).
-COPY --from=build /app .
+# The copied files are owned by the image's unprivileged `node` user (SEC-7) and
+# the app runs as that user, never root. /app itself stays root-owned. The API
+# keeps no data in the container (Postgres holds it), so nothing needs to write
+# to /app at runtime; the ownership only means a stray Prisma engine or cache
+# write under node_modules would not fail.
+COPY --from=build --chown=node:node /app .
 
+USER node
 EXPOSE 4000
 CMD ["npm", "run", "start:prod"]
