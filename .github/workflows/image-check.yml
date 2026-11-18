@@ -1,0 +1,65 @@
+name: Image check
+
+# Builds the production API/web image the way the server does, so a change that
+# breaks `docker build` (a dependency the build stage cannot fetch, a missing
+# file the Dockerfile copies) fails here rather than during `npm run deploy:prod`.
+# It also checks the image still runs as a non-root user (SEC-7). Nothing is
+# pushed: the server builds its own image from its checkout.
+
+on:
+  pull_request:
+    paths:
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'apps/api/**'
+      - 'apps/web/**'
+      - 'packages/shared/**'
+      - '.gitmodules'
+      - 'apps/desktop/external/promo'
+      - '.github/workflows/image-check.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'apps/api/**'
+      - 'apps/web/**'
+      - 'packages/shared/**'
+      - '.gitmodules'
+      - 'apps/desktop/external/promo'
+      - '.github/workflows/image-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: image-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # A cold build takes a few minutes locally; this leaves room for a slow runner.
+    timeout-minutes: 20
+    steps:
+      # The web build imports the promo catalog from the submodule.
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Build the production image
+        run: docker build --tag persistent-api:ci .
+
+      - name: Check the image runs as a non-root user
+        run: |
+          uid="$(docker run --rm --entrypoint id persistent-api:ci -u)"
+          echo "Runtime uid: $uid"
+          if [ "$uid" = "0" ]; then
+            echo "The production image runs as root (SEC-7)." >&2
+            exit 1
+          fi
