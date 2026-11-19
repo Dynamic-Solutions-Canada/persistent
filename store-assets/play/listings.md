@@ -1,6 +1,6 @@
-# Google Play store listing — Persistent
+# Google Play: Console-only settings
 
-English preview and Console audit guidance. The canonical nine-locale text source is [`listings.json`](listings.json), validated by `PlayMetadata`. The English fenced blocks below mirror that source for legacy screenshot tooling; update them together.
+What the Play Console needs that is not listing text (LIST-4): graphics, store settings, app access, the Data safety declaration and the captured-screenshot record. Every reader-facing word of the listing, in all nine locales, is in [`listings.json`](listings.json); the phone screenshots are the numbered PNGs in this folder, and release notes are in the root `release-notes/`.
 Package: `ca.dynamicsolutions.persistent` (Play) · Category: Productivity
 
 Both Google Play and current GitHub APKs use the Google-signed `ca.dynamicsolutions.persistent` Play build. Only legacy/local direct builds use `ca.persistent.app`; these have a different signer and package and cannot update in place to the Play build.
@@ -11,82 +11,21 @@ Both Google Play and current GitHub APKs use the Google-signed `ca.dynamicsoluti
 
 ---
 
-## App name (max 30 chars)
-
-```
-Persistent: Reminders That Nag
-```
-
-_(30/30.)_
-
-## Short description (max 80 chars)
-
-```
-Reminders that return until confirmed. Alarms, checklists and shared reminders.
-```
-
-_(79/80.)_
-
-## Full description (max 4000 chars)
-
-```
-A swipe should not mean done. Persistent keeps reminding you until you explicitly confirm completion.
-
-Choose a returning notification, a looping alarm, or a notification that escalates to an alarm after a delay or at a chosen time. Done uses a deliberate two-tap confirmation. Snooze postpones the alert; de-escalating stops the alarm sound while the notification keeps reminding you.
-
-Each scheduled firing is independent. An unfinished morning reminder stays active when the afternoon one fires. Completing one never silently clears another.
-
-Alarms are scheduled on your Android device and can fire offline with the app closed. Allow notifications, exact alarms and any requested alarm permissions for the intended behavior. Android settings and force-stopping the app can prevent alerts; reopen the app after a force stop.
-
-Reminders for real life
-• One-time, daily, weekly, every-N-days, custom weekday and monthly schedules, including the last day of the month
-• Up to 24 times a day, start/end dates, skip weekends and pause
-• Checklists with independent progress for each firing; ticking the last item does not mark the reminder done
-• Snooze presets, a custom duration or a specific date and time
-• Your choice of notification and alarm sounds
-• History and Undo done when you need to restore a completed firing
-• Notes and checklists without alarms
-
-Share or assign
-Invite someone by email. Shared members can edit and complete reminders for the group; snooze and alarm escalation remain personal. Assign a reminder to one person and follow their progress without taking over their alerts. An unconfirmed reminder can also escalate to your other devices and an email contact you choose.
-
-Your language, your formatting
-Use English (US or Canada), Spanish (Spain), French (France or Canada), German, Simplified Chinese, Brazilian Portuguese or Japanese. Match the device or choose an interface language in Settings. Keep regional date formatting, 12/24-hour display, account time zone and email language separate. Reminder text, medicine names and doses stay exactly as you enter them. Screenshots currently show the English interface.
-
-Medication reminders
-Keep medicine names and doses with your reminders. Persistent is not a medical device and does not diagnose, treat, cure or prevent any medical condition. Consult a healthcare professional for medical advice, diagnosis or treatment.
-
-A free account is required for syncing and escalation. Sign in with an email code, Google or a passkey. Manage reminders in a browser at persistent.dynamic-solutions.ca without installing an app. Changes sync across your signed-in devices when connected.
-```
-
-Validate all locale fields offline with the metadata tests. For an authenticated read-only comparison, run from `apps/mobile`: `node scripts/play-publish.mjs --listing-json store/listings.json --check`. Publication uses the same command without `--check` and is performed separately by the coordinator. It updates titles and descriptions, preserving images, video, default language, contact details and country distribution. Curated release notes are version-bound in `releases/0.29.0.json`.
-
-All nine app locale tags map identically to supported Play tags. `en-CA` explicitly aliases `en-US` copy and `fr-CA` aliases `fr-FR`; their published identities remain distinct. No Traditional Chinese listing is added. Existing English screenshot captions and screens remain English; translated descriptions disclose this. Legal pages remain canonical English, with no claim of translated legal review. Translation drafts have automated completeness/limit checks but no native-speaker qualification.
-
----
-
-> **No Android Auto copy here, deliberately.** The description carried a "WORKS IN THE
-> CAR" section until 2026-08-18. The Play build no longer projects to Auto at all (the
-> `com.google.android.gms.car.application` declaration is direct-only — see
-> `docs/alarm-architecture.md`), so the claim became false, and an Auto claim in the
-> listing is also what invites the Auto review that flagged the app as a messaging app
-> in the first place. The legacy/local direct flavor still does it; current GitHub Play APKs do not. The store copy must not say so.
-
 ## Graphics
 
-| Asset                       | Spec                                 | Status                                      |
-| --------------------------- | ------------------------------------ | ------------------------------------------- |
-| App icon                    | 512×512 PNG, 32-bit, no transparency | ✅ `graphics/play-icon.png`                 |
-| Feature graphic             | 1024×500 PNG/JPG, no transparency    | ✅ `graphics/feature-graphic.png`           |
-| Phone screenshots           | 2–8, min 320px, 16:9 or 9:16         | ✅ 8 in `graphics/screenshots/` (see below) |
-| 7" / 10" tablet screenshots | optional                             | ❌ optional                                 |
+| Asset                       | Spec                                 | Status                            |
+| --------------------------- | ------------------------------------ | --------------------------------- |
+| App icon                    | 512×512 PNG, 32-bit, no transparency | ✅ `graphics/play-icon.png`       |
+| Feature graphic             | 1024×500 PNG/JPG, no transparency    | ✅ `graphics/feature-graphic.png` |
+| Phone screenshots           | 2–8, min 320px, 16:9 or 9:16         | ✅ 8 in this folder (see below)   |
+| 7" / 10" tablet screenshots | optional                             | ❌ optional                       |
 
 Sources are `graphics/*.svg`; re-render with
 `rsvg-convert -w 512 -h 512 play-icon.svg -o play-icon.png`.
 
 ### Capturing more
 
-Use the [repeatable store screenshot workflow](../../../store-assets/README.md).
+Use the [repeatable store screenshot workflow](../README.md).
 It prepares a protected synthetic demo account, captures all eight source screens
 in the isolated Android demo app, and renders reusable phone mockups through the
 shared Paseo browser. `npm run shots`
@@ -175,13 +114,13 @@ Security practices to declare:
 - ⚠️ **At rest, Postgres columns are plaintext** — only session secrets and email codes are hashed. Don't over-claim encryption at rest.
 - ✅ **"Users can request data deletion" is true, so claim it.** Two routes, both live: in-app at Settings → Delete account, and the public URL above for anyone who cannot sign in. `DELETE /api/auth/me` requires the caller to type their own email, so a session cookie alone will not fire it. Verified end to end against a throwaway account: the user, reminders, occurrences, sessions and the `EmailCode` rows (keyed by address, so they have no cascade and are deleted explicitly) all go.
 
-Medication reminders store medicine names and doses. The Health apps declaration must select Medication and treatment management. On 21 October 2026 the coordinator observed the separate Health declaration still selecting no health features, and then saved the corrected Medication and treatment management selection as pending review. Final readback and submission remain coordinator-owned. Data safety must be checked using actual selected labels, not summary group counts: Health info and app interactions can already be selected even when a summary shows four groups. The optional data-deletion-without-account-deletion answer is distinct from the already configured account-deletion URL. Language preferences are app settings used for functionality, not evidence by themselves of a new sensitive data category or changed sharing purpose. See [release audit](../../../docs/notes/android-release-0.29.0.md) for current evidence and handoff.
+Medication reminders store medicine names and doses. The Health apps declaration must select Medication and treatment management. On 21 October 2026 the coordinator observed the separate Health declaration still selecting no health features, and then saved the corrected Medication and treatment management selection as pending review. Final readback and submission remain coordinator-owned. Data safety must be checked using actual selected labels, not summary group counts: Health info and app interactions can already be selected even when a summary shows four groups. The optional data-deletion-without-account-deletion answer is distinct from the already configured account-deletion URL. Language preferences are app settings used for functionality, not evidence by themselves of a new sensitive data category or changed sharing purpose. See [release audit](../../docs/notes/android-release-0.29.0.md) for current evidence and handoff.
 
 ---
 
 ## Captured screenshots
 
-All eight live in `graphics/screenshots/`, using the seeded demo account with
+All eight live in ``, using the seeded demo account with
 synthetic health data only. All eight are full-display Pixel 9 Pro captures with
 the real status area and gesture bar, and no unrelated notification icons.
 All are composed in Paseo
@@ -206,7 +145,7 @@ No screen repeats a reminder as two near-identical cards.
 
 ### Regenerating
 
-Use [store-assets/README.md](../../../store-assets/README.md) and its manifest.
+Use [store-assets/README.md](../README.md) and its manifest.
 Prepare the synthetic fixture, capture all eight screens in the isolated Android
 demo app through the authorized device session, then render
 the phone layouts and capture their final exports. If waiting has allowed another
@@ -226,7 +165,7 @@ upload directory only. Publish the listing separately when requested.
 
 ### Video
 
-`graphics/video/` holds screen recordings, all 960x2142, captured on the demo
+`video/` holds screen recordings, all 960x2142, captured on the demo
 account so no real medication data appears.
 
 **Marketing** (optional, for the promo slot):

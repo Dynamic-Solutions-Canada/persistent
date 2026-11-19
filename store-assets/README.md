@@ -52,7 +52,7 @@ Run `npm run shots:render`. Navigate the Paseo tab to each generated HTML layout
 
 The mockups use a small alternating angle and reusable CSS phone frame. The app pixels come exclusively from the raw screenshots. The saved background and generation prompt are in `marketing/`; reuse them for consistency. Google recommends avoiding device imagery and skew, but this carousel deliberately includes those stylized mockups at Ryan's request.
 
-After inspection, run `npm run shots:sync`. It validates all exports, copies the curated Play files into `../apps/mobile/store/graphics/screenshots/`, and removes superseded PNGs from that upload directory. README embeds the same files. Preserve native permission demonstration videos, which serve a separate purpose.
+After inspection, run `npm run shots:check`, which validates every export. The curated Play files are the PNGs in `play/`, the only copy: the publisher uploads them from there and the README embeds them. Preserve native permission demonstration videos, which serve a separate purpose.
 
 ### Real Android capture setup and native scenarios
 
@@ -146,7 +146,7 @@ The native capture provenance is recorded in `raw/android/native/README.md`.
 ## Publishing an approved refresh
 
 After deploying the matching hosted UI, run the existing `play-listing` workflow
-in check mode and inspect its diff. The workflow now publishes localized text only; an explicitly approved carousel refresh uses `node scripts/play-publish.mjs --listing store/listing.md --screenshots store/graphics/screenshots` from `apps/mobile`, first adding `--check` for comparison, then publishing without it.
+in check mode and inspect its diff. The workflow now publishes localized text only; an explicitly approved carousel refresh uses `node scripts/play-publish.mjs --listing` from `apps/mobile` (English copy from `play/listings.json`, screenshots from `play/`), first adding `--check` for comparison, then publishing without it.
 API success confirms a committed edit, not review submission. Open Publishing
 overview in Play Console, inspect all pending changes, send the approved items
 for review if needed, and confirm the phone screenshots appear under Changes

@@ -1,6 +1,6 @@
 name: Play Listing
 
-# Text-only localized titles and descriptions from apps/mobile/store/listings.json.
+# Text-only localized titles and descriptions from store-assets/play/listings.json.
 # A check discards its edit. Publication preserves screenshots, videos, app details
 # and country distribution. Verify review/publication in Play Console separately.
 
@@ -58,5 +58,5 @@ jobs:
         env:
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
-          node scripts/play-publish.mjs --listing-json store/listings.json \
+          node scripts/play-publish.mjs --listing-json ../../store-assets/play/listings.json \
             ${{ inputs.mode == 'check' && '--check' || '' }}

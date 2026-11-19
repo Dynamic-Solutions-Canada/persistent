@@ -72,7 +72,7 @@ npm run prepare:android   # build web -> cap add android -> wire plugin -> cap s
      reminder set (`ReminderCarAppService.kt`). The Play build carries no Auto surface —
      declaring the notification mirror makes it a _messaging_ app in Play's Auto review,
      which a reminder app fails; see `docs/alarm-architecture.md` (Android Auto) and
-     `store/play-readiness.md` #1b,
+     `store-assets/play/play-readiness.md` #1b,
    - adds the `androidx.viewpager2` dependency, which the full-screen alarm surface
      pages the ringing set with (several occurrences can ring at once; see
      `docs/notification-behavior.md` §4b),
@@ -274,7 +274,7 @@ every track's current versionCodes, and fails within seconds if this run's
 versionCode isn't strictly higher than everything on Play (the code is baked in at
 assemble time, so finding that afterwards would waste the whole build). The fix it
 prints is the `PLAY_VERSION_CODE_OFFSET` repo variable, added to the run number.
-See [`store/play-readiness.md`](store/play-readiness.md) §6b.
+See [`store-assets/play/play-readiness.md`](../../store-assets/play/play-readiness.md) §6b.
 
 Users can update through Google Play or manually install newer GitHub APKs.
 The app does not download APK updates itself. Because the UI loads from `server.url`, web-only
@@ -296,9 +296,9 @@ Play versionCode. It uploads the replacement before deleting the direct asset,
 preserves approved release notes, and does not rebuild or re-upload the AAB.
 If no universal APK exists or certificate verification fails, publication stops.
 
-The canonical localized titles and descriptions live in `store/listings.json`; `store/listing.md` holds the English preview, screenshot inventory and Console guidance. The manual `play-listing` workflow defaults to a read-only comparison and publishes text only, preserving existing graphics and country distribution. All nine Play tags match the application locale identities; Canadian English and French reuse their corresponding wording. Release notes are per version, in every wording, in the root `release-notes/` folder (see its README); the release and notes-repair workflows send them and never generate notes. See `../../docs/notes/android-release-0.29.0.md` for the complete release audit and commands.
+The canonical localized titles and descriptions live in `store-assets/play/listings.json`; `store-assets/play/listings.md` holds the Console-only settings, screenshot inventory and Console guidance. The manual `play-listing` workflow defaults to a read-only comparison and publishes text only, preserving existing graphics and country distribution. All nine Play tags match the application locale identities; Canadian English and French reuse their corresponding wording. Release notes are per version, in every wording, in the root `release-notes/` folder (see its README); the release and notes-repair workflows send them and never generate notes. See `../../docs/notes/android-release-0.29.0.md` for the complete release audit and commands.
 
-Screenshot replacement remains separately available through the legacy `--listing store/listing.md --screenshots <dir>` invocation when explicitly requested. Refresh screenshots with `../../store-assets/README.md` and the `store-screenshots` skill. The current eight-image carousel contains English captions and screenshots, including native notification/alarm surfaces; translations disclose the English graphics.
+Screenshot replacement remains separately available through the legacy `--listing` invocation (English copy from `store-assets/play/listings.json`, screenshots from `store-assets/play/`) when explicitly requested. Refresh screenshots with `../../store-assets/README.md` and the `store-screenshots` skill. The current eight-image carousel contains English captions and screenshots, including native notification/alarm surfaces; translations disclose the English graphics.
 
 Language selection works before sign-in. Android 13 and newer use the OS per-app language setting; the in-app selector updates it. Earlier Android versions keep a private device override and migrate an older hosted-web choice once on upgrade, preserving a later Match device reset. Native catalogs are copied from `packages/shared/src/messages` by `setup-android.mjs` for offline/background/restart presentation; generated `android/` is not authoritative. See `../../docs/localization.md` for the exact additive bridge and FCM range contract.
 
@@ -334,7 +334,7 @@ Android Auto capabilities that Google Play does not allow in this app:
 The whole Auto integration is split out because a templated Auto app has to declare one
 of Auto's approved categories and a reminder app is none of them. The Play artifact has
 no Auto dependency, implementation classes, manifest entries, or resources. See
-`store/play-readiness.md` #1a and #1b.
+`store-assets/play/play-readiness.md` #1a and #1b.
 
 Sources live in `android-plugin/flavor/<flavor>/`, and direct-only Kotlin files are
 listed in `setup-android.mjs`'s `DIRECT_ONLY_KT`; the script copies both into

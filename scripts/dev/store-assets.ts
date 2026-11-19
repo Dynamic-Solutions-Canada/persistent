@@ -1,14 +1,7 @@
 /** Repeatable store demo preparation and asset exports, without launching a browser. */
 import { execFileSync } from 'node:child_process'
-import {
-  copyFileSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  unlinkSync,
-  writeFileSync,
-} from 'node:fs'
-import { basename, dirname, resolve } from 'node:path'
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
 import { PrismaClient } from '@prisma/client'
 import { inspectStorePng, validateStoreImage } from './store-image.ts'
 
@@ -174,48 +167,54 @@ function check(): void {
       const { width, height } = validateStoreImage(png, store)
       console.log(`${store}: ${shot.file} (${width}x${height})`)
     }
+    checkSingleCopy(store, shots)
+    if (store === 'microsoft') checkCaptions(shots.length)
   }
 }
 
-/** Replace the upload carousel only after every curated export has passed validation. */
-function syncPlay(): void {
-  check()
-  const manifest = JSON.parse(
-    readFileSync('store-assets/manifest.json', 'utf8'),
-  ) as {
-    play: Array<{ file: string }>
-  }
-  const directory = 'apps/mobile/store/graphics/screenshots'
-  const names = new Set(manifest.play.map((shot) => basename(shot.file)))
-  mkdirSync(directory, { recursive: true })
-
-  // Finish copying the replacement set before removing superseded PNGs.
-  for (const shot of manifest.play) {
-    copyFileSync(
-      resolve('store-assets', shot.file),
-      resolve(directory, basename(shot.file)),
+/** Every PNG in a store's folder is one the manifest names: one committed copy (LIST-6). */
+function checkSingleCopy(store: string, shots: Array<{ file: string }>): void {
+  const named = new Set(shots.map((shot) => shot.file))
+  const stray = readdirSync(resolve('store-assets', store))
+    .filter((name) => name.endsWith('.png'))
+    .map((name) => `${store}/${name}`)
+    .filter((file) => !named.has(file))
+  if (stray.length)
+    throw new Error(
+      `${store}: not in the manifest, so not in the listing: ${stray.join(', ')}`,
     )
+}
+
+/** Each Microsoft listing locale has one caption per screenshot, in manifest order (LIST-8). */
+function checkCaptions(count: number): void {
+  const listings = JSON.parse(
+    readFileSync('store-assets/microsoft/listings.json', 'utf8'),
+  ) as {
+    locales: Record<
+      string,
+      { copyFrom?: string; screenshotCaptions?: string[] }
+    >
   }
-  for (const name of readdirSync(directory)) {
-    if (name.endsWith('.png') && !names.has(name))
-      unlinkSync(resolve(directory, name))
+  for (const [locale, record] of Object.entries(listings.locales)) {
+    if (record.copyFrom) continue
+    const captions = record.screenshotCaptions ?? []
+    if (captions.length !== count)
+      throw new Error(
+        `microsoft/listings.json ${locale}: ${captions.length} screenshot captions for ${count} screenshots`,
+      )
   }
-  console.log(
-    'Synchronized the local Play upload directory. Nothing was published.',
-  )
 }
 
 const command = process.argv[2]
 if (command === 'help')
   console.log(
-    'Capture workflow: store-assets/README.md. Use shots:prepare, Paseo browser captures, shots:render, shots:check, then shots:sync. No browser is launched automatically.',
+    'Capture workflow: store-assets/README.md. Use shots:prepare, Paseo browser captures, shots:render, then shots:check. No browser is launched automatically.',
   )
 else if (command === 'prepare') await prepare()
 else if (command === 'save' && process.argv[3])
   await saveCapture(process.argv[3])
 else if (command === 'check') check()
-else if (command === 'sync-play') syncPlay()
 else
   throw new Error(
-    'Usage: store-assets.ts prepare --email=... | save store-assets/path.png | check | sync-play',
+    'Usage: store-assets.ts prepare --email=... | save store-assets/path.png | check',
   )

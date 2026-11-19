@@ -1,6 +1,6 @@
 # Play Store readiness and release checks
 
-Current 0.29.0 preparation and the coordinator's 21 October 2026 Console audit are recorded in [the release audit](../../../docs/notes/android-release-0.29.0.md). Historical completion marks below refer to earlier releases; they do not certify the current Health/Data safety/reviewer forms, native runtime or review/publication state.
+Current 0.29.0 preparation and the coordinator's 21 October 2026 Console audit are recorded in [the release audit](../../docs/notes/android-release-0.29.0.md). Historical completion marks below refer to earlier releases; they do not certify the current Health/Data safety/reviewer forms, native runtime or review/publication state.
 
 **Package names differ by flavor.** Play requires `ca.dynamicsolutions.persistent`,
 so that is the `play` flavor's `applicationId` used by both Play and current
@@ -268,7 +268,7 @@ mode can't help because it returns the code for _every_ address (hence
 One designated account can now sign in with a fixed code —
 `REVIEW_ACCOUNT_EMAIL` + `REVIEW_ACCOUNT_CODE`, both required, unset by default
 (`apps/api/src/lib/review-access.ts`, documented in `docs/auth-architecture.md`).
-The Play Console "App access" wording is in [`listing.md`](listing.md); the secret
+The Play Console "App access" wording is in [`listings.md`](listings.md); the secret
 itself is deliberately not in this repo.
 
 Set on the production server and passed through `compose.server.yml`.
@@ -323,7 +323,7 @@ bounced.
 
 Play additionally demands a **demonstration video** for the foreground-service,
 full-screen-intent and exact-alarm declarations. Recordings are in
-`graphics/video/permission-*.mp4` (see [`listing.md`](listing.md) for what each
+`video/permission-*.mp4` (see [`listings.md`](listings.md) for what each
 shows); upload them to YouTube as unlisted and paste the URLs, since the forms
 take a link rather than a file.
 
@@ -432,9 +432,9 @@ failing the release.
 
 ### Store listing copy
 
-[`listings.json`](listings.json) is the canonical nine-locale title/short/full description source. Canadian aliases retain separate Play tags. [`listing.md`](listing.md) mirrors English text and inventories the existing eight screenshots; a test prevents preview drift. The manual `play-listing` workflow (`workflow_dispatch`) defaults to `check`, then publishes text only when requested. Existing locales use PATCH and new locales use PUT inside a single edit. No image, video, contact, default-language, policy or country endpoint is mutated. Unknown existing translations are preserved. The validator checks every locale and limit before OAuth.
+[`listings.json`](listings.json) is the canonical nine-locale title/short/full description source. Canadian aliases retain separate Play tags. [`listings.md`](listings.md) holds the Console-only settings and inventories the existing eight screenshots. The manual `play-listing` workflow (`workflow_dispatch`) defaults to `check`, then publishes text only when requested. Existing locales use PATCH and new locales use PUT inside a single edit. No image, video, contact, default-language, policy or country endpoint is mutated. Unknown existing translations are preserved. The validator checks every locale and limit before OAuth.
 
-The separate legacy `--listing store/listing.md --screenshots <dir>` mode can still replace screenshots when explicitly authorized. Its delete and uploads share one edit, and file order determines carousel order. English screenshot captions are retained for this localization release, with that boundary disclosed in each translated description. Curated `releases/<version>.json` provides localized release notes only for its matching version; all nine texts must fit 500 characters without truncation.
+The separate legacy `--listing` mode (English copy from `listings.json`, screenshots from this folder) can still replace screenshots when explicitly authorized. Its delete and uploads share one edit, and file order determines carousel order. English screenshot captions are retained for this localization release, with that boundary disclosed in each translated description. Release notes are per version in the root `release-notes/` folder; every wording must fit 500 characters, and nothing is truncated.
 
 Play wants **24-bit PNG with no alpha**; `adb exec-out screencap` produces RGBA, so
 device shots need `magick … -alpha remove -alpha off`. The script checks this (plus
@@ -502,7 +502,7 @@ GitHub, and never reuse one.
 2. ~~Write and host the privacy policy~~ ✅
 3. ~~Split the updater into play/direct flavors~~ ✅
 4. ~~AAB build in CI~~ ✅
-5. ~~Capture screenshots~~ ✅ (`graphics/screenshots/`)
+5. ~~Capture screenshots~~ ✅ (``)
 6. ~~Raise targetSdk to 35 + handle edge-to-edge~~ ✅
 7. ~~Reviewer sign-in credentials~~ ✅
 8. ~~Automated Play publishing in CI~~ ✅ live, production only (#6b)
@@ -531,5 +531,5 @@ hosted web change does not require a new Android binary; the listing and its
 screenshots must still match the current app.
 
 All listing screenshots are captured, including the ringing full-screen alarm
-(`graphics/screenshots/00-ringing-alarm.png`), taken on Android 15 during the
+(`00-ringing-alarm.png`), taken on Android 15 during the
 device verification.

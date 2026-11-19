@@ -22,7 +22,7 @@ import androidx.lifecycle.LifecycleOwner
  * reminder app is none of them, so shipping this in the Play AAB would put every
  * release at risk of an Auto review rejection. The sideloaded build takes it instead —
  * the same split, and for the same reason, as `UpdatePlugin`. See
- * `store/play-readiness.md`.
+ * `store-assets/play/play-readiness.md`.
  *
  * It pairs with the notification mirror rather than replacing it. Notifications are for
  * what is *happening* (see `AlarmService.mirrorsToCar`); this screen is for everything

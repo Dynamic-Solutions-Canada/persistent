@@ -18,7 +18,7 @@ pins; do not rely on the generated Capacitor template's default.
 **A target-SDK bump needs a device, not just a compile.** The move to `targetSdk 35`
 compiled clean and still broke the alarm on real hardware (`BAL_BLOCK` collapsed the
 full-screen surface whenever the phone was unlocked). Treat "both flavors compile" as
-the floor, and see `store/play-readiness.md` #2a for the checklist to run on a phone
+the floor, and see `store-assets/play/play-readiness.md` #2a for the checklist to run on a phone
 after one.
 
 **Native (Kotlin/Java) changes aren't covered by `npm run validate`.** The
@@ -56,7 +56,7 @@ the registered Play certificate; never substitute a locally signed APK. Two thin
   descriptor now says `<uses name="template"/>` and the mirror is a `CarAppExtender`, so
   that false claim is gone. Both halves are `direct`-only because they are now literally
   the same declaration, and the Play build has no Auto surface
-  (`store/play-readiness.md` #1b). The AndroidX dependency,
+  (`store-assets/play/play-readiness.md` #1b). The AndroidX dependency,
   projection observer, notification extender, refresh broadcast, manifest declarations,
   and car resources are all direct-only. Shared callers compile against no-op play
   implementations. `AgendaStore` remains shared because the sync writer must not have to
@@ -96,7 +96,7 @@ billing. Keep lab instrumentation and diagnostic geometry helpers in test source
 never the shipping app. Its runtime gates are separate from native compilation;
 failed or contaminated captures do not replace approved Store assets.
 
-`store/listings.json` owns the nine-locale titles/descriptions; `store/listing.md` mirrors its English preview and records the published screenshot set. The manual `play-listing` workflow uses `scripts/play-publish.mjs --listing-json` for text only, preserving graphics. Release notes are per version, in every wording, in the root `release-notes/` folder (see its README). The older `--listing` screenshot replacement requires an explicit screenshot publication request. Medication reminders are available, so the listing,
+`store-assets/play/listings.json` owns the nine-locale titles/descriptions; `store-assets/play/listings.md` holds the Console-only settings and the published screenshot record. The manual `play-listing` workflow uses `scripts/play-publish.mjs --listing-json` for text only, preserving graphics. Release notes are per version, in every wording, in the root `release-notes/` folder (see its README). The older `--listing` screenshot replacement requires an explicit screenshot publication request. Medication reminders are available, so the listing,
 Health apps declaration, and Data safety declaration must cover medicine names
 and doses accurately.
 

@@ -5,7 +5,7 @@
  * native push registration with it, so the dialog requires the user to type their own
  * email address before the button arms, the same "make it deliberate" stance
  * the Done confirm takes, for a much less reversible action. Google Play
- * requires an in-app deletion path; see apps/mobile/store/play-readiness.md.
+ * requires an in-app deletion path; see store-assets/play/play-readiness.md.
  */
 import { useTranslation, Trans } from 'react-i18next'
 import { tr } from '../localization/i18n.js'

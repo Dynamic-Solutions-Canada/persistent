@@ -6,4 +6,4 @@ pre-commit:
       # devkit's shared check: signing material and keys, .env files other than
       # *.example, anything under .secrets/, pasted private keys, and files over
       # 5 MB. The one store video above the limit is exempt from the size check.
-      run: npx devkit-precommit --max-size 5MB --allow-large apps/mobile/store/graphics/video/permission-foreground-service.mp4
+      run: npx devkit-precommit --max-size 5MB --allow-large store-assets/play/video/permission-foreground-service.mp4

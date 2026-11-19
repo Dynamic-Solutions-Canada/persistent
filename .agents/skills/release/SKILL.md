@@ -65,14 +65,14 @@ The manual `play-promote` workflow is only for an existing uploaded versionCode
 or a production rollout adjustment. It targets production, carries forward the
 source notes and clears active phone testing releases without rebuilding.
 If promotion is refused, the edit stays uncommitted and the publisher prints
-the Console-side checklist. See `apps/mobile/store/play-readiness.md` #6b.
+the Console-side checklist. See `store-assets/play/play-readiness.md` #6b.
 
 Never publish the `direct` APK to Play: it carries two things the `play` flavor
 deliberately omits: the in-app updater with `REQUEST_INSTALL_PACKAGES`, which Play
 prohibits, and the Android Auto car screen (`ReminderCarAppService`), which would draw
 an Auto review against a category this app can't honestly claim. The workflow asserts
 both are absent from the Play bundle before uploading ("Verify the Play bundle carries
-no direct-only components"); see `apps/mobile/store/play-readiness.md` #1 and #1a.
+no direct-only components"); see `store-assets/play/play-readiness.md` #1 and #1a.
 
 This command decides the next version, records it, and pushes the tag.
 

@@ -6,12 +6,15 @@ import { supportedLocales } from '../../../packages/shared/src/locales.js'
 // @ts-expect-error - dependency-free Node script has no generated declarations
 import { PlayMetadata } from './play-metadata.mjs'
 // @ts-expect-error - dependency-free Node script has no generated declarations
-import { listingFromMarkdown } from './play-publish.mjs'
+import { listingFromJson } from './play-publish.mjs'
 // @ts-expect-error - dependency-free Node script has no generated declarations
 import { playJson } from '../../../scripts/release/notes.mjs'
 
 const source = JSON.parse(
-  readFileSync(new URL('../store/listings.json', import.meta.url), 'utf8'),
+  readFileSync(
+    new URL('../../../store-assets/play/listings.json', import.meta.url),
+    'utf8',
+  ),
 )
 // The 0.29.0 notes as release.yml hands them to Play, built from release-notes/.
 const notes = playJson('product', '0.29.0')
@@ -32,11 +35,10 @@ test('real listing and release notes cover exactly the app locales within every 
     assert.match(listing.fullDescription, /persistent.dynamic-solutions.ca/)
     assert.ok(listing.title.startsWith('Persistent'))
   }
-  const preview = listingFromMarkdown(
-    readFileSync(new URL('../store/listing.md', import.meta.url), 'utf8'),
-  )
-  assert.equal(preview.shortDescription, listings[0].shortDescription)
-  assert.equal(preview.fullDescription, listings[0].fullDescription)
+  // The legacy screenshot mode reads the same English copy the localized publisher sends.
+  const english = listingFromJson(source)
+  assert.equal(english.shortDescription, listings[0].shortDescription)
+  assert.equal(english.fullDescription, listings[0].fullDescription)
 })
 
 test('incomplete, unknown, over-limit and cyclic metadata fails before opening any edit', () => {

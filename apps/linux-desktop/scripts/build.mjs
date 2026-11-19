@@ -28,11 +28,14 @@ for (const entry of [
     external: ['electron', '@particle/dbus-next', 'ws', 'x11'],
   })
 }
-await copyFile('../mobile/store/graphics/play-icon.png', 'resources/icon.png')
+await copyFile(
+  '../../store-assets/play/graphics/play-icon.png',
+  'resources/icon.png',
+)
 // electron-builder moves an extraResource out of ASAR. Keep a separate UI copy
 // so local settings images and window icons still resolve inside the package.
 await copyFile(
-  '../mobile/store/graphics/play-icon.png',
+  '../../store-assets/play/graphics/play-icon.png',
   'resources/app-icon.png',
 )
 await cp('../desktop/external/promo/Assets/PromotedApps', 'resources/promo', {

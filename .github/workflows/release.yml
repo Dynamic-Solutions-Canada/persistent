@@ -207,14 +207,14 @@ jobs:
             for marker in REQUEST_INSTALL_PACKAGES androidx.car.app com.google.android.gms.car.application; do
               COUNT=$(printf '%s' "$DECLARATIONS" | grep -c "$marker" || true)
               if [ "$COUNT" != "0" ]; then
-                echo "::error::$manifest declares $marker ($COUNT), that component is direct-flavor only. See apps/mobile/store/play-readiness.md."
+                echo "::error::$manifest declares $marker ($COUNT), that component is direct-flavor only. See store-assets/play/play-readiness.md."
                 exit 1
               fi
             done
             echo "clean (no direct-only components): $manifest"
           done < <(find android/app/build/intermediates/packaged_manifests -ipath '*playRelease*' -name AndroidManifest.xml 2>/dev/null)
           if [ "$FOUND" = "0" ]; then
-            echo "::warning::No playRelease packaged manifest found, direct-only component check skipped. See apps/mobile/store/play-readiness.md #1."
+            echo "::warning::No playRelease packaged manifest found, direct-only component check skipped. See store-assets/play/play-readiness.md #1."
           fi
 
       - name: Stage Play bundle

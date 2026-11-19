@@ -15,7 +15,7 @@
 
   Paired with the com.google.android.gms.car.application meta-data in the manifest.
   Copied into the direct flavor's res/xml/ by scripts/setup-android.mjs. See
-  docs/alarm-architecture.md (Android Auto) and store/play-readiness.md #1b.
+  docs/alarm-architecture.md (Android Auto) and store-assets/play/play-readiness.md #1b.
 -->
 <automotiveApp>
     <uses name="template" />

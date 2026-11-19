@@ -132,7 +132,7 @@ object AlarmPermissions {
                 }
             Grant.OVERLAY -> Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION).setData(packageUri)
             // The direct per-app dialog. Play permits it for apps whose core function is
-            // exact user-set alarms (store/play-readiness.md, permissions table).
+            // exact user-set alarms (store-assets/play/play-readiness.md, permissions table).
             Grant.BATTERY -> Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).setData(packageUri)
         }
     }

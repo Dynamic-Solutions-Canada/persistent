@@ -23,9 +23,9 @@
  *                   that code is not strictly higher than everything on Play —
  *                   the one Play failure worth catching *before* a 4-minute
  *                   build, since the code is baked in at assemble time.
- *   --listing [md]  Push the whole store listing — the descriptions from
- *                   store/listing.md and the phone screenshots from
- *                   store/graphics/screenshots (--no-screenshots for copy only,
+ *   --listing [json] Push the English store listing: the descriptions from the
+ *                   en-US record of store-assets/play/listings.json and the phone
+ *                   screenshots from store-assets/play (--no-screenshots for copy only,
  *                   --screenshots <dir> to point elsewhere). Add --check to diff
  *                   against what Play currently serves and write nothing.
  *                   Deliberately not part of a release: the copy changes on its
@@ -55,8 +55,8 @@
  *
  * Usage:
  *   node scripts/play-publish.mjs --check --version-code 40
- *   node scripts/play-publish.mjs --listing-json store/listings.json [--check]
- *   node scripts/play-publish.mjs --listing store/listing.md [--check] [--no-screenshots]
+ *   node scripts/play-publish.mjs --listing-json ../../store-assets/play/listings.json [--check]
+ *   node scripts/play-publish.mjs --listing [--check] [--no-screenshots]
  *   node scripts/play-publish.mjs --aab app.aab --tracks production --production-only \
  *     --version-name 0.17.0 --notes RELEASE_NOTES.md [--status completed|draft]
  *   node scripts/play-publish.mjs --promote --version-code 45 --tracks production \
@@ -86,7 +86,7 @@ const NOTE_FALLBACK = 'Bug fixes and improvements.'
 const NOTE_LANGUAGE = 'en-US'
 
 /** Where the listing copy lives, relative to apps/mobile (this script's cwd in CI). */
-const DEFAULT_LISTING = 'store/listing.md'
+const DEFAULT_LISTING = '../../store-assets/play/listings.json'
 const LISTING_LANGUAGE = 'en-US'
 
 /**
@@ -98,7 +98,7 @@ const LISTING_LANGUAGE = 'en-US'
 export const LISTING_LIMITS = { shortDescription: 80, fullDescription: 4000 }
 
 /** Where the phone screenshots live, relative to apps/mobile. */
-const DEFAULT_SCREENSHOTS = 'store/graphics/screenshots'
+const DEFAULT_SCREENSHOTS = '../../store-assets/play'
 /** Play's slot name for phone screenshots; the listing carries several image types. */
 const SCREENSHOT_TYPE = 'phoneScreenshots'
 
@@ -200,58 +200,24 @@ export function playNotesFrom(markdown, limit = NOTE_LIMIT) {
 }
 
 /**
- * The first fenced block under a `## <heading>` section, or null.
- *
- * Anchored on the heading rather than counting fences from the top of the file:
- * listing.md holds several other fenced blocks (the adb capture commands, the
- * App access instructions for reviewers), so block order is not a stable index —
- * and picking the wrong one would overwrite the live store listing with the
- * wrong text. Stops at the next `##` so a section with no block reports absent
- * instead of borrowing the following section's.
+ * The English store copy from the Play listings.json (LIST-3). Throws rather than returning a
+ * partial listing: a missing field would push an empty value, and Play takes that as "clear this
+ * field" rather than "leave it alone".
  */
-function fencedBlockUnder(markdown, heading) {
-  const lines = String(markdown ?? '').split('\n')
-  const heading_ = new RegExp(`^##\\s+${heading}\\b`, 'i')
-  const start = lines.findIndex((line) => heading_.test(line))
-  if (start === -1) return null
-
-  let open = -1
-  for (let i = start + 1; i < lines.length; i++) {
-    if (/^##\s/.test(lines[i])) break
-    if (lines[i].startsWith('```')) {
-      open = i
-      break
-    }
-  }
-  if (open === -1) return null
-
-  const close = lines.findIndex((line, i) => i > open && line.startsWith('```'))
-  if (close === -1) return null
-  return lines
-    .slice(open + 1, close)
-    .join('\n')
-    .trim()
-}
-
-/**
- * Pull the store copy out of listing.md. Throws rather than returning a partial
- * listing: a half-read file would push an empty field, and Play takes that as
- * "clear this field" rather than "leave it alone".
- */
-export function listingFromMarkdown(markdown) {
-  const shortDescription = fencedBlockUnder(markdown, 'Short description')
-  const fullDescription = fencedBlockUnder(markdown, 'Full description')
-  const missing = [
-    shortDescription === null ? 'Short description' : null,
-    fullDescription === null ? 'Full description' : null,
-  ].filter(Boolean)
+export function listingFromJson(source) {
+  const english = source?.locales?.[LISTING_LANGUAGE]
+  const missing = ['shortDescription', 'fullDescription'].filter(
+    (field) => typeof english?.[field] !== 'string' || !english[field].trim(),
+  )
   if (missing.length) {
     throw new Error(
-      `Could not find a fenced block under: ${missing.map((m) => `"## ${m}"`).join(' and ')}.\n` +
-        'The listing copy is read from the first ``` block beneath each of those headings.',
+      `The ${LISTING_LANGUAGE} record has no ${missing.join(' or ')}.`,
     )
   }
-  return { shortDescription, fullDescription }
+  return {
+    shortDescription: english.shortDescription.trim(),
+    fullDescription: english.fullDescription.trim(),
+  }
 }
 
 /** Play's character count, per field. Empty is a problem too — see above. */
@@ -659,9 +625,10 @@ async function main() {
   let listing = null
   let shots = []
   if (listingMode && !localizedListingMode) {
-    const markdown = read(listingFile, 'listing markdown', 'utf8')
     try {
-      listing = listingFromMarkdown(markdown)
+      listing = listingFromJson(
+        JSON.parse(read(listingFile, 'listings.json', 'utf8')),
+      )
     } catch (error) {
       fail(`${listingFile}: ${error.message}`)
     }
@@ -710,7 +677,7 @@ async function main() {
     return
   }
 
-  // --- --listing: push the store copy from listing.md ------------------------
+  // --- --listing: push the English store copy and screenshots -----------------
   if (listingMode) {
     const edit = await playFetch(token, editsPath(packageName), {
       method: 'POST',

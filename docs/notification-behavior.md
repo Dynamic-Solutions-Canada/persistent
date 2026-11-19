@@ -387,7 +387,7 @@ still nagging on the phone, and it is listed in full on the car screen (§5b).
 mirror here and the car screen in §5b — ship in the `direct` APK and not in the Play one.
 A car app must declare one of Auto's approved categories, and a reminder app is none of
 them, so the Play build opts out of Auto entirely rather than claim to be something it is
-not (`alarm-architecture.md`, `store/play-readiness.md` #1b). Nothing about the guarantee
+not (`alarm-architecture.md`, `store-assets/play/play-readiness.md` #1b). Nothing about the guarantee
 changes for a Play user: the phone still nags, rings and escalates exactly as specified —
 it simply does not project into the car.
 

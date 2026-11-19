@@ -434,7 +434,7 @@ attempting a launch that will be refused.
 
 The rule did not relax at `targetSdk 36`, and the exemption still holds: a device
 pass on API 36 fired an alarm with the app fully backgrounded and got the
-full-screen surface with no BAL block at all (`store/play-readiness.md` #2a). Treat
+full-screen surface with no BAL block at all (`store-assets/play/play-readiness.md` #2a). Treat
 this permission as part of the guarantee rather than a nicety, and re-check it on
 every target-SDK bump.
 
@@ -652,7 +652,7 @@ for what is happening**, the **car screen is for everything else**.
   descriptor and the `<meta-data com.google.android.gms.car.application>` that points at
   it live in the `direct` manifest alongside the screen (`setup-android.mjs` copies the
   descriptor into that flavor's `res/`, and deletes any stale copy from `src/main`). The
-  Play build has no Auto surface at all. See `store/play-readiness.md` #1b.
+  Play build has no Auto surface at all. See `store-assets/play/play-readiness.md` #1b.
 - **Gated on active projection.** The direct flavor's `CarProjection` first checks that
   this build declares itself to Auto (`declaresAutoApp`, read from the app's own
   manifest), then observes `androidx.car.app`'s `CarConnection`. The Play flavor supplies
@@ -1008,7 +1008,7 @@ this.
 Verified on a device with predictive back enabled: Back inert on the alarm surface for
 the key event and both edge gestures, the picker's two levels behaving as before, the
 tab hierarchy walking as before, and a background alarm launch with no BAL block
-(`store/play-readiness.md` #2a).
+(`store-assets/play/play-readiness.md` #2a).
 
 The manifest carried Android's documented opt-out
 (`android:enableOnBackInvokedCallback="false"`) for one release, 0.21.1, so the API

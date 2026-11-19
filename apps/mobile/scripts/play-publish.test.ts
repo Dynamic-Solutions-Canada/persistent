@@ -12,7 +12,7 @@ import {
   playNotesFrom,
   highestVersionCode,
   describeTracks,
-  listingFromMarkdown,
+  listingFromJson,
   listingProblems,
   describeListingDiff,
   LISTING_LIMITS,
@@ -185,72 +185,34 @@ describe('describeTracks', () => {
   })
 })
 
-describe('listingFromMarkdown', () => {
-  // Deliberately shaped like the real listing.md: other fenced blocks before and
-  // after the ones we want, so a parser counting fences picks up the wrong text.
-  const markdown = [
-    '# Google Play store listing',
-    '',
-    '## App name (max 30 chars)',
-    '',
-    '```',
-    'Persistent: Reminders That Nag',
-    '```',
-    '',
-    '## Short description (max 80 chars)',
-    '',
-    '```',
-    'Reminders that nag until you confirm them done.',
-    '```',
-    '',
-    '## Full description (max 4000 chars)',
-    '',
-    '```',
-    'Line one.',
-    '',
-    'Line two.',
-    '```',
-    '',
-    '## Capturing more',
-    '',
-    '```',
-    'adb exec-out screencap -p > shot.png',
-    '```',
-  ].join('\n')
+describe('listingFromJson', () => {
+  const source = {
+    schemaVersion: 1,
+    locales: {
+      'en-US': {
+        title: 'Persistent: Reminders That Nag',
+        shortDescription: 'Reminders that nag until you confirm them done.',
+        fullDescription: 'Line one.\n\nLine two.',
+      },
+      'fr-CA': { copyFrom: 'fr-FR' },
+    },
+  }
 
-  it('takes the block under each heading, not the Nth block in the file', () => {
-    const listing = listingFromMarkdown(markdown)
+  it('takes the English short and full descriptions', () => {
+    const listing = listingFromJson(source)
     assert.equal(
       listing.shortDescription,
       'Reminders that nag until you confirm them done.',
     )
+    // Play renders the paragraph breaks; collapsing them would reflow the listing.
     assert.equal(listing.fullDescription, 'Line one.\n\nLine two.')
   })
 
-  it('keeps blank lines inside the description', () => {
-    // Play renders the paragraph breaks; collapsing them would reflow the listing.
-    assert.match(
-      listingFromMarkdown(markdown).fullDescription,
-      /Line one\.\n\nLine two\./,
-    )
-  })
-
   it('throws rather than returning a partial listing', () => {
-    const noFull = markdown.split('## Full description')[0]
-    assert.throws(() => listingFromMarkdown(noFull), /Full description/)
-  })
-
-  it('does not borrow the next section when a heading has no block', () => {
-    const empty = [
-      '## Short description (max 80 chars)',
-      '',
-      '## Full description (max 4000 chars)',
-      '',
-      '```',
-      'x',
-      '```',
-    ].join('\n')
-    assert.throws(() => listingFromMarkdown(empty), /Short description/)
+    const noFull = structuredClone(source)
+    delete (noFull.locales['en-US'] as Record<string, string>).fullDescription
+    assert.throws(() => listingFromJson(noFull), /fullDescription/)
+    assert.throws(() => listingFromJson({ locales: {} }), /shortDescription/)
   })
 })
 
@@ -643,23 +605,19 @@ describe('publish request sequence', () => {
       notesPath,
       "## What's changed\n\n- Alarms survive a reboot\n\n**Full changelog**: https://x/y\n",
     )
-    const listingPath = join(dir, 'listing.md')
+    const listingPath = join(dir, 'listings.json')
     writeFileSync(
       listingPath,
-      [
-        '## Short description (max 80 chars)',
-        '',
-        '```',
-        'Reminders that nag until you confirm them done.',
-        '```',
-        '',
-        '## Full description (max 4000 chars)',
-        '',
-        '```',
-        'Every other reminder app lets you swipe away and forget.',
-        '```',
-        '',
-      ].join('\n'),
+      JSON.stringify({
+        schemaVersion: 1,
+        locales: {
+          'en-US': {
+            shortDescription: 'Reminders that nag until you confirm them done.',
+            fullDescription:
+              'Every other reminder app lets you swipe away and forget.',
+          },
+        },
+      }),
     )
 
     try {
@@ -1279,23 +1237,21 @@ describe('publish request sequence', () => {
     const { writeFileSync, mkdtempSync } = await import('node:fs')
     const { join } = await import('node:path')
     const { tmpdir } = await import('node:os')
-    const bad = join(mkdtempSync(join(tmpdir(), 'play-listing-')), 'listing.md')
+    const bad = join(
+      mkdtempSync(join(tmpdir(), 'play-listing-')),
+      'listings.json',
+    )
     writeFileSync(
       bad,
-      [
-        '## Short description (max 80 chars)',
-        '',
-        '```',
-        'ok',
-        '```',
-        '',
-        '## Full description (max 4000 chars)',
-        '',
-        '```',
-        'x'.repeat(4001),
-        '```',
-        '',
-      ].join('\n'),
+      JSON.stringify({
+        schemaVersion: 1,
+        locales: {
+          'en-US': {
+            shortDescription: 'ok',
+            fullDescription: 'x'.repeat(4001),
+          },
+        },
+      }),
     )
     const { calls, code, stderr } = await runPublish([
       '--listing',
@@ -1308,7 +1264,10 @@ describe('publish request sequence', () => {
     assert.equal(calls.filter((c) => c.path.includes('/edits')).length, 0)
   })
   it('--listing-json sends all nine text translations without images or app details', async () => {
-    const path = new URL('../store/listings.json', import.meta.url).pathname
+    const path = new URL(
+      '../../../store-assets/play/listings.json',
+      import.meta.url,
+    ).pathname
     const { calls, code, stderr } = await runPublish(['--listing-json', path])
     assert.equal(code, 0, stderr)
     const writes = calls.filter((call) =>

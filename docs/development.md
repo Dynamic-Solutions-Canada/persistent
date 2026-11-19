@@ -199,7 +199,7 @@ The two channels:
 
 - **Play AAB to Google Play production.** Requires `PLAY_SERVICE_ACCOUNT_JSON`.
   Active phone testing releases are cleared in the same edit. Pre-flight rejects
-  reused versionCodes before building; see `apps/mobile/store/play-readiness.md`.
+  reused versionCodes before building; see `store-assets/play/play-readiness.md`.
 - **Google-signed Play APK to GitHub Release.** After Play generates a universal
   APK, CI downloads it and verifies its package, version and registered Play
   signing certificate before publishing `persistent-X.Y.Z-play.apk`. There is
