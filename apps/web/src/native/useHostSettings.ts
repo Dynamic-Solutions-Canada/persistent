@@ -1,5 +1,5 @@
 /**
- * The Windows tray app's own settings, read and written from this page.
+ * The desktop host's own settings (the Windows and Linux tray apps), read and written from this page.
  *
  * The host owns them (they live in its settings.json, per machine); this hook is
  * only a view onto them, which is why nothing here is persisted or cached. It

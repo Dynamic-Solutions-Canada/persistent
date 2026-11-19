@@ -154,7 +154,7 @@ Three hosts now load **one** hosted bundle: browser, Capacitor/Android, and this
 WebView2. None can be compiled in, so every difference is runtime feature
 detection — the same rule that already governs `hasNativeUpdater()`.
 
-- `isDesktopHost()` tests for `window.chrome.webview`. **Keep it distinct from
+- `isDesktopHost()` tests for `window.persistentDesktop` (Linux) or `window.chrome.webview` (Windows); see [host bridge contract](host-bridge-contract.md). **Keep it distinct from
   `isNative()`**: Capacitor is absent here, so `isNative()` is false in the
   desktop host, and code that conflates the two silently misbehaves on one of
   them.

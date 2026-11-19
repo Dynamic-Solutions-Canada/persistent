@@ -74,38 +74,40 @@ Only the `release` skill bumps the version (with notes in `release-notes/`) and 
 
 ## Guidance map
 
-| Guide, doc, or skill                              | Read or use when                                                        | Governs                                                  |
-| ------------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------- |
-| `.agents/guides/reminder-model.md`                | Changing reminder types, schedules, occurrences or notification content | `apps/api`, `apps/web`, `apps/mobile`, `packages/shared` |
-| `.agents/guides/ui-conventions.md`                | Changing any screen, dialog or control                                  | `apps/web/src/**`                                        |
-| `docs/auth-architecture.md`                       | Touching auth, sessions, passkeys or data isolation                     | `apps/api/src/routes/auth.ts`, domain queries            |
-| `docs/data-event-contract.md`                     | Changing HTTP or WebSocket data flow or offline sync                    | `apps/api`, `apps/web/src/lib`, `apps/web/src/data`      |
-| `docs/alarm-architecture.md`                      | Changing the notification, alarm or escalation mechanism                | `apps/api/src/lib/delivery`, `apps/mobile`               |
-| `docs/notification-behavior.md`                   | Changing the user-facing done, silence or snooze guarantee              | every surface                                            |
-| `docs/desktop-architecture.md`                    | Changing the Windows tray app                                           | `apps/desktop/**`                                        |
-| `docs/linux-desktop-architecture.md`              | Changing the Linux tray host                                            | `apps/linux-desktop/**`                                  |
-| `docs/localization.md`                            | Changing copy, catalogs or locale handling                              | `packages/shared/src/messages/**`, all UIs               |
-| `ARCHITECTURE.md`                                 | Orienting, or changing where the product stores data                    | repo-wide                                                |
-| `docs/development.md`                             | Running, testing or releasing                                           | repo-wide                                                |
-| `docs/deployment.md`                              | Deploying, server config, backup, export or account deletion            | `Dockerfile`, `compose.server.yml`, `nginx.server.conf`  |
-| `scripts/hooks/README.md`                         | A Claude Code hook blocked an edit                                      | `scripts/hooks/**`, `.claude/settings.json`              |
-| `commit` skill                                    | Committing here                                                         | repo-wide                                                |
-| `deploy`, `release` skills                        | Deploying the server, releasing Android and web                         | `compose.server.yml`, `.github/workflows/release.yml`    |
-| `desktop` skill                                   | Building, packaging or installing the Windows app                       | `apps/desktop/**`                                        |
-| `verify` skill                                    | Confirming a change works in the running app                            | all surfaces                                             |
-| `audit-docs` skill                                | Checking docs and agent files for drift                                 | `docs/**`, `**/AGENTS.md`, `.agents/**`                  |
-| `test-android-device`, `store-screenshots` skills | Testing on a physical phone; refreshing store images                    | `apps/mobile`, `store-assets/**`                         |
+| Guide, doc, or skill                              | Read or use when                                                        | Governs                                                                                   |
+| ------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `.agents/guides/reminder-model.md`                | Changing reminder types, schedules, occurrences or notification content | `apps/api`, `apps/web`, `apps/mobile`, `packages/shared`                                  |
+| `.agents/guides/ui-conventions.md`                | Changing any screen, dialog or control                                  | `apps/web/src/**`                                                                         |
+| `docs/auth-architecture.md`                       | Touching auth, sessions, passkeys or data isolation                     | `apps/api/src/routes/auth.ts`, domain queries                                             |
+| `docs/data-event-contract.md`                     | Changing HTTP or WebSocket data flow or offline sync                    | `apps/api`, `apps/web/src/lib`, `apps/web/src/data`                                       |
+| `docs/host-bridge-contract.md`                    | Changing a message, method or fallback between the page and a host      | `apps/web/src/native`, `apps/desktop`, `apps/linux-desktop`, `apps/mobile/android-plugin` |
+| `docs/alarm-architecture.md`                      | Changing the notification, alarm or escalation mechanism                | `apps/api/src/lib/delivery`, `apps/mobile`                                                |
+| `docs/notification-behavior.md`                   | Changing the user-facing done, silence or snooze guarantee              | every surface                                                                             |
+| `docs/desktop-architecture.md`                    | Changing the Windows tray app                                           | `apps/desktop/**`                                                                         |
+| `docs/linux-desktop-architecture.md`              | Changing the Linux tray host                                            | `apps/linux-desktop/**`                                                                   |
+| `docs/localization.md`                            | Changing copy, catalogs or locale handling                              | `packages/shared/src/messages/**`, all UIs                                                |
+| `ARCHITECTURE.md`                                 | Orienting, or changing where the product stores data                    | repo-wide                                                                                 |
+| `docs/development.md`                             | Running, testing or releasing                                           | repo-wide                                                                                 |
+| `docs/deployment.md`                              | Deploying, server config, backup, export or account deletion            | `Dockerfile`, `compose.server.yml`, `nginx.server.conf`                                   |
+| `scripts/hooks/README.md`                         | A Claude Code hook blocked an edit                                      | `scripts/hooks/**`, `.claude/settings.json`                                               |
+| `commit` skill                                    | Committing here                                                         | repo-wide                                                                                 |
+| `deploy`, `release` skills                        | Deploying the server, releasing Android and web                         | `compose.server.yml`, `.github/workflows/release.yml`                                     |
+| `desktop` skill                                   | Building, packaging or installing the Windows app                       | `apps/desktop/**`                                                                         |
+| `verify` skill                                    | Confirming a change works in the running app                            | all surfaces                                                                              |
+| `audit-docs` skill                                | Checking docs and agent files for drift                                 | `docs/**`, `**/AGENTS.md`, `.agents/**`                                                   |
+| `test-android-device`, `store-screenshots` skills | Testing on a physical phone; refreshing store images                    | `apps/mobile`, `store-assets/**`                                                          |
 
 Skills live in `.agents/skills/`; Claude Code reads them through the `.claude/skills` symlink.
 
 ## Keeping docs current
 
-| What changed                                                    | Update                                                                                                         |
-| --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| A file, command, script or setting that agent files name        | Every `AGENTS.md`, guide and skill naming it, in the same commit                                               |
-| Reminder types, schedules or occurrence lifecycle               | `.agents/guides/reminder-model.md`                                                                             |
-| A UI convention                                                 | `.agents/guides/ui-conventions.md`                                                                             |
-| Auth, data flow, alarms, notification guarantee, a desktop host | The matching contract in the guidance map                                                                      |
-| An environment variable                                         | `.env.dev.example` or `.env.server.example`, `compose.server.yml` (enforced by `apps/api/src/lib/env.test.ts`) |
-| A place the product writes data, or what deletion removes       | `ARCHITECTURE.md` (Where data lives), `docs/deployment.md`                                                     |
-| A generated directory or generator                              | `scripts/hooks/generated-file-guard.json` and `scripts/hooks/README.md`                                        |
+| What changed                                                     | Update                                                                                                         |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| A file, command, script or setting that agent files name         | Every `AGENTS.md`, guide and skill naming it, in the same commit                                               |
+| Reminder types, schedules or occurrence lifecycle                | `.agents/guides/reminder-model.md`                                                                             |
+| A UI convention                                                  | `.agents/guides/ui-conventions.md`                                                                             |
+| A message, method, event or fallback between the page and a host | `docs/host-bridge-contract.md`, in the same commit as the code                                                 |
+| Auth, data flow, alarms, notification guarantee, a desktop host  | The matching contract in the guidance map                                                                      |
+| An environment variable                                          | `.env.dev.example` or `.env.server.example`, `compose.server.yml` (enforced by `apps/api/src/lib/env.test.ts`) |
+| A place the product writes data, or what deletion removes        | `ARCHITECTURE.md` (Where data lives), `docs/deployment.md`                                                     |
+| A generated directory or generator                               | `scripts/hooks/generated-file-guard.json` and `scripts/hooks/README.md`                                        |
