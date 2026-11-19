@@ -59,7 +59,7 @@ Most reminder apps fire once and are easy to swipe away. Persistent keeps naggin
 
 ### Android
 
-Recommended for alarms that can sound offline. Requires Android 7.0 or newer. Install Persistent from [Google Play](https://play.google.com/store/apps/details?id=ca.dynamicsolutions.persistent). The app can sound previously scheduled alarms even while offline. During detected phone or voice/video calls, alarms wait quietly as notifications and resume after the call if you have not handled them.
+Recommended for alarms that can sound offline. Requires Android 7.0 (API 24) or newer, the oldest version Google Play's automatic protection supports. Install Persistent from [Google Play](https://play.google.com/store/apps/details?id=ca.dynamicsolutions.persistent). The app can sound previously scheduled alarms even while offline. During detected phone or voice/video calls, alarms wait quietly as notifications and resume after the call if you have not handled them.
 
 ### Desktop
 

@@ -11,9 +11,7 @@ This shell follows the Capacitor rules of the shared Android stack index, https:
 
 ## Verifying native changes
 
-Both distributions require Android 7.0 (API 24) to retain Play automatic
-protection. `setup-android.mjs` owns this floor alongside the compile/target SDK
-pins; do not rely on the generated Capacitor template's default.
+**Levels (PLAT-11).** `minSdk` is 24 (Android 7.0) for both distributions: the oldest version Google Play's automatic protection supports, which the app keeps. Raising it strands installed users, so it changes only on the maintainer's decision. `targetSdk` and `compileSdk` are 36, the level Play requires for updates, and Java source, target and the build image are JDK 17 (Capacitor's own modules compile at 17). `setup-android.mjs` owns all of these pins together with AGP and Gradle; do not rely on the generated Capacitor template's defaults. The README's Android requirements state the same `minSdk`.
 
 **A target-SDK bump needs a device, not just a compile.** The move to `targetSdk 35`
 compiled clean and still broke the alarm on real hardware (`BAL_BLOCK` collapsed the

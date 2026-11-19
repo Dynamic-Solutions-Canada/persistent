@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Existing Android release tag (vX.Y.Z)'
+        description: 'Existing Android release tag (android-vX.Y.Z, or vX.Y.Z for releases before the android- prefix)'
         required: true
         type: string
       version_code:
@@ -54,9 +54,11 @@ jobs:
           TAG: ${{ inputs.tag }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit 1
+          # Android releases are tagged android-vX.Y.Z (REL-3); older ones are vX.Y.Z.
+          [[ "$TAG" =~ ^(android-)?v[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit 1
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null
-          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
+          VERSION=${TAG#android-}
+          echo "VERSION=${VERSION#v}" >> "$GITHUB_ENV"
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
           echo "AAPT=$BUILD_TOOLS/aapt" >> "$GITHUB_ENV"
           echo "APKSIGNER=$BUILD_TOOLS/apksigner" >> "$GITHUB_ENV"
