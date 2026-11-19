@@ -20,14 +20,14 @@
     "test:android": "npm run setup:android && cd android && ./gradlew --no-daemon --max-workers=${ANDROID_GRADLE_WORKERS:-2} --console=plain :app:testPlayDebugUnitTest :app:testDirectDebugUnitTest"
   },
   "dependencies": {
-    "@capacitor/android": "^6.2.0",
-    "@capacitor/app": "^6.0.2",
-    "@capacitor/core": "^6.2.0",
-    "@capacitor/preferences": "^6.0.3",
-    "@capacitor/push-notifications": "^6.0.4"
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/push-notifications": "^8.1.3"
   },
   "devDependencies": {
-    "@capacitor/cli": "^6.2.0",
-    "typescript": "^5.8.3"
+    "@capacitor/cli": "^8.6.2",
+    "typescript": "^7.0.2"
   }
 }
