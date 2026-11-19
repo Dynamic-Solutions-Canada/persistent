@@ -1,0 +1,4 @@
+- Lembretes que escalam logo depois de aparecer agora tocam e abrem a tela de alarme de forma confiável.
+- Baixar meus dados abre no navegador, para você salvar o arquivo.
+- Sobre > Avisos de terceiros agora também lista os componentes do próprio app Android.
+- Ao sair, o app também para de verificar lembretes em segundo plano.

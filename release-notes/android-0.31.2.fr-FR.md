@@ -1,0 +1,4 @@
+- Les rappels qui passent à l’alarme peu après leur apparition sonnent désormais et ouvrent l’écran d’alarme de manière fiable.
+- Télécharger mes données s’ouvre dans votre navigateur, pour que vous puissiez enregistrer le fichier.
+- À propos > Mentions tierces liste désormais aussi les composants de l’application Android.
+- Se déconnecter arrête aussi la vérification des rappels en arrière-plan.

@@ -1,0 +1,4 @@
+- Los recordatorios que se intensifican poco después de aparecer ahora suenan y abren la pantalla de alarma de forma fiable.
+- Descargar mis datos se abre en el navegador, para que puedas guardar el archivo.
+- Acerca de > Avisos de terceros ahora también incluye los componentes propios de la aplicación de Android.
+- Al cerrar sesión, la aplicación también deja de buscar recordatorios en segundo plano.

@@ -1,0 +1,4 @@
+- Erinnerungen, die kurz nach dem Erscheinen eskalieren, klingeln jetzt zuverlässig und öffnen den Alarmbildschirm.
+- Meine Daten herunterladen öffnet sich im Browser, damit du die Datei speichern kannst.
+- Info > Hinweise zu Drittanbietern listet jetzt auch die Komponenten der Android-App auf.
+- Beim Abmelden sucht die App nicht mehr im Hintergrund nach Erinnerungen.

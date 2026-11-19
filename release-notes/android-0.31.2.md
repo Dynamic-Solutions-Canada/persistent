@@ -1,0 +1,4 @@
+- Reminders that escalate soon after they first appear now ring and open the alarm screen reliably.
+- Download my data opens in your browser, so you can save the file.
+- About > Third-party notices now lists the Android app's own components too.
+- Signing out also stops the app checking for reminders in the background.
