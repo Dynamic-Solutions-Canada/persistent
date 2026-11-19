@@ -25,6 +25,8 @@ import { InlineReminderText } from '../components/InlineReminderText.js'
 import { formatDateTime, formatWhen } from '../lib/datetime.js'
 import { useSettings } from '../settings/useSettings.js'
 import { useAuth } from '../auth/useAuth.js'
+import { EmptyState } from '../components/EmptyState.js'
+import LinkOffRoundedIcon from '@mui/icons-material/LinkOffRounded'
 
 export function SharedReminderPage({
   reminderId,
@@ -80,9 +82,11 @@ export function SharedReminderPage({
       {received.isLoading ? (
         <Typography level="body-sm">{tr('Loading...')}</Typography>
       ) : !reminder ? (
-        <Typography level="body-sm">
-          {tr('This reminder is no longer shared with you.')}
-        </Typography>
+        <EmptyState
+          icon={<LinkOffRoundedIcon />}
+          title={tr('empty.shared-gone.title')}
+          description={tr('This reminder is no longer shared with you.')}
+        />
       ) : (
         <>
           {canEdit ? (

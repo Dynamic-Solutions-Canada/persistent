@@ -16,6 +16,10 @@ import { useSettings } from '../settings/useSettings.js'
 import { useAuth } from '../auth/useAuth.js'
 import { SectionHeading } from '../components/SectionHeading.js'
 import { PullToRefresh } from '../components/PullToRefresh.js'
+import { EmptyState } from '../components/EmptyState.js'
+import AssignmentIndRoundedIcon from '@mui/icons-material/AssignmentIndRounded'
+import AddRoundedIcon from '@mui/icons-material/AddRounded'
+import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded'
 
 /** A firing remains independently visible, including exactly when it was done. */
 function firingLabel(firing: {
@@ -50,11 +54,21 @@ export function AssignmentsPage() {
           <Typography level="body-sm">{tr('Loading...')}</Typography>
         )}
         {sent.data?.length === 0 && (
-          <Typography level="body-sm">
-            {tr('No assignments yet. Open ')}
-            <RouterLink to="/reminders/new">{tr('New reminder')}</RouterLink>
-            {tr(', then choose For someone else in Share.')}
-          </Typography>
+          <EmptyState
+            icon={<AssignmentIndRoundedIcon />}
+            title={tr('empty.assigned.title')}
+            description={tr('empty.assigned.description')}
+            action={
+              <Button
+                component={RouterLink}
+                to="/reminders/new"
+                variant="soft"
+                startDecorator={<AddRoundedIcon />}
+              >
+                {tr('New reminder')}
+              </Button>
+            }
+          />
         )}
         {sent.data?.map((assignment) => (
           <Sheet
@@ -136,9 +150,12 @@ export function AssignmentsPage() {
               )}
               {assignment.state === 'ACTIVE' &&
                 assignment.recentFirings.length === 0 && (
-                  <Typography level="body-sm">
-                    {tr('No firing yet.')}
-                  </Typography>
+                  <EmptyState
+                    compact
+                    icon={<ScheduleRoundedIcon />}
+                    title={tr('empty.firings.title')}
+                    description={tr('empty.firings.description')}
+                  />
                 )}
               {assignment.state === 'ACTIVE' &&
                 assignment.recentFirings.length > 0 && (

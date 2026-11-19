@@ -34,6 +34,8 @@ import {
   receivedReminderIds,
   receivedReminders,
 } from '../lib/receivedReminders.js'
+import { EmptyState } from '../components/EmptyState.js'
+import StickyNote2RoundedIcon from '@mui/icons-material/StickyNote2Rounded'
 
 export function NotesPage() {
   useTranslation()
@@ -63,11 +65,13 @@ export function NotesPage() {
                 title={tr('Notes')}
                 subtitle={tr('Reminders set not to notify you.')}
               />
-              <Typography level="body-sm">
-                {tr(
+              <EmptyState
+                icon={<StickyNote2RoundedIcon />}
+                title={tr('empty.notes.title')}
+                description={tr(
                   "Nothing kept here yet. Set a reminder's When to “Never, just a note” and it will sit here to read instead of notifying you.",
                 )}
-              </Typography>
+              />
             </>
           )}
 

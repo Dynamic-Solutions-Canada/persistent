@@ -35,6 +35,8 @@ import { useAuth } from '../auth/useAuth.js'
 import { useSentAssignments } from '../data/assignments.js'
 import Button from '@mui/joy/Button'
 import { Link as RouterLink } from 'react-router-dom'
+import { EmptyState } from '../components/EmptyState.js'
+import DoneAllRoundedIcon from '@mui/icons-material/DoneAllRounded'
 
 export function RemindersPage() {
   useTranslation()
@@ -80,11 +82,13 @@ export function RemindersPage() {
               says so and points at the tab that has something to show, rather than
               reading like an error or an empty app. */}
           {reminders.data && received.data && attention.length === 0 && (
-            <Typography level="body-sm">
-              {tr(
+            <EmptyState
+              icon={<DoneAllRoundedIcon />}
+              title={tr('empty.current.title')}
+              description={tr(
                 "Nothing needs confirming right now. Check Upcoming for what's scheduled.",
               )}
-            </Typography>
+            />
           )}
 
           <Stack spacing={1.5}>

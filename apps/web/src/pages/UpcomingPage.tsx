@@ -38,6 +38,8 @@ import {
 import { useAuth } from '../auth/useAuth.js'
 import { PullToRefresh } from '../components/PullToRefresh.js'
 import { useReminderDialogs } from '../components/reminderDialogContext.js'
+import { EmptyState } from '../components/EmptyState.js'
+import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded'
 
 export function UpcomingPage() {
   useTranslation()
@@ -83,9 +85,13 @@ export function UpcomingPage() {
             <Typography level="body-sm">{tr('Loading…')}</Typography>
           )}
           {reminders.data && received.data && idle.length === 0 && (
-            <Typography level="body-sm">
-              {tr('Nothing scheduled. Anything due right now is on Current.')}
-            </Typography>
+            <EmptyState
+              icon={<ScheduleRoundedIcon />}
+              title={tr('empty.upcoming.title')}
+              description={tr(
+                'Nothing scheduled. Anything due right now is on Current.',
+              )}
+            />
           )}
 
           <Stack spacing={1.5}>

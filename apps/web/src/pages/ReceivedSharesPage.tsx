@@ -11,6 +11,8 @@ import { useReminderDialogs } from '../components/reminderDialogContext.js'
 import { useReceivedShares } from '../data/shares.js'
 import { formatWhen } from '../lib/datetime.js'
 import { useSettings } from '../settings/useSettings.js'
+import { EmptyState } from '../components/EmptyState.js'
+import ShareRoundedIcon from '@mui/icons-material/ShareRounded'
 
 export function ReceivedSharesPage() {
   useTranslation()
@@ -30,9 +32,11 @@ export function ReceivedSharesPage() {
           <Typography level="body-sm">{tr('Loading…')}</Typography>
         )}
         {received.data?.length === 0 && (
-          <Typography level="body-sm">
-            {tr('No reminders have been shared with you yet.')}
-          </Typography>
+          <EmptyState
+            icon={<ShareRoundedIcon />}
+            title={tr('empty.shared-with-me.title')}
+            description={tr('No reminders have been shared with you yet.')}
+          />
         )}
         {received.data?.map((reminder) => (
           <ReminderListItem

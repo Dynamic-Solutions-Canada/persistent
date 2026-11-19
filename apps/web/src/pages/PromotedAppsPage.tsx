@@ -16,6 +16,8 @@ import {
   blurbFor,
   CATALOG_BASE_URL,
 } from '../../../desktop/external/promo/catalog.js'
+import { EmptyState } from '../components/EmptyState.js'
+import AppsRoundedIcon from '@mui/icons-material/AppsRounded'
 
 // Vite includes these immutable assets in the build and the offline precache.
 const icons = import.meta.glob<string>(
@@ -91,9 +93,11 @@ export function PromotedAppsPage() {
         </Card>
       ))}
       {apps.length === 0 && (
-        <Typography level="body-sm">
-          {tr('No other apps are listed right now.')}
-        </Typography>
+        <EmptyState
+          icon={<AppsRoundedIcon />}
+          title={tr('empty.other-apps.title')}
+          description={tr('No other apps are listed right now.')}
+        />
       )}
     </Stack>
   )

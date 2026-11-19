@@ -30,6 +30,8 @@ import { useReminderDialogs } from '../components/reminderDialogContext.js'
 import { useReminders } from '../data/reminders.js'
 import { useReceivedShares } from '../data/shares.js'
 import { sharingState } from '../components/sharingState.js'
+import { EmptyState } from '../components/EmptyState.js'
+import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
 
 /**
  * "2 of 3 checked" for a past checklist firing — how much of it was actually
@@ -83,9 +85,13 @@ export function HistoryPage() {
             <Typography level="body-sm">{tr('Loading…')}</Typography>
           )}
           {past.data && occurrences.length === 0 && (
-            <Typography level="body-sm">
-              {tr('Nothing here yet. Done and missed reminders show up here.')}
-            </Typography>
+            <EmptyState
+              icon={<HistoryRoundedIcon />}
+              title={tr('empty.history.title')}
+              description={tr(
+                'Nothing here yet. Done and missed reminders show up here.',
+              )}
+            />
           )}
 
           <Stack spacing={1.5}>
