@@ -1,0 +1,5 @@
+# Commits git blame skips (git config blame.ignoreRevsFile .git-blame-ignore-revs; GitHub reads this
+# file automatically). Each is a mechanical reformat with no behaviour change (STYLE-2).
+
+# Format the repo with Prettier
+8bcb4f6361a9cfe428991513e186cfcd7536a760
