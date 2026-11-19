@@ -9,17 +9,19 @@ Production is one Docker image, built from `Dockerfile`, serving the API and the
 Deploy from a clean, pushed tree with the `deploy` skill, or directly:
 
 ```bash
-npm run deploy:prod            # SSH + docker compose up --build; migrations run on start
+npm run deploy:prod            # dump, update, build, wait for health, install the nginx site
 npm run deploy:prod -- --dry-run
 ```
 
-The deploy target comes from your local `.env` (`DEPLOY_SSH_HOST`, `DEPLOY_REPO_PATH`, `DEPLOY_BRANCH`). The deploy script initialises the pinned promo submodule before the remote Docker build, so publish a promo commit before pushing a Persistent commit that references it.
+The deploy script is devkit's generated `scripts/deploy/deploy-over-ssh.mjs`; its settings are the `deploy` block in `devkit.config.mjs`, and what it does is in [devkit's README](https://github.com/Dynamic-Solutions-Canada/devkit#deploying). It refuses unless the tree is clean and `HEAD` is a freshly fetched `origin/main`, runs `npm run validate`, then on the server: refuses a checkout with tracked changes; dumps and verifies the database into `.backups/` in the checkout, keeping the newest ten; fast-forwards `main` and the submodules (the web build imports the promo catalog, so publish a promo commit before pushing a Persistent commit that references it); runs `docker compose up --build --wait` and stops with the logs if a service is not healthy; installs `nginx.server.conf` as `conf.d/persistent.conf` if it changed, keeping the old file and rolling back if `nginx -t` fails; and prunes dangling images.
+
+The target comes from your local `.env`: `DEPLOY_SSH_HOST`, `DEPLOY_REPO_PATH`, and `DEPLOY_SSH_PORT` when your ssh config does not set it.
 
 The `Image check` workflow builds the production image on every change that affects it and fails if it runs as root, so a broken build shows up before a deploy.
 
 Each deploy labels the image with the commit and release it was built from (`org.opencontainers.image.revision` and `.version`): the deploy script exports `DEPLOY_REVISION` and `DEPLOY_VERSION` (the root `package.json` version, which the `release` skill keeps equal to the web app's), and `compose.server.yml` passes them to the build. `docker inspect persistent-api` shows what is running.
 
-The nginx site file is the tracked `nginx.server.conf`, installed as `conf.d/persistent.conf` in the shared nginx container. It matches the live file as of 2026-11-18. Until the generated deploy installs it, a change is copied in by hand and applied with `nginx -t` and a reload, as the file's header shows.
+The nginx site file is the tracked `nginx.server.conf`, which the deploy installs as `conf.d/persistent.conf` in the shared nginx container. It matched the live file on 2026-11-18, before the first deploy that installs it.
 
 ## How production config reaches the container
 
@@ -38,7 +40,7 @@ The API container runs as the image's unprivileged `node` user (uid 1000), so a 
 All service data is in PostgreSQL, in the `persistent-data` Docker volume on the server. The maintainer is responsible for backups, which work in two layers (CTR-12 in the shared standards):
 
 - **Whole-server backup:** the server is backed up whole at the hypervisor (Proxmox) level, which covers this product's volumes along with everything else on the host. This is in place today.
-- **Pre-deploy dumps:** not yet in place. The deploy will dump and verify the database before each migration and keep the newest ten in the server checkout's `.backups/` (CTR-11), once Persistent moves to devkit's generated deploy. That waits on devkit running `git submodule update` during a deploy, which this repo's build needs for the promo catalog.
+- **Pre-deploy dumps:** every deploy dumps and verifies the database before the checkout or containers change, and keeps the newest ten in the server checkout's `.backups/` (folder mode 700, each dump 600). They start with the first deploy on devkit's generated script.
 
 #### Restoring a dump
 
