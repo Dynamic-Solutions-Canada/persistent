@@ -82,7 +82,6 @@
 
     <Compile Include="../../Persistent.Desktop/Classes/FlyoutAppearance.cs" />
     <Compile Include="../../Persistent.Desktop/Classes/Localize.cs" />
-    <Compile Include="../../Persistent.Desktop/Pages/PromotedAppsPage.Localization.cs" />
     <Compile Include="../../external/promo/Views/PromotedAppsPage.xaml.cs" />
     <Compile Include="../../external/promo/Views/PromoLocalization.cs" />
     <Compile Include="../../external/promo/Views/TrailingActionPanel.cs" />

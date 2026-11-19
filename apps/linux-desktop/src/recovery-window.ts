@@ -1,4 +1,4 @@
-import { localizationSnapshot, nativeText } from './localization.js'
+import { localizationSnapshot, nativeLocale, nativeText } from './localization.js'
 /** Packaged recovery settings and alarm audio remain available when the hosted app cannot load. */
 import { LINUX_RELEASE_REPOSITORY } from '@persistent/shared'
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url'
 import { once } from 'node:events'
 import { serverOrigin } from './security.js'
 import { DEFAULT_SERVER, validatedSettings, type SettingsStore } from './settings.js'
-import { settingsCatalog } from './settings-catalog.js'
+import { localizedSettingsCatalog, settingsCatalog } from './settings-catalog.js'
 import type { UpdateController } from './update-controller.js'
 import { statusNotifierAvailable } from './notifications.js'
 import { attachTaskbarHints } from './window-taskbar.js'
@@ -57,10 +57,7 @@ export class RecoveryWindows {
       try {
         switch (raw.type) {
           case 'get': {
-            let apps: ReturnType<typeof settingsCatalog> = []
-            try { apps = settingsCatalog(options.root) }
-            catch (error) { options.log('Publisher catalog could not load', error) }
-            return { ...this.snapshot(), apps, trayAvailable: await statusNotifierAvailable() }
+            return { ...this.snapshot(), apps: this.catalog(), trayAvailable: await statusNotifierAvailable() }
           }
           case 'server': {
             const server = serverOrigin(typeof raw.value === 'string' ? raw.value : '')
@@ -130,7 +127,17 @@ export class RecoveryWindows {
   }
 
   /** Background updater state reaches the local window without rebuilding its page. */
-  syncLocale(): void { this.settings?.webContents.send('persistent:local-state', { localization: localizationSnapshot() }) }
+  /** Push new UI text and the app descriptions in the new language to an open settings window. */
+  syncLocale(): void { this.settings?.webContents.send('persistent:local-state', { localization: localizationSnapshot(), apps: this.catalog() }) }
+
+  /** The bundled publisher catalog with descriptions in the current language; empty if it cannot load. */
+  private catalog(): ReturnType<typeof localizedSettingsCatalog> {
+    try { return localizedSettingsCatalog(this.options.root, nativeLocale()) }
+    catch (error) {
+      this.options.log('Publisher catalog could not load', error)
+      return []
+    }
+  }
 
   syncUpdate(): void { this.settings?.webContents.send('persistent:local-state', { update: this.options.updater.snapshot() }) }
 
