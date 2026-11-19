@@ -18,6 +18,11 @@ export interface DesktopHostSettings {
   /** Live OS clock preference, absent on hosts without native clock detection. */
   deviceTimeFormat?: '12h' | '24h'
   snoozeInApp?: boolean
+  /**
+   * The host opens `/settings#export` from a trusted link click in the system browser
+   * (Linux, A2). Absent on older hosts, which keep that link in the app.
+   */
+  exportInBrowser?: boolean
   notifications: boolean
   snoozeMinutes: number
   snoozeChoices: DesktopSnoozeChoice[]
@@ -35,6 +40,7 @@ export type DesktopHostSettingsPatch = Partial<
     | 'platform'
     | 'deviceTimeFormat'
     | 'snoozeInApp'
+    | 'exportInBrowser'
     | 'flyoutSizes'
     | 'snoozeChoices'
   >

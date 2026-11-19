@@ -156,6 +156,9 @@ session reports the Linux app/platform through the existing client-usage contrac
 Google sign-in stays inside a constrained sandboxed popup. Only the configured app
 origin and Google's exact HTTPS account origin can navigate that popup. Other HTTPS
 links open externally only after a trusted link activation or local user action.
+The app's own pages stay in the app, except exactly `/settings#export` from a trusted
+click (`isExportPage` in `security.ts`), which opens in the browser because only a
+browser can save the account export; the host reports this as `exportInBrowser`.
 Redirects and script-created external popups are blocked. Authentication popups
 receive only the trusted-link preload, never the management bridge. Browser/PWA notifications remain
 absent.

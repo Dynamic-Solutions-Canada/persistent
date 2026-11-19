@@ -135,6 +135,8 @@ export function parseHostSettings(value: unknown): HostSettings | null {
     (raw.platform !== undefined &&
       !['windows', 'linux'].includes(raw.platform as string)) ||
     (raw.snoozeInApp !== undefined && typeof raw.snoozeInApp !== 'boolean') ||
+    (raw.exportInBrowser !== undefined &&
+      typeof raw.exportInBrowser !== 'boolean') ||
     typeof raw.notifications !== 'boolean' ||
     typeof raw.snoozeMinutes !== 'number' ||
     typeof raw.pinFlyout !== 'boolean' ||
@@ -162,6 +164,9 @@ export function parseHostSettings(value: unknown): HostSettings | null {
     ...(raw.snoozeInApp === undefined
       ? {}
       : { snoozeInApp: raw.snoozeInApp as boolean }),
+    ...(raw.exportInBrowser === undefined
+      ? {}
+      : { exportInBrowser: raw.exportInBrowser as boolean }),
     notifications: raw.notifications,
     snoozeMinutes: nearest(snoozes, raw.snoozeMinutes),
     snoozeChoices: snoozes,

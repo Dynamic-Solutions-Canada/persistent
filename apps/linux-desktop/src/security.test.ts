@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   externalLinkIntent,
+  isExportPage,
   serverOrigin,
   isAppUrl,
   isExternalUrl,
@@ -135,4 +136,30 @@ test('only a trusted external anchor activation can request a browser launch', (
     ),
     'https://external.example/path',
   )
+})
+
+test('a trusted click may open only the export section of the app in the browser', () => {
+  const server = 'https://app.example'
+  assert.equal(
+    externalLinkIntent(true, 'https://app.example/settings#export', server),
+    'https://app.example/settings#export',
+  )
+  assert.equal(
+    externalLinkIntent(false, 'https://app.example/settings#export', server),
+    null,
+  )
+  for (const href of [
+    'https://app.example/settings',
+    'https://app.example/settings#exports',
+    'https://app.example/settings?x=1#export',
+    'https://app.example/admin#export',
+    'https://user:pass@app.example/settings#export',
+    'http://app.example/settings#export',
+    'https://app.example.evil.example/settings#export',
+    'https://app.example:8443/settings#export',
+  ]) {
+    assert.equal(isExportPage(href, server), false, href)
+    if (new URL(href).origin === server)
+      assert.equal(externalLinkIntent(true, href, server), null, href)
+  }
 })

@@ -51,6 +51,26 @@ export function isGoogleSignIn(value: string): boolean {
   }
 }
 
+/**
+ * The one page of the app's own origin that a trusted click may open in the system browser:
+ * Settings at the "Download my data" section, because only a browser can save the export (A2).
+ * Compared as a parsed URL (origin, path, query and fragment), never by text.
+ */
+export function isExportPage(value: string, server: string): boolean {
+  try {
+    const url = new URL(value)
+    return (
+      isExternalUrl(value) &&
+      url.origin === server &&
+      url.pathname === '/settings' &&
+      url.search === '' &&
+      url.hash === '#export'
+    )
+  } catch {
+    return false
+  }
+}
+
 /** Keep app and Google authentication navigation in the managed views. */
 export function externalLinkIntent(
   trusted: boolean,
@@ -58,6 +78,7 @@ export function externalLinkIntent(
   server: string,
 ): string | null {
   if (!trusted || !isExternalUrl(href)) return null
+  if (isExportPage(href, server)) return href
   const origin = new URL(href).origin
   if (origin === server || origin === 'https://accounts.google.com') return null
   return href

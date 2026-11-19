@@ -287,7 +287,7 @@ ahead of the auth gate so it resolves for a signed-out visitor.
 
 A full copy of an account is the most valuable thing a stolen session can take, so the endpoint allows three exports per account per hour, far stricter than ordinary reads, and logs each one ("account exported", with the account id only). The response is `Cache-Control: no-store`.
 
-Only a browser saves the file. The web entry point is Settings > Account > Download my data. The Windows app opens `/settings#export` in the default browser through a `target="_blank"` link. The Android app asks its host to (`AlarmPlugin.openInBrowser`, which accepts only the app's own origin, parsed with `java.net.URI`: https, or http on loopback for development, with no user info); an older Android app without that method falls back to naming the page, as the Linux app still does. No session or token is ever put in a URL: the user signs in to the browser.
+Only a browser saves the file. The web entry point is Settings > Account > Download my data. The Windows app opens `/settings#export` in the default browser through a `target="_blank"` link. The Android app asks its host to (`AlarmPlugin.openInBrowser`, which accepts only the app's own origin, parsed with `java.net.URI`: https, or http on loopback for development, with no user info); an older Android app without that method falls back to naming the page. The Linux app opens the same link in the browser when its host settings report `exportInBrowser` (its host allows exactly `/settings#export` out, from a trusted click); older AppImages name the page instead. No session or token is ever put in a URL: the user signs in to the browser.
 
 ## App-store review access
 

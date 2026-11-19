@@ -28,6 +28,8 @@ export class HostSettings {
     const settings: DesktopHostSettings = {
       platform: 'linux',
       snoozeInApp: true,
+      // security.ts lets a trusted click open /settings#export in the system browser.
+      exportInBrowser: true,
       notifications: current.notifications,
       pinFlyout: current.pinFlyout,
       startAtSignIn: this.startup.enabled(),
