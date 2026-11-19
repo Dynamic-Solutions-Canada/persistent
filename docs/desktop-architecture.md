@@ -824,6 +824,11 @@ It needs four repository secrets — `AZURE_AD_TENANT_ID`,
 which can be set with `apps/desktop/set-ci-secrets.sh` from the development
 container. The public promo submodule needs no separate checkout credential.
 
+**Next submission: first run on microsoft-store-apppublisher v1.4.** Dependabot moved
+the workflow's CLI setup action from v1.1 to v1.4 on 2026-11-18, and CI cannot exercise
+it. Run the next submission with `mode=draft` first, check the draft in Partner Center,
+and only then dispatch `publish`. Remove this note once a v1.4 submission has gone through.
+
 **The client secret expires, and nothing will tell you.** Entra credentials last
 24 months at most, and there is no call that answers "when does mine expire?" —
 reading an app registration's own `passwordCredentials` needs Graph permissions
