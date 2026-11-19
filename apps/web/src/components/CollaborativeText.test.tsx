@@ -24,7 +24,11 @@ for (const kind of ['title', 'body', 'item'] as const) {
       IS_REACT_ACT_ENVIRONMENT: true,
     })) {
       previous.set(key, Object.getOwnPropertyDescriptor(globalThis, key))
-      Object.defineProperty(globalThis, key, { configurable: true, value })
+      Object.defineProperty(globalThis, key, {
+        configurable: true,
+        writable: true,
+        value,
+      })
     }
     const { createRoot } =
       require('react-dom/client') as typeof import('react-dom/client')
@@ -32,8 +36,9 @@ for (const kind of ['title', 'body', 'item'] as const) {
       require('./InlineReminderText.tsx') as typeof import('./InlineReminderText.js')
     const { TodoItemText } =
       require('./TodoItemText.tsx') as typeof import('./TodoItemText.js')
-    const { Simulate } =
-      require('react-dom/test-utils') as typeof import('react-dom/test-utils')
+    // React 19 removed test-utils' Simulate; Testing Library dispatches real DOM events.
+    const { fireEvent } =
+      require('@testing-library/react') as typeof import('@testing-library/react')
     const root = createRoot(dom.window.document.getElementById('root')!)
     const saves: string[][] = []
     const save = async (text: string, expectedText: string) => {
@@ -63,11 +68,11 @@ for (const kind of ['title', 'body', 'item'] as const) {
         ).click(),
       )
       await act(async () =>
-        Simulate.change(field(), { target: { value: 'My draft' } } as never),
+        fireEvent.change(field(), { target: { value: 'My draft' } }),
       )
       await render('Other editor saved this')
       assert.equal(field().value, 'My draft')
-      await act(async () => Simulate.blur(field()))
+      await act(async () => fireEvent.blur(field()))
       assert.deepEqual(saves, [['My draft', 'Original']])
       assert.equal(field().value, 'My draft')
       assert.match(
@@ -75,9 +80,9 @@ for (const kind of ['title', 'body', 'item'] as const) {
         /draft is kept/,
       )
       // A second blur must not silently retry the conflicting write.
-      await act(async () => Simulate.blur(field()))
+      await act(async () => fireEvent.blur(field()))
       assert.equal(saves.length, 1)
-      await act(async () => Simulate.keyDown(field(), { key: 'Escape' }))
+      await act(async () => fireEvent.keyDown(field(), { key: 'Escape' }))
       assert.equal(dom.window.document.querySelector('input, textarea'), null)
       assert.match(
         dom.window.document.body.textContent!,
@@ -90,7 +95,7 @@ for (const kind of ['title', 'body', 'item'] as const) {
         ).click(),
       )
       await render('Another live update')
-      await act(async () => Simulate.blur(field()))
+      await act(async () => fireEvent.blur(field()))
       assert.equal(saves.length, 1)
       assert.match(dom.window.document.body.textContent!, /Another live update/)
     } finally {

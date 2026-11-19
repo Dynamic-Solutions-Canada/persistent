@@ -2,7 +2,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import React, { act } from 'react'
-import { createRoot } from 'react-dom/client'
 import { JSDOM } from 'jsdom'
 import { createRequire } from 'node:module'
 import type { TodoItem } from '@persistent/shared'
@@ -20,12 +19,20 @@ for (const method of ['blur', 'close', 'enter', 'escape', 'empty'] as const) {
       IS_REACT_ACT_ENVIRONMENT: true,
     })) {
       previous.set(key, Object.getOwnPropertyDescriptor(globalThis, key))
-      Object.defineProperty(globalThis, key, { configurable: true, value })
+      Object.defineProperty(globalThis, key, {
+        configurable: true,
+        writable: true,
+        value,
+      })
     }
+    // React DOM must discover the DOM before its first import.
+    const { createRoot } =
+      require('react-dom/client') as typeof import('react-dom/client')
     const { TodoAddItem } =
       require('./TodoAddItem.tsx') as typeof import('./TodoAddItem.js')
-    const { Simulate } =
-      require('react-dom/test-utils') as typeof import('react-dom/test-utils')
+    // React 19 removed test-utils' Simulate; Testing Library dispatches real DOM events.
+    const { fireEvent } =
+      require('@testing-library/react') as typeof import('@testing-library/react')
     const items: TodoItem[] = []
     const root = createRoot(dom.window.document.getElementById('root')!)
     let mounted = true
@@ -40,16 +47,16 @@ for (const method of ['blur', 'close', 'enter', 'escape', 'empty'] as const) {
       )
       const input = dom.window.document.querySelector('input')!
       await act(async () =>
-        Simulate.change(input, {
+        fireEvent.change(input, {
           target: { value: method === 'empty' ? '   ' : '  Buy milk  ' },
-        } as never),
+        }),
       )
       if (method === 'blur' || method === 'empty')
-        await act(async () => Simulate.blur(input))
+        await act(async () => fireEvent.blur(input))
       if (method === 'enter')
-        await act(async () => Simulate.keyDown(input, { key: 'Enter' }))
+        await act(async () => fireEvent.keyDown(input, { key: 'Enter' }))
       if (method === 'escape')
-        await act(async () => Simulate.keyDown(input, { key: 'Escape' }))
+        await act(async () => fireEvent.keyDown(input, { key: 'Escape' }))
       await act(async () => root.unmount())
       mounted = false
       assert.deepEqual(
