@@ -40,15 +40,12 @@ dry-run request, or deploy arguments.
      and only the `release` skill bumps the version.
    - Run `node scripts/release/notes.mjs require product X.Y.Z`; stop if the product notes are
      missing.
-4. **One-time steps for the next deploy (remove each once done).** The server's `.env` and checkout need these before `deploy:prod`, done over SSH by the maintainer or with his go-ahead, never by reading the `.env`:
-   - The checkout predates the 2026-11-19 history rewrite (commit metadata now uses the noreply address), so the deploy's fast-forward would fail: in the server checkout run `git fetch origin && git reset --hard origin/main && git submodule update --init --recursive`. Untracked files such as `.env` are untouched.
-   - Append `ADMIN_EMAILS`, rename `ANDROID_APP_ORIGIN` to `ANDROID_APP_ORIGINS`, and append `UMAMI_SCRIPT_URL` and `UMAMI_WEBSITE_ID` (`.env.server.example` shows each).
-5. Run `npm run deploy:prod` with any explicit pass-through arguments.
-6. Once the deploy reports success, tag the deployed commit (REL-4):
+4. Run `npm run deploy:prod` with any explicit pass-through arguments.
+5. Once the deploy reports success, tag the deployed commit (REL-4):
    `git tag -a vX.Y.Z -m "Deploy vX.Y.Z"` on that commit and `git push origin vX.Y.Z`. No
    workflow starts on a plain `v` tag; Android releases are `android-v` tags. Do not tag after a
    failed or dry-run deploy.
-7. Report the commit, the version and tag, the exact push and deploy commands, and the remote
+6. Report the commit, the version and tag, the exact push and deploy commands, and the remote
    result.
 
 ## Production facts
