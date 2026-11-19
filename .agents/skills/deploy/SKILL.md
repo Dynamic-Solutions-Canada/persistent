@@ -24,6 +24,7 @@ dry-run request, or deploy arguments.
   either guard.
 - If commit, push, or deploy fails, report the full error and stop instead of
   retrying blindly.
+- A deploy request authorizes the version tag in step 5, and nothing else is tagged here.
 
 ## Workflow
 
@@ -32,8 +33,20 @@ dry-run request, or deploy arguments.
    pause, show the proposed commit and deploy commands and stop before mutation.
 2. Push the commit. On a non-fast-forward failure, report it and suggest
    reconciling with `git pull --rebase`.
-3. Run `npm run deploy:prod` with any explicit pass-through arguments.
-4. Report the commit, exact push and deploy commands, and remote result.
+3. Check the version before deploying. Read `X.Y.Z` from the root `package.json`.
+   - If `git rev-parse -q --verify refs/tags/vX.Y.Z` finds a tag, stop: "vX.Y.Z is already
+     tagged (an earlier deploy, or an Android release from before the android-v lane). Bump the
+     version with the `release` skill, then deploy." Existing `v` tags are never moved or reused,
+     and only the `release` skill bumps the version.
+   - Run `node scripts/release/notes.mjs require product X.Y.Z`; stop if the product notes are
+     missing.
+4. Run `npm run deploy:prod` with any explicit pass-through arguments.
+5. Once the deploy reports success, tag the deployed commit (REL-4):
+   `git tag -a vX.Y.Z -m "Deploy vX.Y.Z"` on that commit and `git push origin vX.Y.Z`. No
+   workflow starts on a plain `v` tag; Android releases are `android-v` tags. Do not tag after a
+   failed or dry-run deploy.
+6. Report the commit, the version and tag, the exact push and deploy commands, and the remote
+   result.
 
 ## Production facts
 

@@ -14,7 +14,6 @@ This repo follows the shared standards at https://github.com/Dynamic-Solutions-C
 - `apps/desktop` is the WinUI 3 (C#) Windows tray app showing the hosted PWA in a WebView2 flyout, with optional session-bound notifications built from the server-computed alarm projection, so it duplicates no reminder rules. See `docs/desktop-architecture.md`.
 - `apps/linux-desktop` is the Electron Linux tray host of the same UI and alarm projection, shipped only as an x64 and ARM64 AppImage. See `docs/linux-desktop-architecture.md`.
 - `packages/shared` is the single source of truth for request and response shapes; never duplicate them elsewhere.
-- `apps/mobile`, `apps/desktop` and `apps/linux-desktop` sit outside the npm workspaces graph.
 
 The overview, subsystem documents and the list of where data lives are in `ARCHITECTURE.md`. Nested `AGENTS.md` files hold area rules; list them with `git ls-files '*AGENTS.md'` and read the ones for the folders you touch.
 
@@ -32,7 +31,7 @@ The overview, subsystem documents and the list of where data lives are in `ARCHI
 
 - TypeScript everywhere with strict mode intact. `verbatimModuleSyntax` is on, so type-only imports use `import type`.
 - Non-trivial modules carry a short JSDoc header naming what they own and any non-obvious invariants.
-- Source is ASCII unless the file already needs Unicode.
+- PowerShell scripts stay ASCII-only: Windows PowerShell 5.1 reads a `.ps1` without a BOM as ANSI, so a single non-ASCII character can break it.
 - Initialise `apps/desktop/external/promo` with `git submodule update --init --recursive` in a fresh checkout before validating or building: the web app and the desktop app both import its catalog.
 - Never point `prisma migrate diff --shadow-database-url` at `DATABASE_URL`: Prisma resets the shadow database, which wipes the dev data. `prisma migrate status` answers "is the schema in step?" without touching anything.
 - A schema change needs `npm run db:generate` and updated shared contracts.
@@ -71,7 +70,7 @@ The devkit-managed Compose stack is the complete development environment. Use th
 
 ## Release
 
-Android and web releases use the `release` skill and server deploys the `deploy` skill; Windows (`desktop-v*`) and Linux (`linux-v*`) releases are tag-driven. Details are in `docs/development.md` and `docs/deployment.md`.
+Only the `release` skill bumps the version (with notes in `release-notes/`) and tags `android-v*` and `linux-v*`; `deploy` tags `v*`; Windows is `desktop-v*`. See `docs/development.md`.
 
 ## Guidance map
 

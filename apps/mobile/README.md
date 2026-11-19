@@ -250,7 +250,7 @@ build configuration. Web and server changes arrive through the production deploy
 desktop changes, Store listing assets, docs, and tooling do not need a new APK or
 AAB. Bundling a newer web fallback alone is not a reason to bump the version.
 
-Tagging `v*` (e.g. `git tag v0.2.0 && git push origin v0.2.0`) triggers
+Tagging `android-v*` through the `release` skill (for example `android-v0.31.0`) triggers
 `.github/workflows/release.yml`, which builds the `play` AAB and releases it to
 Google Play **production**. Once Play generates its universal APK, CI downloads
 and verifies its package, version and Google signing certificate against

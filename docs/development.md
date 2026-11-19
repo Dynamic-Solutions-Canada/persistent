@@ -174,9 +174,28 @@ machine, and deploying remain explicit operations outside automatic hooks.
 
 ## Releases & updates
 
-Pushing a `vX.Y.Z` tag runs `.github/workflows/release.yml`, which builds the web
-bundle, builds the signed Play AAB, generates changelog notes from the commits
-since the previous tag, and ships one Android identity through both channels:
+Persistent has one product version, the root `package.json`, with `apps/web` kept equal; only the `release` skill bumps it, committing that version's notes in `release-notes/` with it (see [its README](../release-notes/README.md)). Tags follow REL-3:
+
+| Tag              | Means                | Made by                            | Starts              |
+| ---------------- | -------------------- | ---------------------------------- | ------------------- |
+| `vX.Y.Z`         | The deployed product | The `deploy` skill, after a deploy | Nothing             |
+| `android-vX.Y.Z` | An Android release   | The `release` skill                | `release.yml`       |
+| `desktop-vX.Y.Z` | A Windows release    | By hand, after the Windows bump    | `build-msix.yml`    |
+| `linux-vX.Y.Z`   | A Linux release      | The `release` skill's Linux lane   | `release-linux.yml` |
+
+The deploy refuses a version that already has a `v` tag, so shipping new web or server changes starts with a bump. Tags up to `v0.30.1` are Android releases from before the Android lane, and are never moved or reused.
+
+### Android releases
+
+Pushing an `android-vX.Y.Z` tag runs `.github/workflows/release.yml`, which builds the web bundle and the signed Play AAB, and ships one Android identity through both channels with that version's approved notes (`release-notes/android-X.Y.Z.md` and its six translations). It stops before building when any wording is missing or too long; notes are never generated from commits.
+
+How the Android version is derived today (D-059 keeps this scheme on devices already installed):
+
+- **versionName** is the tag without its prefix: `android-v0.31.0` gives `0.31.0` (releases up to `v0.30.1` dropped the `v`). It is equal to the root `package.json` version, which the `release` skill bumped in the commit the tag sits on.
+- **versionCode** is the workflow's run number plus the `PLAY_VERSION_CODE_OFFSET` repository variable (unset means 0). It must only grow; the "Pre-flight Play release" step refuses a code Play already has and prints the offset to set. Raise the offset only, never lower it.
+- CI passes both as `ANDROID_VERSION_NAME` and `ANDROID_VERSION_CODE`, and `apps/mobile/scripts/setup-android.mjs` writes them into the generated `app/build.gradle`. Nothing in the repo stores them; a local build without those variables keeps the Capacitor template's placeholder version.
+
+The two channels:
 
 - **Play AAB to Google Play production.** Requires `PLAY_SERVICE_ACCOUNT_JSON`.
   Active phone testing releases are cleared in the same edit. Pre-flight rejects

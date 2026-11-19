@@ -697,7 +697,8 @@ install:desktop` exercises that path constantly during development instead.
   (`npm run check:notes`; see `release-notes/README.md`), commit them with the bump of
   `<Version>` in `apps/desktop/Directory.Build.props`, then tag `desktop-vX.Y.Z`. The
   release job and `store-publish` both refuse a version without them. The tag prefix keeps desktop releases from colliding with the
-  Android `vX.Y.Z` tags in this same repo — which is also why `UpdateService`
+  Android (`android-vX.Y.Z`, and `vX.Y.Z` before that lane) and product tags in this same
+  repo, which is also why `UpdateService`
   reads the release _list_ and filters by prefix instead of calling
   `releases/latest`.
 - **Desktop releases pin `make_latest: false`** (and the Android workflow pins

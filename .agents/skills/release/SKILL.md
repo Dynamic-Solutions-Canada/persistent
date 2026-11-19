@@ -1,9 +1,21 @@
 ---
 name: release
-description: Cut a release by deriving the next version from changes since the last one, bumping it, tagging, and letting CI build the signed APK for the GitHub Release and the AAB for Google Play. Use when asked to release the Android and web app.
+description: Bump the product version with approved notes, and cut an Android release (android-vX.Y.Z) when native code changed, letting CI build the AAB for Google Play and the signed APK for the GitHub Release. Use when asked to release, or before a deploy that needs a new version.
 ---
 
-Cut a new app release.
+Bump the product version and, when native code changed, cut an Android release.
+
+## Versions and tags
+
+Persistent has one product version: the root `package.json`, with `apps/web` kept equal
+(REL-1). Only this skill changes it. Each bump commits that version's product notes,
+`release-notes/X.Y.Z.md` and its translations. The `deploy` skill tags the deployed commit
+`vX.Y.Z` and refuses a version that is already tagged, so a deploy that ships new web or
+server changes needs a bump here first.
+
+The Android app is a lane: its release is tagged `android-vX.Y.Z`, using the same version
+number, and needs `release-notes/android-X.Y.Z.md` with its translations. Plain `vX.Y.Z` tags
+up to v0.30.1 are earlier Android releases and are never moved or reused.
 
 ## Linux lane
 
@@ -21,7 +33,7 @@ be disabled. No portable tar release is offered. Report the release URL and limi
 
 Invocation input (optional): the user-provided bump level, pause request, or dry-run request.
 
-The release pipeline is `.github/workflows/release.yml`: pushing a `vX.Y.Z` tag
+The release pipeline is `.github/workflows/release.yml`: pushing an `android-vX.Y.Z` tag
 builds the web bundle and the signed Play AAB, reads that version's approved notes from
 `release-notes/` (see `release-notes/README.md`), and publishes one Play identity through
 both channels. It stops before building when any wording of the notes is missing or over
@@ -69,16 +81,17 @@ Requirements:
 - The working tree must be clean and `HEAD` must equal `origin/<default branch>`
   before tagging (commit and push first; use `commit` or `deploy` if there are
   pending changes). If it isn't, stop and say so.
-- Determine the **last release version** from `gh release list` (newest `vX.Y.Z`),
-  falling back to the latest `git tag -l 'v*'`. If there are no releases yet,
-  start from the current `apps/web/package.json` version.
+- Determine the **last version** from the root `package.json`, and the **last Android
+  release** from `gh release list` (newest `android-vX.Y.Z`, falling back to the newest
+  `vX.Y.Z` before the lane existed).
 - **Gate the Android release before bumping anything.** Compare the last Android
   tag with `HEAD` for native Android runtime code, resources, plugins, manifest,
   or build configuration. Web and server changes delivered by `deploy`, desktop
   changes, Store listing assets, documentation, and tooling do not justify an
   Android version. An APK would bundle a newer web fallback, but that alone is
-  not a reason to release it. If there is no qualifying native change, stop
-  without a version commit or tag and report that no Android release is needed.
+  not a reason to release it. With no qualifying native change, bump the product
+  version only (when the invocation asks for one, for example before a deploy) and do not
+  tag an Android release; otherwise report that no Android release is needed and stop.
   Only bypass this gate when the user explicitly requests a new Android binary
   for a concrete reason.
 - Derive the **next version** from the commits since that tag
@@ -107,29 +120,34 @@ Requirements:
 
 Recommended steps:
 
-1. `gh release list --limit 5` (and `git tag -l 'v*' --sort=-v:refname | head`)
+1. `gh release list --limit 5` (and `git tag -l 'android-v*' 'v*' --sort=-v:refname | head`)
    to find the last release version.
 2. Check `git diff --name-only <lastTag>..HEAD` against the Android release gate.
    If it finds no qualifying native change, stop here. Otherwise use
    `git log <lastTag>..HEAD --pretty=format:'%s'` to classify the bump (or honor
    a forced level from the invocation).
-3. Compute the next `vX.Y.Z`. Summarize: last version, new version, the bump
+3. Compute the next `X.Y.Z`. Summarize: last version, new version, the bump
    level, and the notable commits driving it.
 4. If `confirm first` / `dry run`: print the summary and stop.
-5. Draft the notes from the user-facing changes since the last published Android release
-   (not failed tags, drafts or desktop releases): `release-notes/X.Y.Z.md` in en-US, then
-   translate it into `X.Y.Z.<identity>.md` for es-ES, fr-FR, de-DE, zh-CN, pt-BR and ja-JP.
+5. Draft the notes from the user-facing changes since the last version: always the product
+   notes `release-notes/X.Y.Z.md` (en-US; the web and server changes a deploy will ship), and
+   for an Android release `release-notes/android-X.Y.Z.md` from the changes since the last
+   published Android release (not failed tags, drafts or desktop releases), translated into
+   `android-X.Y.Z.<identity>.md` for es-ES, fr-FR, de-DE, zh-CN, pt-BR and ja-JP.
    Run `npm run check:notes`. **Stop and show every wording, not only en-US**, and wait for
    the maintainer (or their delegated release approver) to approve the text; record who
-   approved. The translations reach the stores only through this approval.
+   approved. The translations reach the stores only through this approval. Another agent's
+   go-ahead counts only when it relays the maintainer's approval of this text.
 6. Then bump the root `package.json` and `apps/web/package.json` to the new version, run
    `npm install --package-lock-only` so the lockfile follows, and commit both
-   (`Bump version to X.Y.Z`), together with the approved notes files.
+   (`Bump version to vX.Y.Z`, REL-2), together with the approved notes files.
    Run `npm run validate` first; fix failures before continuing.
-7. `git push`, then `git tag vX.Y.Z && git push origin vX.Y.Z`.
+7. `git push`. For an Android release, then `git tag -a android-vX.Y.Z -m "Android X.Y.Z"`
+   and `git push origin android-vX.Y.Z`. Never create a plain `vX.Y.Z` tag here: that is the
+   deploy's.
 8. Watch the workflow: `gh run watch <id> --exit-status` (find it via
    `gh run list --workflow=release.yml --limit 1`). Confirm the release published
-   with only the verified `-play.apk` asset (`gh release view vX.Y.Z`), then check the "Release to Google
+   with only the verified `-play.apk` asset (`gh release view android-vX.Y.Z`), then check the "Release to Google
    Play" step logged the versionCode against `production`, then run `play-check`
    to verify production holds it and phone testing tracks have no active releases. A failure
    in the earlier "Pre-flight Play release" step means the versionCode collides
@@ -144,4 +162,4 @@ Notes:
   release gate.
 - `ANDROID_*` secrets sign the AAB with the upload key. Google signs the
   distributed APK; verify that signer against the existing asset-links trust list.
-- Never tag a version older than or equal to the last release.
+- Never tag a version older than or equal to the last release, and never move an existing tag.

@@ -342,9 +342,10 @@ restricted permission is another thing review can object to.
 
 ## 6b. Automated publishing ✅ LIVE (production only)
 
-`.github/workflows/release.yml` releases the AAB to Google Play on every `v*` tag,
-using the same release notes as the GitHub Release truncated to Play's
-500-character limit. The one-time setup below is done and
+`.github/workflows/release.yml` releases the AAB to Google Play on every `android-v*` tag
+(plain `v*` tags up to v0.30.1 were the same releases before the Android lane), with that
+version's approved notes from `release-notes/` in every wording, refused rather than
+truncated when over Play's 500-character limit. The one-time setup below is done and
 `PLAY_SERVICE_ACCOUNT_JSON` is set, so tags publish without a Console visit.
 
 **A tag goes directly to production.** Production is the only release destination

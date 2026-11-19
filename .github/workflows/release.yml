@@ -1,17 +1,19 @@
 name: Release
 
-# Tags build the Play AAB and publish to production. GitHub receives only the
-# universal APK generated and signed by Google Play, after identity verification.
-# PLAY_SERVICE_ACCOUNT_JSON is required; never fall back to the retired direct APK.
+# An android-vX.Y.Z tag (the Android lane, REL-3) builds the Play AAB and publishes it to
+# production. GitHub receives only the universal APK generated and signed by Google Play, after
+# identity verification. PLAY_SERVICE_ACCOUNT_JSON is required; never fall back to the retired
+# direct APK. Plain vX.Y.Z tags mean the product now: the deploy skill puts one on each production
+# deploy, and they must never start this workflow. Older Android releases kept their v tags.
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'android-v*'
   workflow_dispatch:
     inputs:
       version:
-        description: 'Existing tag to build (e.g. v0.2.0), the build uses that tag, not the branch'
+        description: 'Existing tag to build (android-vX.Y.Z, or vX.Y.Z for a release before the Android lane); the build uses that tag, not the branch'
         required: true
       play_status:
         description: "Play release status ('draft' holds the release in the Console instead of publishing it)"
