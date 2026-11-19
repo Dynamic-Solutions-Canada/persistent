@@ -1,78 +1,10 @@
 # Development
 
-Developer setup, architecture, and release/deploy workflow for Persistent. (User-
-facing overview is in the root `README.md`.)
-
-## Stack
-
-Initialize the shared promo submodule after cloning with
-`git submodule update --init --recursive`. Web builds now import its public
-catalog contract, bundled manifest, and icons, as well as desktop builds importing
-its WinUI page. Commit and publish promo changes first, then update Persistent's
-submodule pointer before publishing a consuming release.
-
-- **`apps/api`** — Express + Prisma + PostgreSQL + WebSocket + the scheduling/
-  escalation engine.
-- **`apps/web`** — Vite + React + Joy UI PWA (the single UI codebase).
-- **`apps/mobile`** — Capacitor (Android) wrapper that loads the web UI and adds
-  the native plugins: a custom alarm plugin (foreground service + exact alarms +
-  full-screen + looping sound), an in-app updater, a passkey/Credential Manager
-  bridge, and Google sign-in. See `apps/mobile/README.md`.
-- **`apps/desktop`** — WinUI 3 (C#) Windows tray app. Hosts the *hosted* web UI in
-  a WebView2 flyout and adds session-bound persistent notifications and alarm
-  audio while the PC is awake and the process is running. See
-  `docs/desktop-architecture.md`.
-- **`packages/shared`** — Zod schemas + inferred types shared by API and web.
-
-## Settings and app catalog
-
-Language, regional formatting and time format share the Language and region card. Account details, passkeys, sign-out, and permanent deletion share one Account card. Help sits directly before Privacy, and Apps is the final card.
-
-Settings links to "Our other apps" on the shared web/Android UI. The page hides
-Persistent by stable product ID and labels all other apps by platform, including
-Windows apps with HTTPS Store links that can open on Android. Its public GitHub
-catalog refresh is optional and sends no account credentials. Bundled content
-and the last valid public catalog remain available offline; catalog failures do
-not block startup or show account-data errors. New remote icons are cached by the
-service worker, while bundled icons are precached with the web build.
-
-## The persistence reality
-
-Truly undismissable notifications and repeating alarm sound while the app is
-closed are native-OS capabilities, not web/PWA ones. So:
-
-- The **web/PWA** is the management surface and does not send notifications.
-- The **Windows native app** persistently alerts while its tray process and the PC
-  are awake, but cannot guarantee delivery through sleep or shutdown.
-- The **Android native app** is where the real guarantee lives.
-
-Reminders fire reliably even offline via **device-scheduled local alarms** synced
-from the server (the source of truth); server push is the cross-device /
-escalation / ad-hoc backup. See `docs/alarm-architecture.md`.
-
-## Auth
-
-Passwordless: a one-time **email code**, a **passkey**, or **Sign in with
-Google** (when `GOOGLE_WEB_CLIENT_ID` is configured). All resolve to the same
-account by email. See `docs/auth-architecture.md`.
-
-## Sync model
-
-The server owns the truth; clients hold a mirror. Reads go over HTTP (TanStack
-Query, cache persisted for offline reads); writes apply optimistically and
-**queue while offline**, replaying after account confirmation on reconnect. Full-editor
-saves compare the server version opened; focused text edits compare the original
-field or item text. Conflicts return 409 rather than silently overwriting a newer
-edit. Open editors retain their draft. Independent checklist operations preserve
-one another. Live updates arrive over a per-user WebSocket. The native
-client also pulls occurrences to schedule on-device alarms and drains
-acks/snoozes back to the server. First opening and foregrounding wait behind a
-spinner for fresh data. A previously signed-in account can reopen saved personal
-data offline for up to seven days, with a visible offline status. New offline
-reminders reach the native alarm scheduler after server sync. See
-`docs/data-event-contract.md`.
+Developer setup, running, testing and releases for Persistent. How the parts fit together is in [ARCHITECTURE.md](../ARCHITECTURE.md), and running the production server, backups and account deletion are in [deployment](deployment.md). The user-facing overview is the root `README.md`.
 
 ## Development
+
+Initialise the shared promo submodule after cloning with `git submodule update --init --recursive`: the web build imports its public catalog contract, bundled manifest and icons, and the desktop build imports its WinUI page. Commit and publish promo changes first, then update Persistent's submodule pointer before publishing a consuming release.
 
 The editor stays on the host. Devkit runs Node 22, PostgreSQL, and the Android
 SDK/JDK in a checkout-specific Compose stack and injects `DATABASE_URL` and
@@ -93,7 +25,7 @@ before it starts the watchers. Schema changes still need a real migration from
 history.
 
 `validate` does not cover the native Kotlin. After editing `apps/mobile/android-plugin/`,
-compile-check it with `npm run verify:android` (from `apps/mobile`) — see
+compile-check it with `npm run verify:android` (from `apps/mobile`); see
 `apps/mobile/README.md`.
 
 For a paired physical phone, the root `android:*` npm commands cover wireless
@@ -230,51 +162,6 @@ allocate a second service port. The runner prints the proxied and direct URLs.
 Resetting databases, refreshing snapshots, pruning volumes, bootstrapping the
 machine, and deploying remain explicit operations outside automatic hooks.
 
-## Deployment
-
-Production runs a single Docker image (built from `Dockerfile`) that serves the
-API and the built web app on one origin, plus Postgres — see `compose.server.yml`.
-The server holds a git checkout and a filled-in `.env` behind a TLS reverse
-proxy. Deploy from a clean, pushed tree with:
-
-```bash
-npm run deploy:prod            # SSH + docker compose up --build; migrations run on start
-npm run deploy:prod -- --dry-run
-```
-
-The deploy script initializes the pinned promo submodule before the remote Docker
-build. Publish the promo commit before pushing a Persistent commit that references
-it, so fresh checkouts can fetch the required shared catalog.
-
-Deploy target comes from your local `.env` (`DEPLOY_SSH_HOST`, `DEPLOY_REPO_PATH`,
-`DEPLOY_BRANCH`).
-
-### How production config reaches the container
-
-The server's `.env` is **not** copied into the image — `.dockerignore` excludes it,
-because `lib/env.ts` does `import 'dotenv/config'` and would otherwise read a
-baked-in copy, embedding secrets (DB password, Cloudflare
-token) in a distributable layer and hiding the container's real configuration from
-`docker inspect`.
-
-Instead the host `.env` is used by compose for **substitution**, and
-`compose.server.yml` enumerates what the api service actually receives. That means
-**adding a variable to the schema is not enough** — a key read by
-`apps/api/src/lib/env.ts` but absent from that `environment:` block is silently
-`undefined` in production, which just looks like a disabled feature.
-`apps/api/src/lib/env.test.ts` enforces the invariant: every schema key must be
-declared in `compose.server.yml` or as a `Dockerfile ENV`.
-
-So to add config: schema in `env.ts` → `environment:` in `compose.server.yml` →
-value in the server's `.env` → redeploy.
-
-The API container runs as the image's unprivileged `node` user (uid 1000), so a
-file mounted into it, such as the FCM service-account key under `.secrets/`, must
-be readable by uid 1000 on the host. An unreadable key does not stop the API: it
-stays healthy and logs `fcm auth failed` on every push. Compose marks the
-container healthy once `GET /api/health` answers. The `Image check` workflow
-builds this image on every change that affects it and fails if it runs as root.
-
 ## Releases & updates
 
 Pushing a `vX.Y.Z` tag runs `.github/workflows/release.yml`, which builds the web
@@ -299,7 +186,7 @@ since the previous tag, and ships one Android identity through both channels:
   It can also adjust a production rollout and refuses a downgrade.
 
 Because the app loads the UI from production, web-only changes ship via a deploy
-with no new build — cut a release only for native changes (alarm/update/passkey/
+with no new build; cut a release only for native changes (alarm/update/passkey/
 Google plugins, manifest, icon).
 
 ### Linux desktop releases
@@ -334,11 +221,8 @@ Claude Code reads them through the `.claude/skills` symlink.
 
 ## Docs
 
-Cross-cutting contracts live in `docs/`: `auth-architecture.md`,
-`data-event-contract.md`, `alarm-architecture.md`. Directory-scoped conventions
-are in the scoped `AGENTS.md` files. Reusable workflows and focused agent guides
-live under `.agents/`.
+[ARCHITECTURE.md](../ARCHITECTURE.md) is the overview and links each subsystem document in `docs/`. Dated reviews and verification records are in `docs/notes/`. Directory-scoped conventions are in the scoped `AGENTS.md` files, and reusable workflows and agent guides live under `.agents/`.
 
 ## Patched build runtimes
 
-Use the exact Node and npm versions in the root manifest for production, development and Linux build tooling. Desktop SDK selection lives in `apps/desktop/global.json`: SDK 10.0.403 or a newer stable .NET 10 feature band is eligible. Self-contained builds reject resolved .NET runtime packs older than 10.0.14. These build requirements address CVE-2026-111497; existing deployed images and native packages require separate rebuilds and releases. See [HTTP2Shell review](http2shell-review.md) for evidence and remaining gates.
+Use the exact Node and npm versions in the root manifest for production, development and Linux build tooling. Desktop SDK selection lives in `apps/desktop/global.json`: SDK 10.0.403 or a newer stable .NET 10 feature band is eligible. Self-contained builds reject resolved .NET runtime packs older than 10.0.14. These build requirements address CVE-2026-111497; existing deployed images and native packages require separate rebuilds and releases. See [HTTP2Shell review](notes/http2shell-review.md) for evidence and remaining gates.
