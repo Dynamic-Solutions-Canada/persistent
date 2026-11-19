@@ -2,14 +2,13 @@
 
 `listings.json` is the Windows-specific draft text source for nine listing identities: `en-US`, `en-CA`, `es-ES`, `fr-FR`, `fr-CA`, `de-DE`, `zh-CN`, `pt-BR` and `ja-JP`. It follows the Play metadata's `schemaVersion: 1` and `locales` shape. Seven records contain wording; `en-CA` uses only `{ "copyFrom": "en-US" }` and `fr-CA` uses only `{ "copyFrom": "fr-FR" }`. Resolve these copies when exporting, keeping both Canadian listing identities.
 
-Each wording record contains `title` (always `Persistent`), `fullDescription`, `shortDescription`, `features`, `releaseNotes`, `keywords` and `screenshotCaptions`. These are semantic source fields, not Microsoft CSV field names or IDs. The draft is not consumed by the existing screenshot/release-note publisher automatically.
+Each wording record contains `title` (always `Persistent`), `fullDescription`, `shortDescription`, `features`, `keywords` and `screenshotCaptions`. These are semantic source fields, not Microsoft CSV field names or IDs. Release notes are not listing text: they are per version, in `release-notes/desktop-<version>[.<identity>].md`, and `store-publish` sends them to every listing locale (LIST-10).
 
 | Text                | Limit                                                                       |
 | ------------------- | --------------------------------------------------------------------------- |
 | Full description    | 4,000 characters                                                            |
 | Short description   | 270 characters                                                              |
 | Features            | Up to 20, each up to 200 characters                                         |
-| Release notes       | 1,500 characters                                                            |
 | Keywords            | Up to 7, each up to 40 characters, at most 21 words combined                |
 | Screenshot captions | Exactly the four existing ordered desktop images, each up to 200 characters |
 

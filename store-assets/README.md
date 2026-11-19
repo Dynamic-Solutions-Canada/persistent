@@ -158,11 +158,10 @@ uploads the new native package as a draft, attaches the four ordered screenshots
 using the same `.msixupload` filename registered by the CLI,
 and commits the combined submission only in publish mode. It preserves other
 listing fields, logos, languages, pricing, and package policy. The approved notes
-are in `microsoft/release-notes.txt`. Draft mode leaves the complete package and
+are `release-notes/desktop-<version>[.<identity>].md`, sent to every listing locale. Draft mode leaves the complete package and
 listing for review. A successful submission is still subject to Store processing
 and certification; inspect its status before claiming the update is live.
 
-Windows GitHub releases use `microsoft/github-release-notes.md`. Refresh both
-notes files when preparing the next Windows release.
+Windows GitHub releases use the same en-US file, with the disclosure line added by CI. Write and approve a version's notes in every wording before tagging it; see `release-notes/README.md`.
 
 Store requirements: [Google Play preview assets](https://support.google.com/googleplay/android-developer/answer/9866151) and [Microsoft screenshots](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/screenshots-and-images). Recheck them for future submissions.

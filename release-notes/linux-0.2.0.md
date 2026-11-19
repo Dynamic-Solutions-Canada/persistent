@@ -10,5 +10,3 @@ Persistent for Linux 0.2.0 improves sign-in, KDE Wayland integration, and native
 Linux downloads are now AppImage only, for x86_64 (Intel/AMD) and ARM64. Existing AppImage installations retain their profiles and installation path when updated. Automatic update checks and Start at sign-in remain available in Settings. GNOME requires AppIndicator support and may require double click to open the flyout; other Wayland compositors control window placement.
 
 Desktop alerts require the app to be running and the computer awake. Android remains the platform with offline scheduled-alarm guarantees.
-
-_AI disclosure: these release notes and the related code were written with the assistance of AI._

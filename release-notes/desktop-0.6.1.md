@@ -1,0 +1,4 @@
+Choose among nine locale options in Settings. Language, regional date formatting, 12/24-hour display and account email language have separate preferences. Your own reminder and medicine text stays unchanged.
+Windows tray controls, notifications and widget text now follow your language choice. Shell descriptions and widget-picker text use Windows language preferences. Changing language updates visible Windows notifications and may restart a ringing alarm or reset an open action menu.
+Edit and complete shared reminders, track assigned tasks, restore a selected firing with Undo done and receive a warning when concurrent edits conflict.
+Windows alerts remain optional and require a signed-in session, the tray process running and an awake PC. Use Android for previously scheduled exact alarms that can sound offline with the app closed.

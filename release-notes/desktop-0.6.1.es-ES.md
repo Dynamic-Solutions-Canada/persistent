@@ -1,0 +1,4 @@
+Elige entre nueve opciones de idioma y región en Ajustes. El idioma, el formato regional de fecha, el reloj de 12/24 horas y el idioma del correo tienen preferencias independientes. Tus textos y nombres de medicamentos no cambian.
+Los controles de bandeja, las notificaciones y el widget siguen el idioma elegido. Las descripciones del sistema y el selector de widgets usan las preferencias de idioma de Windows. Cambiar el idioma actualiza las notificaciones visibles y puede reiniciar una alarma que esté sonando o restablecer un menú de acciones abierto.
+Edita y completa recordatorios compartidos, sigue tareas asignadas, restaura un aviso con Deshacer finalización y recibe advertencias ante conflictos de edición simultánea.
+Los avisos de Windows siguen siendo opcionales y requieren sesión iniciada, proceso de bandeja en ejecución y PC despierto. Usa Android para alarmas exactas ya programadas que puedan sonar sin conexión con la aplicación cerrada.

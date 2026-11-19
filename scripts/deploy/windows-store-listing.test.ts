@@ -59,7 +59,10 @@ test('Store screenshot refresh preserves packages, logos, policy, other language
     file: `microsoft/${index}.png`,
     alt: `View ${index}`,
   }))
-  const result = mergeStoreListing(draft, shots, 'A taller flyout.')
+  const result = mergeStoreListing(draft, shots, {
+    'en-US': 'A taller flyout.',
+    'fr-CA': 'Un menu plus haut.',
+  })
   assert.equal(
     draft.Listings['en-us'].BaseListing.Images[0].FileStatus,
     'Uploaded',
@@ -69,7 +72,12 @@ test('Store screenshot refresh preserves packages, logos, policy, other language
     draft.ApplicationPackages,
   )
   assert.deepEqual(result.submission.Pricing, draft.Pricing)
-  assert.deepEqual(result.submission.Listings['fr-ca'], draft.Listings['fr-ca'])
+  assert.deepEqual(result.submission.Listings['fr-ca'], {
+    BaseListing: {
+      ...draft.Listings['fr-ca'].BaseListing,
+      releaseNotes: 'Un menu plus haut.',
+    },
+  })
   const listing = result.submission.Listings['en-us'].BaseListing
   assert.equal(listing.Title, 'Persistent')
   assert.equal(listing.Description, 'Keep existing copy')
@@ -93,7 +101,7 @@ test('Store updates reject missing English listings and duplicate screenshot fil
     alt: 'Same',
   }))
   assert.throws(
-    () => mergeStoreListing({ listings: {} }, shots, 'Notes'),
+    () => mergeStoreListing({ listings: {} }, shots, { 'en-US': 'Notes' }),
     /English/,
   )
   assert.throws(
@@ -101,8 +109,44 @@ test('Store updates reject missing English listings and duplicate screenshot fil
       mergeStoreListing(
         { listings: { 'en-us': { baseListing: { images: [] } } } },
         shots,
-        'Notes',
+        { 'en-US': 'Notes' },
       ),
     /unique/,
+  )
+})
+
+test('every listing gets its own approved notes, and a listing without any fails first', () => {
+  const shots = Array.from({ length: 4 }, (_, index) => ({
+    file: `microsoft/${index}.png`,
+    alt: `View ${index}`,
+  }))
+  const draft = {
+    listings: {
+      'en-us': { baseListing: { images: [] } },
+      'ja-jp': { baseListing: { releaseNotes: 'Old' } },
+    },
+  }
+  assert.throws(
+    () => mergeStoreListing(draft, shots, { 'en-US': 'New' }),
+    /No release notes for the ja-jp listing/,
+  )
+  const result = mergeStoreListing(draft, shots, {
+    'en-US': 'New',
+    'ja-JP': '新しい通知。',
+  })
+  assert.equal(
+    result.submission.listings['ja-jp'].baseListing.releaseNotes,
+    '新しい通知。',
+  )
+  assert.throws(
+    () =>
+      mergeStoreListing(
+        { listings: { 'en-us': { baseListing: { images: [] } } } },
+        shots,
+        {
+          'en-US': 'x'.repeat(1501),
+        },
+      ),
+    /over 1500/,
   )
 })

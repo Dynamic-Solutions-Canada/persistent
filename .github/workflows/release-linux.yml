@@ -116,8 +116,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION=$(node -p "require('./apps/linux-desktop/package.json').version")
+          # The approved notes for this version (REL-6), plus the GitHub-only disclosure line;
+          # a missing or over-long file stops here, before any release exists.
+          node scripts/release/notes.mjs require linux "$VERSION"
+          node scripts/release/notes.mjs text linux "$VERSION" > "$RUNNER_TEMP/RELEASE_NOTES.md"
+          printf '\n*AI disclosure: these release notes and the related code were written with the assistance of AI.*\n' >> "$RUNNER_TEMP/RELEASE_NOTES.md"
           node apps/linux-desktop/dist/release-manifest.cjs linux-release "$VERSION"
           gh release create "$RELEASE_TAG" --draft --verify-tag --latest=false \
-            --title "Persistent for Linux $VERSION" --notes-file apps/linux-desktop/RELEASE_NOTES.md
+            --title "Persistent for Linux $VERSION" --notes-file "$RUNNER_TEMP/RELEASE_NOTES.md"
           gh release upload "$RELEASE_TAG" linux-release/*.AppImage linux-release/*-update.json
           gh release edit "$RELEASE_TAG" --draft=false --latest=false

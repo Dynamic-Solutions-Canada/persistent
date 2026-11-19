@@ -7,16 +7,14 @@ import { supportedLocales } from '../../../packages/shared/src/locales.js'
 import { PlayMetadata } from './play-metadata.mjs'
 // @ts-expect-error - dependency-free Node script has no generated declarations
 import { listingFromMarkdown } from './play-publish.mjs'
+// @ts-expect-error - dependency-free Node script has no generated declarations
+import { playJson } from '../../../scripts/release/notes.mjs'
 
 const source = JSON.parse(
   readFileSync(new URL('../store/listings.json', import.meta.url), 'utf8'),
 )
-const notes = JSON.parse(
-  readFileSync(
-    new URL('../store/releases/0.29.0.json', import.meta.url),
-    'utf8',
-  ),
-)
+// The 0.29.0 notes as release.yml hands them to Play, built from release-notes/.
+const notes = playJson('product', '0.29.0')
 
 test('real listing and release notes cover exactly the app locales within every Play cap', () => {
   assert.deepEqual(PlayMetadata.languages, [...supportedLocales])
