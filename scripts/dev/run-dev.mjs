@@ -66,7 +66,7 @@ if (hostMode) {
     process.exit(composeLifecycle.stop())
   }
 } else {
-  runSync('node', ['scripts/dev/wait-for-db.mjs'])
+  runSync('npm', ['run', 'db:wait'])
   runSync('npm', ['run', 'db:generate'])
   runSync('npm', ['run', 'db:migrate:deploy'])
   runSync('npm', ['run', 'build', '--workspace', '@persistent/shared'])
