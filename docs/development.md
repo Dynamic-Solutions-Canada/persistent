@@ -286,7 +286,7 @@ npm 11 runs a dependency's install script only when the root `package.json` appr
 
 ## TypeScript
 
-The root holds the only compiler for the workspaces: `@typescript/native` is TypeScript 7 and provides `tsc`. The root `typescript` entry is an alias to `@typescript/typescript6` (its command is `tsc6`), present only because typescript-eslint's peer range stops below 6.1; remove it once typescript-eslint supports TypeScript 7. `apps/mobile` and `apps/linux-desktop` have their own lockfiles and depend on TypeScript 7 directly. TypeScript 6 and later no longer load every installed `@types` package, so a tsconfig that needs Node's types lists `"types": ["node"]`.
+The root holds the only compiler for the workspaces: `@typescript/native` is TypeScript 7 and provides `tsc`. The root `typescript` entry is an alias to `@typescript/typescript6` (its command is `tsc6`), present only because typescript-eslint's peer range stops below 6.1; remove it once typescript-eslint supports TypeScript 7. `apps/linux-desktop` has its own lockfile and depends on TypeScript 7 directly. `apps/mobile` has its own lockfile and the same pair as the root: the Capacitor CLI loads `capacitor.config.ts` through the `typescript` package's JavaScript API, which TypeScript 7 does not have. TypeScript 6 and later no longer load every installed `@types` package, so a tsconfig that needs Node's types lists `"types": ["node"]`.
 
 ## Formatting
 
