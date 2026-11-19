@@ -11,9 +11,19 @@ updates:
       - /apps/linux-desktop
     schedule:
       interval: weekly
+    ignore:
+      # Major versions move together in the staged stack upgrade (TypeScript, zod,
+      # Prisma, React, Vite, ESLint, Capacitor and the rest), one step at a time with
+      # its own checks. Remove this rule once that upgrade is done.
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+      # devkit is pinned to a release tag and bumped by hand, following the consumer
+      # steps in its release notes. Dependabot misreads its git tags (it proposed
+      # v0.20.2 -> v0.17.1).
+      - dependency-name: '@dynamic-solutions-canada/devkit'
     groups:
-      npm:
-        patterns: ['*']
+      minor-and-patch:
+        update-types: ['minor', 'patch']
 
   - package-ecosystem: nuget
     directories:
@@ -24,6 +34,11 @@ updates:
       - /apps/desktop/tools/localization-tests
     schedule:
       interval: weekly
+    ignore:
+      # The Windows App SDK line moves with the winui-app-kit adoption (parity package
+      # 18), which pins it for every Windows app; the app and the widget are on
+      # different lines until then. Remove this rule in that package.
+      - dependency-name: 'Microsoft.WindowsAppSDK*'
     groups:
       nuget:
         patterns: ['*']
