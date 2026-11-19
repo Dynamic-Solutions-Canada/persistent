@@ -92,8 +92,9 @@ Requirements:
   - else **patch** (fixes, refactors, docs, chore, UI tweaks).
   Increment from the last release version accordingly (e.g. patch: `0.1.3 -> 0.1.4`,
   minor: `0.1.3 -> 0.2.0`, major: `0.1.3 -> 1.0.0`).
-- Keep `apps/web/package.json` `version` in sync: set it to the new version
-  (this is the in-app displayed version / web build version). The APK's
+- Keep the root `package.json` and `apps/web/package.json` `version` in sync: set
+  both to the new version (the web one is the in-app displayed version and web build
+  version; the root one labels the deployed server image). The APK's
   versionName comes from the tag in CI; versionCode from the run number plus the
   `PLAY_VERSION_CODE_OFFSET` repo variable (unset = 0).
 - **Regenerate the lockfile after bumping**: `npm install --package-lock-only`.
@@ -115,7 +116,7 @@ Recommended steps:
 3. Compute the next `vX.Y.Z`. Summarize: last version, new version, the bump
    level, and the notable commits driving it.
 4. If `confirm first` / `dry run`: print the summary and stop.
-5. Otherwise bump `apps/web/package.json` to the new version, run
+5. Otherwise bump the root `package.json` and `apps/web/package.json` to the new version, run
    `npm install --package-lock-only` so the lockfile follows, and commit both
    (`Bump version to X.Y.Z`).
    Run `npm run validate` first; fix failures before continuing.
