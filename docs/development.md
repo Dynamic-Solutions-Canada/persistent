@@ -284,6 +284,10 @@ Commit metadata and old file contents were rewritten on 2026-11-19 to replace tw
 
 npm 11 runs a dependency's install script only when the root `package.json` approves its exact version in `allowScripts` (PLAT-10); an unapproved one is skipped with a warning. Approved: Prisma's engines, CLI and client, and esbuild. Denied: lefthook (its hook is installed by `dev:postprepare`). `apps/linux-desktop` has its own list. The keys name exact versions, so bumping an approved package re-approves it in the same commit: `npm install-scripts approve <name>` (it pins every installed version of that package).
 
+## TypeScript
+
+The root holds the only compiler for the workspaces: `@typescript/native` is TypeScript 7 and provides `tsc`. The root `typescript` entry is an alias to `@typescript/typescript6` (its command is `tsc6`), present only because typescript-eslint's peer range stops below 6.1; remove it once typescript-eslint supports TypeScript 7. `apps/mobile` and `apps/linux-desktop` have their own lockfiles and depend on TypeScript 7 directly. TypeScript 6 and later no longer load every installed `@types` package, so a tsconfig that needs Node's types lists `"types": ["node"]`.
+
 ## Formatting
 
 Prettier formats the TypeScript, JavaScript, JSON, YAML, CSS, HTML and Markdown with the shared house style (`.prettierrc.json`: single quotes, no semicolons, Markdown prose left unwrapped). `npm run validate` runs `npm run format:check`; when it fails, run `npm run format` and commit the result. `.prettierignore` lists what stays untouched. The Windows app's C# gets `dotnet format` when it moves to winui-app-kit. To have `git blame` skip the one-off reformat, run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once.
