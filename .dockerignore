@@ -26,6 +26,8 @@
 # Scratch and local backups (HYG-6), never build inputs.
 tmp
 .backups
+# Agent worktrees inside the checkout (AI-12).
+.worktrees
 
 # --- Not needed to build or run the server ---
 .git

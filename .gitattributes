@@ -1,2 +1,27 @@
+# Text is stored with LF endings (HYG-7); only the exceptions below differ.
+* text=auto eol=lf
 
-scripts/windows-build text eol=lf
+# Binary files git should not diff or convert.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.mp4 binary
+*.wav binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.pfx binary
+*.keystore binary
+*.jks binary
+*.der binary
+*.aab binary
+*.apk binary
+*.msix binary
+*.msixbundle binary
+*.msixupload binary
+*.zip binary
+
+# Generated files that collapse in diffs.
+package-lock.json linguist-generated
+apps/api/prisma/migrations/migration_lock.toml linguist-generated

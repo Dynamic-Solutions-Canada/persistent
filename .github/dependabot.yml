@@ -1,0 +1,37 @@
+# Weekly, grouped updates for every ecosystem and manifest directory (HYG-8).
+# Gradle is absent on purpose: the Android project is generated into the
+# git-ignored apps/mobile/android/ by scripts/setup-android.mjs, which pins its
+# versions, so Dependabot never sees a Gradle manifest.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directories:
+      - /
+      - /apps/mobile
+      - /apps/linux-desktop
+    schedule:
+      interval: weekly
+    groups:
+      npm:
+        patterns: ['*']
+
+  - package-ecosystem: nuget
+    directories:
+      - /apps/desktop/Persistent.Desktop
+      - /apps/desktop/Persistent.Widget
+      - /apps/desktop/tools/csharp-check
+      - /apps/desktop/tools/localization-resources
+      - /apps/desktop/tools/localization-tests
+    schedule:
+      interval: weekly
+    groups:
+      nuget:
+        patterns: ['*']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: ['*']

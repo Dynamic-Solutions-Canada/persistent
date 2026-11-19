@@ -1,10 +1,19 @@
 # Production compose: Postgres + the single API/web container.
 # Deployed by scripts/deploy/deploy-over-ssh.mjs (`npm run deploy:prod`).
-# Reads secrets/config from .env on the host (auto-loaded by compose; see .env.example).
+# Reads secrets/config from .env on the host (auto-loaded by compose; see .env.server.example).
 #
 #   docker compose -f compose.server.yml up -d --build
+# Docker log caps for every service (LOG-4): the default json-file driver keeps
+# logs forever otherwise.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   db:
+    logging: *logging
     image: postgres:16-bookworm
     restart: unless-stopped
     environment:
@@ -20,6 +29,7 @@ services:
       - persistent-data:/var/lib/postgresql/data
 
   api:
+    logging: *logging
     build:
       context: .
       dockerfile: Dockerfile

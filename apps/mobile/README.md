@@ -305,7 +305,7 @@ workflow remains for already-uploaded builds and production rollout adjustments.
 It copies the existing release notes, can stage the rollout to a fraction of users,
 and clears active phone testing releases in the same edit.
 
-To build a signed release locally, set the `ANDROID_*` vars (see `.env.example`)
+To build a signed release locally, set the `ANDROID_*` vars (see `.env.dev.example`)
 in the workspace `.env`, then:
 
 ```bash
