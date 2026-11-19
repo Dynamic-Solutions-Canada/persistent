@@ -892,6 +892,11 @@ offline first-run fallback. This lets new promotions reach existing installs
 without rebuilding the desktop app. CI still checks out with `submodules: true`
 because the csproj imports the shared page unconditionally.
 
+From apps-promo v2 the page takes three styles from its host (`PageContentStyle`,
+`PageTitleStyle` and `CardBorderStyle`). `App.xaml` defines them with the spacing of
+Persistent's own settings pages, until the app moves to winui-app-kit and merges the
+kit's shared styles instead.
+
 The same submodule supplies stable product IDs, platform-specific HTTPS links,
 and bundled catalog assets to the hosted web/Android "Our other apps" page.
 Both consumers preserve the manifest's canonical app order while hiding their

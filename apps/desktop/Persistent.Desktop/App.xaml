@@ -12,6 +12,26 @@
             <!-- Transparent NavigationView content so Mica shows through -->
             <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
             <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+
+            <!-- The three keys the shared "Our other apps" page (apps-promo v2) takes from its
+                 host, with the spacing Persistent's own settings pages use so the page matches
+                 them. Replaced by winui-app-kit's merged Styles.xaml when the app moves to the kit. -->
+            <Style x:Key="PageContentStyle" TargetType="StackPanel">
+                <Setter Property="Padding" Value="32,16,32,32" />
+                <Setter Property="Spacing" Value="8" />
+                <Setter Property="MaxWidth" Value="760" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+            </Style>
+            <Style x:Key="PageTitleStyle" TargetType="TextBlock" BasedOn="{StaticResource TitleTextBlockStyle}">
+                <Setter Property="Margin" Value="0,0,0,8" />
+            </Style>
+            <Style x:Key="CardBorderStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Padding" Value="16,12" />
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
