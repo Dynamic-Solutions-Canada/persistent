@@ -1,7 +1,8 @@
 /** First-party session metadata for aggregate app/platform adoption, without persistent device identifiers. */
 import type { ClientUsage } from '@persistent/shared'
 import { apiFetch } from '../lib/apiClient.js'
-import { isNative, NativeApp } from './alarmBridge.js'
+import { App } from '@capacitor/app'
+import { isNative } from './alarmBridge.js'
 import { isDesktopHost, desktopPlatform } from './desktopBridge.js'
 
 /** Prefer native bridge identity; browser/PWA distinction is the current display mode. */
@@ -65,7 +66,7 @@ export async function reportClientUsage(signal?: AbortSignal): Promise<void> {
   const usage = await collectClientUsage(
     identity,
     __APP_VERSION__,
-    () => NativeApp.getInfo(),
+    () => App.getInfo(),
     reportSignal,
   )
   await apiFetch('/api/client-usage', {

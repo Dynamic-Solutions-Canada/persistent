@@ -1,6 +1,7 @@
 /** Report the installed native shell version, independently of the hosted web UI version. */
 import { useEffect, useState } from 'react'
-import { NativeApp, isNative } from './alarmBridge.js'
+import { App } from '@capacitor/app'
+import { isNative } from './alarmBridge.js'
 
 const WEB_VERSION =
   typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '0.0.0'
@@ -9,7 +10,7 @@ const WEB_VERSION =
 async function resolveAppVersion(): Promise<string> {
   if (isNative()) {
     try {
-      const info = await NativeApp.getInfo()
+      const info = await App.getInfo()
       if (info?.version) return info.version
     } catch {
       // Version display must not prevent opening Settings.
