@@ -3,8 +3,8 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
-import { webBuildIdPlugin } from './webBuildIdPlugin'
-import { navigationCaching } from './serviceWorkerConfig'
+import { webBuildIdPlugin } from './webBuildIdPlugin.ts'
+import { navigationCaching } from './serviceWorkerConfig.ts'
 import { devkitViteServer } from '@dynamic-solutions-canada/devkit/vite'
 
 // App version, surfaced to the client (the native update check compares it to the
