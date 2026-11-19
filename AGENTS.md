@@ -16,7 +16,7 @@ This repo follows the shared standards at https://github.com/Dynamic-Solutions-C
 - `packages/shared` is the single source of truth for request and response shapes; never duplicate them elsewhere.
 - `apps/mobile`, `apps/desktop` and `apps/linux-desktop` sit outside the npm workspaces graph.
 
-The overview, subsystem documents and the list of where data lives are in `ARCHITECTURE.md`. Nested `AGENTS.md` files hold area rules. List them with `git ls-files '*AGENTS.md'` and read the ones for the folders you touch.
+The overview, subsystem documents and the list of where data lives are in `ARCHITECTURE.md`. Nested `AGENTS.md` files hold area rules; list them with `git ls-files '*AGENTS.md'` and read the ones for the folders you touch.
 
 ## Behaviour
 
@@ -35,8 +35,9 @@ The overview, subsystem documents and the list of where data lives are in `ARCHI
 - Source is ASCII unless the file already needs Unicode.
 - Initialise `apps/desktop/external/promo` with `git submodule update --init --recursive` in a fresh checkout before validating or building: the web app and the desktop app both import its catalog.
 - Never point `prisma migrate diff --shadow-database-url` at `DATABASE_URL`: Prisma resets the shadow database, which wipes the dev data. `prisma migrate status` answers "is the schema in step?" without touching anything.
-- When the schema changes, regenerate the client (`npm run db:generate`) and update the shared contracts.
-- Tests import `@persistent/shared` from its built `dist/`, which `validate` does not rebuild. After changing shared code, run `npm run build --workspace @persistent/shared` or a test can fail against the stale build.
+- A schema change needs `npm run db:generate` and updated shared contracts.
+- Tests import `@persistent/shared` from its built `dist/`, which `validate` does not rebuild: rebuild it after changing shared code.
+- devkit generates the dev runner, `paseo.json` and the edit guard (`npm exec devkit-init` after a bump); app steps go in `dev:container` and `dev:postprepare`.
 - Generated files are not edited by hand: a Claude Code hook (`scripts/hooks/README.md`) rejects edits under `apps/mobile/android/` and to files whose header says they are generated.
 
 ## Shared helpers (do not duplicate)
@@ -49,7 +50,7 @@ The overview, subsystem documents and the list of where data lives are in `ARCHI
 - Email: `sendCloudflareEmail` from `apps/api/src/lib/cloudflare-email.ts`.
 - Web HTTP: `apiFetch` from `apps/web/src/lib/apiClient.ts`; never bare `fetch` for JSON.
 - Web realtime and caches: WebSocket events invalidate TanStack Query keys (`apps/web/src/lib/wsClient.ts`); components never poll.
-- Repository owner and name: `SOURCE_REPOSITORY` from `packages/shared/src/repository.ts`; the Windows app's equivalent is the `Owner`/`Repo` pair in `UpdateService.cs`.
+- Repository owner and name: `SOURCE_REPOSITORY` from `packages/shared/src/repository.ts` (Windows: `UpdateService.cs`).
 
 ## Commands
 
