@@ -17,6 +17,7 @@ import helmet from 'helmet'
 import { clientOrigins, env } from './lib/env.js'
 import { attachUser } from './lib/auth-middleware.js'
 import { HttpError } from './lib/http-error.js'
+import { contentSecurityDirectives } from './lib/content-security.js'
 import { describeError, logger } from './lib/logger.js'
 import { authRouter } from './routes/auth.js'
 import { remindersRouter } from './routes/reminders.js'
@@ -40,26 +41,12 @@ export function createApp() {
   const app = express()
   // Behind a reverse proxy in production: trust X-Forwarded-* for req.ip and secure cookies.
   app.set('trust proxy', 1)
-  // CSP locked to same-origin, plus Google Identity Services (Sign in with Google)
-  // which loads a cross-origin script + iframe and connects to accounts.google.com.
+  // CSP: same-origin plus the named exceptions in lib/content-security.ts.
   app.use(
     helmet({
       contentSecurityPolicy: {
         useDefaults: true,
-        directives: {
-          'script-src': [
-            "'self'",
-            'https://accounts.google.com/gsi/client',
-            ...analyticsSources,
-          ],
-          'connect-src': [
-            "'self'",
-            'https://accounts.google.com/gsi/',
-            ...analyticsSources,
-          ],
-          'frame-src': ["'self'", 'https://accounts.google.com/gsi/'],
-          'img-src': ["'self'", 'data:', 'https://*.googleusercontent.com'],
-        },
+        directives: contentSecurityDirectives(analyticsSources),
       },
       // Google Identity Services signs in via a popup that must postMessage the
       // credential back to us; the default COOP 'same-origin' severs that link
