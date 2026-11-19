@@ -21,7 +21,7 @@
          stable release. The package manifest supplies its 2.4 framework beside
          the main app's proven 1.8 runtime. -->
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
-    <PackageReference Include="NLog" Version="6.1.1" />
+    <PackageReference Include="NLog" Version="6.2.2" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Shared\UiText.cs" Link="Localization\UiText.cs" />
