@@ -35,6 +35,14 @@ test('package-lock records the same version as each workspace package.json', () 
   )
 })
 
+test('the root version follows the web app, since it labels the deployed image', () => {
+  const root = readJson('package.json') as { version?: string }
+  const web = readJson('apps/web/package.json') as { version?: string }
+  const lock = readJson('package-lock.json') as { version?: string; packages: Record<string, { version?: string }> }
+  assert.equal(root.version, web.version, 'Bump the root package.json version with apps/web (the release skill does both).')
+  assert.equal(lock.packages['']?.version, root.version, 'Run `npm install --package-lock-only` after the bump.')
+})
+
 test('root transport test dependencies match the standalone Linux runtime', () => {
   const root = readJson('package.json') as { devDependencies: Record<string, string> }
   const linux = readJson('apps/linux-desktop/package.json') as { dependencies: Record<string, string> }
