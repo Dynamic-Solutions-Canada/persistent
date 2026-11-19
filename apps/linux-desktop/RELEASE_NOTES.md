@@ -11,4 +11,4 @@ Linux downloads are now AppImage only, for x86_64 (Intel/AMD) and ARM64. Existin
 
 Desktop alerts require the app to be running and the computer awake. Android remains the platform with offline scheduled-alarm guarantees.
 
-*AI disclosure: these release notes and the related code were written with the assistance of AI.*
+_AI disclosure: these release notes and the related code were written with the assistance of AI._

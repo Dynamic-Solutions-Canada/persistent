@@ -14,10 +14,7 @@
       "action": "capture",
       "name": "00-current-light.png",
       "surface": "web",
-      "requiredControls": [
-        "header",
-        "navigation"
-      ]
+      "requiredControls": ["header", "navigation"]
     }
   ]
 }

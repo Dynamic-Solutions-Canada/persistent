@@ -15,24 +15,32 @@ import { classifyFcmStatus, fcmFailureCode } from './fcm-status.js'
 import { fcmData } from './fcm-data.js'
 
 export function isFcmConfigured(): boolean {
-  return Boolean(env.FCM_SERVICE_ACCOUNT_FILE?.trim() && env.FCM_PROJECT_ID?.trim())
+  return Boolean(
+    env.FCM_SERVICE_ACCOUNT_FILE?.trim() && env.FCM_PROJECT_ID?.trim(),
+  )
 }
 
 // An AuthClient's getAccessToken() resolves to { token }, NOT a bare string —
 // only GoogleAuth#getAccessToken() returns the string. Typing the client wrong
 // here is what let `Bearer [object Object]` ship (every send 401'd).
-let tokenSourcePromise: Promise<{ getAccessToken: () => Promise<{ token?: string | null }> }> | null = null
+let tokenSourcePromise: Promise<{
+  getAccessToken: () => Promise<{ token?: string | null }>
+}> | null = null
 
 async function getAuthClient() {
   if (!tokenSourcePromise) {
     tokenSourcePromise = (async () => {
       const { GoogleAuth } = await import('google-auth-library')
-      const credentials = JSON.parse(await readFile(env.FCM_SERVICE_ACCOUNT_FILE as string, 'utf8'))
+      const credentials = JSON.parse(
+        await readFile(env.FCM_SERVICE_ACCOUNT_FILE as string, 'utf8'),
+      )
       const auth = new GoogleAuth({
         credentials,
-        scopes: ['https://www.googleapis.com/auth/firebase.messaging']
+        scopes: ['https://www.googleapis.com/auth/firebase.messaging'],
       })
-      return auth.getClient() as unknown as { getAccessToken: () => Promise<{ token?: string | null }> }
+      return auth.getClient() as unknown as {
+        getAccessToken: () => Promise<{ token?: string | null }>
+      }
     })()
   }
   return tokenSourcePromise
@@ -67,18 +75,27 @@ async function sendOne(
   url: string,
   accessToken: string,
   endpoint: string,
-  data: Record<string, string>
+  data: Record<string, string>,
 ): Promise<SendResult> {
   try {
     const response = await fetch(url, {
       method: 'POST',
-      headers: { authorization: `Bearer ${accessToken}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ message: { token: endpoint, data, android: { priority: 'high' } } })
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: { token: endpoint, data, android: { priority: 'high' } },
+      }),
     })
     if (response.ok) return { endpoint, status: response.status }
     // Provider messages can echo a rejected token or body. Keep only safe codes.
     const body = await response.text().catch(() => '')
-    return { endpoint, status: response.status, providerCode: fcmFailureCode(body) }
+    return {
+      endpoint,
+      status: response.status,
+      providerCode: fcmFailureCode(body),
+    }
   } catch (error) {
     logger.warn('fcm delivery error', { error: String(error) })
     return { endpoint, status: 0 }
@@ -93,9 +110,14 @@ async function sendOne(
  * otherwise a wedged token would silently drop every notification until the
  * process restarts. The device token is only pruned on 403/404.
  */
-export async function sendFcmPush(userId: string, payload: PushPayload): Promise<void> {
+export async function sendFcmPush(
+  userId: string,
+  payload: PushPayload,
+): Promise<void> {
   if (!isFcmConfigured()) return
-  const subs = await prisma.pushSubscription.findMany({ where: { userId, kind: 'FCM' } })
+  const subs = await prisma.pushSubscription.findMany({
+    where: { userId, kind: 'FCM' },
+  })
   if (subs.length === 0) return
 
   let accessToken = await mintAccessToken()
@@ -104,7 +126,9 @@ export async function sendFcmPush(userId: string, payload: PushPayload): Promise
   const url = `https://fcm.googleapis.com/v1/projects/${env.FCM_PROJECT_ID}/messages:send`
   // One content copy plus a compact range preserves old-client display and new
   // offline relocalization without doubling the size of FCM's bounded payload.
-  const deviceData = new Map(subs.map((sub) => [sub.endpoint, fcmData(payload, sub.locale)]))
+  const deviceData = new Map(
+    subs.map((sub) => [sub.endpoint, fcmData(payload, sub.locale)]),
+  )
 
   const dead: string[] = []
   let pending = subs.map((sub) => sub.endpoint)
@@ -113,7 +137,11 @@ export async function sendFcmPush(userId: string, payload: PushPayload): Promise
   // At most two passes: the second only runs after a 401 forces an auth refresh.
   for (let attempt = 0; attempt < 2 && pending.length > 0; attempt++) {
     const token = accessToken
-    const results = await Promise.all(pending.map((endpoint) => sendOne(url, token, endpoint, deviceData.get(endpoint)!)))
+    const results = await Promise.all(
+      pending.map((endpoint) =>
+        sendOne(url, token, endpoint, deviceData.get(endpoint)!),
+      ),
+    )
 
     const retryAuth: string[] = []
     for (const result of results) {
@@ -124,7 +152,10 @@ export async function sendFcmPush(userId: string, payload: PushPayload): Promise
       } else if (disposition === 'authRefresh' && !refreshedAuth) {
         retryAuth.push(result.endpoint)
       } else {
-        logger.warn('fcm delivery failed', { status: result.status, providerCode: result.providerCode })
+        logger.warn('fcm delivery failed', {
+          status: result.status,
+          providerCode: result.providerCode,
+        })
       }
     }
 
@@ -140,11 +171,15 @@ export async function sendFcmPush(userId: string, payload: PushPayload): Promise
     }
     accessToken = fresh
     pending = retryAuth
-    logger.info(`refreshed FCM auth after 401; retrying ${retryAuth.length} send(s)`)
+    logger.info(
+      `refreshed FCM auth after 401; retrying ${retryAuth.length} send(s)`,
+    )
   }
 
   if (dead.length > 0) {
-    await prisma.pushSubscription.deleteMany({ where: { userId, endpoint: { in: dead } } })
+    await prisma.pushSubscription.deleteMany({
+      where: { userId, endpoint: { in: dead } },
+    })
     logger.info(`pruned ${dead.length} dead FCM token(s)`)
   }
 }

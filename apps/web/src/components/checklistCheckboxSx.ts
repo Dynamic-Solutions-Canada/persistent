@@ -7,6 +7,6 @@ export const checklistCheckboxSx = {
   [`& .${checkboxClasses.checkbox}:not(.${checkboxClasses.checked})`]: {
     borderWidth: '1.5px',
     borderColor: 'text.tertiary',
-    bgcolor: 'transparent'
-  }
+    bgcolor: 'transparent',
+  },
 }

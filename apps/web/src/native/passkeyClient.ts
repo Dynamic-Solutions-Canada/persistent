@@ -8,21 +8,29 @@ import {
   startAuthentication,
   startRegistration,
   type PublicKeyCredentialCreationOptionsJSON,
-  type PublicKeyCredentialRequestOptionsJSON
+  type PublicKeyCredentialRequestOptionsJSON,
 } from '@simplewebauthn/browser'
 import { PasskeyNative, isNative } from './alarmBridge.js'
 
-export async function passkeyRegister(options: PublicKeyCredentialCreationOptionsJSON): Promise<unknown> {
+export async function passkeyRegister(
+  options: PublicKeyCredentialCreationOptionsJSON,
+): Promise<unknown> {
   if (isNative()) {
-    const { response } = await PasskeyNative.createPasskey({ options: JSON.stringify(options) })
+    const { response } = await PasskeyNative.createPasskey({
+      options: JSON.stringify(options),
+    })
     return JSON.parse(response)
   }
   return startRegistration({ optionsJSON: options })
 }
 
-export async function passkeyAuthenticate(options: PublicKeyCredentialRequestOptionsJSON): Promise<unknown> {
+export async function passkeyAuthenticate(
+  options: PublicKeyCredentialRequestOptionsJSON,
+): Promise<unknown> {
   if (isNative()) {
-    const { response } = await PasskeyNative.getPasskey({ options: JSON.stringify(options) })
+    const { response } = await PasskeyNative.getPasskey({
+      options: JSON.stringify(options),
+    })
     return JSON.parse(response)
   }
   return startAuthentication({ optionsJSON: options })

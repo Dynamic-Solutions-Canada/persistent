@@ -26,9 +26,12 @@ export function localTimeOfDay(now: Date = new Date()): string {
  * is only a record of when it was created — an unscheduled reminder fires from its
  * creation instant, not from a calendar date.
  */
-export function immediateSchedule(now: Date = new Date()): { schedule: Schedule; startDate: string } {
+export function immediateSchedule(now: Date = new Date()): {
+  schedule: Schedule
+  startDate: string
+} {
   return {
     schedule: { kind: 'none', timesOfDay: [] },
-    startDate: localCalendarDate(now)
+    startDate: localCalendarDate(now),
   }
 }

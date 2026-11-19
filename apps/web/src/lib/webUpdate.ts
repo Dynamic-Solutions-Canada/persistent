@@ -13,7 +13,9 @@ interface UpdateEnvironment {
 }
 
 /** Own one page's update checks, coalescing concurrent signals and reload attempts. */
-export function createWebUpdateChecker(environment: UpdateEnvironment): () => Promise<void> {
+export function createWebUpdateChecker(
+  environment: UpdateEnvironment,
+): () => Promise<void> {
   let checking: Promise<void> | null = null
   let reloading = false
   const attemptKey = 'persistent:web-reload-target'
@@ -53,10 +55,10 @@ export function createWebUpdateChecker(environment: UpdateEnvironment): () => Pr
 async function fetchServedBuildId(): Promise<string | null> {
   const response = await fetch(`${import.meta.env.BASE_URL}build-id.json`, {
     cache: 'no-store',
-    signal: AbortSignal.timeout(5_000)
+    signal: AbortSignal.timeout(5_000),
   })
   if (!response.ok) return null
-  const body = await response.json() as { buildId?: unknown }
+  const body = (await response.json()) as { buildId?: unknown }
   return typeof body.buildId === 'string' ? body.buildId.trim() || null : null
 }
 
@@ -64,5 +66,5 @@ export const checkForWebUpdate = createWebUpdateChecker({
   localBuildId: readLocalWebBuildId,
   servedBuildId: fetchServedBuildId,
   storage: () => window.sessionStorage,
-  reload: () => window.location.reload()
+  reload: () => window.location.reload(),
 })

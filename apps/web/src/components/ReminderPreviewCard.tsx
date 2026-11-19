@@ -5,7 +5,10 @@ import Stack from '@mui/joy/Stack'
 import Typography from '@mui/joy/Typography'
 import { TypeIcon } from './ReminderIcons.js'
 import { ChecklistPreview } from './ChecklistPreview.js'
-import { reminderPreviewBody, type ReminderPreviewSource } from '../lib/reminderPreview.js'
+import {
+  reminderPreviewBody,
+  type ReminderPreviewSource,
+} from '../lib/reminderPreview.js'
 import { reminderCardHover } from './reminderCardHover.js'
 import { SharingChip } from './SharingChip.js'
 import type { SharingState } from './sharingState.js'
@@ -21,7 +24,7 @@ export function ReminderPreviewCard({
   secondary,
   checkedItemIds,
   color,
-  variant = 'outlined'
+  variant = 'outlined',
 }: {
   reminder: ReminderPreviewSource
   onOpen: () => void
@@ -44,7 +47,12 @@ export function ReminderPreviewCard({
       color={color}
       variant={variant}
       size="sm"
-      sx={{ width: '100%', textAlign: 'left', cursor: 'pointer', ...reminderCardHover }}
+      sx={{
+        width: '100%',
+        textAlign: 'left',
+        cursor: 'pointer',
+        ...reminderCardHover,
+      }}
     >
       <Stack direction="row" spacing={1} alignItems="flex-start">
         <TypeIcon type={reminder.type} size={20} />
@@ -52,14 +60,23 @@ export function ReminderPreviewCard({
           {reminder.title}
         </Typography>
         {(status || sharing) && (
-          <Stack direction="row" spacing={0.5} alignItems="center" flexWrap="wrap" useFlexGap>
+          <Stack
+            direction="row"
+            spacing={0.5}
+            alignItems="center"
+            flexWrap="wrap"
+            useFlexGap
+          >
             {status}
             <SharingChip state={sharing} />
           </Stack>
         )}
       </Stack>
       {body && (
-        <Typography level="body-sm" sx={{ whiteSpace: 'pre-wrap', color: 'text.secondary' }}>
+        <Typography
+          level="body-sm"
+          sx={{ whiteSpace: 'pre-wrap', color: 'text.secondary' }}
+        >
           {body}
         </Typography>
       )}

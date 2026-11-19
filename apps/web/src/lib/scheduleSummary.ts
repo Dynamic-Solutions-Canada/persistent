@@ -11,16 +11,25 @@ const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 /** "the 1st", "the 1st and 15th", "the last day", "the 1st and the last day". */
 export function monthlyDaysText(schedule: Schedule): string {
-  const days = [...(schedule.daysOfMonth ?? [])].sort((a, b) => a - b).map(ordinal)
+  const days = [...(schedule.daysOfMonth ?? [])]
+    .sort((a, b) => a - b)
+    .map(ordinal)
   // "the last day" carries its own article, so it joins as a whole phrase and the
   // shared leading "the" is only added when a numbered day starts the run.
   const parts = schedule.lastDayOfMonth ? [...days, tr('the last day')] : days
   if (parts.length === 0) return tr('no days')
-  return days.length ? tr('monthly.days', { days: joinList(parts) }) : joinList(parts)
+  return days.length
+    ? tr('monthly.days', { days: joinList(parts) })
+    : joinList(parts)
 }
 
-export function scheduleSummary(schedule: Schedule, timeFormat: TimeFormat): string {
-  const times = schedule.timesOfDay.map((t) => formatTimeOfDay(t, timeFormat)).join(', ')
+export function scheduleSummary(
+  schedule: Schedule,
+  timeFormat: TimeFormat,
+): string {
+  const times = schedule.timesOfDay
+    .map((t) => formatTimeOfDay(t, timeFormat))
+    .join(', ')
   switch (schedule.kind) {
     case 'none':
       return tr('No date or time')
@@ -29,16 +38,31 @@ export function scheduleSummary(schedule: Schedule, timeFormat: TimeFormat): str
     case 'once':
       return tr('Once at {{times}}', { times })
     case 'daily':
-      return tr(schedule.skipWeekends ? 'Weekdays at {{times}}' : 'Every day at {{times}}', { times })
+      return tr(
+        schedule.skipWeekends
+          ? 'Weekdays at {{times}}'
+          : 'Every day at {{times}}',
+        { times },
+      )
     case 'weekly':
     case 'custom': {
-      const days = (schedule.daysOfWeek ?? []).map((d) => tr(DAY_NAMES[d] ?? '')).join(', ')
+      const days = (schedule.daysOfWeek ?? [])
+        .map((d) => tr(DAY_NAMES[d] ?? ''))
+        .join(', ')
       return tr('{{days}} at {{times}}', { days: days || tr('No days'), times })
     }
     case 'monthly':
-      return tr('Monthly on {{days}} at {{times}}', { days: monthlyDaysText(schedule), times })
+      return tr('Monthly on {{days}} at {{times}}', {
+        days: monthlyDaysText(schedule),
+        times,
+      })
     case 'interval':
-      return tr(schedule.skipWeekends ? 'schedule.interval-weekdays' : 'schedule.interval', { count: schedule.everyNDays ?? 1, times })
+      return tr(
+        schedule.skipWeekends
+          ? 'schedule.interval-weekdays'
+          : 'schedule.interval',
+        { count: schedule.everyNDays ?? 1, times },
+      )
     default:
       return times
   }
@@ -51,13 +75,15 @@ export function scheduleSummary(schedule: Schedule, timeFormat: TimeFormat): str
  */
 export function reminderScheduleLine(
   reminder: Pick<Reminder, 'schedule' | 'startDate'>,
-  timeFormat: TimeFormat
+  timeFormat: TimeFormat,
 ): string {
   const { schedule, startDate } = reminder
   if (schedule.kind !== 'once') return scheduleSummary(schedule, timeFormat)
 
   const date = formatDate(`${startDate}T12:00:00Z`, 'UTC')
-  const time = schedule.timesOfDay.map((value) => formatTimeOfDay(value, timeFormat)).join(', ')
+  const time = schedule.timesOfDay
+    .map((value) => formatTimeOfDay(value, timeFormat))
+    .join(', ')
   if (!date) return scheduleSummary(schedule, timeFormat)
   return time ? tr('{{date}} at {{time}}', { date, time }) : date
 }

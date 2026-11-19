@@ -6,7 +6,7 @@ import { prisma } from './prisma.js'
 export async function recipientEmailLocale(email: string): Promise<Locale> {
   const recipient = await prisma.user.findUnique({
     where: { email: email.trim().toLowerCase() },
-    select: { emailLanguage: true }
+    select: { emailLanguage: true },
   })
   return normalizeLocaleOverride(recipient?.emailLanguage) ?? 'en-US'
 }

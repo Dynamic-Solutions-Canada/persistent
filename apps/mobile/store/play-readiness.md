@@ -7,7 +7,7 @@ so that is the `play` flavor's `applicationId` used by both Play and current
 GitHub APKs. Legacy/local direct builds keep `ca.persistent.app`. Both are independent of the Kotlin/Java namespace, which stays
 `ca.persistent.app` throughout. Consequences that bit us once already: Firebase
 needs an Android app per package (else `processPlayReleaseGoogleServices` fails),
-and `assetlinks.json` + `ANDROID_APP_ORIGIN` need an entry per package *and* per
+and `assetlinks.json` + `ANDROID_APP_ORIGIN` need an entry per package _and_ per
 signing certificate or passkeys break on that build.
 
 **Android 7.0 (API 24) is the minimum for both flavors.** Play automatic
@@ -29,13 +29,13 @@ Play from updating itself by any other route, and `REQUEST_INSTALL_PACKAGES` is
 the signal review looks for. Both distribution channels now use the Google-signed
 Play build; the direct flavor remains for legacy installs and local development:
 
-| | `direct` (legacy/local) | `play` (Play and GitHub) |
-| --- | --- | --- |
-| `UpdatePlugin` | yes | **no** |
-| `REQUEST_INSTALL_PACKAGES` | yes | **no** |
-| `ReminderCarAppService` (Android Auto screen) | yes | **no** — see #1a |
-| `com.google.android.gms.car.application` (Auto notification mirror) | yes | **no** — see #1b |
-| `androidx.car.app` dependency and implementation | yes | **no** (see #1b) |
+|                                                                     | `direct` (legacy/local) | `play` (Play and GitHub) |
+| ------------------------------------------------------------------- | ----------------------- | ------------------------ |
+| `UpdatePlugin`                                                      | yes                     | **no**                   |
+| `REQUEST_INSTALL_PACKAGES`                                          | yes                     | **no**                   |
+| `ReminderCarAppService` (Android Auto screen)                       | yes                     | **no** — see #1a         |
+| `com.google.android.gms.car.application` (Auto notification mirror) | yes                     | **no** — see #1b         |
+| `androidx.car.app` dependency and implementation                    | yes                     | **no** (see #1b)         |
 
 - Flavor sources: `apps/mobile/android-plugin/flavor/{play,direct}/`
 - `setup-android.mjs` copies them into `android/app/src/<flavor>/` and injects the `productFlavors` block
@@ -54,13 +54,13 @@ no source file for the `play` flavor mentions.
 
 ### 1b. The Auto notification mirror was the actual policy hit
 
-On 2026-08-17 Play raised *Auto App Quality Guidelines: Message functionality* against
+On 2026-08-17 Play raised _Auto App Quality Guidelines: Message functionality_ against
 the app — "your app is not able to send outgoing messages / receive incoming messages" —
-with updates to be rejected until fixed. Nothing about the car *screen* caused it: that
+with updates to be rejected until fixed. Nothing about the car _screen_ caused it: that
 was already direct-only. The cause was `<meta-data com.google.android.gms.car.application>`
 pointing at `<uses name="notification"/>`, which shipped in **both** flavors on the
-reasoning that it "needs no category". It needs no category, but to Auto it means *this
-app sends and receives messages*, and review holds it to that. A reminder app cannot pass
+reasoning that it "needs no category". It needs no category, but to Auto it means _this
+app sends and receives messages_, and review holds it to that. A reminder app cannot pass
 a messaging test, so the declaration moved to `direct` — which is the alternative Play's
 own remediation offers ("exclude your app from Android Auto by removing the Android Auto
 manifest entry"). The Play build now has no Auto surface; the sideloaded build keeps
@@ -125,7 +125,7 @@ reasons in #1b, and the CI guard above covers its manifest entry.
 A **templated car app** (`CarAppService`) is different: it must declare one of Auto's
 approved categories, and a reminder app is honestly none of them — navigation,
 parking, charging, POI, IOT, settings, messaging, calling, weather. Declaring one
-anyway puts an Auto review in the path of *every* Play release, and a rejection there
+anyway puts an Auto review in the path of _every_ Play release, and a rejection there
 blocks the whole release, not just the car part. Not worth it for a screen, so
 `ReminderCarAppService` and its screens went into the `direct` flavor. The sideloaded
 build declares `SETTINGS`, the least-wrong of the set.
@@ -146,11 +146,11 @@ Play requires new apps and updates to target API 35+. This was a toolchain
 upgrade, not a version bump — AGP 8.2.1 refuses `compileSdk 35`, and AGP 8.6 needs
 Gradle 8.7, so all three moved together:
 
-| | was | now |
-| --- | --- | --- |
-| compileSdk / targetSdk | 34 | **35** |
-| Android Gradle Plugin | 8.2.1 | **8.6.1** |
-| Gradle | 8.2.1 | **8.7** |
+|                            | was                   | now                     |
+| -------------------------- | --------------------- | ----------------------- |
+| compileSdk / targetSdk     | 34                    | **35**                  |
+| Android Gradle Plugin      | 8.2.1                 | **8.6.1**               |
+| Gradle                     | 8.2.1                 | **8.7**                 |
 | SDK platform / build-tools | `android-34` / 34.0.0 | + `android-35` / 35.0.0 |
 
 `android/` is gitignored, so `setup-android.mjs` patches all three idempotently
@@ -184,12 +184,12 @@ Play requires updates to target the API level of the last Android release: from
 Same shape as #2 — a toolchain upgrade, not a version bump, since AGP caps the
 compileSdk it will build:
 
-| | was | now |
-| --- | --- | --- |
-| compileSdk / targetSdk | 35 | **36** |
-| Android Gradle Plugin | 8.6.1 | **8.13.2** (max API 36.1) |
-| Gradle | 8.7 | **8.13** (AGP 8.13's minimum) |
-| SDK platform / build-tools | `android-35` / 35.0.0 | + `android-36` / 36.0.0 |
+|                            | was                   | now                           |
+| -------------------------- | --------------------- | ----------------------------- |
+| compileSdk / targetSdk     | 35                    | **36**                        |
+| Android Gradle Plugin      | 8.6.1                 | **8.13.2** (max API 36.1)     |
+| Gradle                     | 8.7                   | **8.13** (AGP 8.13's minimum) |
+| SDK platform / build-tools | `android-35` / 35.0.0 | + `android-36` / 36.0.0       |
 
 JDK 17 is unchanged (AGP 8.13's minimum is still 17). Both flavors compile, both
 built APKs report `targetSdkVersion:'36'`, and the Play one still carries no
@@ -262,7 +262,7 @@ it came up with zero BAL blocks.
 
 Play reviewers must be given credentials, and none of this app's sign-in paths
 work for them: the emailed one-time code needs a mailbox they don't have, and demo
-mode can't help because it returns the code for *every* address (hence
+mode can't help because it returns the code for _every_ address (hence
 `demoMode` being hard-disabled in production).
 
 One designated account can now sign in with a fixed code —
@@ -327,14 +327,14 @@ full-screen-intent and exact-alarm declarations. Recordings are in
 shows); upload them to YouTube as unlisted and paste the URLs, since the forms
 take a link rather than a file.
 
-| Permission | What to say |
-| --- | --- |
-| `USE_EXACT_ALARM` | Core function is user-set alarms that must fire at an exact time; allowed alarm-app exception. |
-| `SCHEDULE_EXACT_ALARM` | Same. (`USE_EXACT_ALARM` alone may suffice on API 33+ — dropping the other reduces surface.) |
-| `FOREGROUND_SERVICE_SPECIAL_USE` | Highest-risk one. Google reviews `specialUse` case-by-case and rejects weak justifications. Reuse the manifest property text: an alarm must keep sounding until explicitly confirmed, and no existing FGS type covers it. |
-| `USE_FULL_SCREEN_INTENT` | Alarm surface must wake the screen over the lock screen. Alarm/calling apps qualify. |
+| Permission                             | What to say                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `USE_EXACT_ALARM`                      | Core function is user-set alarms that must fire at an exact time; allowed alarm-app exception.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `SCHEDULE_EXACT_ALARM`                 | Same. (`USE_EXACT_ALARM` alone may suffice on API 33+ — dropping the other reduces surface.)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `FOREGROUND_SERVICE_SPECIAL_USE`       | Highest-risk one. Google reviews `specialUse` case-by-case and rejects weak justifications. Reuse the manifest property text: an alarm must keep sounding until explicitly confirmed, and no existing FGS type covers it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `USE_FULL_SCREEN_INTENT`               | Alarm surface must wake the screen over the lock screen. Alarm/calling apps qualify.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | The riskiest of these to justify. Google allows the direct request only when Doze or App Standby breaks the app's core function, and reminder apps are not in its [accepted-use table](https://developer.android.com/training/monitoring-device-state/doze-standby#exemption-cases). Do **not** argue that Doze delays the alarm itself: exact allow-while-idle alarms already fire through it, and review can check that. The honest argument is cross-device persistence, the app's core function: a reminder keeps nagging on every device until it is confirmed once. Doze defers the 15-minute re-sync and holds back the network that delivers a confirmation (or snooze) made on the phone, so the user's other devices and email escalation keep firing for something already done, and aggressive OEM battery managers stop the background re-sync entirely. The request is optional and shown only after an in-app explanation. The app never re-prompts on its own once declined (a declined exemption leaves a softer in-app warning whose button the user can choose to press), and it never asks when already exempt. If review still rejects it, fall back to `ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS` and drop the permission (an Android release). |
-| `SYSTEM_ALERT_WINDOW` | **Added for targetSdk 35.** Not used to draw an overlay — it is the exemption from Android 15's background-activity-launch rules, without which a ringing alarm cannot take over the screen while the phone is unlocked (verified: `BAL_BLOCK` in logcat). Say exactly that; "display over other apps" is heavily scrutinised and a vague justification will be rejected. See `docs/alarm-architecture.md`. |
+| `SYSTEM_ALERT_WINDOW`                  | **Added for targetSdk 35.** Not used to draw an overlay — it is the exemption from Android 15's background-activity-launch rules, without which a ringing alarm cannot take over the screen while the phone is unlocked (verified: `BAL_BLOCK` in logcat). Say exactly that; "display over other apps" is heavily scrutinised and a vague justification will be rejected. See `docs/alarm-architecture.md`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 Note `SCHEDULE_EXACT_ALARM` and `USE_EXACT_ALARM` are declared together — check
 whether both are actually needed at your min/target SDK, since each extra
@@ -396,7 +396,7 @@ a full build. It uses a throwaway edit and deletes it, so it changes nothing.
 
 **versionCode is `github.run_number` + `PLAY_VERSION_CODE_OFFSET`.** Play requires a
 strictly increasing, never-reused code. The run number does that unaided; the
-offset (an Actions *variable*, not a secret; unset means 0) is the escape hatch for
+offset (an Actions _variable_, not a secret; unset means 0) is the escape hatch for
 when a manual upload already burned a higher code. The pre-flight failure prints the
 exact offset to set:
 
@@ -418,8 +418,8 @@ new versionCode and retires phone testing releases in the same edit.
    `play-bundle-*` workflow artifact). Play requires a manual first release; the
    API takes over afterwards.
 3. **Create a service account** in Google Cloud, then in Play Console →
-   *Users and permissions* invite it and grant **Release manager** (or at minimum
-   *Releases: create and edit*) for this app. Download its JSON key.
+   _Users and permissions_ invite it and grant **Release manager** (or at minimum
+   _Releases: create and edit_) for this app. Download its JSON key.
 4. **Add the GitHub secret** `PLAY_SERVICE_ACCOUNT_JSON` — the JSON key file's
    contents, pasted whole (not base64).
 
@@ -458,14 +458,14 @@ It is uploaded as a **workflow artifact**, deliberately not as a release asset �
 publishing it next to the APK would invite installing the wrong one.
 
 **Play App Signing is enrolled**, so Play holds the signing key and
-`release.keystore` is the upload key. *(The keystore is correctly gitignored,
-verified.)* Confirmed from the exported certificate rather than the Console UI: it
+`release.keystore` is the upload key. _(The keystore is correctly gitignored,
+verified.)_ Confirmed from the exported certificate rather than the Console UI: it
 is issued to `O=Google Inc., OU=Android, CN=Android`, which an upload key never is.
 
-| | SHA-256 | SHA-1 |
-| --- | --- | --- |
+|                                       | SHA-256                                                                                           | SHA-1                                                         |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
 | Play app-signing cert (`play` flavor) | `6E:00:68:E8:1D:83:05:B7:53:1B:D7:D8:3A:AC:B3:F0:44:87:5E:3F:74:94:F2:4C:77:21:5F:AF:05:77:D8:5A` | `AC:47:C4:96:38:A1:0A:00:70:B7:82:E7:AC:B4:E7:CC:1D:D9:5E:23` |
-| Release keystore (`direct` flavor) | `4D:EA:AB:62:…:61:C6:A5:FD` (see `assetlinks.json`) | in the keystore |
+| Release keystore (`direct` flavor)    | `4D:EA:AB:62:…:61:C6:A5:FD` (see `assetlinks.json`)                                               | in the keystore                                               |
 
 The consequence for passkeys is handled: `assetlinks.json` now carries an entry per
 flavor and `ANDROID_APP_ORIGIN` an origin per certificate. **It was not handled for

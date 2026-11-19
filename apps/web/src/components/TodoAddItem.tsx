@@ -29,7 +29,7 @@ import { newTodoItemId } from '../lib/todoItemId.js'
 
 export function TodoAddItem({
   onAdd,
-  disabled
+  disabled,
 }: {
   /** Called with a fully-formed item — the id is minted here, once, per item. */
   onAdd: (item: TodoItem) => void
@@ -41,13 +41,18 @@ export function TodoAddItem({
   const input = useRef<HTMLInputElement | null>(null)
   const draft = useRef('')
   const add = useRef(onAdd)
-  useEffect(() => { add.current = onAdd }, [onAdd])
+  useEffect(() => {
+    add.current = onAdd
+  }, [onAdd])
   // Back and backdrop dismissal can unmount without blurring the input.
-  useEffect(() => () => {
-    const trimmed = draft.current.trim()
-    draft.current = ''
-    if (trimmed) add.current({ id: newTodoItemId(), text: trimmed })
-  }, [])
+  useEffect(
+    () => () => {
+      const trimmed = draft.current.trim()
+      draft.current = ''
+      if (trimmed) add.current({ id: newTodoItemId(), text: trimmed })
+    },
+    [],
+  )
 
   function commit(focus = true) {
     const trimmed = draft.current.trim()
@@ -71,8 +76,11 @@ export function TodoAddItem({
           size="sm"
           value={text}
           disabled={disabled}
-          placeholder={tr("New item")}
-          onChange={(event) => { draft.current = event.target.value; setText(event.target.value) }}
+          placeholder={tr('New item')}
+          onChange={(event) => {
+            draft.current = event.target.value
+            setText(event.target.value)
+          }}
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
               event.preventDefault()
@@ -93,15 +101,17 @@ export function TodoAddItem({
               ref: input,
               'aria-label': tr('New checklist item'),
               maxLength: MAX_TODO_ITEM_TEXT,
-              enterKeyHint: 'done'
-            }
+              enterKeyHint: 'done',
+            },
           }}
           endDecorator={
             <IconButton
               size="sm"
               variant="plain"
               color="neutral"
-              aria-label={text.trim() ? tr("Save new item") : tr("Cancel new item")}
+              aria-label={
+                text.trim() ? tr('Save new item') : tr('Cancel new item')
+              }
               disabled={disabled}
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => {
@@ -130,8 +140,16 @@ export function TodoAddItem({
         }}
         // A real tap target, like "Hide checked" beside it: this is used one-handed
         // and sometimes against a ringing alarm.
-        sx={{ minHeight: 32, px: 1, fontSize: 'xs', fontWeight: 'md', alignSelf: 'flex-start' }}
-      >{tr("Add item")}</Button>
+        sx={{
+          minHeight: 32,
+          px: 1,
+          fontSize: 'xs',
+          fontWeight: 'md',
+          alignSelf: 'flex-start',
+        }}
+      >
+        {tr('Add item')}
+      </Button>
     </Stack>
   )
 }

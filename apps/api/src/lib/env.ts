@@ -65,7 +65,9 @@ const envSchema = z.object({
   ANDROID_APP_ORIGIN: blankToUndefined(z.string()),
 
   REVIEW_ACCOUNT_EMAIL: blankToUndefined(z.string().email()),
-  REVIEW_ACCOUNT_CODE: blankToUndefined(z.string().min(12, 'REVIEW_ACCOUNT_CODE must be at least 12 characters'))
+  REVIEW_ACCOUNT_CODE: blankToUndefined(
+    z.string().min(12, 'REVIEW_ACCOUNT_CODE must be at least 12 characters'),
+  ),
 })
 
 /**
@@ -79,7 +81,9 @@ export const envKeys = Object.keys(envSchema.shape)
 
 const parsed = envSchema.safeParse(process.env)
 if (!parsed.success) {
-  const issues = parsed.error.issues.map((issue) => `  - ${issue.path.join('.')}: ${issue.message}`).join('\n')
+  const issues = parsed.error.issues
+    .map((issue) => `  - ${issue.path.join('.')}: ${issue.message}`)
+    .join('\n')
   throw new Error(`Invalid environment configuration:\n${issues}`)
 }
 

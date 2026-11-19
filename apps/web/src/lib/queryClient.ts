@@ -11,11 +11,36 @@ import { tr } from '../localization/i18n.js'
  * reflects them immediately, even with no network.
  */
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query'
-import { toReminderSounds, withTodoItem, withoutTodoItem, withTodoItemText, withTodoOrder, type AddTodoItemInput, type Announcement, type CheckItemInput, type HideCheckedInput, type Occurrence, type Reminder, type ReminderContentInput, type ReminderCreateInput, type ReminderInput, type RenameTodoItemInput, type ReorderTodoItemsInput, type SnoozeInput, type UndoDoneInput } from '@persistent/shared'
+import {
+  toReminderSounds,
+  withTodoItem,
+  withoutTodoItem,
+  withTodoItemText,
+  withTodoOrder,
+  type AddTodoItemInput,
+  type Announcement,
+  type CheckItemInput,
+  type HideCheckedInput,
+  type Occurrence,
+  type Reminder,
+  type ReminderContentInput,
+  type ReminderCreateInput,
+  type ReminderInput,
+  type RenameTodoItemInput,
+  type ReorderTodoItemsInput,
+  type SnoozeInput,
+  type UndoDoneInput,
+} from '@persistent/shared'
 import { extractErrorMessage } from '../localization/errorMessage.js'
 import { apiFetch } from './apiClient.js'
 import { notify } from './toast.js'
-import { checkedItems, optimisticChecklistChange, rollbackChecklistChange, updateSharedReminder, type ChecklistSnapshot } from './checklistCache.js'
+import {
+  checkedItems,
+  optimisticChecklistChange,
+  rollbackChecklistChange,
+  updateSharedReminder,
+  type ChecklistSnapshot,
+} from './checklistCache.js'
 
 // Persisted entries are dropped once garbage-collected, so keep them around long
 // enough to outlive offline stretches (must be >= the persister maxAge).
@@ -27,8 +52,8 @@ export const queryClient = new QueryClient({
       staleTime: 5_000,
       gcTime: OFFLINE_GC_TIME,
       refetchOnWindowFocus: false,
-      retry: 1
-    }
+      retry: 1,
+    },
   },
   // Surface background failures cleanly instead of swallowing them. Offline-paused
   // mutations don't error, so this only fires on genuine failures.
@@ -36,18 +61,22 @@ export const queryClient = new QueryClient({
     onError: (error, query) => {
       // Optional public catalogs keep their last-good content when refresh fails.
       if (query.meta?.silentError) {
-        console.warn('Optional public data refresh failed; retaining offline content.', {
-          query: query.queryKey[0],
-          reason: error.name
-        })
+        console.warn(
+          'Optional public data refresh failed; retaining offline content.',
+          {
+            query: query.queryKey[0],
+            reason: error.name,
+          },
+        )
         return
       }
       notify(extractErrorMessage(error, tr("Couldn't load data.")), 'danger')
-    }
+    },
   }),
   mutationCache: new MutationCache({
-    onError: (error) => notify(extractErrorMessage(error, tr('Something went wrong.')), 'danger')
-  })
+    onError: (error) =>
+      notify(extractErrorMessage(error, tr('Something went wrong.')), 'danger'),
+  }),
 })
 
 export const queryKeys = {
@@ -60,7 +89,7 @@ export const queryKeys = {
   assignmentsReceived: ['assignments', 'received'] as const,
   occurrencesActive: ['occurrences', 'active'] as const,
   occurrencesUpcoming: ['occurrences', 'upcoming'] as const,
-  occurrencesHistory: ['occurrences', 'history'] as const
+  occurrencesHistory: ['occurrences', 'history'] as const,
 }
 
 export const mutationKeys = {
@@ -79,7 +108,7 @@ export const mutationKeys = {
   removeTodoItem: ['reminders', 'remove-item'] as const,
   reorderTodoItems: ['reminders', 'reorder-items'] as const,
   renameTodoItem: ['reminders', 'rename-item'] as const,
-  hideCheckedItems: ['reminders', 'hide-checked'] as const
+  hideCheckedItems: ['reminders', 'hide-checked'] as const,
 }
 
 let tempCounter = 0
@@ -123,7 +152,7 @@ function optimisticReminder(input: ReminderInput, id = tempId()): Reminder {
     shareCount: 0,
     invitationCount: 0,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
   }
 }
 
@@ -143,110 +172,189 @@ interface OccurrencesSnapshot extends ChecklistSnapshot<Occurrence> {
 export function registerMutationDefaults(): void {
   queryClient.setMutationDefaults(mutationKeys.viewAnnouncement, {
     mutationFn: ({ id }: { id: string }) =>
-      apiFetch(`/api/announcements/${encodeURIComponent(id)}/viewed`, { method: 'POST' }),
+      apiFetch(`/api/announcements/${encodeURIComponent(id)}/viewed`, {
+        method: 'POST',
+      }),
     onMutate: async ({ id }: { id: string }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.announcements })
-      queryClient.setQueryData<Announcement[]>(queryKeys.announcements, (list) =>
-        (list ?? []).filter((announcement) => announcement.id !== id)
+      queryClient.setQueryData<Announcement[]>(
+        queryKeys.announcements,
+        (list) => (list ?? []).filter((announcement) => announcement.id !== id),
       )
     },
-    onSettled: () => void queryClient.invalidateQueries({ queryKey: queryKeys.announcements })
+    onSettled: () =>
+      void queryClient.invalidateQueries({ queryKey: queryKeys.announcements }),
   })
 
-  const reminders = () => queryClient.getQueryData<Reminder[]>(queryKeys.reminders)
+  const reminders = () =>
+    queryClient.getQueryData<Reminder[]>(queryKeys.reminders)
   const invalidateReminders = () => {
     void queryClient.invalidateQueries({ queryKey: queryKeys.reminders })
     void queryClient.invalidateQueries({ queryKey: queryKeys.receivedShares })
   }
-  const rollback = (_e: unknown, _v: unknown, ctx: RemindersSnapshot | undefined) => {
-    if (ctx?.previous) queryClient.setQueryData(queryKeys.reminders, ctx.previous)
-    if (ctx?.checklist) rollbackChecklistChange(queryClient, queryKeys.reminders, queryKeys.receivedShares, ctx)
+  const rollback = (
+    _e: unknown,
+    _v: unknown,
+    ctx: RemindersSnapshot | undefined,
+  ) => {
+    if (ctx?.previous)
+      queryClient.setQueryData(queryKeys.reminders, ctx.previous)
+    if (ctx?.checklist)
+      rollbackChecklistChange(
+        queryClient,
+        queryKeys.reminders,
+        queryKeys.receivedShares,
+        ctx,
+      )
   }
   // Declared up here, not inline: an inline arrow annotating its variables param
   // as `unknown` pins the mutation's inferred variables type to `unknown` too.
-  const rollbackOccurrences = (_e: unknown, _v: unknown, ctx: OccurrencesSnapshot | undefined) => {
-    if (ctx?.previous) queryClient.setQueryData(queryKeys.occurrencesActive, ctx.previous)
-    if (ctx?.checklist) rollbackChecklistChange(queryClient, queryKeys.occurrencesActive, queryKeys.receivedShares, ctx)
+  const rollbackOccurrences = (
+    _e: unknown,
+    _v: unknown,
+    ctx: OccurrencesSnapshot | undefined,
+  ) => {
+    if (ctx?.previous)
+      queryClient.setQueryData(queryKeys.occurrencesActive, ctx.previous)
+    if (ctx?.checklist)
+      rollbackChecklistChange(
+        queryClient,
+        queryKeys.occurrencesActive,
+        queryKeys.receivedShares,
+        ctx,
+      )
   }
 
   queryClient.setMutationDefaults(mutationKeys.createReminder, {
     mutationFn: (input: ReminderCreateInput) =>
-      apiFetch<{ reminder: Reminder; failedInvitations: string[] }>('/api/reminders', { method: 'POST', body: JSON.stringify(input) }),
-    onMutate: async (input: ReminderCreateInput): Promise<RemindersSnapshot> => {
+      apiFetch<{ reminder: Reminder; failedInvitations: string[] }>(
+        '/api/reminders',
+        { method: 'POST', body: JSON.stringify(input) },
+      ),
+    onMutate: async (
+      input: ReminderCreateInput,
+    ): Promise<RemindersSnapshot> => {
       await queryClient.cancelQueries({ queryKey: queryKeys.reminders })
       const previous = reminders()
-      queryClient.setQueryData<Reminder[]>(queryKeys.reminders, [optimisticReminder(input), ...(previous ?? [])])
+      queryClient.setQueryData<Reminder[]>(queryKeys.reminders, [
+        optimisticReminder(input),
+        ...(previous ?? []),
+      ])
       return { previous }
     },
     onError: rollback,
-    onSettled: invalidateReminders
+    onSettled: invalidateReminders,
   })
 
   queryClient.setMutationDefaults(mutationKeys.updateReminder, {
     // The server version captured on opening survives offline queueing.
     // clientEditedAt is retained for older queued mutations without a version.
-    mutationFn: ({ id, input, editedAt, expectedUpdatedAt }: { id: string; input: ReminderInput; editedAt?: string; expectedUpdatedAt?: string }) =>
+    mutationFn: ({
+      id,
+      input,
+      editedAt,
+      expectedUpdatedAt,
+    }: {
+      id: string
+      input: ReminderInput
+      editedAt?: string
+      expectedUpdatedAt?: string
+    }) =>
       apiFetch<{ reminder: Reminder }>(`/api/reminders/${id}`, {
         method: 'PUT',
-        body: JSON.stringify({ ...input, expectedUpdatedAt, clientEditedAt: editedAt ?? new Date().toISOString() })
+        body: JSON.stringify({
+          ...input,
+          expectedUpdatedAt,
+          clientEditedAt: editedAt ?? new Date().toISOString(),
+        }),
       }),
-    onMutate: async ({ id, input }: { id: string; input: ReminderInput; editedAt?: string; expectedUpdatedAt?: string }): Promise<RemindersSnapshot> => {
-      const update = (r: Reminder): Reminder => r.id === id ? {
-        ...r,
-        ...optimisticReminder(input, id),
-        // Only server responses supply conflict tokens; never invent one locally.
-        createdAt: r.createdAt,
-        updatedAt: r.updatedAt,
-        checkedItemIds: input.schedule.kind === 'never' ? r.checkedItemIds : [],
-        hideCheckedItems: r.hideCheckedItems,
-        shareCount: r.shareCount,
-        invitationCount: r.invitationCount
-      } : r
+    onMutate: async ({
+      id,
+      input,
+    }: {
+      id: string
+      input: ReminderInput
+      editedAt?: string
+      expectedUpdatedAt?: string
+    }): Promise<RemindersSnapshot> => {
+      const update = (r: Reminder): Reminder =>
+        r.id === id
+          ? {
+              ...r,
+              ...optimisticReminder(input, id),
+              // Only server responses supply conflict tokens; never invent one locally.
+              createdAt: r.createdAt,
+              updatedAt: r.updatedAt,
+              checkedItemIds:
+                input.schedule.kind === 'never' ? r.checkedItemIds : [],
+              hideCheckedItems: r.hideCheckedItems,
+              shareCount: r.shareCount,
+              invitationCount: r.invitationCount,
+            }
+          : r
       return optimisticChecklistChange<Reminder>(
-        queryClient, queryKeys.reminders, queryKeys.receivedShares,
+        queryClient,
+        queryKeys.reminders,
+        queryKeys.receivedShares,
         update,
         // Full recipient projections include schedule/firing data computed by the server.
-        (share) => share
+        (share) => share,
       )
     },
     onError: rollback,
-    onSettled: invalidateReminders
+    onSettled: invalidateReminders,
   })
 
   // Inline reading edits touch only title or note body. Preserve the other fields
   // in the optimistic row, matching the focused server PATCH.
   queryClient.setMutationDefaults(mutationKeys.updateReminderContent, {
     mutationFn: ({ id, arg }: { id: string; arg: ReminderContentInput }) =>
-      apiFetch(`/api/reminders/${id}/content`, { method: 'PATCH', body: JSON.stringify(arg) }),
-    onMutate: async ({ id, arg }: { id: string; arg: ReminderContentInput }): Promise<RemindersSnapshot> => {
-      const update = (reminder: Reminder): Reminder => reminder.id === id ? {
-        ...reminder,
-        ...(arg.title !== undefined ? { title: arg.title } : {}),
-        ...(arg.details !== undefined ? { details: arg.details } : {})
-      } : reminder
+      apiFetch(`/api/reminders/${id}/content`, {
+        method: 'PATCH',
+        body: JSON.stringify(arg),
+      }),
+    onMutate: async ({
+      id,
+      arg,
+    }: {
+      id: string
+      arg: ReminderContentInput
+    }): Promise<RemindersSnapshot> => {
+      const update = (reminder: Reminder): Reminder =>
+        reminder.id === id
+          ? {
+              ...reminder,
+              ...(arg.title !== undefined ? { title: arg.title } : {}),
+              ...(arg.details !== undefined ? { details: arg.details } : {}),
+            }
+          : reminder
       return optimisticChecklistChange<Reminder>(
-        queryClient, queryKeys.reminders, queryKeys.receivedShares,
+        queryClient,
+        queryKeys.reminders,
+        queryKeys.receivedShares,
         update,
-        (share) => share.id === id ? updateSharedReminder(share, update) : share
+        (share) =>
+          share.id === id ? updateSharedReminder(share, update) : share,
       )
     },
     onError: rollback,
-    onSettled: invalidateReminders
+    onSettled: invalidateReminders,
   })
 
   queryClient.setMutationDefaults(mutationKeys.deleteReminder, {
-    mutationFn: (id: string) => apiFetch(`/api/reminders/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: string) =>
+      apiFetch(`/api/reminders/${id}`, { method: 'DELETE' }),
     onMutate: async (id: string): Promise<RemindersSnapshot> => {
       await queryClient.cancelQueries({ queryKey: queryKeys.reminders })
       const previous = reminders()
       queryClient.setQueryData<Reminder[]>(
         queryKeys.reminders,
-        (previous ?? []).filter((r) => r.id !== id)
+        (previous ?? []).filter((r) => r.id !== id),
       )
       return { previous }
     },
     onError: rollback,
-    onSettled: invalidateReminders
+    onSettled: invalidateReminders,
   })
 
   // A note's checklist ticks the *reminder*, not an occurrence — a note has none
@@ -254,21 +362,40 @@ export function registerMutationDefaults(): void {
   // occurrence toggle, and the same idempotent per-item replay offline.
   queryClient.setMutationDefaults(mutationKeys.checkReminderItem, {
     mutationFn: ({ id, arg }: { id: string; arg: CheckItemInput }) =>
-      apiFetch(`/api/reminders/${id}/check`, { method: 'POST', body: JSON.stringify(arg) }),
-    onMutate: async ({ id, arg }: { id: string; arg: CheckItemInput }): Promise<RemindersSnapshot> => {
+      apiFetch(`/api/reminders/${id}/check`, {
+        method: 'POST',
+        body: JSON.stringify(arg),
+      }),
+    onMutate: async ({
+      id,
+      arg,
+    }: {
+      id: string
+      arg: CheckItemInput
+    }): Promise<RemindersSnapshot> => {
       const update = (reminder: Reminder) => {
         if (reminder.id !== id) return reminder
-        return { ...reminder, checkedItemIds: checkedItems(reminder.checkedItemIds, arg.itemId, arg.checked) }
+        return {
+          ...reminder,
+          checkedItemIds: checkedItems(
+            reminder.checkedItemIds,
+            arg.itemId,
+            arg.checked,
+          ),
+        }
       }
 
       return optimisticChecklistChange<Reminder>(
-        queryClient, queryKeys.reminders, queryKeys.receivedShares,
+        queryClient,
+        queryKeys.reminders,
+        queryKeys.receivedShares,
         update,
-        (share) => share.id === id ? updateSharedReminder(share, update) : share
+        (share) =>
+          share.id === id ? updateSharedReminder(share, update) : share,
       )
     },
     onError: rollback,
-    onSettled: invalidateReminders
+    onSettled: invalidateReminders,
   })
 
   // Adding an item from the reading dialog writes the reminder's definition, so it applies to
@@ -278,42 +405,69 @@ export function registerMutationDefaults(): void {
   // id the list already carries, mirroring the endpoint, so a replay can't double it.
   queryClient.setMutationDefaults(mutationKeys.addTodoItem, {
     mutationFn: ({ id, arg }: { id: string; arg: AddTodoItemInput }) =>
-      apiFetch(`/api/reminders/${id}/items`, { method: 'POST', body: JSON.stringify(arg) }),
-    onMutate: async ({ id, arg }: { id: string; arg: AddTodoItemInput }): Promise<RemindersSnapshot> => {
+      apiFetch(`/api/reminders/${id}/items`, {
+        method: 'POST',
+        body: JSON.stringify(arg),
+      }),
+    onMutate: async ({
+      id,
+      arg,
+    }: {
+      id: string
+      arg: AddTodoItemInput
+    }): Promise<RemindersSnapshot> => {
       const update = (reminder: Reminder) =>
-        reminder.id === id ? { ...reminder, typeData: withTodoItem(reminder.typeData, arg) } : reminder
+        reminder.id === id
+          ? { ...reminder, typeData: withTodoItem(reminder.typeData, arg) }
+          : reminder
 
       return optimisticChecklistChange<Reminder>(
-        queryClient, queryKeys.reminders, queryKeys.receivedShares,
+        queryClient,
+        queryKeys.reminders,
+        queryKeys.receivedShares,
         update,
-        (share) => share.id === id ? updateSharedReminder(share, update) : share
+        (share) =>
+          share.id === id ? updateSharedReminder(share, update) : share,
       )
     },
     onError: rollback,
-    onSettled: invalidateReminders
+    onSettled: invalidateReminders,
   })
 
   queryClient.setMutationDefaults(mutationKeys.removeTodoItem, {
     mutationFn: ({ id, itemId }: { id: string; itemId: string }) =>
-      apiFetch(`/api/reminders/${id}/items/${encodeURIComponent(itemId)}`, { method: 'DELETE' }),
-    onMutate: async ({ id, itemId }: { id: string; itemId: string }): Promise<RemindersSnapshot> => {
+      apiFetch(`/api/reminders/${id}/items/${encodeURIComponent(itemId)}`, {
+        method: 'DELETE',
+      }),
+    onMutate: async ({
+      id,
+      itemId,
+    }: {
+      id: string
+      itemId: string
+    }): Promise<RemindersSnapshot> => {
       const update = (reminder: Reminder) =>
         reminder.id === id
           ? {
               ...reminder,
               typeData: withoutTodoItem(reminder.typeData, itemId),
-              checkedItemIds: reminder.checkedItemIds.filter((checkedId) => checkedId !== itemId)
+              checkedItemIds: reminder.checkedItemIds.filter(
+                (checkedId) => checkedId !== itemId,
+              ),
             }
           : reminder
 
       return optimisticChecklistChange<Reminder>(
-        queryClient, queryKeys.reminders, queryKeys.receivedShares,
+        queryClient,
+        queryKeys.reminders,
+        queryKeys.receivedShares,
         update,
-        (share) => share.id === id ? updateSharedReminder(share, update) : share
+        (share) =>
+          share.id === id ? updateSharedReminder(share, update) : share,
       )
     },
     onError: rollback,
-    onSettled: invalidateReminders
+    onSettled: invalidateReminders,
   })
 
   // Reordering writes the definition too, and applies to the same cache the checklist
@@ -323,47 +477,83 @@ export function registerMutationDefaults(): void {
   // result and the stored one agree.
   queryClient.setMutationDefaults(mutationKeys.reorderTodoItems, {
     mutationFn: ({ id, arg }: { id: string; arg: ReorderTodoItemsInput }) =>
-      apiFetch(`/api/reminders/${id}/items/order`, { method: 'POST', body: JSON.stringify(arg) }),
-    onMutate: async ({ id, arg }: { id: string; arg: ReorderTodoItemsInput }): Promise<RemindersSnapshot> => {
+      apiFetch(`/api/reminders/${id}/items/order`, {
+        method: 'POST',
+        body: JSON.stringify(arg),
+      }),
+    onMutate: async ({
+      id,
+      arg,
+    }: {
+      id: string
+      arg: ReorderTodoItemsInput
+    }): Promise<RemindersSnapshot> => {
       const update = (reminder: Reminder) =>
-        reminder.id === id ? { ...reminder, typeData: withTodoOrder(reminder.typeData, arg.itemIds) } : reminder
+        reminder.id === id
+          ? {
+              ...reminder,
+              typeData: withTodoOrder(reminder.typeData, arg.itemIds),
+            }
+          : reminder
 
       return optimisticChecklistChange<Reminder>(
-        queryClient, queryKeys.reminders, queryKeys.receivedShares,
+        queryClient,
+        queryKeys.reminders,
+        queryKeys.receivedShares,
         update,
-        (share) => share.id === id ? updateSharedReminder(share, update) : share
+        (share) =>
+          share.id === id ? updateSharedReminder(share, update) : share,
       )
     },
     onError: rollback,
-    onSettled: invalidateReminders
+    onSettled: invalidateReminders,
   })
 
   // Renaming an item is the third write to the same list, and the one the user is
   // literally watching as they type: applied optimistically so the row reads back what
   // they wrote rather than flicking to the stored text and back.
   queryClient.setMutationDefaults(mutationKeys.renameTodoItem, {
-    mutationFn: ({ id, itemId, arg }: { id: string; itemId: string; arg: RenameTodoItemInput }) =>
-      apiFetch(`/api/reminders/${id}/items/${itemId}`, { method: 'POST', body: JSON.stringify(arg) }),
+    mutationFn: ({
+      id,
+      itemId,
+      arg,
+    }: {
+      id: string
+      itemId: string
+      arg: RenameTodoItemInput
+    }) =>
+      apiFetch(`/api/reminders/${id}/items/${itemId}`, {
+        method: 'POST',
+        body: JSON.stringify(arg),
+      }),
     onMutate: async ({
       id,
       itemId,
-      arg
+      arg,
     }: {
       id: string
       itemId: string
       arg: RenameTodoItemInput
     }): Promise<RemindersSnapshot> => {
       const update = (reminder: Reminder) =>
-        reminder.id === id ? { ...reminder, typeData: withTodoItemText(reminder.typeData, itemId, arg.text) } : reminder
+        reminder.id === id
+          ? {
+              ...reminder,
+              typeData: withTodoItemText(reminder.typeData, itemId, arg.text),
+            }
+          : reminder
 
       return optimisticChecklistChange<Reminder>(
-        queryClient, queryKeys.reminders, queryKeys.receivedShares,
+        queryClient,
+        queryKeys.reminders,
+        queryKeys.receivedShares,
         update,
-        (share) => share.id === id ? updateSharedReminder(share, update) : share
+        (share) =>
+          share.id === id ? updateSharedReminder(share, update) : share,
       )
     },
     onError: rollback,
-    onSettled: invalidateReminders
+    onSettled: invalidateReminders,
   })
 
   // Collapsing a checklist is a view state, but a *shared* one — it is stored so
@@ -371,45 +561,71 @@ export function registerMutationDefaults(): void {
   // is: the button sits right next to the checkboxes and must respond instantly.
   queryClient.setMutationDefaults(mutationKeys.hideCheckedItems, {
     mutationFn: ({ id, arg }: { id: string; arg: HideCheckedInput }) =>
-      apiFetch(`/api/reminders/${id}/hide-checked`, { method: 'POST', body: JSON.stringify(arg) }),
-    onMutate: async ({ id, arg }: { id: string; arg: HideCheckedInput }): Promise<RemindersSnapshot> => {
+      apiFetch(`/api/reminders/${id}/hide-checked`, {
+        method: 'POST',
+        body: JSON.stringify(arg),
+      }),
+    onMutate: async ({
+      id,
+      arg,
+    }: {
+      id: string
+      arg: HideCheckedInput
+    }): Promise<RemindersSnapshot> => {
       const update = (reminder: Reminder) =>
-        reminder.id === id ? { ...reminder, hideCheckedItems: arg.hidden } : reminder
+        reminder.id === id
+          ? { ...reminder, hideCheckedItems: arg.hidden }
+          : reminder
       return optimisticChecklistChange<Reminder>(
-        queryClient, queryKeys.reminders, queryKeys.receivedShares,
+        queryClient,
+        queryKeys.reminders,
+        queryKeys.receivedShares,
         update,
-        (share) => share.id === id ? updateSharedReminder(share, update) : share
+        (share) =>
+          share.id === id ? updateSharedReminder(share, update) : share,
       )
     },
     onError: rollback,
-    onSettled: invalidateReminders
+    onSettled: invalidateReminders,
   })
 
   const invalidateOccurrences = () => {
-    void queryClient.invalidateQueries({ queryKey: queryKeys.occurrencesActive })
-    void queryClient.invalidateQueries({ queryKey: queryKeys.occurrencesUpcoming })
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.occurrencesActive,
+    })
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.occurrencesUpcoming,
+    })
     void queryClient.invalidateQueries({ queryKey: queryKeys.receivedShares })
   }
 
   queryClient.setMutationDefaults(mutationKeys.ackOccurrence, {
-    mutationFn: ({ id }: { id: string; arg: void }) => apiFetch(`/api/occurrences/${id}/ack`, { method: 'POST' }),
+    mutationFn: ({ id }: { id: string; arg: void }) =>
+      apiFetch(`/api/occurrences/${id}/ack`, { method: 'POST' }),
     onSettled: () => {
       invalidateOccurrences()
       // Refresh History after completion and reconcile a single-firing
       // reminder's place in Upcoming, including after a failed request.
-      void queryClient.invalidateQueries({ queryKey: queryKeys.occurrencesHistory })
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.occurrencesHistory,
+      })
       void queryClient.invalidateQueries({ queryKey: queryKeys.reminders })
-    }
+    },
   })
 
   queryClient.setMutationDefaults(mutationKeys.undoDoneOccurrence, {
     mutationFn: ({ id, arg }: { id: string; arg: UndoDoneInput }) =>
-      apiFetch(`/api/occurrences/${id}/undo-done`, { method: 'POST', body: JSON.stringify(arg) }),
+      apiFetch(`/api/occurrences/${id}/undo-done`, {
+        method: 'POST',
+        body: JSON.stringify(arg),
+      }),
     onSettled: () => {
       invalidateOccurrences()
-      void queryClient.invalidateQueries({ queryKey: queryKeys.occurrencesHistory })
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.occurrencesHistory,
+      })
       void queryClient.invalidateQueries({ queryKey: queryKeys.reminders })
-    }
+    },
   })
 
   queryClient.setMutationDefaults(mutationKeys.snoozeOccurrence, {
@@ -417,14 +633,15 @@ export function registerMutationDefaults(): void {
       // Mutations saved offline by the previous build held a bare minute count.
       apiFetch(`/api/occurrences/${id}/snooze`, {
         method: 'POST',
-        body: JSON.stringify(typeof arg === 'number' ? { minutes: arg } : arg)
+        body: JSON.stringify(typeof arg === 'number' ? { minutes: arg } : arg),
       }),
-    onSettled: invalidateOccurrences
+    onSettled: invalidateOccurrences,
   })
 
   queryClient.setMutationDefaults(mutationKeys.silenceOccurrence, {
-    mutationFn: ({ id }: { id: string; arg: void }) => apiFetch(`/api/occurrences/${id}/silence`, { method: 'POST' }),
-    onSettled: invalidateOccurrences
+    mutationFn: ({ id }: { id: string; arg: void }) =>
+      apiFetch(`/api/occurrences/${id}/silence`, { method: 'POST' }),
+    onSettled: invalidateOccurrences,
   })
 
   // Ticking a checklist item is the one occurrence action the user does *while
@@ -433,22 +650,50 @@ export function registerMutationDefaults(): void {
   // replays as an idempotent per-item toggle (see checkItemInputSchema).
   queryClient.setMutationDefaults(mutationKeys.checkOccurrenceItem, {
     mutationFn: ({ id, arg }: { id: string; arg: CheckItemInput }) =>
-      apiFetch(`/api/occurrences/${id}/check`, { method: 'POST', body: JSON.stringify(arg) }),
-    onMutate: async ({ id, arg }: { id: string; arg: CheckItemInput }): Promise<OccurrencesSnapshot> => {
+      apiFetch(`/api/occurrences/${id}/check`, {
+        method: 'POST',
+        body: JSON.stringify(arg),
+      }),
+    onMutate: async ({
+      id,
+      arg,
+    }: {
+      id: string
+      arg: CheckItemInput
+    }): Promise<OccurrencesSnapshot> => {
       return optimisticChecklistChange<Occurrence>(
-        queryClient, queryKeys.occurrencesActive, queryKeys.receivedShares,
-        (occurrence) => occurrence.id === id
-          ? { ...occurrence, checkedItemIds: checkedItems(occurrence.checkedItemIds, arg.itemId, arg.checked) }
-          : occurrence,
+        queryClient,
+        queryKeys.occurrencesActive,
+        queryKeys.receivedShares,
+        (occurrence) =>
+          occurrence.id === id
+            ? {
+                ...occurrence,
+                checkedItemIds: checkedItems(
+                  occurrence.checkedItemIds,
+                  arg.itemId,
+                  arg.checked,
+                ),
+              }
+            : occurrence,
         (share) => ({
           ...share,
-          activeFirings: share.activeFirings.map((firing) => firing.id === id
-            ? { ...firing, checkedItemIds: checkedItems(firing.checkedItemIds, arg.itemId, arg.checked) }
-            : firing)
-        })
+          activeFirings: share.activeFirings.map((firing) =>
+            firing.id === id
+              ? {
+                  ...firing,
+                  checkedItemIds: checkedItems(
+                    firing.checkedItemIds,
+                    arg.itemId,
+                    arg.checked,
+                  ),
+                }
+              : firing,
+          ),
+        }),
       )
     },
     onError: rollbackOccurrences,
-    onSettled: invalidateOccurrences
+    onSettled: invalidateOccurrences,
   })
 }

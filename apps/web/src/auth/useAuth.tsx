@@ -5,10 +5,20 @@
  */
 import { useTranslation } from 'react-i18next'
 import { tr } from '../localization/i18n.js'
-import { createContext, useCallback, useContext, useEffect, type ReactNode } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  type ReactNode,
+} from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/browser'
-import { type AuthState, type RequestCodeResponse, type SessionUser } from '@persistent/shared'
+import {
+  type AuthState,
+  type RequestCodeResponse,
+  type SessionUser,
+} from '@persistent/shared'
 import { extractErrorMessage } from '../localization/errorMessage.js'
 import { getLocale } from '../localization/localeState.js'
 import { apiFetch } from '../lib/apiClient.js'
@@ -21,7 +31,11 @@ import { reportClientUsage } from '../native/clientUsage.js'
 import { readOfflineUser, saveOfflineUser } from './offlineSession.js'
 import { loadSession, type LocalSession } from './loadSession.js'
 import { setSessionNetwork } from './sessionNetwork.js'
-import { acceptSession, clearNativeAlerts, dropSignedOutData } from './sessionData.js'
+import {
+  acceptSession,
+  clearNativeAlerts,
+  dropSignedOutData,
+} from './sessionData.js'
 
 interface AuthContextValue {
   user: SessionUser | null
@@ -56,7 +70,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: queryKeys.auth,
     queryFn: async ({ signal }) => {
       setSessionNetwork(false)
-      const session = await loadSession(readOfflineUser(window.localStorage), navigator.onLine, signal)
+      const session = await loadSession(
+        readOfflineUser(window.localStorage),
+        navigator.onLine,
+        signal,
+      )
       signal.throwIfAborted()
       return acceptSession(queryClient, session)
     },
@@ -65,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     retry: false,
     staleTime: 0,
     refetchOnMount: 'always',
-    refetchOnReconnect: false
+    refetchOnReconnect: false,
   })
 
   const user = data?.user ?? null
@@ -92,14 +110,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Equal profiles are structurally shared by Query, but each confirmed refresh
     // must report current display mode. Cleanup fences delayed native lookups.
     void reportClientUsage(controller.signal).catch(() => {
-      if (!controller.signal.aborted) console.warn('Could not report session app metadata.')
+      if (!controller.signal.aborted)
+        console.warn('Could not report session app metadata.')
     })
-    return () => { controller.abort() }
+    return () => {
+      controller.abort()
+    }
   }, [user, offline, error, dataUpdatedAt])
 
   useEffect(() => {
     // QueryCache and the session error surface report failures from these event probes.
-    const refresh = () => { void refreshSession().catch(() => {}) }
+    const refresh = () => {
+      void refreshSession().catch(() => {})
+    }
     window.addEventListener('online', refresh)
     window.addEventListener('offline', refresh)
     return () => {
@@ -111,7 +134,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   /** Sign-in responses are authoritative and must replace the saved account before opening writes. */
   async function establishSession(result: AuthState): Promise<void> {
     await queryClient.cancelQueries({ queryKey: queryKeys.auth })
-    const session = await acceptSession(queryClient, { ...result, offline: false })
+    const session = await acceptSession(queryClient, {
+      ...result,
+      offline: false,
+    })
     queryClient.setQueryData<LocalSession>(queryKeys.auth, session)
   }
 
@@ -124,33 +150,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     requestCode: (email) =>
       apiFetch<RequestCodeResponse>('/api/auth/request-code', {
         method: 'POST',
-        body: JSON.stringify({ email, locale: getLocale() })
+        body: JSON.stringify({ email, locale: getLocale() }),
       }),
     verifyCode: async (email, code) => {
       const result = await apiFetch<AuthState>('/api/auth/verify-code', {
         method: 'POST',
-        body: JSON.stringify({ email, code, timeZone: guessTimeZone() })
+        body: JSON.stringify({ email, code, timeZone: guessTimeZone() }),
       })
       // Seed auth state from the response (authoritative) instead of refetching
       // /me, which can race the just-set session cookie and read back null.
       await establishSession(result)
     },
     loginWithPasskey: async () => {
-      const begin = await apiFetch<{ options: PublicKeyCredentialRequestOptionsJSON }>(
-        '/api/auth/passkey/authenticate/options',
-        { method: 'POST' }
-      )
+      const begin = await apiFetch<{
+        options: PublicKeyCredentialRequestOptionsJSON
+      }>('/api/auth/passkey/authenticate/options', { method: 'POST' })
       const assertion = await passkeyAuthenticate(begin.options)
-      const result = await apiFetch<AuthState>('/api/auth/passkey/authenticate/verify', {
-        method: 'POST',
-        body: JSON.stringify({ response: assertion })
-      })
+      const result = await apiFetch<AuthState>(
+        '/api/auth/passkey/authenticate/verify',
+        {
+          method: 'POST',
+          body: JSON.stringify({ response: assertion }),
+        },
+      )
       await establishSession(result)
     },
     loginWithGoogle: async (credential) => {
       const result = await apiFetch<AuthState>('/api/auth/google', {
         method: 'POST',
-        body: JSON.stringify({ credential, timeZone: guessTimeZone() })
+        body: JSON.stringify({ credential, timeZone: guessTimeZone() }),
       })
       await establishSession(result)
     },
@@ -162,12 +190,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await queryClient.cancelQueries()
       await clearNativeAlerts()
       saveOfflineUser(window.localStorage, null)
-      queryClient.setQueryData<LocalSession>(queryKeys.auth, { user: null, offline: false })
+      queryClient.setQueryData<LocalSession>(queryKeys.auth, {
+        user: null,
+        offline: false,
+      })
       dropSignedOutData(queryClient)
       try {
         await apiFetch('/api/auth/logout', { method: 'POST' })
       } catch (error) {
-        notify(extractErrorMessage(error, tr("Couldn't reach the server to sign out.")), 'danger')
+        notify(
+          extractErrorMessage(
+            error,
+            tr("Couldn't reach the server to sign out."),
+          ),
+          'danger',
+        )
       }
     },
     refreshAfterDeletion: async () => {
@@ -180,9 +217,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await queryClient.cancelQueries()
       await clearNativeAlerts()
       saveOfflineUser(window.localStorage, null)
-      queryClient.setQueryData<LocalSession>(queryKeys.auth, { user: null, offline: false })
+      queryClient.setQueryData<LocalSession>(queryKeys.auth, {
+        user: null,
+        offline: false,
+      })
       dropSignedOutData(queryClient)
-    }
+    },
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -15,11 +15,16 @@ import { DateTime } from 'luxon'
 export function escalateAtFor(
   firedBase: Date,
   scheduledFor: Date,
-  reminder: { escalateAfterMinutes: number | null; escalateAtTime: string | null },
-  tz: string
+  reminder: {
+    escalateAfterMinutes: number | null
+    escalateAtTime: string | null
+  },
+  tz: string,
 ): Date | null {
   if (reminder.escalateAfterMinutes != null) {
-    return new Date(firedBase.getTime() + reminder.escalateAfterMinutes * 60_000)
+    return new Date(
+      firedBase.getTime() + reminder.escalateAfterMinutes * 60_000,
+    )
   }
   if (reminder.escalateAtTime != null) {
     return escalationInstant(scheduledFor, reminder.escalateAtTime, tz)
@@ -38,10 +43,15 @@ export function escalateAtFor(
  * guard the 60s sweep re-escalates a just-snoozed alarm immediately, so a 5-min
  * snooze rings again in ~1 min. (Spec: docs/notification-behavior.md sec. 3.)
  */
-export function shouldEscalateNow(escalateAt: Date | null, snoozedUntil: Date | null, now: Date): boolean {
+export function shouldEscalateNow(
+  escalateAt: Date | null,
+  snoozedUntil: Date | null,
+  now: Date,
+): boolean {
   if (escalateAt == null) return false
   if (now.getTime() < escalateAt.getTime()) return false
-  if (snoozedUntil != null && snoozedUntil.getTime() > now.getTime()) return false
+  if (snoozedUntil != null && snoozedUntil.getTime() > now.getTime())
+    return false
   return true
 }
 
@@ -53,7 +63,7 @@ export function shouldEscalateNow(escalateAt: Date | null, snoozedUntil: Date | 
 export function groupEmailEscalationAt(
   firedAt: Date,
   afterMinutes: number,
-  snoozedUntil: ReadonlyArray<Date | null>
+  snoozedUntil: ReadonlyArray<Date | null>,
 ): Date {
   let latest = firedAt.getTime() + afterMinutes * 60_000
   for (const until of snoozedUntil) {

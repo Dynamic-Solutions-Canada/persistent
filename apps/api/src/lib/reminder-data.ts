@@ -4,7 +4,7 @@ import { reminderInputSchema } from '@persistent/shared'
 
 /** Keep ownership outside this mapping so callers choose the actual reminder owner. */
 export function toReminderData(
-  input: ReturnType<typeof reminderInputSchema.parse>
+  input: ReturnType<typeof reminderInputSchema.parse>,
 ): Omit<Prisma.ReminderUncheckedCreateInput, 'userId'> {
   return {
     title: input.title,
@@ -25,6 +25,6 @@ export function toReminderData(
     startDate: input.startDate,
     endDate: input.endDate,
     // A note owns checklist ticks; scheduled firings own their own ticks.
-    ...(input.schedule.kind === 'never' ? {} : { checkedItems: [] })
+    ...(input.schedule.kind === 'never' ? {} : { checkedItems: [] }),
   }
 }

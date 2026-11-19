@@ -17,28 +17,58 @@ import FormLabel from '@mui/joy/FormLabel'
 import FormHelperText from '@mui/joy/FormHelperText'
 import type { HostSettingsProps } from './types.js'
 
-export function DesktopNotificationsCard({ settings, update }: HostSettingsProps) {
+export function DesktopNotificationsCard({
+  settings,
+  update,
+}: HostSettingsProps) {
   useTranslation()
   const linux = settings.platform === 'linux'
   return (
     <Card variant="outlined">
-      <Typography level="title-sm">{linux ? tr("Linux notifications") : tr("Windows notifications")}</Typography>
-      <FormControl orientation="horizontal" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-        <FormLabel>{tr("Persistent notifications on this PC")}</FormLabel>
-        <Switch checked={settings.notifications} onChange={(e) => update({ notifications: e.target.checked })} />
+      <Typography level="title-sm">
+        {linux ? tr('Linux notifications') : tr('Windows notifications')}
+      </Typography>
+      <FormControl
+        orientation="horizontal"
+        sx={{ justifyContent: 'space-between', alignItems: 'center' }}
+      >
+        <FormLabel>{tr('Persistent notifications on this PC')}</FormLabel>
+        <Switch
+          checked={settings.notifications}
+          onChange={(e) => update({ notifications: e.target.checked })}
+        />
       </FormControl>
-      <Typography level="body-xs"><Trans i18nKey={"Keeps each reminder visible and brings it back if dismissed. Alarm reminders loop <v0/>; escalations can be de-escalated without marking them done. This works while the PC is awake and Persistent is running, and catches up after reconnecting. It cannot wake a sleeping or shut-down PC. Android can sound alarms even without an internet connection."} components={{ v0: <>{tr(linux ? 'the app alarm sound' : 'the Windows alarm sound')}</> }} /></Typography>
+      <Typography level="body-xs">
+        <Trans
+          i18nKey={
+            'Keeps each reminder visible and brings it back if dismissed. Alarm reminders loop <v0/>; escalations can be de-escalated without marking them done. This works while the PC is awake and Persistent is running, and catches up after reconnecting. It cannot wake a sleeping or shut-down PC. Android can sound alarms even without an internet connection.'
+          }
+          components={{
+            v0: (
+              <>
+                {tr(linux ? 'the app alarm sound' : 'the Windows alarm sound')}
+              </>
+            ),
+          }}
+        />
+      </Typography>
       {linux && (
-        <Typography level="body-xs">{tr("Your desktop controls notification layout, sounds and Do Not Disturb. GNOME needs AppIndicator support for the tray icon. Snooze opens the app's full picker.")}</Typography>
+        <Typography level="body-xs">
+          {tr(
+            "Your desktop controls notification layout, sounds and Do Not Disturb. GNOME needs AppIndicator support for the tray icon. Snooze opens the app's full picker.",
+          )}
+        </Typography>
       )}
       {/* The duration only means anything while the notifications are on, so it
           follows the toggle rather than sitting there looking editable. */}
       {settings.notifications && !settings.snoozeInApp && (
         <FormControl>
-          <FormLabel>{tr("Snooze starts on")}</FormLabel>
+          <FormLabel>{tr('Snooze starts on')}</FormLabel>
           <Select
             value={settings.snoozeMinutes}
-            onChange={(_e, value) => value !== null && update({ snoozeMinutes: value })}
+            onChange={(_e, value) =>
+              value !== null && update({ snoozeMinutes: value })
+            }
           >
             {settings.snoozeChoices.map((choice) => (
               <Option key={choice.minutes} value={choice.minutes}>
@@ -46,7 +76,11 @@ export function DesktopNotificationsCard({ settings, update }: HostSettingsProps
               </Option>
             ))}
           </Select>
-          <FormHelperText>{tr("Which duration the notification's snooze picker starts on. Windows allows it five, so Snooze inside the app offers more.")}</FormHelperText>
+          <FormHelperText>
+            {tr(
+              "Which duration the notification's snooze picker starts on. Windows allows it five, so Snooze inside the app offers more.",
+            )}
+          </FormHelperText>
         </FormControl>
       )}
     </Card>

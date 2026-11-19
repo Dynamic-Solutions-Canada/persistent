@@ -17,7 +17,7 @@ Both Google Play and current GitHub APKs use the Google-signed `ca.dynamicsoluti
 Persistent: Reminders That Nag
 ```
 
-*(30/30.)*
+_(30/30.)_
 
 ## Short description (max 80 chars)
 
@@ -25,7 +25,7 @@ Persistent: Reminders That Nag
 Reminders that return until confirmed. Alarms, checklists and shared reminders.
 ```
 
-*(79/80.)*
+_(79/80.)_
 
 ## Full description (max 4000 chars)
 
@@ -65,7 +65,6 @@ All nine app locale tags map identically to supported Play tags. `en-CA` explici
 
 ---
 
-
 > **No Android Auto copy here, deliberately.** The description carried a "WORKS IN THE
 > CAR" section until 2026-08-18. The Play build no longer projects to Auto at all (the
 > `com.google.android.gms.car.application` declaration is direct-only — see
@@ -73,15 +72,14 @@ All nine app locale tags map identically to supported Play tags. `en-CA` explici
 > listing is also what invites the Auto review that flagged the app as a messaging app
 > in the first place. The legacy/local direct flavor still does it; current GitHub Play APKs do not. The store copy must not say so.
 
-
 ## Graphics
 
-| Asset | Spec | Status |
-| --- | --- | --- |
-| App icon | 512×512 PNG, 32-bit, no transparency | ✅ `graphics/play-icon.png` |
-| Feature graphic | 1024×500 PNG/JPG, no transparency | ✅ `graphics/feature-graphic.png` |
-| Phone screenshots | 2–8, min 320px, 16:9 or 9:16 | ✅ 8 in `graphics/screenshots/` (see below) |
-| 7" / 10" tablet screenshots | optional | ❌ optional |
+| Asset                       | Spec                                 | Status                                      |
+| --------------------------- | ------------------------------------ | ------------------------------------------- |
+| App icon                    | 512×512 PNG, 32-bit, no transparency | ✅ `graphics/play-icon.png`                 |
+| Feature graphic             | 1024×500 PNG/JPG, no transparency    | ✅ `graphics/feature-graphic.png`           |
+| Phone screenshots           | 2–8, min 320px, 16:9 or 9:16         | ✅ 8 in `graphics/screenshots/` (see below) |
+| 7" / 10" tablet screenshots | optional                             | ❌ optional                                 |
 
 Sources are `graphics/*.svg`; re-render with
 `rsvg-convert -w 512 -h 512 play-icon.svg -o play-icon.png`.
@@ -108,7 +106,7 @@ includes the real status area and gesture bar, with no unrelated notification ic
 - **Content rating and audience:** preserve the current declarations unless the actual questionnaire and product behavior require a change. Sharing, assignment invitations and user-authored escalation emails must be evaluated against the exact questions; localization alone does not change the answers.
 - **Contact email:** `contact@dynamic-solutions.ca` (required, publicly displayed — same address as the privacy policy)
 - **Privacy policy URL:** `https://persistent.dynamic-solutions.ca/privacy`
-- **Account deletion URL** (Data safety → *Provide a way for users to request account deletion*): `https://persistent.dynamic-solutions.ca/delete-account` — resolves signed out, explains the in-app route and gives an email fallback
+- **Account deletion URL** (Data safety → _Provide a way for users to request account deletion_): `https://persistent.dynamic-solutions.ca/delete-account` — resolves signed out, explains the in-app route and gives an email fallback
 - **Ads:** No
 - **In-app purchases:** No
 
@@ -154,14 +152,14 @@ after the production approval of 2026-09-05.
 
 Source review against `apps/api/prisma/schema.prisma`; this table is an audit proposal, not proof that the current Console form matches. These types are collected and linked to the account. Persistent does not use them for advertising or tracking and has no third-party analytics or crash-reporting SDK. Internal aggregate account, feature and platform statistics are analytics under Play's purpose definitions, even without a third-party SDK; the privacy policy already describes those statistics.
 
-| Play data type | Collected | Shared | Purpose | Notes |
-| --- | --- | --- | --- | --- |
-| Email address | Yes | Yes | Account management, app functionality | Sign-in codes via Cloudflare; user-set escalation contact |
-| Name | Yes | No | Account management | `displayName`, only if signing in with Google |
-| Other user-generated content | Yes | Yes | App functionality | Reminder titles/details, sent in push payloads and escalation emails |
-| Health info | Yes | Yes | App functionality | Medication names and doses; reminder text can reach FCM push and user-chosen escalation email |
-| Device or other IDs | Yes | Yes | App functionality | FCM device tokens |
-| App activity / App interactions | Yes | Yes | Collection: app functionality and analytics. Sharing: app functionality | Occurrence activity and assignment progress; aggregate account, feature and platform usage statistics. Analytics is a collection purpose, not a new advertising or tracking use |
+| Play data type                  | Collected | Shared | Purpose                                                                 | Notes                                                                                                                                                                           |
+| ------------------------------- | --------- | ------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Email address                   | Yes       | Yes    | Account management, app functionality                                   | Sign-in codes via Cloudflare; user-set escalation contact                                                                                                                       |
+| Name                            | Yes       | No     | Account management                                                      | `displayName`, only if signing in with Google                                                                                                                                   |
+| Other user-generated content    | Yes       | Yes    | App functionality                                                       | Reminder titles/details, sent in push payloads and escalation emails                                                                                                            |
+| Health info                     | Yes       | Yes    | App functionality                                                       | Medication names and doses; reminder text can reach FCM push and user-chosen escalation email                                                                                   |
+| Device or other IDs             | Yes       | Yes    | App functionality                                                       | FCM device tokens                                                                                                                                                               |
+| App activity / App interactions | Yes       | Yes    | Collection: app functionality and analytics. Sharing: app functionality | Occurrence activity and assignment progress; aggregate account, feature and platform usage statistics. Analytics is a collection purpose, not a new advertising or tracking use |
 
 **Declare sharing = Yes.** Google FCM receives reminder titles and bodies in push
 payloads. Cloudflare Email Sending handles sign-in codes and invitation and
@@ -172,6 +170,7 @@ None of this is a transfer for advertising.
 The coordinator's detailed 21 October 2026 readback found all six data types selected. Health info already had collection and sharing for app functionality. App interactions had collection for app functionality but no sharing or analytics purpose; the coordinator is correcting those two purpose/sharing gaps. Do not replace App interactions with Other actions, infer missing types from the four-group summary, or claim the corrected form is published before final readback and review.
 
 Security practices to declare:
+
 - ✅ Data is encrypted in transit (HTTPS everywhere; `cleartext: false`, HSTS-style proxy, `Secure`/`HttpOnly` session cookie)
 - ⚠️ **At rest, Postgres columns are plaintext** — only session secrets and email codes are hashed. Don't over-claim encryption at rest.
 - ✅ **"Users can request data deletion" is true, so claim it.** Two routes, both live: in-app at Settings → Delete account, and the public URL above for anyone who cannot sign in. `DELETE /api/auth/me` requires the caller to type their own email, so a session cookie alone will not fire it. Verified end to end against a throwaway account: the user, reminders, occurrences, sessions and the `EmailCode` rows (keyed by address, so they have no cascade and are deleted explicitly) all go.
@@ -190,16 +189,16 @@ inside reusable phone mockups, with 1080 x 1920 RGB PNG exports. Marketing copy
 describes the feature without theme names.
 Ordered as they should appear in Play:
 
-| File | Shows | Theme |
-| --- | --- | --- |
-| `00-current-light.png` | Current reminders for plants, puppy, and the morning checklist | Enjoy Light |
+| File                        | Shows                                                                                                                         | Theme          |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| `00-current-light.png`      | Current reminders for plants, puppy, and the morning checklist                                                                | Enjoy Light    |
 | `01-notification-shade.png` | Four distinct reminders, native Done and Snooze actions, and copy explaining that swiped notifications return until confirmed | Android system |
-| `02-alarm-dark.png` | Real ignored-reminder escalation into an alarm with Done, Snooze, and De-escalate controls | Enjoy Dark |
-| `03-checklist-dark.png` | Reading dialog with a part-completed checklist and reminder controls below it | Enjoy Dark |
-| `04-medication-light.png` | Synthetic vitamin reminder editor with medicine name and 1000 IU dose | Enjoy Light |
-| `05-sharing-dark.png` | Share or assign dialog with a staged sample recipient | Enjoy Dark |
-| `06-notes-light.png` | Trip-packing note checklist, without an alarm | Enjoy Light |
-| `07-assigned-dark.png` | Assigned by me status with a synthetic completion record | Enjoy Dark |
+| `02-alarm-dark.png`         | Real ignored-reminder escalation into an alarm with Done, Snooze, and De-escalate controls                                    | Enjoy Dark     |
+| `03-checklist-dark.png`     | Reading dialog with a part-completed checklist and reminder controls below it                                                 | Enjoy Dark     |
+| `04-medication-light.png`   | Synthetic vitamin reminder editor with medicine name and 1000 IU dose                                                         | Enjoy Light    |
+| `05-sharing-dark.png`       | Share or assign dialog with a staged sample recipient                                                                         | Enjoy Dark     |
+| `06-notes-light.png`        | Trip-packing note checklist, without an alarm                                                                                 | Enjoy Light    |
+| `07-assigned-dark.png`      | Assigned by me status with a synthetic completion record                                                                      | Enjoy Dark     |
 
 The root README embeds `00`, `03`, and `05` from this directory, without separate
 copies. Native permission videos remain separate.
@@ -238,11 +237,11 @@ account so no real medication data appears.
 **Permission declarations** (required — Play asks for a demonstration video for
 each of these; see `play-readiness.md` §5):
 
-| File | Declaration | Shows |
-| --- | --- | --- |
+| File                                      | Declaration        | Shows                                                                                           |
+| ----------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------- |
 | `permission-foreground-service.mp4` (36s) | Foreground Service | Alarm rings, app backgrounded, keeps ringing via the service, ongoing notification in the shade |
-| `permission-full-screen-intent.mp4` (42s) | Full-screen intent | Device locked, alarm fires, full-screen surface over the lock screen |
-| `permission-exact-alarm.mp4` (18s) | Exact alarms | Reminder scheduled for a set minute, firing exactly at it |
+| `permission-full-screen-intent.mp4` (42s) | Full-screen intent | Device locked, alarm fires, full-screen surface over the lock screen                            |
+| `permission-exact-alarm.mp4` (18s)        | Exact alarms       | Reminder scheduled for a set minute, firing exactly at it                                       |
 
 `permission-exact-alarm-frame.png` is a still from that last recording showing the
 surface at the scheduled minute, if a reviewer wants a static reference.
@@ -253,7 +252,7 @@ as unlisted and paste the links — the `.mp4`s here are source, not listing ass
 ### Reproducing
 
 Sign in as the demo account (`ryan.ewen+persistentdemo@gmail.com`), then note that
-a repeating schedule only materializes *forward* from now — to get already-passed
+a repeating schedule only materializes _forward_ from now — to get already-passed
 firing times, create the reminder as `once` with the past times (the server
 back-fills within `MATERIALIZE_WINDOW_MS`, 48h), let both fire, then edit it to
 `daily`. The fired occurrences survive that edit by design

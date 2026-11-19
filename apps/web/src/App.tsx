@@ -59,8 +59,15 @@ export function App() {
   if (error) {
     return (
       <Stack spacing={2} sx={{ p: 3 }}>
-        <Typography>{tr("Could not check your session.")}</Typography>
-        <Button variant="soft" onClick={() => { void refreshSession().catch(() => {}) }}>{tr("Retry")}</Button>
+        <Typography>{tr('Could not check your session.')}</Typography>
+        <Button
+          variant="soft"
+          onClick={() => {
+            void refreshSession().catch(() => {})
+          }}
+        >
+          {tr('Retry')}
+        </Button>
       </Stack>
     )
   }
@@ -82,32 +89,41 @@ export function App() {
     <StartupDataGate key={user.id}>
       <AppLayout>
         <ReminderDialogProvider>
-        <DirectBuildMigrationNotice />
-        <PermissionOnboarding />
-        <DesktopWidgetSync />
-        <DesktopNotificationSnooze />
-        <AnnouncementDialog />
-        <Routes>
-          <Route path="/" element={<RemindersPage />} />
-          <Route path="/upcoming" element={<UpcomingPage />} />
-          {/* Routed unconditionally even though its tab is hidden without notes: a saved
+          <DirectBuildMigrationNotice />
+          <PermissionOnboarding />
+          <DesktopWidgetSync />
+          <DesktopNotificationSnooze />
+          <AnnouncementDialog />
+          <Routes>
+            <Route path="/" element={<RemindersPage />} />
+            <Route path="/upcoming" element={<UpcomingPage />} />
+            {/* Routed unconditionally even though its tab is hidden without notes: a saved
               note lands here, and a link to it must not fall through to Current. */}
-          <Route path="/notes" element={<NotesPage />} />
-          <Route path="/reminders/new" element={<ReminderDialogLink kind="new" />} />
-          <Route path="/reminders/:id" element={<ReminderDialogLink kind="view" />} />
-          <Route path="/shared/:id" element={<SharedReminderPage />} />
-          <Route path="/assigned" element={<AssignmentsPage />} />
-          <Route path="/reminders/:id/edit" element={<ReminderDialogLink kind="edit" />} />
-          <Route path="/history" element={<HistoryPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/settings/apps" element={<PromotedAppsPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/settings/shared" element={<ReceivedSharesPage />} />
-          <Route path="/help" element={<HelpPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/delete-account" element={<DeleteAccountPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            <Route path="/notes" element={<NotesPage />} />
+            <Route
+              path="/reminders/new"
+              element={<ReminderDialogLink kind="new" />}
+            />
+            <Route
+              path="/reminders/:id"
+              element={<ReminderDialogLink kind="view" />}
+            />
+            <Route path="/shared/:id" element={<SharedReminderPage />} />
+            <Route path="/assigned" element={<AssignmentsPage />} />
+            <Route
+              path="/reminders/:id/edit"
+              element={<ReminderDialogLink kind="edit" />}
+            />
+            <Route path="/history" element={<HistoryPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/settings/apps" element={<PromotedAppsPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/settings/shared" element={<ReceivedSharesPage />} />
+            <Route path="/help" element={<HelpPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/delete-account" element={<DeleteAccountPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </ReminderDialogProvider>
       </AppLayout>
     </StartupDataGate>

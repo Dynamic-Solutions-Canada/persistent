@@ -12,7 +12,7 @@ const occurrence = {
   lastNotifiedAt: until,
   snoozedUntil: until,
   escalatedAt: null,
-  escalationSilencedAt: null
+  escalationSilencedAt: null,
 } as ReminderOccurrence
 
 test('owner snooze does not snooze a recipient', () => {
@@ -25,7 +25,22 @@ test('owner snooze does not snooze a recipient', () => {
 })
 
 test('recipient snooze is personal, while Done is shared', () => {
-  const state = { snoozedUntil: until, escalatedAt: null, escalationSilencedAt: null, lastNotifiedAt: null } as RecipientAlertState
-  assert.equal(occurrenceForActor(occurrence, 'recipient', state).status, 'SNOOZED')
-  assert.equal(occurrenceForActor({ ...occurrence, status: 'ACKNOWLEDGED' }, 'recipient', state).status, 'ACKNOWLEDGED')
+  const state = {
+    snoozedUntil: until,
+    escalatedAt: null,
+    escalationSilencedAt: null,
+    lastNotifiedAt: null,
+  } as RecipientAlertState
+  assert.equal(
+    occurrenceForActor(occurrence, 'recipient', state).status,
+    'SNOOZED',
+  )
+  assert.equal(
+    occurrenceForActor(
+      { ...occurrence, status: 'ACKNOWLEDGED' },
+      'recipient',
+      state,
+    ).status,
+    'ACKNOWLEDGED',
+  )
 })

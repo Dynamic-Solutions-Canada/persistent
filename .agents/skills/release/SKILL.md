@@ -67,6 +67,7 @@ no direct-only components"); see `apps/mobile/store/play-readiness.md` #1 and #1
 This command decides the next version, records it, and pushes the tag.
 
 Requirements:
+
 - The working tree must be clean and `HEAD` must equal `origin/<default branch>`
   before tagging (commit and push first; use `commit` or `deploy` if there are
   pending changes). If it isn't, stop and say so.
@@ -90,8 +91,8 @@ Requirements:
   - else **minor** if any commit adds functionality (subject starts with `feat`,
     `Add`, `add`, or clearly introduces a feature).
   - else **patch** (fixes, refactors, docs, chore, UI tweaks).
-  Increment from the last release version accordingly (e.g. patch: `0.1.3 -> 0.1.4`,
-  minor: `0.1.3 -> 0.2.0`, major: `0.1.3 -> 1.0.0`).
+    Increment from the last release version accordingly (e.g. patch: `0.1.3 -> 0.1.4`,
+    minor: `0.1.3 -> 0.2.0`, major: `0.1.3 -> 1.0.0`).
 - Keep the root `package.json` and `apps/web/package.json` `version` in sync: set
   both to the new version (the web one is the in-app displayed version and web build
   version; the root one labels the deployed server image). The APK's
@@ -107,6 +108,7 @@ Requirements:
   stop after showing the plan (don't tag).
 
 Recommended steps:
+
 1. `gh release list --limit 5` (and `git tag -l 'v*' --sort=-v:refname | head`)
    to find the last release version.
 2. Check `git diff --name-only <lastTag>..HEAD` against the Android release gate.
@@ -132,6 +134,7 @@ Recommended steps:
 8. Report the new version, the bump reasoning, and the release URL.
 
 Notes:
+
 - Web and server changes reach devices through the production deploy (`deploy`).
   Their presence in the bundled web fallback does not override the Android
   release gate.

@@ -25,22 +25,32 @@ import Button from '@mui/joy/Button'
 import Stack from '@mui/joy/Stack'
 import Typography from '@mui/joy/Typography'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
-import { ALARM_GRANTS, grantCopy, missingGrants, type AlarmGrant } from '../native/permissions/alarmGrants.js'
+import {
+  ALARM_GRANTS,
+  grantCopy,
+  missingGrants,
+  type AlarmGrant,
+} from '../native/permissions/alarmGrants.js'
 import { PermissionGuideDialog } from '../native/permissions/PermissionGuideDialog.js'
 import { useAlarmReadiness } from '../native/permissions/useAlarmReadiness.js'
 
 /** The banner reports every grant the app asks for. */
-const BANNER_GRANTS: readonly AlarmGrant[] = ALARM_GRANTS.map((entry) => entry.grant)
+const BANNER_GRANTS: readonly AlarmGrant[] = ALARM_GRANTS.map(
+  (entry) => entry.grant,
+)
 
 /**
  * The banner's heading. Any critical gap keeps the original alarm wording; when
  * only reliability gaps remain, the heading says so instead of claiming alarms
  * are broken.
  */
-function bannerTitle(missing: readonly AlarmGrant[], critical: boolean): string {
-  if (!critical) return tr("Alarms may be less reliable")
-  if (missing.length === 1) return tr("Alarms are not fully set up")
-  return tr("{{v0}} things are limiting your alarms", { v0: missing.length })
+function bannerTitle(
+  missing: readonly AlarmGrant[],
+  critical: boolean,
+): string {
+  if (!critical) return tr('Alarms may be less reliable')
+  if (missing.length === 1) return tr('Alarms are not fully set up')
+  return tr('{{v0}} things are limiting your alarms', { v0: missing.length })
 }
 
 /** The alarm-readiness warning at the top of the signed-in shell; renders nothing when every grant is held. */
@@ -50,7 +60,9 @@ export function AlarmPermissionsBanner() {
   const [guiding, setGuiding] = useState<AlarmGrant | null>(null)
 
   const missing = readiness ? missingGrants(readiness, BANNER_GRANTS) : []
-  const critical = missing.some((grant) => grantCopy(grant).severity === 'critical')
+  const critical = missing.some(
+    (grant) => grantCopy(grant).severity === 'critical',
+  )
   const color = critical ? 'danger' : 'warning'
 
   return (
@@ -69,8 +81,16 @@ export function AlarmPermissionsBanner() {
             <Stack spacing={1.5} sx={{ mt: 1 }}>
               {missing.map((grant) => (
                 <Box key={grant}>
-                  <Typography level="body-sm">{tr(grantCopy(grant).consequence)}</Typography>
-                  <Button size="sm" color={color} variant="solid" sx={{ mt: 0.5 }} onClick={() => setGuiding(grant)}>
+                  <Typography level="body-sm">
+                    {tr(grantCopy(grant).consequence)}
+                  </Typography>
+                  <Button
+                    size="sm"
+                    color={color}
+                    variant="solid"
+                    sx={{ mt: 0.5 }}
+                    onClick={() => setGuiding(grant)}
+                  >
                     {tr(grantCopy(grant).title)}
                   </Button>
                 </Box>

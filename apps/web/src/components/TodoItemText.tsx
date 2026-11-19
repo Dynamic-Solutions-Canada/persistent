@@ -28,7 +28,7 @@ export function TodoItemText({
   text,
   struck,
   onRename,
-  disabled
+  disabled,
 }: {
   text: string
   /** Ticked: struck through and dimmed, but still legible — the list is the record. */
@@ -99,7 +99,7 @@ export function TodoItemText({
       <Box
         role="button"
         tabIndex={0}
-        aria-label={tr("Edit {{v0}}", { v0: text })}
+        aria-label={tr('Edit {{v0}}', { v0: text })}
         onClick={beginEditing}
         onKeyDown={(event) => {
           if (event.key === 'Enter' || event.key === ' ') {
@@ -118,13 +118,10 @@ export function TodoItemText({
           px: 0.5,
           borderRadius: 'sm',
           cursor: 'text',
-          '&:hover': { bgcolor: 'background.level1' }
+          '&:hover': { bgcolor: 'background.level1' },
         }}
       >
-        <Typography
-          level="body-sm"
-          sx={checklistItemTextSx(struck)}
-        >
+        <Typography level="body-sm" sx={checklistItemTextSx(struck)}>
           {text}
         </Typography>
       </Box>
@@ -138,7 +135,10 @@ export function TodoItemText({
         autoFocus
         size="sm"
         value={draft}
-        onChange={(event) => { setDraft(event.target.value); setSaveError(null) }}
+        onChange={(event) => {
+          setDraft(event.target.value)
+          setSaveError(null)
+        }}
         onKeyDown={(event) => {
           if (event.key === 'Enter') {
             event.preventDefault()
@@ -148,19 +148,40 @@ export function TodoItemText({
             setEditing(false)
           }
         }}
-        onBlur={() => { if (!saveError) void commit() }}
+        onBlur={() => {
+          if (!saveError) void commit()
+        }}
         slotProps={{
-          input: { ref: input, 'aria-label': tr('Edit {{text}}', { text }), maxLength: MAX_TODO_ITEM_TEXT, enterKeyHint: 'done' }
+          input: {
+            ref: input,
+            'aria-label': tr('Edit {{text}}', { text }),
+            maxLength: MAX_TODO_ITEM_TEXT,
+            enterKeyHint: 'done',
+          },
         }}
         sx={{ flex: 1, minWidth: 0 }}
       />
-      {saveError && <Box>
-        <Typography level="body-xs" color="danger" role="alert"><Trans i18nKey={"<v0/> Your draft is kept above."} components={{ v0: <>{saveError}</> }} /></Typography>
-        <Button size="sm" variant="plain" color="neutral" onClick={() => {
-          setDraft(text)
-          setEditing(false)
-        }}>{tr("Cancel edit and show latest")}</Button>
-      </Box>}
+      {saveError && (
+        <Box>
+          <Typography level="body-xs" color="danger" role="alert">
+            <Trans
+              i18nKey={'<v0/> Your draft is kept above.'}
+              components={{ v0: <>{saveError}</> }}
+            />
+          </Typography>
+          <Button
+            size="sm"
+            variant="plain"
+            color="neutral"
+            onClick={() => {
+              setDraft(text)
+              setEditing(false)
+            }}
+          >
+            {tr('Cancel edit and show latest')}
+          </Button>
+        </Box>
+      )}
     </Box>
   )
 }

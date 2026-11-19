@@ -7,7 +7,7 @@ test('giving an unscheduled reminder a schedule retires its immediate firing', (
   assert.equal(scheduleTransition('none', 'once'), 'retire')
 })
 
-test('taking a reminder\'s schedule away asks for the unscheduled firing', () => {
+test("taking a reminder's schedule away asks for the unscheduled firing", () => {
   // The reported bug was this branch simply not existing: the reminder became
   // unscheduled, materialization minted a firing anyway, and the one its old
   // schedule had left unconfirmed stayed put — two identical cards.

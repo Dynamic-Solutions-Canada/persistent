@@ -13,11 +13,15 @@ import { useLocation } from 'react-router-dom'
 import {
   hasPendingBackAwareDialog,
   reserveBackAwareDialog,
-  subscribeBackAwareDialogs
+  subscribeBackAwareDialogs,
 } from '../../components/backAwareDialogStack.js'
 import { useStartupDataReady } from '../../components/startupDataContext.js'
 import type { AlarmGrant } from './alarmGrants.js'
-import { grantsToOffer, readOfferedGrants, recordOfferedGrants } from './guideOffers.js'
+import {
+  grantsToOffer,
+  readOfferedGrants,
+  recordOfferedGrants,
+} from './guideOffers.js'
 import { PermissionGuideDialog } from './PermissionGuideDialog.js'
 import { useAlarmReadiness } from './useAlarmReadiness.js'
 
@@ -25,7 +29,11 @@ import { useAlarmReadiness } from './useAlarmReadiness.js'
 export function PermissionOnboarding() {
   const ready = useStartupDataReady()
   const { pathname } = useLocation()
-  const otherDialogOpen = useSyncExternalStore(subscribeBackAwareDialogs, hasPendingBackAwareDialog, () => false)
+  const otherDialogOpen = useSyncExternalStore(
+    subscribeBackAwareDialogs,
+    hasPendingBackAwareDialog,
+    () => false,
+  )
   const { readiness } = useAlarmReadiness()
   const [scope, setScope] = useState<AlarmGrant[] | null>(null)
   // Offer at most once per app session; the next launch re-evaluates.
@@ -37,7 +45,8 @@ export function PermissionOnboarding() {
     // Another automatic dialog can register in this same commit.
     if (hasPendingBackAwareDialog()) return
     // A tapped notification is opening a reminder; that comes first.
-    if (pathname.startsWith('/reminders/') || pathname.startsWith('/shared/')) return
+    if (pathname.startsWith('/reminders/') || pathname.startsWith('/shared/'))
+      return
 
     setConsidered(true)
     const offer = grantsToOffer(readiness, readOfferedGrants())

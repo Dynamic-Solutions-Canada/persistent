@@ -169,16 +169,16 @@ never poll in components.
 
 Event types (`packages/shared/src/ws-events.ts`):
 
-| Event | Meaning | Client reaction |
-|---|---|---|
-| `occurrence.fired` | an occurrence became due | invalidate active/upcoming/history occurrences + reminders |
+| Event                | Meaning                                   | Client reaction                                                                                                                 |
+| -------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `occurrence.fired`   | an occurrence became due                  | invalidate active/upcoming/history occurrences + reminders                                                                      |
 | `occurrence.changed` | status changed (ack/undo/snooze/escalate) | invalidate active/upcoming/history occurrences + reminders (a confirmed one-time or unscheduled reminder drops out of Upcoming) |
-| `reminder.changed` | a reminder was created/updated/deleted | invalidate reminders + occurrences (active/upcoming/history) |
-| `share.changed` | a grant or invitation changed | invalidate received reminders, owner reminder sharing counts, and owner share lists; reset received caches after access removal |
-| `assignment.changed` | an invitation or assignee firing changed | invalidate the creator's status view and assignee assignment labels |
-| `dismiss` | clear a shown notification everywhere | native clients close it |
-| `silence` | stop an escalation alarm but keep nagging | native clients downgrade the alarm |
-| `ping` | heartbeat | ignored |
+| `reminder.changed`   | a reminder was created/updated/deleted    | invalidate reminders + occurrences (active/upcoming/history)                                                                    |
+| `share.changed`      | a grant or invitation changed             | invalidate received reminders, owner reminder sharing counts, and owner share lists; reset received caches after access removal |
+| `assignment.changed` | an invitation or assignee firing changed  | invalidate the creator's status view and assignee assignment labels                                                             |
+| `dismiss`            | clear a shown notification everywhere     | native clients close it                                                                                                         |
+| `silence`            | stop an escalation alarm but keep nagging | native clients downgrade the alarm                                                                                              |
+| `ping`               | heartbeat                                 | ignored                                                                                                                         |
 
 After a local Done action settles, the web client also invalidates the active,
 upcoming, and history occurrence feeds and the reminder list. This refreshes
@@ -255,7 +255,7 @@ unconfirmed firings are real and stay put, and the unscheduled firing is minted
 only when none of them are (`ensureUnscheduledFiring`), so there is never a
 second, indistinguishable card for the same reminder.
 
-`POST /api/occurrences/:id/ack` only applies to a *nagging* occurrence. Allowed
+`POST /api/occurrences/:id/ack` only applies to a _nagging_ occurrence. Allowed
 when the occurrence is `FIRED`/`SNOOZED`/`ESCALATED`, or `PENDING` but already
 **due** (`scheduledFor <= now` — the native on-device alarm can fire up to one
 tick before the server flips it to `FIRED`). Re-acking an already-`ACKNOWLEDGED`
@@ -269,7 +269,7 @@ the next sync). See `apps/api/src/lib/occurrence-ack.ts`.
 
 ## Cross-device silence
 
-Silencing an **escalation** alarm (`POST /api/occurrences/:id/silence`) is *not* a
+Silencing an **escalation** alarm (`POST /api/occurrences/:id/silence`) is _not_ a
 dismiss: the occurrence stays `FIRED` and keeps nagging — only the loud alarm
 stops, and it never escalates again (`escalationSilencedAt` suppresses the sweep
 and the on-device escalation alarm). The server reverts `ESCALATED → FIRED`, then
@@ -299,7 +299,7 @@ recipient's setting transactionally and omits the owner's prominence column.
 ## Checklist ticks
 
 A `TODO` reminder's items live on the reminder (`typeData.items`, each with a
-stable client-minted id); the *ticked* ids live per firing, on the occurrence
+stable client-minted id); the _ticked_ ids live per firing, on the occurrence
 (`ReminderOccurrence.checkedItems`). A repeating checklist therefore starts every
 firing blank — yesterday's ticks say nothing about today's.
 
@@ -314,13 +314,13 @@ cleared whenever the reminder stops being a note.
 time, deliberately, rather than "here is the whole checked set": these mutations
 queue offline and replay later, and a whole-set write would let a stale replay
 wipe ticks made in the meantime. Each toggle is idempotent, so a replayed
-duplicate is a no-op. It applies only to a *nagging* occurrence
+duplicate is a no-op. It applies only to a _nagging_ occurrence
 (`FIRED`/`SNOOZED`/`ESCALATED`) — same guard as silence/snooze, so a toggle drained
 after the ack can't rewrite a finished firing's record.
 
 Ticking every item **does not acknowledge** the occurrence — only Done clears a
 firing (`notification-behavior.md` §1). The server broadcasts `occurrence.changed`
-over WS **and** sends a sync nudge: the notification body is only the *unticked*
+over WS **and** sends a sync nudge: the notification body is only the _unticked_
 items, so a tick changes the text of an already-armed alarm. Native devices re-pull
 `/api/sync/occurrences` and re-post the nag silently (`alertOnce`, so a refreshed
 body never re-alerts); web clients converge over the WS event, while the FCM sync
@@ -357,7 +357,7 @@ only shows part of.
 The append is **one atomic `jsonb` statement** (`||` onto `typeData.items`), like a
 tick's, because the add row stays open for the next line: two adds are routinely in
 flight, and a read-modify-write would have both read the same list and the second
-overwrite the first. `updatedAt` *is* bumped, unlike a tick's statement — this
+overwrite the first. `updatedAt` _is_ bumped, unlike a tick's statement — this
 changes the definition, so a later-replayed older edit must lose to it
 (`isStaleWrite`). The shape of `typeData` is settled in TypeScript before the
 statement runs: Postgres does not promise WHERE-clause evaluation order, so a
@@ -407,7 +407,7 @@ add read a moment earlier would otherwise be silently undone. `withTodoOrder` st
 same rule in TypeScript for the optimistic cache update, so the two agree.
 
 `reminder.changed` over WS **and** a sync nudge, like adding — the notification body
-lists the unticked items *in order*, so a reorder changes the text of an already-armed
+lists the unticked items _in order_, so a reorder changes the text of an already-armed
 alarm. A note skips the nudge, as always.
 
 **One write per gesture.** The checklist holds the order locally while the finger is down and
@@ -442,7 +442,7 @@ notification body, so an armed alarm's text is stale without it. A note skips th
 as always.
 
 **Ids and order are untouched, which is the point.** A rename changes what a line
-*says*, not which line it is, so a firing part-way through the checklist keeps its ticks
+_says_, not which line it is, so a firing part-way through the checklist keeps its ticks
 against the same items (`notification-behavior.md` §1a).
 
 ## Hiding ticked checklist items
@@ -456,7 +456,7 @@ list left collapsed on one device is still collapsed on the next.
 It is the one **display** preference that is server-synced. The rest (time
 format, theme, this device's own chosen sounds, the default shade prominence) are
 deliberately per-device in the web client's localStorage — they describe a device,
-whereas this describes one *list*. A *reminder's* own tones (`Reminder.sounds`) are
+whereas this describes one _list_. A _reminder's_ own tones (`Reminder.sounds`) are
 the counterpart to its own `shadeProminence`: part of the definition rather than a
 preference, so they sync with it.
 
@@ -465,7 +465,7 @@ flag, so a stale replay can only restore a view the user themselves chose, while
 "toggle" replayed twice would land on the opposite of what they asked for.
 
 `reminder.changed` over WS, and **no** push and **no** sync nudge — unlike a
-tick. Notification text is built from the *unticked* items either way, so no
+tick. Notification text is built from the _unticked_ items either way, so no
 armed alarm goes stale because someone collapsed a list, and nothing about the
 done/nag guarantee is affected. Applied optimistically on the web
 (`mutationKeys.hideCheckedItems`), like the tick it sits beside.
@@ -487,11 +487,11 @@ an editor draft nor reset its definition conflict token.
 `GET /api/sync/occurrences` answers two different questions in one round trip, and the
 difference is worth keeping straight:
 
-- **`alarms`** — what the device should *arm*: everything due plus the next 48 hours,
+- **`alarms`** — what the device should _arm_: everything due plus the next 48 hours,
   expanded server-side into concrete on-device alarms (`deviceAlarmSchema`,
   `lib/device-alarms.ts`). Every entry is an exact alarm the OS has to hold, which is why
   the window is narrow.
-- **`agenda`** — what it should be able to *list*: seven days of firings plus every
+- **`agenda`** — what it should be able to _list_: seven days of firings plus every
   **note** (`deviceAgendaEntrySchema`). Read-only by construction — no sound, no
   persistence level, no escalation instant, nothing that could ring — and stored on the
   device in its own `AgendaStore`, never `AlarmStore`, so no code path that arms alarms
@@ -506,7 +506,7 @@ sync leave the device holding the same list. A note appears there with **no**
 flag is what stops a surface offering it anyway.
 
 The agenda is additive to an older client, which simply ignores it, and absent from an
-older *server*, which leaves a new client's list at whatever the alarm set covers.
+older _server_, which leaves a new client's list at whatever the alarm set covers.
 
 ## Native sync nudge
 
@@ -534,7 +534,6 @@ permanent Settings guidance. Both GitHub APK downloads and Google Play are offer
 the Store is optional. Signing into the same account in the new app restores
 server-saved reminders. Local preferences and unfinished offline edits are not
 transferred between these separate apps.
-
 
 All checklist definition mutations (append, reorder, rename, delete) use the same
 parent row lock as full-editor saves and membership changes; hide-checked uses

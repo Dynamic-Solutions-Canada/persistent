@@ -57,7 +57,7 @@ export type ShadeProminence = (typeof shadeProminenceLevels)[number]
  */
 export const soundChoiceSchema = z.object({
   uri: z.string().trim().max(2048),
-  title: z.string().trim().max(200)
+  title: z.string().trim().max(200),
 })
 export type SoundChoice = z.infer<typeof soundChoiceSchema>
 
@@ -84,7 +84,7 @@ export const reminderSoundsSchema = z.object({
   /** Each re-sound of the `soundIntervalSeconds` loop; null also falls back to `notification`. */
   nag: soundChoiceSchema.nullable().default(null),
   /** A ringing alarm — inherent `ALARM` persistence, or an escalation. */
-  alarm: soundChoiceSchema.nullable().default(null)
+  alarm: soundChoiceSchema.nullable().default(null),
 })
 export type ReminderSounds = z.infer<typeof reminderSoundsSchema>
 
@@ -113,14 +113,23 @@ export const occurrenceStatuses = [
   // Legacy: a newer firing used to auto-resolve older still-unconfirmed
   // occurrences of the same reminder. Occurrences are now independent, so the
   // scheduler no longer assigns this — kept only for existing history rows.
-  'SUPERSEDED'
+  'SUPERSEDED',
 ] as const
 export const occurrenceStatusSchema = z.enum(occurrenceStatuses)
 export type OccurrenceStatus = (typeof occurrenceStatuses)[number]
 
 // --- Schedule ---
 
-export const scheduleKinds = ['none', 'never', 'once', 'daily', 'weekly', 'monthly', 'interval', 'custom'] as const
+export const scheduleKinds = [
+  'none',
+  'never',
+  'once',
+  'daily',
+  'weekly',
+  'monthly',
+  'interval',
+  'custom',
+] as const
 export const scheduleKindSchema = z.enum(scheduleKinds)
 export type ScheduleKind = (typeof scheduleKinds)[number]
 
@@ -135,7 +144,9 @@ export function isTimeless(kind: ScheduleKind): boolean {
 }
 
 /** "HH:mm" local time-of-day, 24-hour. */
-export const timeOfDaySchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Expected HH:mm')
+export const timeOfDaySchema = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Expected HH:mm')
 
 /**
  * Structured recurrence. Times are interpreted in the owning user's time zone.
@@ -177,12 +188,16 @@ export const scheduleSchema = z
     // Monthly only: also fire on whatever the final day of that month is (28-31).
     lastDayOfMonth: z.boolean().optional(),
     everyNDays: z.number().int().min(1).max(365).optional(),
-    skipWeekends: z.boolean().optional()
+    skipWeekends: z.boolean().optional(),
   })
   .superRefine((value, ctx) => {
     // Every kind but the timeless two fires at a wall-clock time, so it needs one.
     if (!isTimeless(value.kind) && value.timesOfDay.length === 0) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['timesOfDay'], message: 'Pick at least one time of day.' })
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['timesOfDay'],
+        message: 'Pick at least one time of day.',
+      })
     }
     if (isTimeless(value.kind) && value.timesOfDay.length > 0) {
       ctx.addIssue({
@@ -191,23 +206,38 @@ export const scheduleSchema = z
         message:
           value.kind === 'never'
             ? 'A note never fires, so it has no time of day.'
-            : 'An unscheduled reminder has no time of day.'
+            : 'An unscheduled reminder has no time of day.',
       })
     }
-    if ((value.kind === 'weekly' || value.kind === 'custom') && (!value.daysOfWeek || value.daysOfWeek.length === 0)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['daysOfWeek'], message: 'Pick at least one weekday.' })
+    if (
+      (value.kind === 'weekly' || value.kind === 'custom') &&
+      (!value.daysOfWeek || value.daysOfWeek.length === 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['daysOfWeek'],
+        message: 'Pick at least one weekday.',
+      })
     }
     // Either named days or "last day of the month" satisfies monthly — "the last
     // day" is a complete schedule on its own, with no numbered day to pick.
-    if (value.kind === 'monthly' && !value.lastDayOfMonth && !value.daysOfMonth?.length) {
+    if (
+      value.kind === 'monthly' &&
+      !value.lastDayOfMonth &&
+      !value.daysOfMonth?.length
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['daysOfMonth'],
-        message: 'Pick at least one day of the month.'
+        message: 'Pick at least one day of the month.',
       })
     }
     if (value.kind === 'interval' && !value.everyNDays) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['everyNDays'], message: 'Set the day interval.' })
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['everyNDays'],
+        message: 'Set the day interval.',
+      })
     }
   })
 export type Schedule = z.infer<typeof scheduleSchema>
@@ -219,7 +249,7 @@ export const medicationDataSchema = z.object({
   // The medication's name (e.g. "Ibuprofen").
   name: z.string().trim().max(120).optional(),
   unit: z.string().trim().max(20).optional(),
-  quantity: z.number().min(0).max(10_000).optional()
+  quantity: z.number().min(0).max(10_000).optional(),
 })
 export type MedicationData = z.infer<typeof medicationDataSchema>
 
@@ -250,7 +280,7 @@ export const MAX_TODO_ITEM_TEXT = 200
  */
 export const todoItemSchema = z.object({
   id: z.string().trim().min(1).max(64),
-  text: z.string().trim().min(1).max(MAX_TODO_ITEM_TEXT)
+  text: z.string().trim().min(1).max(MAX_TODO_ITEM_TEXT),
 })
 export type TodoItem = z.infer<typeof todoItemSchema>
 
@@ -272,7 +302,9 @@ export function formatMedication(med: MedicationData): string {
 
 /** Medications on a reminder's typeData (the `medications` array, or a legacy single row). */
 export function medicationList(typeData: TypeData): MedicationData[] {
-  const data = (typeData ?? {}) as { medications?: MedicationData[] } & MedicationData
+  const data = (typeData ?? {}) as {
+    medications?: MedicationData[]
+  } & MedicationData
   const meds = data.medications?.length
     ? data.medications
     : data.name || data.unit || data.quantity != null
@@ -333,7 +365,10 @@ export function withoutTodoItem(typeData: TypeData, itemId: string): TypeData {
  * (`docs/notification-behavior.md` §1a). Callers that render an interactive
  * checklist pass nothing and get every item.
  */
-export function formatTodoItems(typeData: TypeData, checkedItemIds: readonly string[] = []): string {
+export function formatTodoItems(
+  typeData: TypeData,
+  checkedItemIds: readonly string[] = [],
+): string {
   const checked = new Set(checkedItemIds)
   return todoItems(typeData)
     .filter((item) => !checked.has(item.id))
@@ -346,9 +381,15 @@ export function formatTodoItems(typeData: TypeData, checkedItemIds: readonly str
  * the reminder's *current* items, so ticks left behind by a since-deleted item
  * never inflate the count past the total.
  */
-export function todoProgress(items: TodoItem[], checkedItemIds: readonly string[]): { done: number; total: number } {
+export function todoProgress(
+  items: TodoItem[],
+  checkedItemIds: readonly string[],
+): { done: number; total: number } {
   const checked = new Set(checkedItemIds)
-  return { done: items.filter((item) => checked.has(item.id)).length, total: items.length }
+  return {
+    done: items.filter((item) => checked.has(item.id)).length,
+    total: items.length,
+  }
 }
 
 /**
@@ -370,7 +411,7 @@ export function reminderBodyText(
     typeData: TypeData
     details: string | null
   },
-  checkedItemIds: readonly string[] = []
+  checkedItemIds: readonly string[] = [],
 ): string {
   const parts: string[] = []
   let multiline = false
@@ -440,7 +481,10 @@ export const reminderSchema = z.object({
   // Status of the most recent occurrence at or before now (done/snoozed/etc.),
   // for the list view. Null when nothing has fired yet.
   lastOccurrence: z
-    .object({ status: occurrenceStatusSchema, scheduledFor: z.string().datetime() })
+    .object({
+      status: occurrenceStatusSchema,
+      scheduledFor: z.string().datetime(),
+    })
     .nullable()
     .default(null),
   // The owner list supplies these counts for sharing markers. Older cached rows
@@ -448,7 +492,7 @@ export const reminderSchema = z.object({
   shareCount: z.number().int().nonnegative().default(0),
   invitationCount: z.number().int().nonnegative().default(0),
   createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime()
+  updatedAt: z.string().datetime(),
 })
 export type Reminder = z.infer<typeof reminderSchema>
 
@@ -457,7 +501,7 @@ export const sharePermissionSchema = z.enum(['VIEW', 'ACT', 'EDIT'])
 export type SharePermission = z.infer<typeof sharePermissionSchema>
 export const shareInputSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254),
-  permission: sharePermissionSchema
+  permission: sharePermissionSchema,
 })
 export type ShareInput = z.infer<typeof shareInputSchema>
 /** Initial grants are created with the reminder, so a queued create keeps them together. */
@@ -471,14 +515,18 @@ export const reminderShareSchema = z.object({
   displayName: z.string().nullable(),
   permission: sharePermissionSchema,
   pending: z.boolean(),
-  canRemove: z.boolean().optional()
+  canRemove: z.boolean().optional(),
 })
 export type ReminderShare = z.infer<typeof reminderShareSchema>
 
 /** Sharing roster visible only to the owner and explicit current members. */
 export const reminderSharingSchema = z.object({
-  owner: z.object({ id: z.string(), email: z.string(), displayName: z.string().nullable() }),
-  shares: z.array(reminderShareSchema)
+  owner: z.object({
+    id: z.string(),
+    email: z.string(),
+    displayName: z.string().nullable(),
+  }),
+  shares: z.array(reminderShareSchema),
 })
 export type ReminderSharingAccess = z.infer<typeof reminderSharingSchema>
 
@@ -496,20 +544,24 @@ export const sharedReminderSchema = z.object({
   ownerTimeZone: z.string(),
   nextScheduledFor: z.string().datetime().nullable(),
   permission: sharePermissionSchema,
-  activeFirings: z.array(z.object({
-    id: z.string(),
-    status: occurrenceStatusSchema,
-    scheduledFor: z.string().datetime(),
-    snoozedUntil: z.string().datetime().nullable(),
-    checkedItemIds: z.array(z.string())
-  })),
+  activeFirings: z.array(
+    z.object({
+      id: z.string(),
+      status: occurrenceStatusSchema,
+      scheduledFor: z.string().datetime(),
+      snoozedUntil: z.string().datetime().nullable(),
+      checkedItemIds: z.array(z.string()),
+    }),
+  ),
   editableReminder: reminderSchema.nullable(),
-  updatedAt: z.string().datetime()
+  updatedAt: z.string().datetime(),
 })
 export type SharedReminder = z.infer<typeof sharedReminderSchema>
 
 /** "YYYY-MM-DD" calendar date in the user's time zone. */
-export const calendarDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected YYYY-MM-DD')
+export const calendarDateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected YYYY-MM-DD')
 
 export const reminderInputSchema = z
   .object({
@@ -520,47 +572,87 @@ export const reminderInputSchema = z
     schedule: scheduleSchema,
     persistence: persistenceLevelSchema.default('PERSISTENT'),
     // null = no repeating sound; otherwise seconds between sound repeats (up to ~1 year).
-    soundIntervalSeconds: z.number().int().min(5).max(31_536_000).nullable().default(null),
+    soundIntervalSeconds: z
+      .number()
+      .int()
+      .min(5)
+      .max(31_536_000)
+      .nullable()
+      .default(null),
     // Per-reminder tone overrides; omitted entirely = override nothing, which is
     // what every reminder written before this field existed means.
     sounds: reminderSoundsSchema.default(noReminderSounds()),
     shadeProminence: shadeProminenceSchema.default('INHERIT'),
     // Minutes after firing before escalating to an alarm (up to ~1 year).
-    escalateAfterMinutes: z.number().int().min(1).max(525_600).nullable().default(null),
+    escalateAfterMinutes: z
+      .number()
+      .int()
+      .min(1)
+      .max(525_600)
+      .nullable()
+      .default(null),
     escalateAtTime: timeOfDaySchema.nullable().default(null),
-    escalateEmail: z.string().trim().toLowerCase().email().max(254).nullable().default(null),
+    escalateEmail: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .email()
+      .max(254)
+      .nullable()
+      .default(null),
     escalateEmailMessage: z.string().trim().max(2000).nullable().default(null),
-    escalateEmailAfterMinutes: z.number().int().min(1).max(525_600).nullable().default(null),
+    escalateEmailAfterMinutes: z
+      .number()
+      .int()
+      .min(1)
+      .max(525_600)
+      .nullable()
+      .default(null),
     active: z.boolean().default(true),
     startDate: calendarDateSchema,
-    endDate: calendarDateSchema.nullable().default(null)
+    endDate: calendarDateSchema.nullable().default(null),
   })
   .superRefine((value, ctx) => {
     if (value.endDate && value.endDate < value.startDate) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['endDate'], message: 'End date must be on or after the start date.' })
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['endDate'],
+        message: 'End date must be on or after the start date.',
+      })
     }
     // A checklist reminder with no checklist is just a reminder — say so rather
     // than saving a TODO the detail view has nothing to render.
     if (value.type === 'TODO') {
       const items = todoItems(value.typeData)
       if (items.length === 0) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['typeData'], message: 'Add at least one item.' })
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['typeData'],
+          message: 'Add at least one item.',
+        })
       }
       // Item ids key the per-occurrence checked set, so a duplicate would tick two
       // items at once. Rejected here rather than silently de-duplicated: the client
       // mints these, and a collision means its id generator is broken.
       if (new Set(items.map((item) => item.id)).size !== items.length) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['typeData'], message: 'Checklist items need distinct ids.' })
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['typeData'],
+          message: 'Checklist items need distinct ids.',
+        })
       }
     }
     const escalates =
-      value.escalateAfterMinutes != null || value.escalateAtTime != null || value.escalateEmailAfterMinutes != null
+      value.escalateAfterMinutes != null ||
+      value.escalateAtTime != null ||
+      value.escalateEmailAfterMinutes != null
     // An ALARM already rings continuously until done, so escalation is redundant.
     if (value.persistence === 'ALARM' && escalates) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['persistence'],
-        message: 'Alarm reminders already ring continuously — escalation does not apply.'
+        message:
+          'Alarm reminders already ring continuously — escalation does not apply.',
       })
     }
     // Escalation chases an *ignored firing*. A note has none, ever, so storing one
@@ -569,7 +661,7 @@ export const reminderInputSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['schedule'],
-        message: 'A note never fires — escalation does not apply.'
+        message: 'A note never fires — escalation does not apply.',
       })
     }
   })
@@ -577,20 +669,30 @@ export type ReminderInput = z.input<typeof reminderInputSchema>
 export type ReminderInputParsed = z.output<typeof reminderInputSchema>
 
 /** A definition save carries the server version the editor opened, never a client clock. */
-export const reminderUpdateInputSchema = reminderInputSchema.and(z.object({
-  expectedUpdatedAt: z.string().datetime().optional(),
-  clientEditedAt: z.string().datetime().optional()
-}))
+export const reminderUpdateInputSchema = reminderInputSchema.and(
+  z.object({
+    expectedUpdatedAt: z.string().datetime().optional(),
+    clientEditedAt: z.string().datetime().optional(),
+  }),
+)
 export type ReminderUpdateInput = z.input<typeof reminderUpdateInputSchema>
 
 /** A focused reading-view edit that cannot replace unrelated reminder fields. */
-export const reminderContentInputSchema = z.object({
-  title: z.string().trim().min(1).max(200).optional(),
-  details: z.string().trim().max(2000).nullable().optional(),
-  expectedText: z.string().max(2000).optional()
-}).refine((value) => Number(value.title !== undefined) + Number(value.details !== undefined) === 1, {
-  message: 'Choose one text field to update.'
-})
+export const reminderContentInputSchema = z
+  .object({
+    title: z.string().trim().min(1).max(200).optional(),
+    details: z.string().trim().max(2000).nullable().optional(),
+    expectedText: z.string().max(2000).optional(),
+  })
+  .refine(
+    (value) =>
+      Number(value.title !== undefined) +
+        Number(value.details !== undefined) ===
+      1,
+    {
+      message: 'Choose one text field to update.',
+    },
+  )
 export type ReminderContentInput = z.infer<typeof reminderContentInputSchema>
 
 // --- Occurrence DTO ---
@@ -633,8 +735,8 @@ export const occurrenceSchema = z.object({
     hideCheckedItems: true,
     persistence: true,
     soundIntervalSeconds: true,
-    shadeProminence: true
-  })
+    shadeProminence: true,
+  }),
 })
 export type Occurrence = z.infer<typeof occurrenceSchema>
 
@@ -655,7 +757,7 @@ export type Occurrence = z.infer<typeof occurrenceSchema>
 export const occurrenceListSchema = z.object({
   occurrences: z.array(occurrenceSchema),
   /** Pass as `?cursor=` for the next page. Null means this was the last one. */
-  nextCursor: z.string().nullable().default(null)
+  nextCursor: z.string().nullable().default(null),
 })
 export type OccurrenceList = z.infer<typeof occurrenceListSchema>
 
@@ -668,8 +770,10 @@ export const MAX_SNOOZE_MINUTES = 525_600
 
 /** Duration snoozes start when handled; an Until snooze keeps its chosen instant. */
 export const snoozeInputSchema = z.union([
-  z.object({ minutes: z.number().int().min(1).max(MAX_SNOOZE_MINUTES) }).strict(),
-  z.object({ until: z.string().datetime() }).strict()
+  z
+    .object({ minutes: z.number().int().min(1).max(MAX_SNOOZE_MINUTES) })
+    .strict(),
+  z.object({ until: z.string().datetime() }).strict(),
 ])
 export type SnoozeInput = z.infer<typeof snoozeInputSchema>
 
@@ -683,7 +787,7 @@ export type SnoozeInput = z.infer<typeof snoozeInputSchema>
  */
 export const checkItemInputSchema = z.object({
   itemId: z.string().trim().min(1).max(64),
-  checked: z.boolean()
+  checked: z.boolean(),
 })
 export type CheckItemInput = z.infer<typeof checkItemInputSchema>
 
@@ -713,7 +817,7 @@ export type AddTodoItemInput = z.infer<typeof addTodoItemInputSchema>
  */
 export const renameTodoItemInputSchema = z.object({
   text: z.string().trim().min(1).max(MAX_TODO_ITEM_TEXT),
-  expectedText: z.string().max(MAX_TODO_ITEM_TEXT).optional()
+  expectedText: z.string().max(MAX_TODO_ITEM_TEXT).optional(),
 })
 export type RenameTodoItemInput = z.infer<typeof renameTodoItemInputSchema>
 
@@ -723,10 +827,17 @@ export type RenameTodoItemInput = z.infer<typeof renameTodoItemInputSchema>
  * items: renaming is the one edit that changes what a line *says* without changing
  * which line it is.
  */
-export function withTodoItemText(typeData: TypeData, itemId: string, text: string): TypeData {
+export function withTodoItemText(
+  typeData: TypeData,
+  itemId: string,
+  text: string,
+): TypeData {
   const items = todoItems(typeData)
   if (!items.some((item) => item.id === itemId)) return typeData
-  return { ...typeData, items: items.map((item) => (item.id === itemId ? { ...item, text } : item)) }
+  return {
+    ...typeData,
+    items: items.map((item) => (item.id === itemId ? { ...item, text } : item)),
+  }
 }
 
 /**
@@ -744,7 +855,7 @@ export function withTodoItemText(typeData: TypeData, itemId: string, text: strin
  * carries its ticked state with it (`todoItemSchema`).
  */
 export const reorderTodoItemsInputSchema = z.object({
-  itemIds: z.array(z.string().trim().min(1).max(64)).max(MAX_TODO_ITEMS)
+  itemIds: z.array(z.string().trim().min(1).max(64)).max(MAX_TODO_ITEMS),
 })
 export type ReorderTodoItemsInput = z.infer<typeof reorderTodoItemsInputSchema>
 
@@ -753,13 +864,20 @@ export type ReorderTodoItemsInput = z.infer<typeof reorderTodoItemsInputSchema>
  * of `POST /api/reminders/:id/items/order`, and the single statement of the ranking
  * rule the endpoint's SQL encodes.
  */
-export function withTodoOrder(typeData: TypeData, itemIds: readonly string[]): TypeData {
+export function withTodoOrder(
+  typeData: TypeData,
+  itemIds: readonly string[],
+): TypeData {
   const items = todoItems(typeData)
   const rank = new Map(itemIds.map((id, index) => [id, index]))
   // Anything unranked sorts after everything ranked, keeping its own relative order:
   // it is either new or unknown to whoever sent this, and both mean "leave it be".
   const ordered = items
-    .map((item, index) => ({ item, index, rank: rank.get(item.id) ?? Number.POSITIVE_INFINITY }))
+    .map((item, index) => ({
+      item,
+      index,
+      rank: rank.get(item.id) ?? Number.POSITIVE_INFINITY,
+    }))
     .sort((a, b) => a.rank - b.rank || a.index - b.index)
     .map((entry) => entry.item)
   return { ...typeData, items: ordered }
@@ -774,10 +892,12 @@ export function withTodoOrder(typeData: TypeData, itemIds: readonly string[]): T
  * asked for.
  */
 export const hideCheckedInputSchema = z.object({
-  hidden: z.boolean()
+  hidden: z.boolean(),
 })
 export type HideCheckedInput = z.infer<typeof hideCheckedInputSchema>
 
 /** Bind an undo to the completion the user actually saw; stale retries cannot undo a later Done. */
-export const undoDoneInputSchema = z.object({ acknowledgedAt: z.string().datetime() })
+export const undoDoneInputSchema = z.object({
+  acknowledgedAt: z.string().datetime(),
+})
 export type UndoDoneInput = z.infer<typeof undoDoneInputSchema>

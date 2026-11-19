@@ -11,7 +11,12 @@
  */
 import { requestLocale } from '../lib/request-locale.js'
 import { Router } from 'express'
-import { isTimeless, type DeviceAgendaEntry, type DeviceAlarm, type Schedule } from '@persistent/shared'
+import {
+  isTimeless,
+  type DeviceAgendaEntry,
+  type DeviceAlarm,
+  type Schedule,
+} from '@persistent/shared'
 import { prisma } from '../lib/prisma.js'
 import { requireUser, requireUserId } from '../lib/auth-middleware.js'
 import { toOccurrence, toCheckedItemIds } from '../lib/serializers.js'
@@ -51,26 +56,42 @@ syncRouter.get('/occurrences', async (request, response) => {
   // reconciliation. Avoid projecting the seven-day agenda on every background
   // refresh when the caller explicitly asks for that narrower response.
   const alarmsOnly = request.query.alarmsOnly === 'true'
-  const queryUntil = new Date(now.getTime() + (alarmsOnly ? SYNC_WINDOW_MS : AGENDA_WINDOW_MS))
+  const queryUntil = new Date(
+    now.getTime() + (alarmsOnly ? SYNC_WINDOW_MS : AGENDA_WINDOW_MS),
+  )
   // One query for both windows: the agenda is the wider of the two, and the armed set
   // is the near slice of it. Two queries would let them disagree mid-flight. Soonest
   // first, so the `take` can only ever cost the far end of the *agenda* — the armed
   // window is at the head of the list and is never the thing that gets cut.
   const occurrences = await prisma.reminderOccurrence.findMany({
     where: {
-      OR: [{ userId }, { reminder: { shares: { some: { recipientId: userId } } } }],
+      OR: [
+        { userId },
+        { reminder: { shares: { some: { recipientId: userId } } } },
+      ],
       status: { in: ['PENDING', 'FIRED', 'SNOOZED', 'ESCALATED'] },
-      scheduledFor: { lte: queryUntil }
+      scheduledFor: { lte: queryUntil },
     },
     include: {
-      reminder: { include: { user: { select: { timeZone: true } }, shares: { where: { recipientId: userId }, select: { shadeProminence: true } } } },
-      recipientAlerts: { where: { recipientId: userId } }
+      reminder: {
+        include: {
+          user: { select: { timeZone: true } },
+          shares: {
+            where: { recipientId: userId },
+            select: { shadeProminence: true },
+          },
+        },
+      },
+      recipientAlerts: { where: { recipientId: userId } },
     },
     orderBy: { scheduledFor: 'asc' },
-    take: 500
+    take: 500,
   })
 
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { timeZone: true } })
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { timeZone: true },
+  })
   const tz = user?.timeZone ?? 'UTC'
 
   const armedUntil = now.getTime() + SYNC_WINDOW_MS
@@ -81,8 +102,19 @@ syncRouter.get('/occurrences', async (request, response) => {
   const notes: DeviceAgendaEntry[] = []
   const serialized: ReturnType<typeof toOccurrence>[] = []
   for (const stored of occurrences) {
-    const personal = occurrenceForActor(stored, userId, stored.recipientAlerts[0])
-    const o = { ...personal, reminder: reminderForActor(personal.reminder, userId, personal.reminder.shares[0]) }
+    const personal = occurrenceForActor(
+      stored,
+      userId,
+      stored.recipientAlerts[0],
+    )
+    const o = {
+      ...personal,
+      reminder: reminderForActor(
+        personal.reminder,
+        userId,
+        personal.reminder.shares[0],
+      ),
+    }
     const tz = o.reminder.user.timeZone
     // Escalation is a hard backstop anchored to the first fire, so the "after N
     // minutes" threshold counts from firedAt (or the scheduled time before it
@@ -103,8 +135,11 @@ syncRouter.get('/occurrences', async (request, response) => {
         body: notificationBody(o.reminder, checkedItemIds),
         // A snoozed firing is due when its snooze ends, matching the alarm the device
         // arms for it. The list must not say 09:00 for something that returns at 10:00.
-        fireAtMs: (o.status === 'SNOOZED' && o.snoozedUntil ? o.snoozedUntil : o.scheduledFor).getTime(),
-        note: false
+        fireAtMs: (o.status === 'SNOOZED' && o.snoozedUntil
+          ? o.snoozedUntil
+          : o.scheduledFor
+        ).getTime(),
+        note: false,
       })
     }
     // Beyond the armed window it is agenda only: listable, never armed. `scheduledFor`
@@ -115,7 +150,10 @@ syncRouter.get('/occurrences', async (request, response) => {
     // arm, so the JS bridge and the native background worker share one transform.
     alarms.push(...buildDeviceAlarms(o, escalateAt, locale))
     if (!alarmsOnly) {
-      serialized.push({ ...toOccurrence(o), escalateAt: escalateAt?.toISOString() ?? null })
+      serialized.push({
+        ...toOccurrence(o),
+        escalateAt: escalateAt?.toISOString() ?? null,
+      })
     }
   }
 
@@ -140,11 +178,13 @@ syncRouter.get('/occurrences', async (request, response) => {
   const reminders = await prisma.reminder.findMany({
     where: { OR: [{ userId }, { shares: { some: { recipientId: userId } } }] },
     include: { user: { select: { timeZone: true } } },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
   })
   // What the rows above already cover, so a projection can't duplicate a real firing in
   // the overlap (materialization runs every 5 minutes, so its horizon drifts).
-  const materialized = new Set(occurrences.map((o) => `${o.reminderId}@${o.scheduledFor.getTime()}`))
+  const materialized = new Set(
+    occurrences.map((o) => `${o.reminderId}@${o.scheduledFor.getTime()}`),
+  )
   const agendaUntil = new Date(now.getTime() + AGENDA_WINDOW_MS)
   for (const reminder of reminders) {
     const schedule = reminder.schedule as unknown as Schedule
@@ -155,9 +195,12 @@ syncRouter.get('/occurrences', async (request, response) => {
         title: reminder.title,
         // A note's ticks live on the reminder (it has no firing to hold them), so its
         // unticked items come from there.
-        body: notificationBody(reminder, toCheckedItemIds(reminder.checkedItems)),
+        body: notificationBody(
+          reminder,
+          toCheckedItemIds(reminder.checkedItems),
+        ),
         fireAtMs: 0,
-        note: true
+        note: true,
       })
       continue
     }
@@ -171,7 +214,7 @@ syncRouter.get('/occurrences', async (request, response) => {
       endDate: reminder.endDate,
       timeZone: reminder.user.timeZone,
       from: now,
-      to: agendaUntil
+      to: agendaUntil,
     })
     for (const instant of projected) {
       if (materialized.has(`${reminder.id}@${instant.getTime()}`)) continue
@@ -182,7 +225,7 @@ syncRouter.get('/occurrences', async (request, response) => {
         // No ticks to leave out: nothing has fired, so nothing has been done.
         body: notificationBody(reminder, []),
         fireAtMs: instant.getTime(),
-        note: false
+        note: false,
       })
     }
   }
@@ -194,6 +237,6 @@ syncRouter.get('/occurrences', async (request, response) => {
     timeZone: tz,
     occurrences: serialized,
     alarms,
-    agenda: [...timed.slice(0, AGENDA_MAX_TIMED), ...notes]
+    agenda: [...timed.slice(0, AGENDA_MAX_TIMED), ...notes],
   })
 })

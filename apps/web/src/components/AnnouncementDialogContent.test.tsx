@@ -10,9 +10,12 @@ import type { Announcement } from '@persistent/shared'
 const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/' })
 const previous = new Map<string, PropertyDescriptor | undefined>()
 const globals = {
-  React, window: dom.window, document: dom.window.document,
-  HTMLElement: dom.window.HTMLElement, DocumentFragment: dom.window.DocumentFragment,
-  IS_REACT_ACT_ENVIRONMENT: true
+  React,
+  window: dom.window,
+  document: dom.window.document,
+  HTMLElement: dom.window.HTMLElement,
+  DocumentFragment: dom.window.DocumentFragment,
+  IS_REACT_ACT_ENVIRONMENT: true,
 }
 for (const [name, value] of Object.entries(globals)) {
   previous.set(name, Object.getOwnPropertyDescriptor(globalThis, name))
@@ -28,13 +31,22 @@ after(() => {
 })
 
 const require = createRequire(import.meta.url)
-const { AnnouncementDialogContent } = require('./AnnouncementDialogContent.tsx') as typeof import('./AnnouncementDialogContent.js')
-const { StartupDataContext } = require('./startupDataContext.ts') as typeof import('./startupDataContext.js')
-const { MemoryRouter } = require('react-router-dom') as typeof import('react-router-dom')
-const { BackAwareModal } = require('./BackAwareModal.tsx') as typeof import('./BackAwareModal.js')
-const { reserveBackAwareDialog } = require('./backAwareDialogStack.ts') as typeof import('./backAwareDialogStack.js')
+const { AnnouncementDialogContent } =
+  require('./AnnouncementDialogContent.tsx') as typeof import('./AnnouncementDialogContent.js')
+const { StartupDataContext } =
+  require('./startupDataContext.ts') as typeof import('./startupDataContext.js')
+const { MemoryRouter } =
+  require('react-router-dom') as typeof import('react-router-dom')
+const { BackAwareModal } =
+  require('./BackAwareModal.tsx') as typeof import('./BackAwareModal.js')
+const { reserveBackAwareDialog } =
+  require('./backAwareDialogStack.ts') as typeof import('./backAwareDialogStack.js')
 
-const announcement: Announcement = { id: 'themes-match-system', title: 'New themes', paragraphs: ['Navy is no longer the default.'] }
+const announcement: Announcement = {
+  id: 'themes-match-system',
+  title: 'New themes',
+  paragraphs: ['Navy is no longer the default.'],
+}
 
 /** Render the real Joy dialog with controlled startup and server response state. */
 async function mount(context: TestContext, path = '/') {
@@ -43,30 +55,54 @@ async function mount(context: TestContext, path = '/') {
   let list: Announcement[] = [announcement]
   let ready = true
   let otherDialog = false
-  const render = async (update: { ready?: boolean; list?: Announcement[]; otherDialog?: boolean } = {}) => {
+  const render = async (
+    update: {
+      ready?: boolean
+      list?: Announcement[]
+      otherDialog?: boolean
+    } = {},
+  ) => {
     ready = update.ready ?? ready
     list = update.list ?? list
     otherDialog = update.otherDialog ?? otherDialog
-    await act(async () => root.render(
-      <MemoryRouter initialEntries={[path]}>
-        <StartupDataContext.Provider value={ready}>
-          <BackAwareModal open={otherDialog}><div>Existing dialog</div></BackAwareModal>
-          <AnnouncementDialogContent announcements={list} loaded enabled onViewed={({ id }) => { viewed.push(id) }} />
-        </StartupDataContext.Provider>
-      </MemoryRouter>
-    ))
-    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 30)) })
+    await act(async () =>
+      root.render(
+        <MemoryRouter initialEntries={[path]}>
+          <StartupDataContext.Provider value={ready}>
+            <BackAwareModal open={otherDialog}>
+              <div>Existing dialog</div>
+            </BackAwareModal>
+            <AnnouncementDialogContent
+              announcements={list}
+              loaded
+              enabled
+              onViewed={({ id }) => {
+                viewed.push(id)
+              }}
+            />
+          </StartupDataContext.Provider>
+        </MemoryRouter>,
+      ),
+    )
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 30))
+    })
   }
   context.after(async () => {
     await act(async () => root.unmount())
     await new Promise((resolve) => setTimeout(resolve, 30))
     dom.window.history.replaceState(null, '', '/')
   })
-  const title = (text = 'New themes') => dom.window.document.body.textContent?.includes(text) ?? false
+  const title = (text = 'New themes') =>
+    dom.window.document.body.textContent?.includes(text) ?? false
   const close = async () => {
-    const button = [...dom.window.document.querySelectorAll('button')].find((item) => item.textContent === 'Got it')!
+    const button = [...dom.window.document.querySelectorAll('button')].find(
+      (item) => item.textContent === 'Got it',
+    )!
     await act(async () => button.click())
-    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 30)) })
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 30))
+    })
   }
   return { render, viewed, title, close }
 }
@@ -105,10 +141,13 @@ test('reminder deep links are not interrupted by announcements', async (context)
   assert.deepEqual(app.viewed, [])
 })
 
-
 test('queued announcements wait for the previous history pop and are viewed individually', async (context) => {
   const app = await mount(context)
-  const second = { ...announcement, id: 'another-update', title: 'Another update' }
+  const second = {
+    ...announcement,
+    id: 'another-update',
+    title: 'Another update',
+  }
   await app.render({ list: [announcement, second] })
   assert.equal(app.title(), true)
   await app.close()

@@ -30,7 +30,7 @@ owns windows, the tray, and which server to load: nothing else. If you find
 yourself adding a C# model of a reminder, a REST call for domain data, or a
 second implementation of a done/snooze rule, stop: that is the mistake this design
 exists to avoid (see `docs/notification-behavior.md`: every surface must
-converge, and the surface that *is* the web client cannot diverge).
+converge, and the surface that _is_ the web client cannot diverge).
 
 Concretely, do not add: DTO mirrors of `@persistent/shared`, native reminder
 policy, or a second implementation of a done/snooze rule. A bounded native
@@ -70,28 +70,28 @@ writer of `settings.json`; the page holds no copy and persists nothing.
 
 ## Layout
 
-| Path | Role |
-|---|---|
-| `Directory.Build.props` | `<Version>`: single source of truth; platform auto-detect |
-| `Persistent.Desktop/App.xaml.cs` | Entry point; single-instance mutex; NLog wiring |
-| `Persistent.Desktop/MainWindow.xaml.cs` | Invisible tool window: tray icon, menu, app lifetime |
-| `Persistent.Desktop/Windows/AppFlyout.xaml.cs` | The flyout + the warm WebView2 (the actual product) |
-| `Persistent.Desktop/SettingsWindow.xaml.cs` | On-demand `NavigationView` + `Frame` |
-| `Persistent.Desktop/Pages/` | `ConnectionPage`, `AppSettingsPage` (the nav cog), `AboutPage` |
-| `Persistent.Desktop/Classes/Settings/HostSettings.cs` | The settings the PWA's own Settings screen shows and writes |
-| `Persistent.Desktop/Notifications/` | Session-bound persistent notifications: `/ws` invalidation, alarm sync, toast monitor and actions |
-| `Persistent.Widget/` | Packaged, read-only Windows 11 Upcoming widget provider |
-| `Persistent.Widget/NativeMethods.cs` | Widget-process-only COM and window messaging P/Invoke |
-| `Shared/WidgetSnapshot.cs` | Validated display-only file contract shared by the host and widget process |
-| `Persistent.Desktop/Classes/NativeMethods.cs` | **All** Win32 P/Invoke |
-| `verify-csharp.sh` | Linux compile-check of the non-XAML C# (`npm run verify:desktop:csharp`) |
-| `../../scripts/windows-build` | Shared disposable Windows build/install bridge (`npm run install:desktop`) |
-| `set-ci-secrets.sh` | Sets the Store publishing secrets (run from the development container) |
-| `tools/csharp-check/` | The project + XAML stubs that check drives; not in the .slnx, not built by CI |
-| `Persistent.Desktop/Services/UpdateService.cs` | Update check; GitHub when unpackaged, `StoreContext` when packaged |
-| `publish-portable.ps1` | Self-contained unpackaged build (**the one to use for testing**) |
-| `Persistent.DesktopMSIX/` | Manifest + `build-msix.ps1` + `generate-msix-images.ps1` (for shipping) |
-| `external/promo/` | Public submodule: the shared "Our other apps" page |
+| Path                                                  | Role                                                                                              |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `Directory.Build.props`                               | `<Version>`: single source of truth; platform auto-detect                                         |
+| `Persistent.Desktop/App.xaml.cs`                      | Entry point; single-instance mutex; NLog wiring                                                   |
+| `Persistent.Desktop/MainWindow.xaml.cs`               | Invisible tool window: tray icon, menu, app lifetime                                              |
+| `Persistent.Desktop/Windows/AppFlyout.xaml.cs`        | The flyout + the warm WebView2 (the actual product)                                               |
+| `Persistent.Desktop/SettingsWindow.xaml.cs`           | On-demand `NavigationView` + `Frame`                                                              |
+| `Persistent.Desktop/Pages/`                           | `ConnectionPage`, `AppSettingsPage` (the nav cog), `AboutPage`                                    |
+| `Persistent.Desktop/Classes/Settings/HostSettings.cs` | The settings the PWA's own Settings screen shows and writes                                       |
+| `Persistent.Desktop/Notifications/`                   | Session-bound persistent notifications: `/ws` invalidation, alarm sync, toast monitor and actions |
+| `Persistent.Widget/`                                  | Packaged, read-only Windows 11 Upcoming widget provider                                           |
+| `Persistent.Widget/NativeMethods.cs`                  | Widget-process-only COM and window messaging P/Invoke                                             |
+| `Shared/WidgetSnapshot.cs`                            | Validated display-only file contract shared by the host and widget process                        |
+| `Persistent.Desktop/Classes/NativeMethods.cs`         | **All** Win32 P/Invoke                                                                            |
+| `verify-csharp.sh`                                    | Linux compile-check of the non-XAML C# (`npm run verify:desktop:csharp`)                          |
+| `../../scripts/windows-build`                         | Shared disposable Windows build/install bridge (`npm run install:desktop`)                        |
+| `set-ci-secrets.sh`                                   | Sets the Store publishing secrets (run from the development container)                            |
+| `tools/csharp-check/`                                 | The project + XAML stubs that check drives; not in the .slnx, not built by CI                     |
+| `Persistent.Desktop/Services/UpdateService.cs`        | Update check; GitHub when unpackaged, `StoreContext` when packaged                                |
+| `publish-portable.ps1`                                | Self-contained unpackaged build (**the one to use for testing**)                                  |
+| `Persistent.DesktopMSIX/`                             | Manifest + `build-msix.ps1` + `generate-msix-images.ps1` (for shipping)                           |
+| `external/promo/`                                     | Public submodule: the shared "Our other apps" page                                                |
 
 ## Conventions
 

@@ -9,16 +9,30 @@ function applySnapshot(reply, current = true) {
   if (reply.update && current) applyUpdate(reply.update)
   if (current && typeof reply.maximized === 'boolean') {
     document.body.classList.toggle('maximized', reply.maximized)
-    document.querySelector('#maximize').setAttribute('aria-label', window.persistentText.text(reply.maximized ? 'Restore' : 'Maximize'))
-    document.querySelector('#maximize').title = window.persistentText.text(reply.maximized ? 'Restore' : 'Maximize')
+    document
+      .querySelector('#maximize')
+      .setAttribute(
+        'aria-label',
+        window.persistentText.text(reply.maximized ? 'Restore' : 'Maximize'),
+      )
+    document.querySelector('#maximize').title = window.persistentText.text(
+      reply.maximized ? 'Restore' : 'Maximize',
+    )
   }
-  if (current && reply.server) document.querySelector('#server').value = reply.server
-  if (reply.version) document.querySelector('#version').textContent = window.persistentText.text('Version {{version}}', { version: reply.version })
+  if (current && reply.server)
+    document.querySelector('#server').value = reply.server
+  if (reply.version)
+    document.querySelector('#version').textContent = window.persistentText.text(
+      'Version {{version}}',
+      { version: reply.version },
+    )
   if (current && reply.appTheme) {
     document.querySelector('#theme').value = reply.appTheme
-    document.documentElement.style.colorScheme = reply.appTheme === 'system' ? 'light dark' : reply.appTheme
+    document.documentElement.style.colorScheme =
+      reply.appTheme === 'system' ? 'light dark' : reply.appTheme
   }
-  if (typeof reply.trayAvailable === 'boolean') document.querySelector('#quit').hidden = reply.trayAvailable
+  if (typeof reply.trayAvailable === 'boolean')
+    document.querySelector('#quit').hidden = reply.trayAvailable
   if (reply.apps) renderApps(reply.apps)
 }
 
@@ -28,7 +42,8 @@ function applyUpdate(update) {
   document.querySelector('#update-status').textContent = update.message
   document.querySelector('#updateAutomatic').checked = update.automatic
   document.querySelector('#updates').disabled = busy
-  document.querySelector('#updateDownload').hidden = !update.version || update.downloaded
+  document.querySelector('#updateDownload').hidden =
+    !update.version || update.downloaded
   document.querySelector('#updateDownload').disabled = busy
   document.querySelector('#updateInstall').hidden = !update.downloaded
   document.querySelector('#updateInstall').disabled = busy
@@ -43,10 +58,13 @@ async function request(message) {
     // Initial tray discovery can settle after the user changes theme or server.
     // Keep static catalog data, but never echo an older mutable setting over it.
     applySnapshot(reply, generation === requestGeneration)
-    if (generation === requestGeneration) status.textContent = reply.message || ''
+    if (generation === requestGeneration)
+      status.textContent = reply.message || ''
     return reply
   } catch (error) {
-    status.textContent = error.message || window.persistentText.text('The request could not be completed.')
+    status.textContent =
+      error.message ||
+      window.persistentText.text('The request could not be completed.')
     return null
   }
 }
@@ -54,10 +72,12 @@ async function request(message) {
 /** Sidebar selection and content panes stay in one reusable settings window. */
 function selectPage(page) {
   for (const button of document.querySelectorAll('[data-page]')) {
-    if (button.dataset.page === page) button.setAttribute('aria-current', 'page')
+    if (button.dataset.page === page)
+      button.setAttribute('aria-current', 'page')
     else button.removeAttribute('aria-current')
   }
-  for (const panel of document.querySelectorAll('[data-panel]')) panel.hidden = panel.dataset.panel !== page
+  for (const panel of document.querySelectorAll('[data-panel]'))
+    panel.hidden = panel.dataset.panel !== page
   status.textContent = ''
 }
 
@@ -85,7 +105,9 @@ function renderApps(apps) {
       const button = document.createElement('button')
       button.type = 'button'
       button.textContent = link.label
-      button.addEventListener('click', () => request({ type: 'promo', value: link.url }))
+      button.addEventListener('click', () =>
+        request({ type: 'promo', value: link.url }),
+      )
       actions.append(button)
     }
     details.append(title, description, actions)
@@ -101,20 +123,56 @@ document.querySelector('#nav-toggle').addEventListener('click', (event) => {
   const collapsed = document.body.classList.toggle('nav-collapsed')
   event.currentTarget.setAttribute('aria-expanded', String(!collapsed))
 })
-document.querySelector('#connection').addEventListener('submit', async (event) => {
-  event.preventDefault()
-  await request({ type: 'server', value: document.querySelector('#server').value })
-})
-document.querySelector('#theme').addEventListener('change', (event) => request({ type: 'theme', value: event.target.value }))
-for (const type of ['reset', 'clear', 'logs', 'source', 'privacy', 'appSettings', 'quit', 'minimize', 'maximize', 'close', 'updateDownload', 'updateInstall']) {
-  document.querySelector(`#${type}`).addEventListener('click', () => request({ type }))
+document
+  .querySelector('#connection')
+  .addEventListener('submit', async (event) => {
+    event.preventDefault()
+    await request({
+      type: 'server',
+      value: document.querySelector('#server').value,
+    })
+  })
+document
+  .querySelector('#theme')
+  .addEventListener('change', (event) =>
+    request({ type: 'theme', value: event.target.value }),
+  )
+for (const type of [
+  'reset',
+  'clear',
+  'logs',
+  'source',
+  'privacy',
+  'appSettings',
+  'quit',
+  'minimize',
+  'maximize',
+  'close',
+  'updateDownload',
+  'updateInstall',
+]) {
+  document
+    .querySelector(`#${type}`)
+    .addEventListener('click', () => request({ type }))
 }
-document.querySelector('#updates').addEventListener('click', () => request({ type: 'updates' }))
-document.querySelector('#updateAutomatic').addEventListener('change', (event) => request({ type: 'updateAutomatic', value: event.target.checked }))
+document
+  .querySelector('#updates')
+  .addEventListener('click', () => request({ type: 'updates' }))
+document
+  .querySelector('#updateAutomatic')
+  .addEventListener('change', (event) =>
+    request({ type: 'updateAutomatic', value: event.target.checked }),
+  )
 void request({ type: 'get' })
 local.onSettings((state) => {
-  if (state.page) { selectPage(state.page); return }
-  if (state.update && Object.keys(state).length === 1) { applyUpdate(state.update); return }
+  if (state.page) {
+    selectPage(state.page)
+    return
+  }
+  if (state.update && Object.keys(state).length === 1) {
+    applyUpdate(state.update)
+    return
+  }
   requestGeneration++
   applySnapshot(state)
 })

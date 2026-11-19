@@ -15,7 +15,13 @@ const CONTACT_EMAIL = 'contact@dynamic-solutions.ca'
 
 const LAST_UPDATED = '21 October 2026'
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+}: {
+  title: string
+  children: React.ReactNode
+}) {
   return (
     <Box>
       <Typography level="title-md" sx={{ mb: 0.5 }}>
@@ -36,137 +42,172 @@ export function PrivacyPage() {
         </Box>
 
         <Typography level="body-sm">
-          Persistent is a reminder app. It stores the reminders you create and the record of whether you
-          confirmed them, so it can nag you until you do. It does not sell your data, does not show ads, and
-          uses no third-party analytics or advertising trackers. Administrators can view aggregate account activity,
-          reminder feature usage, and app/platform statistics to understand how the service is used.
+          Persistent is a reminder app. It stores the reminders you create and
+          the record of whether you confirmed them, so it can nag you until you
+          do. It does not sell your data, does not show ads, and uses no
+          third-party analytics or advertising trackers. Administrators can view
+          aggregate account activity, reminder feature usage, and app/platform
+          statistics to understand how the service is used.
         </Typography>
 
         <Section title="What we collect">
           <Typography level="body-sm">
-            <strong>Account.</strong> Your email address, which identifies your account and receives sign-in
-            codes. If you sign in with Google, the name on your Google profile. Your time zone, so reminders
-            notify you at the local time you meant, and your preferred language for account emails. There is no password; sign-in uses a one-time email code,
+            <strong>Account.</strong> Your email address, which identifies your
+            account and receives sign-in codes. If you sign in with Google, the
+            name on your Google profile. Your time zone, so reminders notify you
+            at the local time you meant, and your preferred language for account
+            emails. There is no password; sign-in uses a one-time email code,
             Google, or a passkey.
           </Typography>
           <Typography level="body-sm">
-            <strong>Your reminders.</strong> The title, details, schedule, and settings of every reminder you
-            create, including the items on a checklist reminder and any structured fields the reminder&rsquo;s
-            type adds. Medication reminders can include a medicine name and dose. Persistent is a reminder
-            tool, not a medical device or a source of medical advice.
+            <strong>Your reminders.</strong> The title, details, schedule, and
+            settings of every reminder you create, including the items on a
+            checklist reminder and any structured fields the reminder&rsquo;s
+            type adds. Medication reminders can include a medicine name and
+            dose. Persistent is a reminder tool, not a medical device or a
+            source of medical advice.
           </Typography>
           <Typography level="body-sm">
-            <strong>Reminder history.</strong> When each reminder notified you, which checklist items you ticked off,
-            and whether and when you confirmed, snoozed, or ignored it.
+            <strong>Reminder history.</strong> When each reminder notified you,
+            which checklist items you ticked off, and whether and when you
+            confirmed, snoozed, or ignored it.
           </Typography>
           <Typography level="body-sm">
-            <strong>Assignments.</strong> If you create a reminder for someone else, we keep the address you
-            selected, your reminder title, its status, and when its firings were completed. The assignee owns
-            the reminder and receives its alerts. A pending assignment stores its content until the invited
-            person signs in with that address.
+            <strong>Assignments.</strong> If you create a reminder for someone
+            else, we keep the address you selected, your reminder title, its
+            status, and when its firings were completed. The assignee owns the
+            reminder and receives its alerts. A pending assignment stores its
+            content until the invited person signs in with that address.
           </Typography>
           <Typography level="body-sm">
-            <strong>Devices.</strong> An FCM push token and device identifier for each Android device where you
-            enable notifications, so alarms can reach that device. We store the device&apos;s notification language preference with that registration so server-sent notification wording uses the selected language. Interface language and regional formatting preferences are also saved locally on each device for offline use. Choosing a language does not translate the reminder text you enter.
+            <strong>Devices.</strong> An FCM push token and device identifier
+            for each Android device where you enable notifications, so alarms
+            can reach that device. We store the device&apos;s notification
+            language preference with that registration so server-sent
+            notification wording uses the selected language. Interface language
+            and regional formatting preferences are also saved locally on each
+            device for offline use. Choosing a language does not translate the
+            reminder text you enter.
           </Typography>
           <Typography level="body-sm">
-            <strong>Sessions.</strong> A hashed session secret and the browser identifier for each signed-in
-            session, so you can stay signed in and we can expire sessions. Sessions also record when the service
-            was last contacted and the app, platform, and available app versions reported by that client.
-            These support aggregate service statistics; we do not add a persistent device identifier for analytics.
+            <strong>Sessions.</strong> A hashed session secret and the browser
+            identifier for each signed-in session, so you can stay signed in and
+            we can expire sessions. Sessions also record when the service was
+            last contacted and the app, platform, and available app versions
+            reported by that client. These support aggregate service statistics;
+            we do not add a persistent device identifier for analytics.
           </Typography>
           <Typography level="body-sm">
-            We do not collect your location, address book, photos, phone number, or payment details.
+            We do not collect your location, address book, photos, phone number,
+            or payment details.
           </Typography>
         </Section>
 
         <Section title="Who your data is shared with">
           <Typography level="body-sm">
-            Only the services needed to actually deliver a reminder. We do not share data with advertisers or
-            data brokers.
+            Only the services needed to actually deliver a reminder. We do not
+            share data with advertisers or data brokers.
           </Typography>
           <Typography level="body-sm">
-            <strong>Google Firebase Cloud Messaging</strong> delivers notifications to Android devices. The
-            notification payload includes the reminder&apos;s title and text. Browsers do not receive
+            <strong>Google Firebase Cloud Messaging</strong> delivers
+            notifications to Android devices. The notification payload includes
+            the reminder&apos;s title and text. Browsers do not receive
             notifications.
           </Typography>
           <Typography level="body-sm">
-            <strong>Cloudflare</strong> sends our email: your sign-in codes, sharing and assignment invitations,
-            and escalation emails.
+            <strong>Cloudflare</strong> sends our email: your sign-in codes,
+            sharing and assignment invitations, and escalation emails.
           </Typography>
           <Typography level="body-sm">
-            <strong>People you share with.</strong> When you share a reminder, its recipients can see and edit
-            its content, schedule, and notification and escalation settings. They can mark it done for everyone;
-            each person&apos;s snooze and alarm escalation remain personal. If a recipient does not yet have an
-            account, we email them an invitation without the reminder&apos;s content. We keep an owner-specific
-            list of addresses you have shared with so you can choose them again.
+            <strong>People you share with.</strong> When you share a reminder,
+            its recipients can see and edit its content, schedule, and
+            notification and escalation settings. They can mark it done for
+            everyone; each person&apos;s snooze and alarm escalation remain
+            personal. If a recipient does not yet have an account, we email them
+            an invitation without the reminder&apos;s content. We keep an
+            owner-specific list of addresses you have shared with so you can
+            choose them again.
           </Typography>
           <Typography level="body-sm">
-            <strong>People you assign to.</strong> When you make a reminder for one other person, that person
-            can see and change its content and is the only person alerted. You can see its status and completion
-            times, but cannot edit or finish it. They can decline it. If they do not have an account yet,
-            their invitation email does not include the reminder content.
+            <strong>People you assign to.</strong> When you make a reminder for
+            one other person, that person can see and change its content and is
+            the only person alerted. You can see its status and completion
+            times, but cannot edit or finish it. They can decline it. If they do
+            not have an account yet, their invitation email does not include the
+            reminder content.
           </Typography>
           <Typography level="body-sm">
-            <strong>Google Sign-In</strong> is used only if you choose it, and returns your email address and
-            profile name.
+            <strong>Google Sign-In</strong> is used only if you choose it, and
+            returns your email address and profile name.
           </Typography>
           <Typography level="body-sm">
-            <strong>Escalation contacts you choose.</strong> If you set a reminder to escalate by email, we
-            send that address the reminder's title and any message you wrote. You control that address and
-            what it says — please don't put anything there you wouldn't want that person to read.
+            <strong>Escalation contacts you choose.</strong> If you set a
+            reminder to escalate by email, we send that address the reminder's
+            title and any message you wrote. You control that address and what
+            it says — please don't put anything there you wouldn't want that
+            person to read.
           </Typography>
         </Section>
 
         <Section title="Security">
           <Typography level="body-sm">
-            All traffic between your devices and our servers is encrypted with HTTPS, as is every request to
-            the third parties above. Session secrets and email sign-in codes are stored only as one-way
-            hashes. Reminder content is stored unencrypted in our database, so treat it as you would any
-            hosted note-taking service and avoid recording anything you would not want held on a server.
+            All traffic between your devices and our servers is encrypted with
+            HTTPS, as is every request to the third parties above. Session
+            secrets and email sign-in codes are stored only as one-way hashes.
+            Reminder content is stored unencrypted in our database, so treat it
+            as you would any hosted note-taking service and avoid recording
+            anything you would not want held on a server.
           </Typography>
         </Section>
 
         <Section title="How long we keep it">
           <Typography level="body-sm">
-            Reminders and their history are kept until their owner deletes them or their account. A creator's
-            assignment status record remains after an assignee declines and is deleted when the creator deletes
-            their account. Sign-in codes expire within minutes. Sessions expire on their own and can be revoked
-            by signing out.
+            Reminders and their history are kept until their owner deletes them
+            or their account. A creator's assignment status record remains after
+            an assignee declines and is deleted when the creator deletes their
+            account. Sign-in codes expire within minutes. Sessions expire on
+            their own and can be revoked by signing out.
           </Typography>
         </Section>
 
         <Section title="Deleting your account">
           <Typography level="body-sm">
-            Open <strong>Settings → Delete account</strong> in the app or on the web. Deletion is immediate
-            and permanent: your account, reminders, history, passkeys, sessions, and device registrations are
-            all removed, and there is no restore window. If someone assigned a reminder to you, their status
-            record remains without your email address after you delete your account.
+            Open <strong>Settings → Delete account</strong> in the app or on the
+            web. Deletion is immediate and permanent: your account, reminders,
+            history, passkeys, sessions, and device registrations are all
+            removed, and there is no restore window. If someone assigned a
+            reminder to you, their status record remains without your email
+            address after you delete your account.
           </Typography>
           <Typography level="body-sm">
-            If you cannot sign in, email <Link href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</Link> from the
-            address on the account and we will delete it for you. Full instructions:{' '}
+            If you cannot sign in, email{' '}
+            <Link href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</Link> from
+            the address on the account and we will delete it for you. Full
+            instructions:{' '}
             <Link href="/delete-account">deleting your account</Link>.
           </Typography>
         </Section>
 
         <Section title="Children">
           <Typography level="body-sm">
-            Persistent is not directed at children under 13, and we do not knowingly collect their data.
+            Persistent is not directed at children under 13, and we do not
+            knowingly collect their data.
           </Typography>
         </Section>
 
         <Section title="No guarantees">
           <Typography level="body-sm">
-            Persistent reminds you about things you told it to remind you about. Whether a notification
-            reaches you depends on your device, its operating system, and your network, none of which we
-            control. Do not rely on it as the sole safeguard for anything critical.
+            Persistent reminds you about things you told it to remind you about.
+            Whether a notification reaches you depends on your device, its
+            operating system, and your network, none of which we control. Do not
+            rely on it as the sole safeguard for anything critical.
           </Typography>
         </Section>
 
         <Section title="Contact">
           <Typography level="body-sm">
-            Questions about this policy or your data: <Link href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</Link>
+            Questions about this policy or your data:{' '}
+            <Link href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</Link>
           </Typography>
         </Section>
       </Stack>

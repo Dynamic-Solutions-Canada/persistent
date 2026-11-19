@@ -28,7 +28,9 @@ import type { Occurrence } from '@persistent/shared'
  * reminder has since moved off. Both still *appeared* when they appeared.
  */
 export function firingRecency(occurrence: Occurrence): number {
-  return Date.parse(occurrence.lastNotifiedAt ?? occurrence.firedAt ?? occurrence.scheduledFor)
+  return Date.parse(
+    occurrence.lastNotifiedAt ?? occurrence.firedAt ?? occurrence.scheduledFor,
+  )
 }
 
 function escalationRank(occurrence: Occurrence): number {
@@ -37,5 +39,7 @@ function escalationRank(occurrence: Occurrence): number {
 
 /** Sort comparator: escalations first, then most recently fired first. */
 export function compareFirings(a: Occurrence, b: Occurrence): number {
-  return escalationRank(a) - escalationRank(b) || firingRecency(b) - firingRecency(a)
+  return (
+    escalationRank(a) - escalationRank(b) || firingRecency(b) - firingRecency(a)
+  )
 }

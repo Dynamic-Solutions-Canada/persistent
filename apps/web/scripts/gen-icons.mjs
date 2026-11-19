@@ -23,7 +23,13 @@ import { fileURLToPath } from 'node:url'
 const webRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 const publicDir = join(webRoot, 'public')
 const tileSource = join(publicDir, 'favicon.svg')
-const foregroundSource = join(webRoot, '..', 'mobile', 'assets', 'icon-foreground.svg')
+const foregroundSource = join(
+  webRoot,
+  '..',
+  'mobile',
+  'assets',
+  'icon-foreground.svg',
+)
 
 // The manifest's background_color, so a masked icon and the splash screen match.
 const BACKGROUND = '#0b0f19'
@@ -41,7 +47,9 @@ function assertRsvg() {
   try {
     execFileSync('rsvg-convert', ['--version'], { stdio: 'ignore' })
   } catch {
-    console.error('[gen-icons] rsvg-convert not found. Run this in the development image, or install librsvg2-bin.')
+    console.error(
+      '[gen-icons] rsvg-convert not found. Run this in the development image, or install librsvg2-bin.',
+    )
     process.exit(1)
   }
 }
@@ -54,7 +62,8 @@ function assertRsvg() {
 function fullBleedSvg() {
   const foreground = readFileSync(foregroundSource, 'utf8')
   const openTag = foreground.match(/<svg\b[^>]*>/)
-  if (!openTag) throw new Error(`[gen-icons] no <svg> element in ${foregroundSource}`)
+  if (!openTag)
+    throw new Error(`[gen-icons] no <svg> element in ${foregroundSource}`)
   const background = `<rect width="100%" height="100%" fill="${BACKGROUND}"/>`
   return foreground.replace(openTag[0], openTag[0] + background)
 }
@@ -82,7 +91,10 @@ for (const source of [tileSource, foregroundSource]) {
   }
 }
 
-const sources = { tile: { path: tileSource }, fullBleed: { text: fullBleedSvg() } }
+const sources = {
+  tile: { path: tileSource },
+  fullBleed: { text: fullBleedSvg() },
+}
 for (const { source, out, px } of OUTPUTS) {
   render(sources[source], px, join(publicDir, out))
 }

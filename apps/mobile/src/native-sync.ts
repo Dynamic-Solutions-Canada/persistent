@@ -12,7 +12,8 @@ import { AlarmPlugin, isNative } from './alarm/index.js'
 import type { ScheduledAlarm } from './alarm/definitions.js'
 
 /** Where the hosted API lives. Override at build time for your deployment. */
-const API_BASE = (import.meta as { env?: Record<string, string> }).env?.VITE_API_BASE ?? ''
+const API_BASE =
+  (import.meta as { env?: Record<string, string> }).env?.VITE_API_BASE ?? ''
 
 interface SyncOccurrence {
   id: string
@@ -30,7 +31,10 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: 'include',
     ...init,
-    headers: { ...(init?.body ? { 'content-type': 'application/json' } : {}), ...init?.headers }
+    headers: {
+      ...(init?.body ? { 'content-type': 'application/json' } : {}),
+      ...init?.headers,
+    },
   })
   if (!response.ok) throw new Error(`API ${path} failed: ${response.status}`)
   return (await response.json()) as T
@@ -44,7 +48,8 @@ function toAlarm(occurrence: SyncOccurrence): ScheduledAlarm {
     title: reminder.title,
     body: reminder.details ?? '',
     soundIntervalSeconds: reminder.soundIntervalSeconds ?? 0,
-    alarm: reminder.persistence === 'ALARM' || reminder.persistence === 'PERSISTENT'
+    alarm:
+      reminder.persistence === 'ALARM' || reminder.persistence === 'PERSISTENT',
   }
 }
 
@@ -53,7 +58,9 @@ async function drainPendingAcks(): Promise<void> {
   if (!isNative()) return
   const { occurrenceIds } = await AlarmPlugin.drainPendingAcks()
   for (const occurrenceId of occurrenceIds) {
-    await api(`/api/occurrences/${occurrenceId}/ack`, { method: 'POST' }).catch(() => {})
+    await api(`/api/occurrences/${occurrenceId}/ack`, { method: 'POST' }).catch(
+      () => {},
+    )
   }
 }
 
@@ -61,10 +68,18 @@ async function drainPendingAcks(): Promise<void> {
 export async function syncAlarms(): Promise<void> {
   if (!isNative()) return
   await drainPendingAcks()
-  const data = await api<{ occurrences: SyncOccurrence[] }>('/api/sync/occurrences')
+  const data = await api<{ occurrences: SyncOccurrence[] }>(
+    '/api/sync/occurrences',
+  )
   // Only schedule things still needing attention and not already past + handled.
   const alarms = data.occurrences
-    .filter((o) => o.status === 'PENDING' || o.status === 'FIRED' || o.status === 'SNOOZED' || o.status === 'ESCALATED')
+    .filter(
+      (o) =>
+        o.status === 'PENDING' ||
+        o.status === 'FIRED' ||
+        o.status === 'SNOOZED' ||
+        o.status === 'ESCALATED',
+    )
     .map(toAlarm)
   await AlarmPlugin.scheduleAll({ alarms })
 }
@@ -83,7 +98,7 @@ async function registerPush(): Promise<void> {
   PushNotifications.addListener('registration', (token) => {
     void api('/api/push/subscriptions', {
       method: 'POST',
-      body: JSON.stringify({ kind: 'FCM', token: token.value })
+      body: JSON.stringify({ kind: 'FCM', token: token.value }),
     }).catch(() => {})
   })
 

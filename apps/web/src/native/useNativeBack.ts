@@ -28,10 +28,18 @@
  * the app, the flyout closes).
  */
 import { useEffect, useRef } from 'react'
-import { useLocation, useNavigate, type NavigateFunction } from 'react-router-dom'
+import {
+  useLocation,
+  useNavigate,
+  type NavigateFunction,
+} from 'react-router-dom'
 import { App } from '@capacitor/app'
 import { isNative } from './alarmBridge.js'
-import { announcePageReady, onHostMessage, requestClose } from './desktopBridge.js'
+import {
+  announcePageReady,
+  onHostMessage,
+  requestClose,
+} from './desktopBridge.js'
 import { hasOpenBackAwareDialog } from '../components/backAwareDialogStack.js'
 import { runBackInterceptor } from './backInterceptor.js'
 
@@ -43,7 +51,12 @@ const TAB_ROUTES = ['/', '/upcoming', '/notes', '/history', '/settings']
 const HOME_ROUTE = TAB_ROUTES[0]!
 
 /** Screens reached from Settings, so Back returns there rather than to the list. */
-const SETTINGS_CHILDREN = ['/help', '/privacy', '/delete-account', '/settings/apps']
+const SETTINGS_CHILDREN = [
+  '/help',
+  '/privacy',
+  '/delete-account',
+  '/settings/apps',
+]
 
 /**
  * The screen one level up, or null when already at a tab root.
@@ -72,7 +85,10 @@ export type BackResult = 'handled' | 'exhausted'
  * Back affordance — Android's gesture/button and the Windows flyout's title-bar
  * button — so the two can never drift into answering Back differently.
  */
-export function performBack(pathname: string, navigate: NavigateFunction): BackResult {
+export function performBack(
+  pathname: string,
+  navigate: NavigateFunction,
+): BackResult {
   // A dialog owns Back first. It tracks itself as a history entry, so popping
   // history is what closes it (see BackAwareModal).
   if (hasOpenBackAwareDialog()) {
@@ -102,7 +118,10 @@ export function useNativeBack(): void {
   const { pathname } = useLocation()
   // The listener is registered once; routing state is read through a ref so a
   // navigation doesn't churn the native listener on every screen change.
-  const current = useRef<{ pathname: string; navigate: NavigateFunction }>({ pathname, navigate })
+  const current = useRef<{ pathname: string; navigate: NavigateFunction }>({
+    pathname,
+    navigate,
+  })
   current.current = { pathname, navigate }
 
   // Android: Capacitor's hardware/gesture Back.

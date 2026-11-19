@@ -14,7 +14,16 @@
  * Requires the Android project to exist (a JDK + Android SDK are needed to then
  * build it; this script only edits source files).
  */
-import { existsSync, readFileSync, writeFileSync, copyFileSync, cpSync, mkdirSync, readdirSync, rmSync } from 'node:fs'
+import {
+  existsSync,
+  readFileSync,
+  writeFileSync,
+  copyFileSync,
+  cpSync,
+  mkdirSync,
+  readdirSync,
+  rmSync,
+} from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -36,14 +45,21 @@ function fail(message) {
 }
 
 if (!existsSync(join(mobileRoot, 'android'))) {
-  fail("No android/ project found. Run `npx cap add android` first (needs the Android SDK).")
+  fail(
+    'No android/ project found. Run `npx cap add android` first (needs the Android SDK).',
+  )
 }
 
 // Shared JSON catalogs are the source for every runtime; never translate generated android/ files.
 const localizationAssets = join(androidApp, 'assets', 'localization')
 mkdirSync(localizationAssets, { recursive: true })
-for (const file of readdirSync(join(mobileRoot, '../../packages/shared/src/messages')).filter((name) => name.endsWith('.json'))) {
-  copyFileSync(join(mobileRoot, '../../packages/shared/src/messages', file), join(localizationAssets, file))
+for (const file of readdirSync(
+  join(mobileRoot, '../../packages/shared/src/messages'),
+).filter((name) => name.endsWith('.json'))) {
+  copyFileSync(
+    join(mobileRoot, '../../packages/shared/src/messages', file),
+    join(localizationAssets, file),
+  )
 }
 
 // --- 1. Copy the Kotlin sources ---------------------------------------------
@@ -62,7 +78,7 @@ const AUTO_DESC_REL = join('xml', 'automotive_app_desc.xml')
 const DIRECT_ONLY_RES = [
   AUTO_DESC_REL,
   join('drawable', 'ic_action_done.xml'),
-  join('drawable', 'ic_action_snooze.xml')
+  join('drawable', 'ic_action_snooze.xml'),
 ]
 
 const DIRECT_ONLY_KT = new Set([
@@ -74,7 +90,7 @@ const DIRECT_ONLY_KT = new Set([
   'ReminderListScreen.kt',
   'ReminderDetailScreen.kt',
   'CarSnoozeScreen.kt',
-  'CarReminders.kt'
+  'CarReminders.kt',
 ])
 
 mkdirSync(alarmPkgDir, { recursive: true })
@@ -86,16 +102,26 @@ for (const file of kotlinFiles) {
 }
 // Native JVM tests and pure Java test helpers live beside the overlay, outside the generated project.
 const nativeTestsDir = join(mobileRoot, 'android-tests')
-const generatedTestsDir = join(mobileRoot, 'android/app/src/test/java/ca/persistent/app/alarm')
+const generatedTestsDir = join(
+  mobileRoot,
+  'android/app/src/test/java/ca/persistent/app/alarm',
+)
 mkdirSync(generatedTestsDir, { recursive: true })
-for (const file of readdirSync(nativeTestsDir).filter((name) => name.endsWith('.kt') || name.endsWith('.java'))) {
+for (const file of readdirSync(nativeTestsDir).filter(
+  (name) => name.endsWith('.kt') || name.endsWith('.java'),
+)) {
   copyFileSync(join(nativeTestsDir, file), join(generatedTestsDir, file))
 }
 // Regex initialization must also run on Android: desktop JVM regex semantics differ from ICU.
 const deviceTestsDir = join(nativeTestsDir, 'device')
-const generatedDeviceTestsDir = join(mobileRoot, 'android/app/src/androidTest/java/ca/persistent/app/alarm')
+const generatedDeviceTestsDir = join(
+  mobileRoot,
+  'android/app/src/androidTest/java/ca/persistent/app/alarm',
+)
 mkdirSync(generatedDeviceTestsDir, { recursive: true })
-for (const file of readdirSync(deviceTestsDir).filter((name) => name.endsWith('.kt'))) {
+for (const file of readdirSync(deviceTestsDir).filter((name) =>
+  name.endsWith('.kt'),
+)) {
   copyFileSync(join(deviceTestsDir, file), join(generatedDeviceTestsDir, file))
 }
 // A pre-flavor checkout put UpdatePlugin.kt in main; leaving it there would
@@ -104,10 +130,14 @@ for (const file of DIRECT_ONLY_KT) {
   const stale = join(alarmPkgDir, file)
   if (existsSync(stale)) {
     rmSync(stale)
-    console.log(`[setup-android] removed stale ${file} from src/main (now direct-only)`)
+    console.log(
+      `[setup-android] removed stale ${file} from src/main (now direct-only)`,
+    )
   }
 }
-console.log(`[setup-android] copied ${kotlinFiles.length} Kotlin sources -> ${alarmPkgDir}`)
+console.log(
+  `[setup-android] copied ${kotlinFiles.length} Kotlin sources -> ${alarmPkgDir}`,
+)
 
 // --- 1b. Flavor source sets (play | direct) ---------------------------------
 // `play`   — the Play Store build: no updater, no REQUEST_INSTALL_PACKAGES.
@@ -118,9 +148,22 @@ const flavorSrcDir = join(pluginDir, 'flavor')
 for (const flavor of ['play', 'direct']) {
   const srcDir = join(flavorSrcDir, flavor)
   if (!existsSync(srcDir)) fail(`Missing flavor sources at ${srcDir}`)
-  const destPkg = join(mobileRoot, 'android', 'app', 'src', flavor, 'java', 'ca', 'persistent', 'app')
+  const destPkg = join(
+    mobileRoot,
+    'android',
+    'app',
+    'src',
+    flavor,
+    'java',
+    'ca',
+    'persistent',
+    'app',
+  )
   mkdirSync(destPkg, { recursive: true })
-  copyFileSync(join(srcDir, 'FlavorPlugins.java'), join(destPkg, 'FlavorPlugins.java'))
+  copyFileSync(
+    join(srcDir, 'FlavorPlugins.java'),
+    join(destPkg, 'FlavorPlugins.java'),
+  )
 
   const flavorManifestSrc = join(srcDir, 'AndroidManifest.xml')
   if (existsSync(flavorManifestSrc)) {
@@ -132,13 +175,26 @@ for (const flavor of ['play', 'direct']) {
   // Flavor implementations that shared code calls without importing a library that
   // does not belong in the other artifact (for example the Play no-op projection).
   const flavorAlarmPkg = join(destPkg, 'alarm')
-  for (const file of readdirSync(srcDir).filter((name) => name.endsWith('.kt'))) {
+  for (const file of readdirSync(srcDir).filter((name) =>
+    name.endsWith('.kt'),
+  )) {
     mkdirSync(flavorAlarmPkg, { recursive: true })
     copyFileSync(join(srcDir, file), join(flavorAlarmPkg, file))
   }
 }
 // UpdatePlugin only exists in the direct flavor.
-const directAlarmPkg = join(mobileRoot, 'android', 'app', 'src', 'direct', 'java', 'ca', 'persistent', 'app', 'alarm')
+const directAlarmPkg = join(
+  mobileRoot,
+  'android',
+  'app',
+  'src',
+  'direct',
+  'java',
+  'ca',
+  'persistent',
+  'app',
+  'alarm',
+)
 mkdirSync(directAlarmPkg, { recursive: true })
 for (const file of DIRECT_ONLY_KT) {
   copyFileSync(join(pluginDir, file), join(directAlarmPkg, file))
@@ -160,7 +216,9 @@ for (const resource of DIRECT_ONLY_RES) {
   const stale = join(androidApp, 'res', resource)
   if (existsSync(stale)) {
     rmSync(stale)
-    console.log(`[setup-android] removed stale ${resource} from src/main (now direct-only)`)
+    console.log(
+      `[setup-android] removed stale ${resource} from src/main (now direct-only)`,
+    )
   }
 }
 
@@ -170,7 +228,10 @@ console.log('[setup-android] installed play/direct flavor source sets')
 const manifestPath = join(androidApp, 'AndroidManifest.xml')
 if (!existsSync(manifestPath)) fail(`Manifest not found at ${manifestPath}`)
 
-const additions = readFileSync(join(pluginDir, 'AndroidManifest.additions.xml'), 'utf8')
+const additions = readFileSync(
+  join(pluginDir, 'AndroidManifest.additions.xml'),
+  'utf8',
+)
 const appMarker = '<!-- ===== inside <application> ===== -->'
 const [permsRaw, compsRaw] = additions.split(appMarker)
 const permissions = permsRaw
@@ -179,7 +240,7 @@ const permissions = permsRaw
     (line) =>
       line.trim().startsWith('<uses-permission') ||
       line.trim().startsWith('<uses-feature') ||
-      line.trim().startsWith('<uses-sdk')
+      line.trim().startsWith('<uses-sdk'),
   )
   .join('\n')
 const components = compsRaw.trim()
@@ -201,11 +262,19 @@ function escapeRe(s) {
 
 // Permissions: refresh existing block, else insert right after the <manifest ...> tag.
 const permsBlock = `${BEGIN_PERMS}\n${permissions}\n${END_PERMS}`
-const permsReplaced = replaceBlock(manifest, BEGIN_PERMS, END_PERMS, permissions)
+const permsReplaced = replaceBlock(
+  manifest,
+  BEGIN_PERMS,
+  END_PERMS,
+  permissions,
+)
 if (permsReplaced) {
   manifest = permsReplaced
 } else {
-  manifest = manifest.replace(/(<manifest\b[^>]*>)/, `$1\n    ${permsBlock.replace(/\n/g, '\n    ')}`)
+  manifest = manifest.replace(
+    /(<manifest\b[^>]*>)/,
+    `$1\n    ${permsBlock.replace(/\n/g, '\n    ')}`,
+  )
 }
 
 // Components: refresh existing block, else insert right before </application>.
@@ -214,13 +283,19 @@ const compsReplaced = replaceBlock(manifest, BEGIN_COMP, END_COMP, components)
 if (compsReplaced) {
   manifest = compsReplaced
 } else {
-  manifest = manifest.replace(/(<\/application>)/, `    ${compsBlock.replace(/\n/g, '\n    ')}\n$1`)
+  manifest = manifest.replace(
+    /(<\/application>)/,
+    `    ${compsBlock.replace(/\n/g, '\n    ')}\n$1`,
+  )
 }
 
 // The components block uses tools:node="remove" (to drop Capacitor's FCM service
 // in favour of our FcmService), which needs the tools namespace on <manifest>.
 if (!manifest.includes('xmlns:tools=')) {
-  manifest = manifest.replace(/<manifest\b/, '<manifest xmlns:tools="http://schemas.android.com/tools"')
+  manifest = manifest.replace(
+    /<manifest\b/,
+    '<manifest xmlns:tools="http://schemas.android.com/tools"',
+  )
 }
 
 // Predictive back is ON, and it is written here explicitly rather than left to the
@@ -247,16 +322,18 @@ if (!manifest.includes('xmlns:tools=')) {
 if (!manifest.includes('android:enableOnBackInvokedCallback')) {
   manifest = manifest.replace(
     /<application\b/,
-    '<application android:enableOnBackInvokedCallback="true"'
+    '<application android:enableOnBackInvokedCallback="true"',
   )
-  console.log('[setup-android] opted in to predictive back (see the note in this script)')
+  console.log(
+    '[setup-android] opted in to predictive back (see the note in this script)',
+  )
 } else {
   // An earlier run of this script wrote the opt-out into a generated project that is
   // gitignored and therefore long-lived. Move it forward rather than leaving a stale
   // `false` to quietly disagree with the code.
   manifest = manifest.replace(
     /android:enableOnBackInvokedCallback="false"/,
-    'android:enableOnBackInvokedCallback="true"'
+    'android:enableOnBackInvokedCallback="true"',
   )
 }
 
@@ -272,38 +349,72 @@ if (!manifest.includes('android:enableOnBackInvokedCallback')) {
 // separately by `android:dataExtractionRules`, left alone deliberately: a
 // phone-to-phone copy never reaches Google, and the app re-syncs either way.
 if (manifest.includes('android:allowBackup=')) {
-  manifest = manifest.replace(/android:allowBackup="true"/, 'android:allowBackup="false"')
+  manifest = manifest.replace(
+    /android:allowBackup="true"/,
+    'android:allowBackup="false"',
+  )
 } else {
-  manifest = manifest.replace(/<application\b/, '<application android:allowBackup="false"')
+  manifest = manifest.replace(
+    /<application\b/,
+    '<application android:allowBackup="false"',
+  )
 }
 
 // Explicit catalog declaration avoids advertising unrelated dependency resource languages.
 manifest = manifest.replace(/android:localeConfig="[^"]*"/g, '')
-manifest = manifest.replace(/<application\b/, '<application android:localeConfig="@xml/locale_config"')
+manifest = manifest.replace(
+  /<application\b/,
+  '<application android:localeConfig="@xml/locale_config"',
+)
 // Keep the live hosted editor mounted when the system per-app language changes.
-manifest = manifest.replace(/android:configChanges="([^"]*)"/g, (_match, flags) => {
-  const values = [...new Set([...flags.split('|'), 'locale', 'layoutDirection'])]
-  return `android:configChanges="${values.join('|')}"`
-})
+manifest = manifest.replace(
+  /android:configChanges="([^"]*)"/g,
+  (_match, flags) => {
+    const values = [
+      ...new Set([...flags.split('|'), 'locale', 'layoutDirection']),
+    ]
+    return `android:configChanges="${values.join('|')}"`
+  },
+)
 const localeConfigDir = join(androidApp, 'res', 'xml')
 mkdirSync(localeConfigDir, { recursive: true })
-const localeIds = ['en-US', 'en-CA', 'es-ES', 'fr-FR', 'fr-CA', 'de-DE', 'zh-CN', 'pt-BR', 'ja-JP']
-writeFileSync(join(localeConfigDir, 'locale_config.xml'), `<?xml version="1.0" encoding="utf-8"?>
+const localeIds = [
+  'en-US',
+  'en-CA',
+  'es-ES',
+  'fr-FR',
+  'fr-CA',
+  'de-DE',
+  'zh-CN',
+  'pt-BR',
+  'ja-JP',
+]
+writeFileSync(
+  join(localeConfigDir, 'locale_config.xml'),
+  `<?xml version="1.0" encoding="utf-8"?>
 <locale-config xmlns:android="http://schemas.android.com/apk/res/android">
-${localeIds.map(locale => `    <locale android:name="${locale}" />`).join('\n')}
+${localeIds.map((locale) => `    <locale android:name="${locale}" />`).join('\n')}
 </locale-config>
-`)
+`,
+)
 
 writeFileSync(manifestPath, manifest)
-console.log('[setup-android] merged permissions + components into AndroidManifest.xml')
+console.log(
+  '[setup-android] merged permissions + components into AndroidManifest.xml',
+)
 
 // --- 3. Register the plugin via MainActivity --------------------------------
 mkdirSync(appPkgDir, { recursive: true })
 // Remove a generated Kotlin MainActivity if present, to avoid a duplicate class.
 const generatedKt = join(appPkgDir, 'MainActivity.kt')
 if (existsSync(generatedKt)) rmSync(generatedKt)
-copyFileSync(join(pluginDir, 'MainActivity.java'), join(appPkgDir, 'MainActivity.java'))
-console.log('[setup-android] installed MainActivity.java (registers AlarmPlugin)')
+copyFileSync(
+  join(pluginDir, 'MainActivity.java'),
+  join(appPkgDir, 'MainActivity.java'),
+)
+console.log(
+  '[setup-android] installed MainActivity.java (registers AlarmPlugin)',
+)
 
 // --- 4. Enable Kotlin -------------------------------------------------------
 // The plugin sources are Kotlin but Capacitor's generated app module is
@@ -317,7 +428,7 @@ let rootGradle = readFileSync(rootGradlePath, 'utf8')
 if (!rootGradle.includes('kotlin-gradle-plugin')) {
   rootGradle = rootGradle.replace(
     /(classpath 'com\.android\.tools\.build:gradle:[^']+')/,
-    `$1\n        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:${KOTLIN_VERSION}'`
+    `$1\n        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:${KOTLIN_VERSION}'`,
   )
   writeFileSync(rootGradlePath, rootGradle)
   console.log('[setup-android] added Kotlin classpath to android/build.gradle')
@@ -327,10 +438,12 @@ let appGradle = readFileSync(appGradlePath, 'utf8')
 if (!appGradle.includes("apply plugin: 'kotlin-android'")) {
   appGradle = appGradle.replace(
     /(apply plugin: 'com\.android\.application'\n)/,
-    `$1apply plugin: 'kotlin-android'\n`
+    `$1apply plugin: 'kotlin-android'\n`,
   )
   writeFileSync(appGradlePath, appGradle)
-  console.log("[setup-android] applied kotlin-android plugin in android/app/build.gradle")
+  console.log(
+    '[setup-android] applied kotlin-android plugin in android/app/build.gradle',
+  )
 }
 
 // Play requires this package name for the listing. applicationId is independent of
@@ -355,7 +468,9 @@ const GRADLE_VERSION = '8.13'
 {
   const variablesPath = join(mobileRoot, 'android', 'variables.gradle')
   if (!existsSync(variablesPath)) {
-    fail('Cannot locate android/variables.gradle to set the supported SDK floor.')
+    fail(
+      'Cannot locate android/variables.gradle to set the supported SDK floor.',
+    )
   }
   if (existsSync(variablesPath)) {
     let v = readFileSync(variablesPath, 'utf8')
@@ -364,11 +479,19 @@ const GRADLE_VERSION = '8.13'
       fail('Cannot locate minSdkVersion in android/variables.gradle.')
     }
     v = v.replace(/minSdkVersion\s*=\s*\d+/, `minSdkVersion = ${MIN_SDK}`)
-    v = v.replace(/compileSdkVersion\s*=\s*\d+/, `compileSdkVersion = ${TARGET_SDK}`)
-    v = v.replace(/targetSdkVersion\s*=\s*\d+/, `targetSdkVersion = ${TARGET_SDK}`)
+    v = v.replace(
+      /compileSdkVersion\s*=\s*\d+/,
+      `compileSdkVersion = ${TARGET_SDK}`,
+    )
+    v = v.replace(
+      /targetSdkVersion\s*=\s*\d+/,
+      `targetSdkVersion = ${TARGET_SDK}`,
+    )
     if (v !== before) {
       writeFileSync(variablesPath, v)
-      console.log(`[setup-android] set minSdk to ${MIN_SDK}, compileSdk/targetSdk to ${TARGET_SDK}`)
+      console.log(
+        `[setup-android] set minSdk to ${MIN_SDK}, compileSdk/targetSdk to ${TARGET_SDK}`,
+      )
     }
   }
 
@@ -376,14 +499,20 @@ const GRADLE_VERSION = '8.13'
   const agpBefore = rg
   rg = rg.replace(
     /classpath 'com\.android\.tools\.build:gradle:[^']+'/,
-    `classpath 'com.android.tools.build:gradle:${AGP_VERSION}'`
+    `classpath 'com.android.tools.build:gradle:${AGP_VERSION}'`,
   )
   if (rg !== agpBefore) {
     writeFileSync(rootGradlePath, rg)
     console.log(`[setup-android] set Android Gradle Plugin to ${AGP_VERSION}`)
   }
 
-  const wrapperPath = join(mobileRoot, 'android', 'gradle', 'wrapper', 'gradle-wrapper.properties')
+  const wrapperPath = join(
+    mobileRoot,
+    'android',
+    'gradle',
+    'wrapper',
+    'gradle-wrapper.properties',
+  )
   if (existsSync(wrapperPath)) {
     let w = readFileSync(wrapperPath, 'utf8')
     const wBefore = w
@@ -408,10 +537,12 @@ const GRADLE_VERSION = '8.13'
   if (g.includes('flavorDimensions') && !g.includes(PLAY_APPLICATION_ID)) {
     g = g.replace(
       /(play\s*\{\s*\n\s*dimension "distribution")/,
-      `$1\n            applicationId "${PLAY_APPLICATION_ID}"`
+      `$1\n            applicationId "${PLAY_APPLICATION_ID}"`,
     )
     writeFileSync(appGradlePath, g)
-    console.log(`[setup-android] set play applicationId to ${PLAY_APPLICATION_ID}`)
+    console.log(
+      `[setup-android] set play applicationId to ${PLAY_APPLICATION_ID}`,
+    )
   }
   if (!g.includes('flavorDimensions')) {
     g = g.replace(
@@ -430,7 +561,7 @@ const GRADLE_VERSION = '8.13'
             dimension "distribution"
         }
     }
-$1`
+$1`,
     )
     writeFileSync(appGradlePath, g)
     console.log('[setup-android] added play/direct product flavors')
@@ -446,7 +577,8 @@ if (existsSync(iconOverlay)) {
   // along with the code and manifest entry that use them (see 1c).
   cpSync(iconOverlay, join(androidApp, 'res'), {
     recursive: true,
-    filter: (src) => !DIRECT_ONLY_RES.some((resource) => src.endsWith(resource))
+    filter: (src) =>
+      !DIRECT_ONLY_RES.some((resource) => src.endsWith(resource)),
   })
   console.log('[setup-android] applied custom launcher icons')
 }
@@ -462,7 +594,7 @@ if (existsSync(iconOverlay)) {
       `dependencies {
     implementation "androidx.credentials:credentials:1.3.0"
     implementation "androidx.credentials:credentials-play-services-auth:1.3.0"
-    implementation "com.google.android.libraries.identity.googleid:googleid:1.1.1"`
+    implementation "com.google.android.libraries.identity.googleid:googleid:1.1.1"`,
     )
     writeFileSync(appGradlePath, g)
     console.log('[setup-android] added androidx.credentials dependencies')
@@ -482,7 +614,7 @@ if (existsSync(iconOverlay)) {
     g = g.replace(
       /dependencies\s*\{/,
       `dependencies {
-    implementation "com.google.firebase:firebase-messaging:23.3.1"`
+    implementation "com.google.firebase:firebase-messaging:23.3.1"`,
     )
     writeFileSync(appGradlePath, g)
     console.log('[setup-android] added firebase-messaging dependency')
@@ -501,7 +633,7 @@ if (existsSync(iconOverlay)) {
     g = g.replace(
       /dependencies\s*\{/,
       `dependencies {
-    implementation "androidx.work:work-runtime-ktx:2.9.1"`
+    implementation "androidx.work:work-runtime-ktx:2.9.1"`,
     )
     writeFileSync(appGradlePath, g)
     console.log('[setup-android] added androidx.work (WorkManager) dependency')
@@ -516,19 +648,27 @@ if (existsSync(iconOverlay)) {
 // floor. (It named compileSdk 34 / AGP 8.2.1 until those pins moved on without it.)
 {
   let g = readFileSync(appGradlePath, 'utf8')
-  const sharedCarDependency = /^\s*implementation\s+["']androidx\.car\.app:app:[^"']+["']\s*$/m
+  const sharedCarDependency =
+    /^\s*implementation\s+["']androidx\.car\.app:app:[^"']+["']\s*$/m
   if (sharedCarDependency.test(g)) {
-    g = g.replace(sharedCarDependency, '    directImplementation "androidx.car.app:app:1.4.0"')
+    g = g.replace(
+      sharedCarDependency,
+      '    directImplementation "androidx.car.app:app:1.4.0"',
+    )
     writeFileSync(appGradlePath, g)
-    console.log('[setup-android] moved androidx.car.app dependency to direct flavor')
+    console.log(
+      '[setup-android] moved androidx.car.app dependency to direct flavor',
+    )
   } else if (!g.includes('androidx.car.app:app')) {
     g = g.replace(
       /dependencies\s*\{/,
       `dependencies {
-    directImplementation "androidx.car.app:app:1.4.0"`
+    directImplementation "androidx.car.app:app:1.4.0"`,
     )
     writeFileSync(appGradlePath, g)
-    console.log('[setup-android] added androidx.car.app (Android Auto) dependency')
+    console.log(
+      '[setup-android] added androidx.car.app (Android Auto) dependency',
+    )
   }
 }
 
@@ -544,10 +684,12 @@ if (existsSync(iconOverlay)) {
     g = g.replace(
       /dependencies\s*\{/,
       `dependencies {
-    implementation "androidx.viewpager2:viewpager2:1.1.0"`
+    implementation "androidx.viewpager2:viewpager2:1.1.0"`,
     )
     writeFileSync(appGradlePath, g)
-    console.log('[setup-android] added androidx.viewpager2 (alarm surface paging) dependency')
+    console.log(
+      '[setup-android] added androidx.viewpager2 (alarm surface paging) dependency',
+    )
   }
 }
 
@@ -559,7 +701,9 @@ const keystoreEnv = process.env.ANDROID_KEYSTORE_FILE
 if (keystoreEnv) {
   // Relative keystore paths (local .env) are resolved from the repo root, two
   // levels above apps/mobile; CI passes an absolute path.
-  const ksSrc = keystoreEnv.startsWith('/') ? keystoreEnv : join(mobileRoot, '..', '..', keystoreEnv)
+  const ksSrc = keystoreEnv.startsWith('/')
+    ? keystoreEnv
+    : join(mobileRoot, '..', '..', keystoreEnv)
   if (existsSync(ksSrc)) {
     copyFileSync(ksSrc, join(mobileRoot, 'android', 'app', 'release.keystore'))
     let g = readFileSync(appGradlePath, 'utf8')
@@ -574,14 +718,19 @@ if (keystoreEnv) {
             keyAlias System.getenv("ANDROID_KEY_ALIAS")
             keyPassword System.getenv("ANDROID_KEY_PASSWORD")
         }
-    }`
+    }`,
       )
-      g = g.replace(/(buildTypes\s*\{\s*\n\s*release\s*\{)/, `$1\n            signingConfig signingConfigs.release`)
+      g = g.replace(
+        /(buildTypes\s*\{\s*\n\s*release\s*\{)/,
+        `$1\n            signingConfig signingConfigs.release`,
+      )
       writeFileSync(appGradlePath, g)
       console.log('[setup-android] configured release signing')
     }
   } else {
-    console.log(`[setup-android] ANDROID_KEYSTORE_FILE set but not found: ${ksSrc}`)
+    console.log(
+      `[setup-android] ANDROID_KEYSTORE_FILE set but not found: ${ksSrc}`,
+    )
   }
 }
 
@@ -589,13 +738,21 @@ if (keystoreEnv) {
 if (process.env.ANDROID_VERSION_NAME || process.env.ANDROID_VERSION_CODE) {
   let g = readFileSync(appGradlePath, 'utf8')
   if (process.env.ANDROID_VERSION_CODE) {
-    g = g.replace(/versionCode\s+\d+/, `versionCode ${Number(process.env.ANDROID_VERSION_CODE)}`)
+    g = g.replace(
+      /versionCode\s+\d+/,
+      `versionCode ${Number(process.env.ANDROID_VERSION_CODE)}`,
+    )
   }
   if (process.env.ANDROID_VERSION_NAME) {
-    g = g.replace(/versionName\s+"[^"]*"/, `versionName "${process.env.ANDROID_VERSION_NAME}"`)
+    g = g.replace(
+      /versionName\s+"[^"]*"/,
+      `versionName "${process.env.ANDROID_VERSION_NAME}"`,
+    )
   }
   writeFileSync(appGradlePath, g)
   console.log('[setup-android] set app version from env')
 }
 
-console.log('\n[setup-android] done. Next: `npm run sync` then build in Android Studio.\n')
+console.log(
+  '\n[setup-android] done. Next: `npm run sync` then build in Android Studio.\n',
+)

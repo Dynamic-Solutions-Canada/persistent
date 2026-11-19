@@ -21,13 +21,19 @@ export function NativeAppsDialog({ open, onClose }: NativeAppsDialogProps) {
   return (
     <BackAwareModal open={open} onClose={onClose}>
       <ModalDialog sx={{ width: 'min(400px, calc(100vw - 32px))' }}>
-        <DialogTitle>{tr("Get Persistent")}</DialogTitle>
+        <DialogTitle>{tr('Get Persistent')}</DialogTitle>
         <DialogContent>
-          <Typography level="body-sm">{tr("Android can sound alarms even while offline. The Windows and Linux apps add tray access and persistent notifications with alarm audio while your computer is awake. Windows also offers an upcoming widget.")}</Typography>
+          <Typography level="body-sm">
+            {tr(
+              'Android can sound alarms even while offline. The Windows and Linux apps add tray access and persistent notifications with alarm audio while your computer is awake. Windows also offers an upcoming widget.',
+            )}
+          </Typography>
           <NativeAppButtons />
         </DialogContent>
         <DialogActions>
-          <Button variant="plain" color="neutral" onClick={onClose}>{tr("Close")}</Button>
+          <Button variant="plain" color="neutral" onClick={onClose}>
+            {tr('Close')}
+          </Button>
         </DialogActions>
       </ModalDialog>
     </BackAwareModal>

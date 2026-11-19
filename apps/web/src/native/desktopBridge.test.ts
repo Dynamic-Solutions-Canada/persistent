@@ -15,7 +15,7 @@ const complete = {
   snoozeChoices: [
     { minutes: 5, label: '5 min' },
     { minutes: 15, label: '15 min' },
-    { minutes: 60, label: '1 hr' }
+    { minutes: 60, label: '1 hr' },
   ],
   pinFlyout: false,
   startAtSignIn: true,
@@ -23,8 +23,8 @@ const complete = {
   flyoutPlacement: 'tray',
   flyoutSizes: [
     { id: 'compact', label: 'Compact', width: 380, height: 560 },
-    { id: 'standard', label: 'Standard', width: 420, height: 680 }
-  ]
+    { id: 'standard', label: 'Standard', width: 420, height: 680 },
+  ],
 }
 
 test('parseHostSettings: accepts a complete payload', () => {
@@ -32,14 +32,23 @@ test('parseHostSettings: accepts a complete payload', () => {
 })
 
 test('parseHostSettings: ignores fields a newer host adds', () => {
-  assert.deepEqual(parseHostSettings({ ...complete, somethingNew: 'ignored' }), complete)
+  assert.deepEqual(
+    parseHostSettings({ ...complete, somethingNew: 'ignored' }),
+    complete,
+  )
 })
 
 test('parseHostSettings: rejects a payload missing any field', () => {
-  for (const field of Object.keys(complete).filter((field) => field !== 'flyoutPlacement')) {
+  for (const field of Object.keys(complete).filter(
+    (field) => field !== 'flyoutPlacement',
+  )) {
     const partial: Record<string, unknown> = { ...complete }
     delete partial[field]
-    assert.equal(parseHostSettings(partial), null, `expected null without ${field}`)
+    assert.equal(
+      parseHostSettings(partial),
+      null,
+      `expected null without ${field}`,
+    )
   }
 })
 
@@ -54,27 +63,48 @@ test('parseHostSettings: rejects a field of the wrong type', () => {
   assert.equal(parseHostSettings({ ...complete, pinFlyout: 'true' }), null)
   assert.equal(parseHostSettings({ ...complete, startAtSignIn: null }), null)
   assert.equal(parseHostSettings({ ...complete, flyoutSize: 42 }), null)
-  assert.equal(parseHostSettings({ ...complete, flyoutPlacement: 'elsewhere' }), null)
+  assert.equal(
+    parseHostSettings({ ...complete, flyoutPlacement: 'elsewhere' }),
+    null,
+  )
 })
 
 test('parseHostSettings: rejects a payload with no usable options, since a picker would be empty', () => {
   assert.equal(parseHostSettings({ ...complete, flyoutSizes: [] }), null)
-  assert.equal(parseHostSettings({ ...complete, flyoutSizes: 'standard' }), null)
-  assert.equal(parseHostSettings({ ...complete, flyoutSizes: [{ id: 'standard' }] }), null)
+  assert.equal(
+    parseHostSettings({ ...complete, flyoutSizes: 'standard' }),
+    null,
+  )
+  assert.equal(
+    parseHostSettings({ ...complete, flyoutSizes: [{ id: 'standard' }] }),
+    null,
+  )
   assert.equal(parseHostSettings({ ...complete, snoozeChoices: [] }), null)
-  assert.equal(parseHostSettings({ ...complete, snoozeChoices: [{ minutes: 5 }] }), null)
+  assert.equal(
+    parseHostSettings({ ...complete, snoozeChoices: [{ minutes: 5 }] }),
+    null,
+  )
 })
 
 test('parseHostSettings: drops a malformed option but keeps the rest', () => {
-  const mixed = { ...complete, flyoutSizes: [...complete.flyoutSizes, { id: 'tall' }] }
+  const mixed = {
+    ...complete,
+    flyoutSizes: [...complete.flyoutSizes, { id: 'tall' }],
+  }
   assert.deepEqual(parseHostSettings(mixed)?.flyoutSizes, complete.flyoutSizes)
 })
 
 test('parseHostSettings: drops a duplicate option, which would collide as a React key', () => {
   const dupes = {
     ...complete,
-    flyoutSizes: [...complete.flyoutSizes, { id: 'standard', label: 'Standard again', width: 1, height: 2 }],
-    snoozeChoices: [...complete.snoozeChoices, { minutes: 15, label: '15 min again' }]
+    flyoutSizes: [
+      ...complete.flyoutSizes,
+      { id: 'standard', label: 'Standard again', width: 1, height: 2 },
+    ],
+    snoozeChoices: [
+      ...complete.snoozeChoices,
+      { minutes: 15, label: '15 min again' },
+    ],
   }
   const parsed = parseHostSettings(dupes)
   assert.deepEqual(parsed?.flyoutSizes, complete.flyoutSizes)
@@ -84,13 +114,25 @@ test('parseHostSettings: drops a duplicate option, which would collide as a Reac
 test('parseHostSettings: snaps a snooze the host cannot offer to the nearest it can', () => {
   // 10 sits between the offered 5 and 15. The Windows toast resolves it the same
   // way (ToastNotifier.NearestOffered), and both keep the first on a tie.
-  assert.equal(parseHostSettings({ ...complete, snoozeMinutes: 10 })?.snoozeMinutes, 5)
-  assert.equal(parseHostSettings({ ...complete, snoozeMinutes: 180 })?.snoozeMinutes, 60)
-  assert.equal(parseHostSettings({ ...complete, snoozeMinutes: 0 })?.snoozeMinutes, 5)
+  assert.equal(
+    parseHostSettings({ ...complete, snoozeMinutes: 10 })?.snoozeMinutes,
+    5,
+  )
+  assert.equal(
+    parseHostSettings({ ...complete, snoozeMinutes: 180 })?.snoozeMinutes,
+    60,
+  )
+  assert.equal(
+    parseHostSettings({ ...complete, snoozeMinutes: 0 })?.snoozeMinutes,
+    5,
+  )
 })
 
 test('parseHostSettings: falls back to the first size when the current one is not on offer', () => {
-  assert.equal(parseHostSettings({ ...complete, flyoutSize: 'enormous' })?.flyoutSize, 'compact')
+  assert.equal(
+    parseHostSettings({ ...complete, flyoutSize: 'enormous' })?.flyoutSize,
+    'compact',
+  )
 })
 
 test('parseHostSettings: rejects anything that is not an object', () => {
@@ -111,13 +153,33 @@ test('host navigation rejects backslash and whitespace open-redirect forms', asy
   const { onHostMessage } = await import('./desktopBridge.js')
   const previous = Object.getOwnPropertyDescriptor(globalThis, 'window')
   let receive!: (event: { data: unknown }) => void
-  Object.defineProperty(globalThis, 'window', { configurable: true, value: { chrome: { webview: {
-    postMessage: () => {}, addEventListener: (_type: string, handler: typeof receive) => { receive = handler }, removeEventListener: () => {}
-  } } } })
+  Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    value: {
+      chrome: {
+        webview: {
+          postMessage: () => {},
+          addEventListener: (_type: string, handler: typeof receive) => {
+            receive = handler
+          },
+          removeEventListener: () => {},
+        },
+      },
+    },
+  })
   try {
     const paths: string[] = []
-    const unsubscribe = onHostMessage((message) => { if (message.type === 'navigate') paths.push(message.path) })
-    for (const path of ['//evil.example', '/\\evil.example', '/\n/evil.example', '/', '/settings']) receive({ data: { type: 'navigate', path } })
+    const unsubscribe = onHostMessage((message) => {
+      if (message.type === 'navigate') paths.push(message.path)
+    })
+    for (const path of [
+      '//evil.example',
+      '/\\evil.example',
+      '/\n/evil.example',
+      '/',
+      '/settings',
+    ])
+      receive({ data: { type: 'navigate', path } })
     assert.deepEqual(paths, ['/', '/settings'])
     unsubscribe()
   } finally {
@@ -126,13 +188,18 @@ test('host navigation rejects backslash and whitespace open-redirect forms', asy
   }
 })
 
-
 test('device clock is optional and accepts only native 12h/24h values', () => {
   for (const deviceTimeFormat of ['12h', '24h']) {
-    assert.equal(parseHostSettings({ ...complete, deviceTimeFormat })?.deviceTimeFormat, deviceTimeFormat)
+    assert.equal(
+      parseHostSettings({ ...complete, deviceTimeFormat })?.deviceTimeFormat,
+      deviceTimeFormat,
+    )
   }
   for (const deviceTimeFormat of [null, true, 12, '13h', {}, undefined]) {
-    assert.deepEqual(parseHostSettings({ ...complete, deviceTimeFormat }), complete)
+    assert.deepEqual(
+      parseHostSettings({ ...complete, deviceTimeFormat }),
+      complete,
+    )
   }
 })
 
@@ -143,10 +210,14 @@ test('online session confirmation reaches Windows and Linux desktop hosts', () =
     for (const platform of ['windows', 'linux']) {
       const messages: unknown[] = []
       const postMessage = (message: unknown) => messages.push(message)
-      const host = platform === 'windows'
-        ? { chrome: { webview: { postMessage } } }
-        : { persistentDesktop: { platform: 'linux', postMessage } }
-      Object.defineProperty(globalThis, 'window', { value: host, configurable: true })
+      const host =
+        platform === 'windows'
+          ? { chrome: { webview: { postMessage } } }
+          : { persistentDesktop: { platform: 'linux', postMessage } }
+      Object.defineProperty(globalThis, 'window', {
+        value: host,
+        configurable: true,
+      })
       notifyHostSignedIn()
       assert.deepEqual(messages, [{ type: 'signedIn' }], platform)
     }

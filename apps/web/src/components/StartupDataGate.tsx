@@ -1,7 +1,14 @@
 /** Hide stale pages during first load and foreground refresh without discarding open dialogs or drafts. */
 import { useTranslation } from 'react-i18next'
 import { tr } from '../localization/i18n.js'
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 import { App as CapacitorApp } from '@capacitor/app'
 import type { PluginListenerHandle } from '@capacitor/core'
 import { isCancelledError, useQueryClient } from '@tanstack/react-query'
@@ -21,57 +28,73 @@ export function StartupDataGate({ children }: { children: ReactNode }) {
   const generation = useRef(0)
 
   /** Join active page requests, including cache hits, after restoring and confirming the account. */
-  const refresh = useCallback(async (checkSession: boolean) => {
-    const current = ++generation.current
-    setLoading(true)
-    setError(false)
-    try {
-      const sessionOffline = checkSession ? (await refreshSession()).offline : offline
-      if (!sessionOffline) {
-        await queryClient.resumePausedMutations()
-        // Product news refreshes on foreground too, but cannot block reminders.
-        void queryClient.refetchQueries({
-          type: 'active',
-          predicate: (query) => query.meta?.startupOptional === true
-        })
-        // Reconnect resets queries to recheck sharing grants. A cancelled
-        // request is superseded, not failed: join its replacement before opening
-        // the page. Account changes and backgrounding invalidate this generation.
-        while (current === generation.current) {
-          try {
-            await queryClient.refetchQueries({
-              type: 'active',
-              predicate: (query) => query.queryKey[0] !== 'auth' && query.meta?.startupOptional !== true
-            }, { cancelRefetch: false, throwOnError: true })
-            break
-          } catch (failure) {
-            if (!isCancelledError(failure)) throw failure
+  const refresh = useCallback(
+    async (checkSession: boolean) => {
+      const current = ++generation.current
+      setLoading(true)
+      setError(false)
+      try {
+        const sessionOffline = checkSession
+          ? (await refreshSession()).offline
+          : offline
+        if (!sessionOffline) {
+          await queryClient.resumePausedMutations()
+          // Product news refreshes on foreground too, but cannot block reminders.
+          void queryClient.refetchQueries({
+            type: 'active',
+            predicate: (query) => query.meta?.startupOptional === true,
+          })
+          // Reconnect resets queries to recheck sharing grants. A cancelled
+          // request is superseded, not failed: join its replacement before opening
+          // the page. Account changes and backgrounding invalidate this generation.
+          while (current === generation.current) {
+            try {
+              await queryClient.refetchQueries(
+                {
+                  type: 'active',
+                  predicate: (query) =>
+                    query.queryKey[0] !== 'auth' &&
+                    query.meta?.startupOptional !== true,
+                },
+                { cancelRefetch: false, throwOnError: true },
+              )
+              break
+            } catch (failure) {
+              if (!isCancelledError(failure)) throw failure
+            }
           }
         }
+      } catch {
+        // QueryCache reports the underlying failure. Keep stale content hidden
+        // and give the user a visible retry instead of treating an HTTP error as offline.
+        if (current === generation.current) setError(true)
+      } finally {
+        if (current === generation.current) setLoading(false)
       }
-    } catch {
-      // QueryCache reports the underlying failure. Keep stale content hidden
-      // and give the user a visible retry instead of treating an HTTP error as offline.
-      if (current === generation.current) setError(true)
-    } finally {
-      if (current === generation.current) setLoading(false)
-    }
-  }, [queryClient, offline, refreshSession])
+    },
+    [queryClient, offline, refreshSession],
+  )
 
   // Connection changes must cover cached content before the next paint. Query
   // refresh itself waits for child observers to mount in the passive effect.
-  useLayoutEffect(() => { setLoading(true) }, [refresh])
+  useLayoutEffect(() => {
+    setLoading(true)
+  }, [refresh])
 
   useEffect(() => {
     void refresh(false)
     const requests = generation
-    return () => { requests.current++ }
+    return () => {
+      requests.current++
+    }
   }, [refresh])
 
   useEffect(() => {
     let disposed = false
     let nativeListener: PluginListenerHandle | undefined
-    const resume = () => { void refresh(true) }
+    const resume = () => {
+      void refresh(true)
+    }
     const visible = () => {
       if (document.visibilityState === 'visible') {
         resume()
@@ -104,8 +127,15 @@ export function StartupDataGate({ children }: { children: ReactNode }) {
       {loading && <AppLoading />}
       {error && (
         <Stack spacing={2} sx={{ p: 3 }}>
-          <Typography>{tr("Could not refresh your reminders.")}</Typography>
-          <Button variant="soft" onClick={() => { void refresh(true) }}>{tr("Retry")}</Button>
+          <Typography>{tr('Could not refresh your reminders.')}</Typography>
+          <Button
+            variant="soft"
+            onClick={() => {
+              void refresh(true)
+            }}
+          >
+            {tr('Retry')}
+          </Button>
         </Stack>
       )}
       {/* Pages must mount to register their queries. Hidden keeps their cached
@@ -113,7 +143,19 @@ export function StartupDataGate({ children }: { children: ReactNode }) {
       <div hidden={loading || error}>
         {offline && (
           <Alert color="warning" variant="soft" sx={{ m: 2 }}>
-            {tr("Offline. Showing saved reminders. Changes will sync when you reconnect.")}<Button variant="plain" size="sm" color="neutral" onClick={() => { void refresh(true) }}>{tr("Reconnect")}</Button>
+            {tr(
+              'Offline. Showing saved reminders. Changes will sync when you reconnect.',
+            )}
+            <Button
+              variant="plain"
+              size="sm"
+              color="neutral"
+              onClick={() => {
+                void refresh(true)
+              }}
+            >
+              {tr('Reconnect')}
+            </Button>
           </Alert>
         )}
         {children}

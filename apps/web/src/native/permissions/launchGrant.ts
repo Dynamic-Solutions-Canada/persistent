@@ -10,7 +10,12 @@ import type { AlarmGrant, GrantRoute } from './alarmGrants.js'
 
 /** Capacitor's explicit answer from a host built before a method existed. */
 function isUnimplemented(error: unknown): boolean {
-  return typeof error === 'object' && error !== null && 'code' in error && error.code === 'UNIMPLEMENTED'
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    error.code === 'UNIMPLEMENTED'
+  )
 }
 
 /**
@@ -43,7 +48,10 @@ async function launchOnOlderHost(grant: AlarmGrant): Promise<boolean> {
  * showing it); a settings screen resolves as soon as it starts. Either way the
  * outcome is read from readiness afterwards, not from this result.
  */
-export async function launchGrant(grant: AlarmGrant, route: GrantRoute): Promise<boolean> {
+export async function launchGrant(
+  grant: AlarmGrant,
+  route: GrantRoute,
+): Promise<boolean> {
   if (route === 'prompt') {
     await PushNotifications.requestPermissions().catch(() => {})
     return true

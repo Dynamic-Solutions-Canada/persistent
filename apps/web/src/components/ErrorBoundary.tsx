@@ -31,13 +31,28 @@ export class ErrorBoundary extends Component<Props, State> {
   override render(): ReactNode {
     if (!this.state.error) return this.props.children
     return (
-      <Box sx={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
-        <Sheet variant="outlined" sx={{ p: 3, borderRadius: 'md', maxWidth: 420, textAlign: 'center' }}>
-          <Typography level="title-lg" sx={{ mb: 1 }}>{tr("Something went wrong")}</Typography>
-          <Typography level="body-sm" sx={{ mb: 2 }}>
-            {this.state.error.message || tr("An unexpected error occurred.")}
+      <Box
+        sx={{
+          minHeight: '100dvh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 2,
+        }}
+      >
+        <Sheet
+          variant="outlined"
+          sx={{ p: 3, borderRadius: 'md', maxWidth: 420, textAlign: 'center' }}
+        >
+          <Typography level="title-lg" sx={{ mb: 1 }}>
+            {tr('Something went wrong')}
           </Typography>
-          <Button onClick={() => window.location.reload()}>{tr("Reload")}</Button>
+          <Typography level="body-sm" sx={{ mb: 2 }}>
+            {this.state.error.message || tr('An unexpected error occurred.')}
+          </Typography>
+          <Button onClick={() => window.location.reload()}>
+            {tr('Reload')}
+          </Button>
         </Sheet>
       </Box>
     )

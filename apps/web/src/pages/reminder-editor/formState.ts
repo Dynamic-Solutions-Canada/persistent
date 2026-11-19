@@ -17,10 +17,14 @@ import type {
   ReminderType,
   Schedule,
   ScheduleKind,
-  ShadeProminence
+  ShadeProminence,
 } from '@persistent/shared'
 import { isTimeless, noReminderSounds, todoItems } from '@persistent/shared'
-import { immediateSchedule, localCalendarDate, localTimeOfDay } from '../../lib/immediate-schedule.js'
+import {
+  immediateSchedule,
+  localCalendarDate,
+  localTimeOfDay,
+} from '../../lib/immediate-schedule.js'
 import { newTodoItemId } from '../../lib/todoItemId.js'
 import type { SchedulePreviewInput } from '../../lib/schedule-preview.js'
 
@@ -126,7 +130,7 @@ export function emptyForm(): FormState {
     escalateEmailAfterMinutes: '60',
     startDate: localCalendarDate(),
     endDate: '',
-    active: true
+    active: true,
   }
 }
 
@@ -160,12 +164,21 @@ export function buildSchedule(form: FormState): Schedule {
   return {
     kind: form.kind,
     timesOfDay: form.timesOfDay,
-    ...(form.kind === 'weekly' || form.kind === 'custom' ? { daysOfWeek: form.daysOfWeek } : {}),
-    ...(form.kind === 'monthly'
-      ? { daysOfMonth: [...form.daysOfMonth].sort((a, b) => a - b), lastDayOfMonth: form.lastDayOfMonth }
+    ...(form.kind === 'weekly' || form.kind === 'custom'
+      ? { daysOfWeek: form.daysOfWeek }
       : {}),
-    ...(form.kind === 'interval' ? { everyNDays: Number(form.everyNDays) || 1 } : {}),
-    ...(form.kind === 'daily' || form.kind === 'interval' ? { skipWeekends: form.skipWeekends } : {})
+    ...(form.kind === 'monthly'
+      ? {
+          daysOfMonth: [...form.daysOfMonth].sort((a, b) => a - b),
+          lastDayOfMonth: form.lastDayOfMonth,
+        }
+      : {}),
+    ...(form.kind === 'interval'
+      ? { everyNDays: Number(form.everyNDays) || 1 }
+      : {}),
+    ...(form.kind === 'daily' || form.kind === 'interval'
+      ? { skipWeekends: form.skipWeekends }
+      : {}),
   }
 }
 
@@ -180,7 +193,7 @@ export function previewInput(form: FormState): SchedulePreviewInput {
     everyNDays: Number(form.everyNDays) || 1,
     skipWeekends: form.skipWeekends,
     startDate: form.startDate,
-    endDate: form.endDate
+    endDate: form.endDate,
   }
 }
 
@@ -194,12 +207,17 @@ export function toInput(form: FormState): ReminderInput {
             .map((m) => ({
               ...(m.name ? { name: m.name } : {}),
               ...(m.unit ? { unit: m.unit } : {}),
-              ...(m.quantity ? { quantity: Number(m.quantity) } : {})
+              ...(m.quantity ? { quantity: Number(m.quantity) } : {}),
             }))
-            .filter((m) => Object.keys(m).length > 0)
+            .filter((m) => Object.keys(m).length > 0),
         }
       : form.type === 'TODO'
-        ? { items: filledTodos(form).map((item) => ({ id: item.id, text: item.text.trim() })) }
+        ? {
+            items: filledTodos(form).map((item) => ({
+              id: item.id,
+              text: item.text.trim(),
+            })),
+          }
         : {}
 
   // "Remind me now": no date/time was picked, so materialize a one-shot at this
@@ -214,7 +232,10 @@ export function toInput(form: FormState): ReminderInput {
   // state, so a note that later gains a schedule gets its escalation back.
   const canEscalate = form.persistence !== 'ALARM' && !isNote
   const escalating = form.escalate && canEscalate
-  const emailing = canEscalate && form.escalateEmailEnabled && Boolean(form.escalateEmail.trim())
+  const emailing =
+    canEscalate &&
+    form.escalateEmailEnabled &&
+    Boolean(form.escalateEmail.trim())
 
   return {
     title: form.title,
@@ -225,27 +246,42 @@ export function toInput(form: FormState): ReminderInput {
     details: form.type === 'TODO' ? null : form.details || null,
     type: form.type,
     typeData,
-    schedule: isNote ? { kind: 'never', timesOfDay: [] } : immediate ? immediate.schedule : buildSchedule(form),
+    schedule: isNote
+      ? { kind: 'never', timesOfDay: [] }
+      : immediate
+        ? immediate.schedule
+        : buildSchedule(form),
     persistence: form.persistence,
     // Alarm rings continuously (no interval). Notification re-sounds every N
     // minutes; 0 = sound once.
     soundIntervalSeconds:
-      form.persistence === 'PERSISTENT' && form.soundIntervalMinutes > 0 ? form.soundIntervalMinutes * 60 : null,
+      form.persistence === 'PERSISTENT' && form.soundIntervalMinutes > 0
+        ? form.soundIntervalMinutes * 60
+        : null,
     sounds: form.sounds,
     shadeProminence: form.shadeProminence,
     // ALARM already rings continuously, so escalation doesn't apply there.
-    escalateAfterMinutes: escalating && form.escalateMode === 'after' ? Number(form.escalateAfterMinutes) || 15 : null,
-    escalateAtTime: escalating && form.escalateMode === 'at' ? form.escalateAtTime : null,
+    escalateAfterMinutes:
+      escalating && form.escalateMode === 'after'
+        ? Number(form.escalateAfterMinutes) || 15
+        : null,
+    escalateAtTime:
+      escalating && form.escalateMode === 'at' ? form.escalateAtTime : null,
     escalateEmail: emailing ? form.escalateEmail.trim() : null,
-    escalateEmailMessage: emailing && form.escalateEmailMessage.trim() ? form.escalateEmailMessage.trim() : null,
-    escalateEmailAfterMinutes: emailing ? Number(form.escalateEmailAfterMinutes) || 60 : null,
+    escalateEmailMessage:
+      emailing && form.escalateEmailMessage.trim()
+        ? form.escalateEmailMessage.trim()
+        : null,
+    escalateEmailAfterMinutes: emailing
+      ? Number(form.escalateEmailAfterMinutes) || 60
+      : null,
     // Timeless states have no future schedule to pause. In particular, switching
     // a paused schedule to Remind now must still produce its immediate firing.
     active: form.when === 'scheduled' ? form.active : true,
     startDate: immediate ? immediate.startDate : form.startDate,
     // Only a real schedule has a window to close: for a note `startDate` is a bare
     // record of when it was saved, with no run of firings for an end date to stop.
-    endDate: form.when === 'scheduled' ? form.endDate || null : null
+    endDate: form.when === 'scheduled' ? form.endDate || null : null,
   }
 }
 
@@ -267,12 +303,15 @@ export function fromReminder(reminder: Reminder): FormState {
   const medications: MedicationRow[] = (meds.length ? meds : [{}]).map((m) => ({
     name: m.name ?? '',
     unit: m.unit ?? '',
-    quantity: m.quantity != null ? String(m.quantity) : ''
+    quantity: m.quantity != null ? String(m.quantity) : '',
   }))
   // Saved ids are carried through untouched — re-minting them here would strand
   // the ticks on every occurrence currently working through this checklist.
   const saved = todoItems(reminder.typeData)
-  const todos: TodoRow[] = saved.length > 0 ? saved.map((item) => ({ id: item.id, text: item.text })) : [emptyTodo()]
+  const todos: TodoRow[] =
+    saved.length > 0
+      ? saved.map((item) => ({ id: item.id, text: item.text }))
+      : [emptyTodo()]
 
   return {
     title: reminder.title,
@@ -284,9 +323,18 @@ export function fromReminder(reminder: Reminder): FormState {
     // concrete schedule to edit. A timeless kind's own `kind`/times fall back to
     // sensible defaults, so switching it to Schedule lands on a usable form rather
     // than blanks.
-    when: schedule.kind === 'none' ? 'now' : schedule.kind === 'never' ? 'never' : 'scheduled',
-    kind: isTimeless(schedule.kind) ? defaultKindForType(reminder.type) : schedule.kind,
-    timesOfDay: schedule.timesOfDay.length ? schedule.timesOfDay : [localTimeOfDay()],
+    when:
+      schedule.kind === 'none'
+        ? 'now'
+        : schedule.kind === 'never'
+          ? 'never'
+          : 'scheduled',
+    kind: isTimeless(schedule.kind)
+      ? defaultKindForType(reminder.type)
+      : schedule.kind,
+    timesOfDay: schedule.timesOfDay.length
+      ? schedule.timesOfDay
+      : [localTimeOfDay()],
     daysOfWeek: schedule.daysOfWeek ?? [1, 2, 3, 4, 5],
     daysOfMonth: schedule.daysOfMonth?.length ? schedule.daysOfMonth : [1],
     lastDayOfMonth: schedule.lastDayOfMonth ?? false,
@@ -294,20 +342,28 @@ export function fromReminder(reminder: Reminder): FormState {
     skipWeekends: schedule.skipWeekends ?? false,
     persistence: reminder.persistence,
     soundIntervalMinutes:
-      reminder.soundIntervalSeconds != null ? Math.max(1, Math.round(reminder.soundIntervalSeconds / 60)) : 0,
+      reminder.soundIntervalSeconds != null
+        ? Math.max(1, Math.round(reminder.soundIntervalSeconds / 60))
+        : 0,
     sounds: reminder.sounds,
     shadeProminence: reminder.shadeProminence,
-    escalate: reminder.escalateAfterMinutes != null || reminder.escalateAtTime != null,
+    escalate:
+      reminder.escalateAfterMinutes != null || reminder.escalateAtTime != null,
     escalateMode: reminder.escalateAtTime != null ? 'at' : 'after',
-    escalateAfterMinutes: reminder.escalateAfterMinutes != null ? String(reminder.escalateAfterMinutes) : '15',
+    escalateAfterMinutes:
+      reminder.escalateAfterMinutes != null
+        ? String(reminder.escalateAfterMinutes)
+        : '15',
     escalateAtTime: reminder.escalateAtTime ?? '09:00',
     escalateEmailEnabled: reminder.escalateEmail != null,
     escalateEmail: reminder.escalateEmail ?? '',
     escalateEmailMessage: reminder.escalateEmailMessage ?? '',
     escalateEmailAfterMinutes:
-      reminder.escalateEmailAfterMinutes != null ? String(reminder.escalateEmailAfterMinutes) : '60',
+      reminder.escalateEmailAfterMinutes != null
+        ? String(reminder.escalateEmailAfterMinutes)
+        : '60',
     startDate: reminder.startDate,
     endDate: reminder.endDate ?? '',
-    active: reminder.active
+    active: reminder.active,
   }
 }

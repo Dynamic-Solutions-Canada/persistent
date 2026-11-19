@@ -34,7 +34,13 @@
  * list from `components/TodoChecklist.tsx`, and a component reaching into a page's
  * folder is backwards.
  */
-import { useRef, useState, type KeyboardEvent, type PointerEvent, type RefObject } from 'react'
+import {
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type PointerEvent,
+  type RefObject,
+} from 'react'
 
 /** Marks a row so the hook can measure the distance between consecutive rows. */
 export const REORDER_ROW_ATTR = 'data-reorder-row'
@@ -52,7 +58,7 @@ export function useDragReorder(
   count: number,
   onMove: (from: number, to: number) => void,
   /** Called once the order has settled: see the note above about write cost. */
-  onCommit?: () => void
+  onCommit?: () => void,
 ) {
   const drag = useRef<Drag | null>(null)
   // Whether the drag in progress has actually moved anything, so letting go without
@@ -82,7 +88,10 @@ export function useDragReorder(
     const rows = listRef.current?.querySelectorAll(`[${REORDER_ROW_ATTR}]`)
     if (!rows || rows.length === 0) return 48
     if (rows.length === 1) return rows[0]!.getBoundingClientRect().height
-    return rows[1]!.getBoundingClientRect().top - rows[0]!.getBoundingClientRect().top
+    return (
+      rows[1]!.getBoundingClientRect().top -
+      rows[0]!.getBoundingClientRect().top
+    )
   }
 
   function step(to: number) {
@@ -106,7 +115,9 @@ export function useDragReorder(
       onPointerMove: (event: PointerEvent<HTMLElement>) => {
         const current = drag.current
         if (!current || event.pointerId !== current.pointerId) return
-        const steps = Math.round((event.clientY - current.originY) / current.pitch)
+        const steps = Math.round(
+          (event.clientY - current.originY) / current.pitch,
+        )
         if (steps !== 0) step(current.index + steps)
         // After any step, `originY` has been rebased onto the new slot, so what's left
         // is how far past that slot the finger is: the row's own offset.
@@ -114,7 +125,7 @@ export function useDragReorder(
       },
       onPointerUp: endDrag,
       onPointerCancel: endDrag,
-      onLostPointerCapture: endDrag
+      onLostPointerCapture: endDrag,
     },
     handleProps: (index: number) => ({
       style: { touchAction: 'none' as const, cursor: 'grab' },
@@ -127,13 +138,19 @@ export function useDragReorder(
         } catch {
           // Capture is an optimization, not a requirement: carry on without it.
         }
-        drag.current = { pointerId: event.pointerId, index, originY: event.clientY, pitch: rowPitch() }
+        drag.current = {
+          pointerId: event.pointerId,
+          index,
+          originY: event.clientY,
+          pitch: rowPitch(),
+        }
         moved.current = false
         setDraggingIndex(index)
         setDragOffset(0)
       },
       onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
-        const delta = event.key === 'ArrowUp' ? -1 : event.key === 'ArrowDown' ? 1 : 0
+        const delta =
+          event.key === 'ArrowUp' ? -1 : event.key === 'ArrowDown' ? 1 : 0
         if (delta === 0) return
         event.preventDefault()
         const target = Math.min(count - 1, Math.max(0, index + delta))
@@ -142,7 +159,7 @@ export function useDragReorder(
         // to animate: the row is placed, not carried.
         onMove(index, target)
         onCommit?.()
-      }
-    })
+      },
+    }),
   }
 }

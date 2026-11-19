@@ -24,8 +24,17 @@ export function classifyFcmStatus(status: number): FcmDisposition {
 export function fcmFailureCode(body: string): string | undefined {
   try {
     const code: unknown = JSON.parse(body)?.error?.status
-    const allowed = ['INVALID_ARGUMENT', 'UNAUTHENTICATED', 'PERMISSION_DENIED', 'NOT_FOUND',
-      'RESOURCE_EXHAUSTED', 'UNAVAILABLE', 'INTERNAL', 'DEADLINE_EXCEEDED', 'UNKNOWN']
+    const allowed = [
+      'INVALID_ARGUMENT',
+      'UNAUTHENTICATED',
+      'PERMISSION_DENIED',
+      'NOT_FOUND',
+      'RESOURCE_EXHAUSTED',
+      'UNAVAILABLE',
+      'INTERNAL',
+      'DEADLINE_EXCEEDED',
+      'UNKNOWN',
+    ]
     return typeof code === 'string' && allowed.includes(code) ? code : undefined
   } catch {
     // Non-JSON proxy failures are represented by their HTTP status only.

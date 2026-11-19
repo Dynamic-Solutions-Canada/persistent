@@ -52,11 +52,11 @@ Truly **undismissable** notifications and a **repeating alarm sound while the ap
 is closed** are native-OS capabilities. Browser notifications cannot meet that
 contract, so Persistent does not support them. We split responsibilities:
 
-| Surface | Role | Guarantee |
-|---|---|---|
-| Web / PWA | manage reminders | **none**: install a native app to be alerted |
-| Windows native | tray access + persistent notifications and alarms | **session-bound**: returns after dismissal, repeats configured nags and loops alarm audio while the PC is awake and the app is running |
-| Android native (Capacitor) | notifications + alarms | **hard**: an ongoing notification that re-sounds (Notification level) or a full-screen, continuously-ringing Alarm — until "Done" |
+| Surface                    | Role                                              | Guarantee                                                                                                                              |
+| -------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Web / PWA                  | manage reminders                                  | **none**: install a native app to be alerted                                                                                           |
+| Windows native             | tray access + persistent notifications and alarms | **session-bound**: returns after dismissal, repeats configured nags and loops alarm audio while the PC is awake and the app is running |
+| Android native (Capacitor) | notifications + alarms                            | **hard**: an ongoing notification that re-sounds (Notification level) or a full-screen, continuously-ringing Alarm — until "Done"      |
 
 ## Model: device-scheduled + server backup
 
@@ -106,7 +106,7 @@ contract, so Persistent does not support them. We split responsibilities:
   e.g. an occurrence acked/deleted on another device, or a reminder renamed — so it
   can't show a stale or duplicate nag.
 - **Server push is insurance, not a trigger.** On-device alarms fire the reminder;
-  push only lets a change reach a closed device *sooner* than the next periodic
+  push only lets a change reach a closed device _sooner_ than the next periodic
   sync, plus covers cross-device delivery. A total push outage therefore only
   staggers freshness by up to the sync interval — it never stops an alarm from
   firing. (This is deliberate: a silent FCM auth failure once left push 100% dead,
@@ -124,8 +124,8 @@ drives them lives in `apps/web/src/native`.
 - On fire, a **foreground service** posts an ongoing notification and, by
   persistence level:
   - **Notification (`PERSISTENT`)** — plays the chosen notification sound once;
-    optionally nags every N minutes (`soundIntervalSeconds`). A nag is a *fresh
-    appearance*, not a sound over a static row: it re-stamps its post time so it
+    optionally nags every N minutes (`soundIntervalSeconds`). A nag is a _fresh
+    appearance_, not a sound over a static row: it re-stamps its post time so it
     rises back to the top of the shade, and re-alerts (a heads-up peek) like a new
     notification would. Sound alone is missable, and on a muted phone it is nothing
     at all. Only real nags do this — the keep-alive and other bookkeeping re-posts
@@ -167,6 +167,7 @@ drives them lives in `apps/web/src/native`.
     emulator through a background restyle). Now a refusal posts the notification
     normally (the placeholder is never posted on its own), and the next
     `startForegroundService` entry, such as a nag wake-up, rebinds foreground.
+
   - **Alarm (`ALARM`)** — full-screen intent + **continuously looping** the chosen
     alarm sound + vibration (no interval; it's relentless). Like the system clock's
     alarm, the full-screen `AlarmActivity` is kept on screen whether locked or not:
@@ -180,7 +181,7 @@ drives them lives in `apps/web/src/native`.
     surface (not the app), and `Back` on it is inert — only Done/Snooze leave.
     Because that surface is a separate window from the shade notification, the
     service sends a `ca.persistent.app.ALARM_ACTIVITY_DISMISS` broadcast whenever an
-    occurrence is silenced, acked, snoozed or cleared from *any* surface (this one's
+    occurrence is silenced, acked, snoozed or cleared from _any_ surface (this one's
     own buttons, the shade action, another device, the car), so a handled alarm can't
     linger on screen as a stale second alert. That broadcast drops the occurrence from
     the surface's queue rather than closing the surface outright; see "The full-screen
@@ -216,7 +217,7 @@ drives them lives in `apps/web/src/native`.
     critically, on the background `SyncWorker` cadence (~15 min) and offline, since it
     reads the local store. **It skips anything currently ringing as an escalation**
     (`active[id]?.alarm != true`): an escalation fires as a separate `::esc` alarm but
-    upgrades the *base* occurrence in place, and `AlarmReceiver` consumes only the
+    upgrades the _base_ occurrence in place, and `AlarmReceiver` consumes only the
     `::esc` store entry — so the base entry left behind still says `alarm = false` and
     is stale about exactly what this pass asks. Re-posting from it demoted a **ringing**
     alarm to a soft nag: out of `alarmIds`/`ringingSpecs` (closing the full-screen
@@ -258,15 +259,15 @@ drives them lives in `apps/web/src/native`.
       activity; only an empty queue finishes it. That single change is what makes
       "deal with one, get the next" work for every route at once — this surface's own
       buttons, the shade action, another device, the car.
-    A new alarm **always** pages itself into view, including mid-confirm. That is
-    safe because `confirming` is per-occurrence and the arriving page renders
-    un-armed, so a tap already on its way lands on that page's *Done*, which only
-    arms — it can never become an acknowledgement of either reminder. Refusing to
-    move was tried and is worse: `willPresentAlarmSurface` suppresses both the
-    heads-up banner *and* the full-screen intent whenever this surface is expected to
-    show the alarm, so an alarm the surface then declined to show would ring with
-    almost nothing on screen to identify it. Leaving a page does disarm its confirm.
-    Two exceptions to the paging:
+      A new alarm **always** pages itself into view, including mid-confirm. That is
+      safe because `confirming` is per-occurrence and the arriving page renders
+      un-armed, so a tap already on its way lands on that page's _Done_, which only
+      arms — it can never become an acknowledgement of either reminder. Refusing to
+      move was tried and is worse: `willPresentAlarmSurface` suppresses both the
+      heads-up banner _and_ the full-screen intent whenever this surface is expected to
+      show the alarm, so an alarm the surface then declined to show would ring with
+      almost nothing on screen to identify it. Leaving a page does disarm its confirm.
+      Two exceptions to the paging:
     - A **screen-on / unlock re-present** carries `EXTRA_KEEP_PAGE`. It has to name an
       alarm in order to launch at all, but waking the screen is not a request for that
       reminder — without the flag, letting the screen time out while reading page 3
@@ -275,7 +276,7 @@ drives them lives in `apps/web/src/native`.
       ringing (the notification outlived the process that posted it, so a fresh
       process has an empty `ringingSpecs`) `onCreate` builds a one-item queue from the
       launching intent's extras, so tapping a restored alarm's body doesn't open a
-      surface that instantly finishes. Reaching for it on a *refresh* is a trap worth
+      surface that instantly finishes. Reaching for it on a _refresh_ is a trap worth
       naming: the launching intent always names an occurrence, so the queue could
       never empty and the surface could never close — De-escalate would leave a page
       offering De-escalate again, with Back inert and no way out but Home.
@@ -284,7 +285,7 @@ drives them lives in `apps/web/src/native`.
     The content intent **must be a direct `PendingIntent.getActivity` targeting
     `MainActivity`** — never a broadcast to `AlarmReceiver` that then calls
     `startActivity`. That indirection is a **notification trampoline**, which
-    Android 12+ (`targetSdk >= 31`) blocks *silently*: the receiver still runs, so
+    Android 12+ (`targetSdk >= 31`) blocks _silently_: the receiver still runs, so
     the nav target is still recorded, but the app never comes forward and the deep
     link only lands the next time the user opens the app by hand. (That was exactly
     the symptom before this was fixed — and it is invisible in logcat unless you
@@ -297,7 +298,7 @@ drives them lives in `apps/web/src/native`.
     **The drain is event-driven, not `resume`-driven.** `MainActivity` calls
     `AlarmPlugin.notifyPendingNavigation()` whenever it parks a target, which emits
     a `pendingNavigation` event the WebView listens for. Draining on Capacitor's
-    `resume` alone is not enough: pulling the shade down over a *running* app never
+    `resume` alone is not enough: pulling the shade down over a _running_ app never
     pauses the activity, so no `resume` follows the tap — the target was stored and
     nothing ever picked it up, and the tap appeared to do nothing at all. `resume`
     and the startup drain remain as backstops for the case where the intent lands
@@ -325,7 +326,7 @@ drives them lives in `apps/web/src/native`.
     reminder nagging: it downgrades the on-device alarm to a soft, ongoing
     notification, queues a silence for the server (`PendingSilenceStore`), and the
     occurrence reverts `ESCALATED → FIRED` with re-escalation permanently suppressed
-    for that occurrence (`escalationSilencedAt`). It is *not* a Done — only Done
+    for that occurrence (`escalationSilencedAt`). It is _not_ a Done — only Done
     (ack) or Snooze clear the nag. Inherent `ALARM`-persistence reminders don't
     show Silence (no softer level to fall back to); the `canSilence` flag on the
     scheduled alarm gates the action.
@@ -335,7 +336,7 @@ drives them lives in `apps/web/src/native`.
   itself (silent channel) so each tone is honored.
 - **A single reminder can override all three** (`Reminder.sounds`, shared
   `reminderSoundsSchema`: `{ notification, nag, alarm }`, each `{ uri, title }` or
-  null for "use this device's"). Unlike the device tones this is a *reminder* field,
+  null for "use this device's"). Unlike the device tones this is a _reminder_ field,
   so it syncs — and that is the whole difficulty, because **a tone URI does not
   travel**. `content://media/…` ids are assigned per device and a file picked on one
   phone is absent on another, so a synced URI is a first guess, not an answer. The
@@ -345,7 +346,7 @@ drives them lives in `apps/web/src/native`.
   by opening it, since a URI can be well-formed and still refused), a tone with the
   same **title** in the device's own banks (which is what carries a stock tone like
   "Argon" between phones), the **device's own** tone for that kind, then the **system
-  default**. The rule it exists to serve: *an alarm must never fail to a silence.*
+  default**. The rule it exists to serve: _an alarm must never fail to a silence._
   Losing a chosen tone is cosmetic; losing the sound is the guarantee failing
   quietly. Every fallback logs under `PersistAlarm`, and `startContinuousAlarm` /
   `playNotificationSound` retry the system default if `MediaPlayer` still refuses —
@@ -367,31 +368,31 @@ drives them lives in `apps/web/src/native`.
   `shadeProminence` does.
 - **Three tones, because a fire and a nag are different events** (see the
   vocabulary in [`notification-behavior.md`](notification-behavior.md)): the
-  *notification* tone plays when an occurrence first fires, the *nag* tone on each
+  _notification_ tone plays when an occurrence first fires, the _nag_ tone on each
   re-sound of the `soundIntervalSeconds` loop while it stays unconfirmed, and the
-  *alarm* tone for a ringing alarm. Both are carried per-alarm as `soundUri` and
+  _alarm_ tone for a ringing alarm. Both are carried per-alarm as `soundUri` and
   `nagSoundUri`; `reNotify` is the only consumer of the latter and falls
   back to `soundUri` when it is empty, so an unset nag tone behaves exactly as
   before. An `ALARM` carries no nag tone at all — it loops one continuous tone, so
   there is no separate follow-up to re-tone. Every path that builds a spec fills
   both: the JS bridge, `SyncClient` (background worker) and `FcmService` (push).
 - **With several alarms ringing, the tone follows the newest** (`AlarmService.ringTone`).
-  Only one tone can sound at a time, and *which* one stopped being academic once a
+  Only one tone can sound at a time, and _which_ one stopped being academic once a
   tone became a per-reminder choice. The newest is the event that just happened — the
   same reason a nag re-stamps its post time to rise back up the shade — and on a clear
-  the sound falls back to the newest of what remains. Compared by *tone*, not by
+  the sound falls back to the newest of what remains. Compared by _tone_, not by
   occurrence, so two alarms sharing one don't restart the loop and put an audible gap
   in a ring that is meant to be relentless. Before this a second alarm simply rode the
-  first's tone, and clearing the first left the survivor ringing the *cleared* alarm's
+  first's tone, and clearing the first left the survivor ringing the _cleared_ alarm's
   tone, because `continuousAlarm` was already true and so nothing re-started it.
 - Stops **only** on **Done**, a deliberate **two-tap confirm** on every surface
   (notification, full-screen `AlarmActivity`, and the in-app card): the first tap
-  swaps the controls to *Confirm done* / *Not yet* (the alarm keeps ringing) so an
+  swaps the controls to _Confirm done_ / _Not yet_ (the alarm keeps ringing) so an
   accidental pocket tap can't dismiss the nag; the confirm tap cancels the service
-  + sound and `POST`s the ack (queued offline via `PendingAckStore` on native).
-  **Done never opens the app** — the queued ack is delivered to the server the next
-  time the WebView runs (app open / resume / WS event), so another device may keep
-  nagging until then.
+  - sound and `POST`s the ack (queued offline via `PendingAckStore` on native).
+    **Done never opens the app** — the queued ack is delivered to the server the next
+    time the WebView runs (app open / resume / WS event), so another device may keep
+    nagging until then.
 - A `BOOT_COMPLETED` receiver re-schedules pending alarms from the local mirror.
 
 Permissions: `SCHEDULE_EXACT_ALARM`/`USE_EXACT_ALARM`, `POST_NOTIFICATIONS`,
@@ -414,7 +415,7 @@ which reminder is firing).
 the app from Android 15's **background-activity-launch (BAL)** rules.
 
 A full-screen intent only auto-launches `AlarmActivity` when the screen is off or
-locked. While the device is *unlocked and in use*, Android shows a collapsing
+locked. While the device is _unlocked and in use_, Android shows a collapsing
 heads-up banner instead, so `AlarmService.presentAlarmSurface` launches the
 activity itself to keep the controls on screen. Under `targetSdk 35` that launch is
 refused — a foreground service no longer qualifies on its own:
@@ -544,7 +545,7 @@ Web/PWA is deliberately untouched — browser Back stays browser Back there.
 
 ## Notification shade prominence
 
-Independently of *how hard* a reminder nags, the user controls *how prominently*
+Independently of _how hard_ a reminder nags, the user controls _how prominently_
 its notification sits in the Android shade — **visual only; it does not change the
 sound** (the service plays the tone itself via MediaPlayer, so channel importance
 never gates audio). The native client posts to one of three silent channels:
@@ -575,7 +576,7 @@ fire — the silent keep-alive, the foreground-service re-assertion on every syn
 style refreshes — and on a `reminders_normal` (`IMPORTANCE_HIGH`) channel each such
 re-post would otherwise re-trigger a heads-up banner (and re-buzz a paired Wear
 device), so the notification appears to "keep popping up" though nothing new
-happened. `alertOnce` suppresses alerting on those updates; the *first* fire still
+happened. `alertOnce` suppresses alerting on those updates; the _first_ fire still
 alerts (a genuinely new post), and the audible nag is unaffected because the tone
 is played via MediaPlayer, not the channel.
 
@@ -606,7 +607,7 @@ hold and no sound replays):
 - **Device default** changed -> `ACTION_RESTYLE` -> `restyleActive` re-posts every
   active notification immediately.
 - **Per-reminder** value changed (or the reminder was renamed, its body edited, or
-  a checklist item ticked — the body is only the *unticked* items) ->
+  a checklist item ticked — the body is only the _unticked_ items) ->
   the next resync's `scheduleAll` calls `AlarmService.refreshActiveReminders`
   (`ACTION_REFRESH` -> `refreshActive`), which reloads each active spec from
   `AlarmStore` and re-posts those whose title/body changed (in place) or whose
@@ -626,7 +627,7 @@ the native client **projects nags into the car** with their own Done/Snooze butt
 and the sideloaded build adds a **templated car screen** listing the whole on-device
 set. The phone/Wear keep the full hard-alarm guarantee unchanged.
 
-The two halves divide by *time*, and that division is the point: **notifications are
+The two halves divide by _time_, and that division is the point: **notifications are
 for what is happening**, the **car screen is for everything else**.
 
 - **AA shows a notification if, and only if, it is extended with `CarAppExtender`**:
@@ -638,9 +639,9 @@ for what is happening**, the **car screen is for everything else**.
 - **It is not a messaging surface, and pretending it was cost the Play build.** Until
   2026-09-06 the mirror was a `MessagingStyle` disguise: a fake one-message conversation
   plus invisible `SEMANTIC_ACTION_REPLY`/`SEMANTIC_ACTION_MARK_AS_READ` actions, written
-  against the belief that AA surfaces *only* messaging notifications. It does not. The
-  disguise required `<uses name="notification"/>`, whose only meaning to Auto is *this app
-  sends and receives short-form messages*, and Play's Auto App Quality review holds an app
+  against the belief that AA surfaces _only_ messaging notifications. It does not. The
+  disguise required `<uses name="notification"/>`, whose only meaning to Auto is _this app
+  sends and receives short-form messages_, and Play's Auto App Quality review holds an app
   to it: on 2026-08-17 it failed that test ("not able to send outgoing messages / receive
   incoming messages"), with updates rejected until fixed. The descriptor now says
   **`<uses name="template"/>`**, which is what it always should have said.
@@ -657,12 +658,12 @@ for what is happening**, the **car screen is for everything else**.
   manifest), then observes `androidx.car.app`'s `CarConnection`. The Play flavor supplies
   a no-op seam and does not link the AndroidX Car App library. Only while it reports
   `CONNECTION_TYPE_PROJECTION` does `AlarmService.buildNotification`
-  attach the extender. The gate matters less than it used to: an extender *adds to* a
+  attach the extender. The gate matters less than it used to: an extender _adds to_ a
   notification instead of restyling it, so the heavily-tuned phone shade version is now
   identical either way. Under the old mirror, projecting rewrote the phone's own
   notification into a fake conversation and cost it `BigTextStyle` for the whole drive.
 - **Projecting is not on its own enough to mirror a nag** (`AlarmService.mirrorsToCar`).
-  Connecting used to put *every* live nag into the car form at once, and each one then
+  Connecting used to put _every_ live nag into the car form at once, and each one then
   reached the car as a brand-new arrival, so starting the car replayed the entire
   backlog as a burst of heads-up cards. A nag is mirrored only if it **genuinely alerted since
   projection began**: its first fire, or a follow-up nag (`alertedAt`, stamped in
@@ -678,6 +679,7 @@ for what is happening**, the **car screen is for everything else**.
   re-posts can't flip it either way. `alertedAt` is in-memory on purpose: a fresh
   process has genuinely alerted for nothing yet, which is the correct answer after a
   cold start (in particular after a silent `ensureNags` restore).
+
 - **Opening the app on the head unit mirrors the whole backlog** (`ACTION_MIRROR_CAR_ALL`
   → `mirrorBacklogToCar`, called from `ReminderCarSession`'s lifecycle `onStart`). This is
   the other half of the rule above, and what makes it liveable: connecting is not a
@@ -688,19 +690,19 @@ for what is happening**, the **car screen is for everything else**.
   off the session lifecycle rather than screen construction, so a host that pre-warms a
   session without showing it doesn't trip it.
 - **The two projection edges are asymmetric.** Connecting fires `ACTION_MIRROR_CAR`
-  (`mirrorLiveToCar` → `mirrorEligibleToCar`), which re-posts *only* what qualifies —
+  (`mirrorLiveToCar` → `mirrorEligibleToCar`), which re-posts _only_ what qualifies —
   in place, since the car form never moves a notification between channels.
-  Disconnecting fires `ACTION_RESTYLE` (`restyleAll`), which re-posts *everything*,
+  Disconnecting fires `ACTION_RESTYLE` (`restyleAll`), which re-posts _everything_,
   because every nag that did gain the car form has to lose it again.
 - **Managing from the car is two buttons**, and they are deliberately not the phone's
   three. The extender's action slots are capped at 2, so the car gets **Done** and
-  **Snooze**; De-escalate stays on the car *screen* (§5b), which has room for it.
+  **Snooze**; De-escalate stays on the car _screen_ (§5b), which has room for it.
   - **Car Done acks directly** (`ACTION_CONFIRM`), skipping the phone's two-tap confirm.
     That guard exists for a stray pocket tap, which is not something that happens to a
     dashboard you have to reach for, and `notification-behavior.md` §5b already settled
     that the car earns its deliberateness some way other than making a driver read a
     confirmation. It also avoids stranding a half-armed confirm: nothing times the prompt
-    out, so a car-initiated first tap left unfinished would freeze the *phone's*
+    out, so a car-initiated first tap left unfinished would freeze the _phone's_
     notification in its "Tap Confirm done" state.
   - **Car Snooze is a fixed `DEFAULT_SNOOZE_MINUTES`** (`ACTION_SNOOZE` + `EXTRA_MINUTES`),
     not the phone's picker. The phone's Snooze action launches `SnoozePickerActivity`, and
@@ -710,7 +712,7 @@ for what is happening**, the **car screen is for everything else**.
     (`PendingAck/SnoozeStore` + `SyncWorker.syncNow`) and re-arms locally with **zero new
     plumbing**; either one cancels the notification, which clears the car card too.
 - **Tapping the card body opens the car screen**, not the phone. `carAppPendingIntent`
-  wraps a `CarPendingIntent.getCarApp` at this app's own `CarAppService`, which is *looked up*
+  wraps a `CarPendingIntent.getCarApp` at this app's own `CarAppService`, which is _looked up_
   through the package manager rather than named, since `ReminderCarAppService` is compiled
   into `direct` only and `AlarmService` is shared. Null in a build without one, so the tap
   degrades to no content intent rather than launching an Activity a head unit cannot show.
@@ -728,9 +730,8 @@ Current Play and GitHub APKs use the Play flavor and have no Android Auto surfac
 The direct flavor remains for legacy installs and local development. The hosted
 migration notice explains this loss alongside both supported download choices.
 
-
 `ReminderCarAppService` is a templated AA app showing the whole on-device set, so the
-backlog that connecting no longer announces is still *findable* — read at the driver's
+backlog that connecting no longer announces is still _findable_ — read at the driver's
 own pace instead of pushed at them all at once.
 
 - **Direct flavor only**, alongside `UpdatePlugin` and for the same kind of reason: a
@@ -765,7 +766,7 @@ own pace instead of pushed at them all at once.
   (an escalation upgrades the base occurrence in place). Acting routes through the same
   `AlarmService` companion entry points the notification actions use, so a car Done
   reaches the server and re-arms locally with no separate path.
-- **The agenda is what the device may *show*, as against what it arms.** The armed set is
+- **The agenda is what the device may _show_, as against what it arms.** The armed set is
   narrow by necessity — every entry is an exact alarm the OS holds — which makes it the
   wrong answer to "show me my reminders". So `GET /api/sync/occurrences` returns a second,
   read-only array (`agenda`, `deviceAgendaEntrySchema`): seven days of firings plus the
@@ -776,7 +777,7 @@ own pace instead of pushed at them all at once.
   be acked into existence. Where both describe one firing the **alarm set wins** — it is
   what the phone is about to do. A note carries no `occurrenceId` at all and is flagged as
   a note, so no surface can offer Done on one; `ReminderDetailScreen` takes it by
-  *reminder* id for the same reason. Both sync paths write it (`SyncClient` natively,
+  _reminder_ id for the same reason. Both sync paths write it (`SyncClient` natively,
   `AlarmPlugin.setAgenda` from the JS bridge), and `AgendaStore` is shared by both flavors
   even though only `direct` reads it — the writer must not have to know whether a car
   screen was compiled in.
@@ -799,7 +800,7 @@ and copies the descriptor and action icons into the direct resource set. `npm ru
 verify:android` confirms both flavors compile and wire independently.
 
 **Runtime verification needs the Desktop Head Unit (DHU) or a real car**, and the DHU
-*does* run in the development container: an earlier version of this note said it could not. The
+_does_ run in the development container: an earlier version of this note said it could not. The
 binary is x86-64 with no arm64 build, so `sdkmanager` filters it out on this host, but it
 runs through the same host qemu binfmt that already runs `aapt2` (`docker/dev/Dockerfile`).
 Setup, once per container (not in the image: add it there if this becomes routine):
@@ -823,7 +824,7 @@ LD_LIBRARY_PATH=. ./desktop-head-unit --headless   # console: `screenshot /tmp/c
 projected video, which is what makes the car surface checkable from here at all. Two
 caveats: the **`direct`** build must be installed (the Play one declares no Auto surface,
 so a correct run would look like a failure), and `mirrorsToCar` only mirrors a nag that
-alerts *while* projecting, so fire a reminder during the session, or open Persistent on
+alerts _while_ projecting, so fire a reminder during the session, or open Persistent on
 the head unit to pull the backlog in. DHU over wireless adb is undocumented by Google;
 it only ever talks to `localhost:5277`, so it should be transport-agnostic, but USB is
 the supported path if it misbehaves.
@@ -880,7 +881,7 @@ belt-and-suspenders backstop for any trigger the `handledLocally` check can't se
 death, etc.), `AlarmService` also **debounces the sound per occurrence**: it won't
 re-play the same occurrence's tone within a few minutes (`SOUND_DEBOUNCE_MS`,
 persisted in `AlarmStore` so it survives a restart, reset on ack/snooze). The
-notification still (re)posts; only the near-simultaneous *second sound* is dropped.
+notification still (re)posts; only the near-simultaneous _second sound_ is dropped.
 The intentional `soundIntervalSeconds` re-notify loop plays directly and is exempt.
 
 **Native snooze is ordered inside the service.** A snooze (notification action,
@@ -894,7 +895,7 @@ snooze silently lost its local re-fire, and the emptied store let a racing serve
 `fire`/`escalate` push through `handledLocally` as a second, default-tone alarm.
 The kept store entry is also what keeps that suppression working during a snooze.
 Queued server snoozes (`PendingSnoozeStore`) record when they were picked and drain
-as the *remaining* minutes, so a snooze that sits queued until the next background
+as the _remaining_ minutes, so a snooze that sits queued until the next background
 sync doesn't slide the user's chosen end time later. Every native Done/Snooze/
 De-escalate also enqueues an immediate one-shot sync (`SyncWorker.syncNow`) so the
 queued action reaches the server in seconds rather than the periodic cycle — other
@@ -935,7 +936,7 @@ shared schema).
 A fired occurrence is **never** auto-expired: it stays `FIRED` (or `ESCALATED`)
 until the user explicitly acknowledges it or deletes the reminder — that is the
 persistence guarantee. The `MISSED` status still exists in the model for a
-possible future *explicit* action, but the scheduler never assigns it on its own.
+possible future _explicit_ action, but the scheduler never assigns it on its own.
 
 **Each occurrence is independent.** A reminder with several times of day (or one
 that repeats) fires, nags, and is confirmed one occurrence at a time. If the 9:00
@@ -961,12 +962,12 @@ and used in two places so it fires regardless of connectivity:
 
 **A snooze does not un-escalate a firing** (`lib/device-alarms.ts`). Once a firing
 has escalated, its main alarm stays an alarm — including the one re-armed for the
-end of a snooze — because snoozing an alarm snoozes *the alarm*
+end of a snooze — because snoozing an alarm snoozes _the alarm_
 (`notification-behavior.md` §3). That is read off `escalatedAt`, never off the
 status, which is `SNOOZED` for the duration: reading the status re-armed a soft
-notification, and since the escalation instant sits *behind* the snooze the `::esc`
+notification, and since the escalation instant sits _behind_ the snooze the `::esc`
 twin was skipped too, so the ring only came back when the server's 60s sweep pushed
-it. A snooze long enough to outlast a still-*pending* escalation returns ringing for
+it. A snooze long enough to outlast a still-_pending_ escalation returns ringing for
 the same reason — `escalateAt` is anchored to the first fire and never reset by a
 snooze. **Silence** is the one thing that ends the ring for good, and it outranks
 both. The device's own local snooze (`AlarmService.snoozeLocal`) already kept the
@@ -1013,7 +1014,7 @@ The manifest carried Android's documented opt-out
 (`android:enableOnBackInvokedCallback="false"`) for one release, 0.21.1, so the API
 level could move to 36 without the behaviour moving with it. `setup-android.mjs` now
 writes `"true"` and rewrites a stale `"false"` in an already-generated project. Do not
-set it back without also reverting `BackInterception`: with callbacks registered *and*
+set it back without also reverting `BackInterception`: with callbacks registered _and_
 the attribute false, `onBackPressed` runs on old devices while nothing consumes the
 gesture on API 33+.
 

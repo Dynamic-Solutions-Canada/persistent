@@ -8,7 +8,10 @@ import { sendFcmPush, isFcmConfigured } from './fcm-push.js'
 export { isFcmConfigured }
 
 /** Deliver a push payload to all of a user's registered Android devices. */
-export async function dispatchToUser(userId: string, payload: PushPayload): Promise<void> {
+export async function dispatchToUser(
+  userId: string,
+  payload: PushPayload,
+): Promise<void> {
   await sendFcmPush(userId, payload)
 }
 

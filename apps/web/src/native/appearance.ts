@@ -1,5 +1,9 @@
 /** Convert the same Joy palette used by the app into concrete, portable native colors. */
-import { nativeAppearanceSchema, type NativeAppearance, type NativePalette } from '@persistent/shared'
+import {
+  nativeAppearanceSchema,
+  type NativeAppearance,
+  type NativePalette,
+} from '@persistent/shared'
 import { createAppTheme } from '../theme.js'
 import { getTheme, type ThemeId, type AppTheme } from '../settings/themes.js'
 
@@ -9,9 +13,15 @@ function paletteColor(palette: Record<string, unknown>, value: string): string {
   if (variable) {
     let resolved: unknown = palette
     for (const key of variable[1]!.split('-')) {
-      resolved = resolved && typeof resolved === 'object' ? (resolved as Record<string, unknown>)[key] : undefined
+      resolved =
+        resolved && typeof resolved === 'object'
+          ? (resolved as Record<string, unknown>)[key]
+          : undefined
     }
-    return paletteColor(palette, typeof resolved === 'string' ? resolved : variable[2]!)
+    return paletteColor(
+      palette,
+      typeof resolved === 'string' ? resolved : variable[2]!,
+    )
   }
   if (/^#[0-9a-fA-F]{3}$/.test(value)) {
     return `#${[...value.slice(1)].map((digit) => digit + digit).join('')}`
@@ -22,7 +32,8 @@ function paletteColor(palette: Record<string, unknown>, value: string): string {
 /** Derive native surfaces and semantic actions from one resolved app theme. */
 function nativePalette(theme: AppTheme): NativePalette {
   const palette = createAppTheme(theme).colorSchemes[theme.mode].palette
-  const resolve = (value: string) => paletteColor(palette as unknown as Record<string, unknown>, value)
+  const resolve = (value: string) =>
+    paletteColor(palette as unknown as Record<string, unknown>, value)
   return {
     background: resolve(palette.background.body),
     surface: resolve(palette.background.surface),
@@ -36,7 +47,7 @@ function nativePalette(theme: AppTheme): NativePalette {
     kicker: resolve(palette.primary.plainColor),
     done: resolve(palette.success.solidBg),
     donePressed: resolve(palette.success.solidHoverBg),
-    onDone: resolve(palette.success.solidColor)
+    onDone: resolve(palette.success.solidColor),
   }
 }
 
@@ -47,6 +58,6 @@ export function nativeAppearance(themeId: ThemeId): NativeAppearance {
     version: 1,
     mode: themeId === 'system' ? 'system' : selected.mode,
     light: nativePalette(getTheme(themeId, 'light')),
-    dark: nativePalette(getTheme(themeId, 'dark'))
+    dark: nativePalette(getTheme(themeId, 'dark')),
   })
 }

@@ -25,7 +25,7 @@ export function moveTodoItem(
   items: readonly TodoItem[],
   movedId: string,
   targetId: string,
-  after: boolean
+  after: boolean,
 ): TodoItem[] {
   if (movedId === targetId) return [...items]
   const moved = items.find((item) => item.id === movedId)

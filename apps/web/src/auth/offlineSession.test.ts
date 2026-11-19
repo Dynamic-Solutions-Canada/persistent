@@ -1,20 +1,41 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { OFFLINE_MAX_AGE, OFFLINE_SESSION_KEY, QUERY_CACHE_KEY, readOfflineUser, saveOfflineUser } from './offlineSession.js'
-import { deserializeAccountCache, serializeAccountCache } from '../lib/accountCache.js'
+import {
+  OFFLINE_MAX_AGE,
+  OFFLINE_SESSION_KEY,
+  QUERY_CACHE_KEY,
+  readOfflineUser,
+  saveOfflineUser,
+} from './offlineSession.js'
+import {
+  deserializeAccountCache,
+  serializeAccountCache,
+} from '../lib/accountCache.js'
 
-const user = { id: 'owner', email: 'owner@example.com', displayName: null, timeZone: 'America/Toronto', createdAt: '2026-10-02T12:00:00Z' }
+const user = {
+  id: 'owner',
+  email: 'owner@example.com',
+  displayName: null,
+  timeZone: 'America/Toronto',
+  createdAt: '2026-10-02T12:00:00Z',
+}
 
 /** Small storage fixture exercising the same serialization boundary as browser localStorage. */
 function storage(): Storage {
   const rows = new Map<string, string>()
   return {
     getItem: (key) => rows.get(key) ?? null,
-    setItem: (key, value) => { rows.set(key, value) },
-    removeItem: (key) => { rows.delete(key) },
+    setItem: (key, value) => {
+      rows.set(key, value)
+    },
+    removeItem: (key) => {
+      rows.delete(key)
+    },
     clear: () => rows.clear(),
     key: (index) => [...rows.keys()][index] ?? null,
-    get length() { return rows.size }
+    get length() {
+      return rows.size
+    },
   }
 }
 
@@ -39,24 +60,46 @@ test('sign-out removes identity and persisted writes so reopening cannot recover
 
 test('a different account never hydrates another account data or queued writes', () => {
   const cache = {
-    timestamp: 100, buster: 'test',
+    timestamp: 100,
+    buster: 'test',
     clientState: {
-      queries: [{ queryKey: ['reminders'], state: { data: [{ id: 'owned' }] } }],
-      mutations: [{ mutationKey: ['reminders', 'check'], state: { variables: { id: 'owned' } } }]
-    }
+      queries: [
+        { queryKey: ['reminders'], state: { data: [{ id: 'owned' }] } },
+      ],
+      mutations: [
+        {
+          mutationKey: ['reminders', 'check'],
+          state: { variables: { id: 'owned' } },
+        },
+      ],
+    },
   }
   const raw = serializeAccountCache(JSON.stringify(cache), user.id)
-  assert.deepEqual(deserializeAccountCache(raw, user.id).clientState, cache.clientState)
+  assert.deepEqual(
+    deserializeAccountCache(raw, user.id).clientState,
+    cache.clientState,
+  )
   for (const account of [null, 'another-owner']) {
-    assert.deepEqual(deserializeAccountCache(raw, account).clientState, { queries: [], mutations: [] })
+    assert.deepEqual(deserializeAccountCache(raw, account).clientState, {
+      queries: [],
+      mutations: [],
+    })
   }
-  assert.deepEqual(deserializeAccountCache(JSON.stringify(cache), user.id).clientState, { queries: [], mutations: [] })
+  assert.deepEqual(
+    deserializeAccountCache(JSON.stringify(cache), user.id).clientState,
+    { queries: [], mutations: [] },
+  )
 })
 
 test('storage failure cannot stamp a new account cache with the previous identity', (context) => {
   const saved = storage()
   saveOfflineUser(saved, user, 100)
-  context.mock.method(saved, 'setItem', () => { throw new Error('Quota exceeded') })
-  assert.throws(() => saveOfflineUser(saved, { ...user, id: 'other' }, 101), /Quota exceeded/)
+  context.mock.method(saved, 'setItem', () => {
+    throw new Error('Quota exceeded')
+  })
+  assert.throws(
+    () => saveOfflineUser(saved, { ...user, id: 'other' }, 101),
+    /Quota exceeded/,
+  )
   assert.equal(readOfflineUser(saved, 102), null)
 })

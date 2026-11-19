@@ -21,7 +21,10 @@ export function NativeAppearanceSync() {
 
   useEffect(() => {
     if (!isDesktopHost()) return
-    publishDesktopAppearance(selected.mode, appearance[selected.mode].background)
+    publishDesktopAppearance(
+      selected.mode,
+      appearance[selected.mode].background,
+    )
   }, [appearance, selected.mode])
 
   return null

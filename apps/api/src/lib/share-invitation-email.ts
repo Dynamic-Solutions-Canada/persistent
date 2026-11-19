@@ -10,9 +10,17 @@ interface InvitationInput {
 
 /** Escape only after interpolation, including names and addresses supplied by a user. */
 function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (character) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  })[character] ?? character)
+  return value.replace(
+    /[&<>"']/g,
+    (character) =>
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      })[character] ?? character,
+  )
 }
 
 /** Keep reminder titles out of email; the recipient sees them after verification. */
@@ -26,17 +34,36 @@ export function buildAssignmentInvitationEmail(input: InvitationInput) {
 }
 
 /** Translate whole sentences so languages can place the sender and action naturally. */
-function buildInvitationEmail(input: InvitationInput, kind: 'shared' | 'assigned') {
+function buildInvitationEmail(
+  input: InvitationInput,
+  kind: 'shared' | 'assigned',
+) {
   const locale = input.locale ?? 'en-US'
-  const subject = message(locale, kind === 'assigned'
-    ? '{{owner}} created a reminder for you on Persistent'
-    : '{{owner}} invited you to a shared reminder on Persistent', { owner: input.ownerName })
-  const heading = message(locale, kind === 'assigned'
-    ? 'A reminder has been created for you'
-    : 'You have been invited to a reminder')
-  const signup = message(locale, 'Sign up with {{email}} to see it: {{url}}', { email: input.email, url: input.appUrl })
-  const create = message(locale, 'Create your free Persistent account with this email address to see it.')
-  const ignore = message(locale, 'If you were not expecting this invitation, you can ignore this email.')
+  const subject = message(
+    locale,
+    kind === 'assigned'
+      ? '{{owner}} created a reminder for you on Persistent'
+      : '{{owner}} invited you to a shared reminder on Persistent',
+    { owner: input.ownerName },
+  )
+  const heading = message(
+    locale,
+    kind === 'assigned'
+      ? 'A reminder has been created for you'
+      : 'You have been invited to a reminder',
+  )
+  const signup = message(locale, 'Sign up with {{email}} to see it: {{url}}', {
+    email: input.email,
+    url: input.appUrl,
+  })
+  const create = message(
+    locale,
+    'Create your free Persistent account with this email address to see it.',
+  )
+  const ignore = message(
+    locale,
+    'If you were not expecting this invitation, you can ignore this email.',
+  )
   const open = message(locale, 'Open Persistent')
 
   return {
@@ -54,6 +81,6 @@ function buildInvitationEmail(input: InvitationInput, kind: 'shared' | 'assigned
       <p style="margin:28px 0 0;color:#647082;font-size:13px;line-height:1.5">${escapeHtml(ignore)}</p>
     </td></tr>
   </table>
-</body></html>`
+</body></html>`,
   }
 }

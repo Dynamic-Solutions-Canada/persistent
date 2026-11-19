@@ -41,7 +41,7 @@ test('the reorder route is registered before the parametric item route', () => {
   assert.notEqual(rename, -1, 'the rename route should exist')
   assert.ok(
     order < rename,
-    `POST /:id/items/order must be registered before /:id/items/:itemId, else every reorder is parsed as a rename (got ${paths.join(', ')})`
+    `POST /:id/items/order must be registered before /:id/items/:itemId, else every reorder is parsed as a rename (got ${paths.join(', ')})`,
   )
 })
 
@@ -52,6 +52,12 @@ test('every literal item sub-path is registered before the parametric one', () =
   const rename = paths.indexOf('/:id/items/:itemId')
   const literalsAfter = paths
     .slice(rename + 1)
-    .filter((path) => path.startsWith('/:id/items/') && !path.includes(':itemId'))
-  assert.deepEqual(literalsAfter, [], 'these literal routes sit below /:id/items/:itemId and can never match')
+    .filter(
+      (path) => path.startsWith('/:id/items/') && !path.includes(':itemId'),
+    )
+  assert.deepEqual(
+    literalsAfter,
+    [],
+    'these literal routes sit below /:id/items/:itemId and can never match',
+  )
 })

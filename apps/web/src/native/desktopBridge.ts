@@ -10,13 +10,19 @@ import type {
   DesktopWindowSize as FlyoutSizeOption,
   DesktopSnoozeChoice as SnoozeChoiceOption,
   DesktopHostSettings as HostSettings,
-  DesktopHostSettingsPatch as HostSettingsPatch
+  DesktopHostSettingsPatch as HostSettingsPatch,
 } from '@persistent/shared'
 
 interface WebView2Bridge {
   postMessage(message: unknown): void
-  addEventListener(type: 'message', listener: (event: { data: unknown }) => void): void
-  removeEventListener(type: 'message', listener: (event: { data: unknown }) => void): void
+  addEventListener(
+    type: 'message',
+    listener: (event: { data: unknown }) => void,
+  ): void
+  removeEventListener(
+    type: 'message',
+    listener: (event: { data: unknown }) => void,
+  ): void
 }
 
 declare global {
@@ -73,7 +79,7 @@ export type {
   DesktopWindowSize as FlyoutSizeOption,
   DesktopSnoozeChoice as SnoozeChoiceOption,
   DesktopHostSettings as HostSettings,
-  DesktopHostSettingsPatch as HostSettingsPatch
+  DesktopHostSettingsPatch as HostSettingsPatch,
 } from '@persistent/shared'
 
 function isFlyoutSizeOption(value: unknown): value is FlyoutSizeOption {
@@ -120,17 +126,22 @@ export function parseHostSettings(value: unknown): HostSettings | null {
     ? distinctBy(raw.flyoutSizes.filter(isFlyoutSizeOption), (size) => size.id)
     : []
   const snoozes = Array.isArray(raw.snoozeChoices)
-    ? distinctBy(raw.snoozeChoices.filter(isSnoozeChoiceOption), (choice) => choice.minutes)
+    ? distinctBy(
+        raw.snoozeChoices.filter(isSnoozeChoiceOption),
+        (choice) => choice.minutes,
+      )
     : []
   if (
-    (raw.platform !== undefined && !['windows', 'linux'].includes(raw.platform as string)) ||
+    (raw.platform !== undefined &&
+      !['windows', 'linux'].includes(raw.platform as string)) ||
     (raw.snoozeInApp !== undefined && typeof raw.snoozeInApp !== 'boolean') ||
     typeof raw.notifications !== 'boolean' ||
     typeof raw.snoozeMinutes !== 'number' ||
     typeof raw.pinFlyout !== 'boolean' ||
     typeof raw.startAtSignIn !== 'boolean' ||
     typeof raw.flyoutSize !== 'string' ||
-    (raw.flyoutPlacement !== undefined && !['tray', 'last', 'center'].includes(raw.flyoutPlacement as string)) ||
+    (raw.flyoutPlacement !== undefined &&
+      !['tray', 'last', 'center'].includes(raw.flyoutPlacement as string)) ||
     sizes.length === 0 ||
     snoozes.length === 0
   ) {
@@ -145,25 +156,36 @@ export function parseHostSettings(value: unknown): HostSettings | null {
     ...(raw.deviceTimeFormat === '12h' || raw.deviceTimeFormat === '24h'
       ? { deviceTimeFormat: raw.deviceTimeFormat }
       : {}),
-    ...(raw.platform === undefined ? {} : { platform: raw.platform as HostSettings['platform'] }),
-    ...(raw.snoozeInApp === undefined ? {} : { snoozeInApp: raw.snoozeInApp as boolean }),
+    ...(raw.platform === undefined
+      ? {}
+      : { platform: raw.platform as HostSettings['platform'] }),
+    ...(raw.snoozeInApp === undefined
+      ? {}
+      : { snoozeInApp: raw.snoozeInApp as boolean }),
     notifications: raw.notifications,
     snoozeMinutes: nearest(snoozes, raw.snoozeMinutes),
     snoozeChoices: snoozes,
     pinFlyout: raw.pinFlyout,
     startAtSignIn: raw.startAtSignIn,
-    flyoutSize: sizes.some((size) => size.id === raw.flyoutSize) ? raw.flyoutSize : sizes[0]!.id,
+    flyoutSize: sizes.some((size) => size.id === raw.flyoutSize)
+      ? raw.flyoutSize
+      : sizes[0]!.id,
     flyoutSizes: sizes,
     ...(raw.flyoutPlacement === undefined
       ? {}
-      : { flyoutPlacement: raw.flyoutPlacement as HostSettings['flyoutPlacement'] })
+      : {
+          flyoutPlacement:
+            raw.flyoutPlacement as HostSettings['flyoutPlacement'],
+        }),
   }
 }
 
 /** The offered duration closest to `minutes`, mirroring `ToastNotifier.NearestOffered`. */
 function nearest(choices: SnoozeChoiceOption[], minutes: number): number {
   return choices.reduce((best, choice) =>
-    Math.abs(choice.minutes - minutes) < Math.abs(best.minutes - minutes) ? choice : best
+    Math.abs(choice.minutes - minutes) < Math.abs(best.minutes - minutes)
+      ? choice
+      : best,
   ).minutes
 }
 
@@ -199,7 +221,9 @@ export function desktopPlatform(): 'windows' | 'linux' | null {
  * `//evil.example` or a full URL through would turn this into an open redirect
  * driven by whatever was in a notification.
  */
-export function onHostMessage(handler: (message: HostMessage) => void): () => void {
+export function onHostMessage(
+  handler: (message: HostMessage) => void,
+): () => void {
   if (!isDesktopHost()) return () => {}
   const bridge = desktopTransport()!
   const listener = (event: { data: unknown }) => {
@@ -208,23 +232,35 @@ export function onHostMessage(handler: (message: HostMessage) => void): () => vo
     const type = (data as { type?: unknown }).type
     if (type === 'back') handler({ type: 'back' })
     if (type === 'checkForUpdate') handler({ type: 'checkForUpdate' })
-    if (type === 'refreshWidgetSnapshot') handler({ type: 'refreshWidgetSnapshot' })
+    if (type === 'refreshWidgetSnapshot')
+      handler({ type: 'refreshWidgetSnapshot' })
     if (type === 'navigate') {
       const path = (data as { path?: unknown }).path
       if (typeof path === 'string') {
-        const hasUnsafeCharacter = Array.from(path).some((character) =>
-          character === '\\' || character.charCodeAt(0) <= 32 || character.charCodeAt(0) === 127)
-        if (path.startsWith('/') && !path.startsWith('//') && !hasUnsafeCharacter) {
+        const hasUnsafeCharacter = Array.from(path).some(
+          (character) =>
+            character === '\\' ||
+            character.charCodeAt(0) <= 32 ||
+            character.charCodeAt(0) === 127,
+        )
+        if (
+          path.startsWith('/') &&
+          !path.startsWith('//') &&
+          !hasUnsafeCharacter
+        ) {
           handler({ type: 'navigate', path })
         }
       }
     }
     if (type === 'snoozeOccurrence') {
       const id = (data as { occurrenceId?: unknown }).occurrenceId
-      if (typeof id === 'string' && id.length > 0 && id.length <= 512) handler({ type: 'snoozeOccurrence', occurrenceId: id })
+      if (typeof id === 'string' && id.length > 0 && id.length <= 512)
+        handler({ type: 'snoozeOccurrence', occurrenceId: id })
     }
     if (type === 'hostSettings') {
-      const settings = parseHostSettings((data as { settings?: unknown }).settings)
+      const settings = parseHostSettings(
+        (data as { settings?: unknown }).settings,
+      )
       if (settings) handler({ type: 'hostSettings', settings })
     }
   }
@@ -279,7 +315,7 @@ export function clearWidgetSnapshot(): void {
     version: 1,
     signedIn: false,
     generatedAt: new Date().toISOString(),
-    items: []
+    items: [],
   })
 }
 
@@ -324,11 +360,16 @@ export function openHostSettingsWindow(): void {
 
 /** Announce the authenticated picker listener, separately from the top-level routing listener. */
 export function announceNotificationActions(ready: boolean): void {
-  postToHost({ type: ready ? 'notificationActionsReady' : 'notificationActionsGone' })
+  postToHost({
+    type: ready ? 'notificationActionsReady' : 'notificationActionsGone',
+  })
 }
 
 /** Mirror page colors through either desktop transport without exposing implementation-specific APIs. */
-export function publishDesktopAppearance(mode: 'light' | 'dark', background: string): void {
+export function publishDesktopAppearance(
+  mode: 'light' | 'dark',
+  background: string,
+): void {
   postToHost({ type: 'appearance', mode, background })
 }
 

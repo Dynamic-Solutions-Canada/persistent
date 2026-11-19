@@ -5,14 +5,24 @@ import { fcmData } from './fcm-data.js'
 import { fcmFailureCode } from './fcm-status.js'
 
 const payload: PushPayload = {
-  type: 'escalate', occurrenceId: 'occurrence-1', reminderId: 'reminder-1',
-  title: 'Medicine 💊', alarm: true, scheduledFor: '2026-10-21T12:00:00.000Z',
-  soundUri: 'content://test/alarm', soundTitle: 'My tone', soundIntervalSeconds: 60
+  type: 'escalate',
+  occurrenceId: 'occurrence-1',
+  reminderId: 'reminder-1',
+  title: 'Medicine 💊',
+  alarm: true,
+  scheduledFor: '2026-10-21T12:00:00.000Z',
+  soundUri: 'content://test/alarm',
+  soundTitle: 'My tone',
+  soundIntervalSeconds: 60,
 }
 
 /** Firebase counts UTF-8 keys and values, excluding the HTTP envelope/device token. */
 function dataBytes(data: Record<string, string>): number {
-  return Object.entries(data).reduce((size, [key, value]) => size + Buffer.byteLength(key) + Buffer.byteLength(value), 0)
+  return Object.entries(data).reduce(
+    (size, [key, value]) =>
+      size + Buffer.byteLength(key) + Buffer.byteLength(value),
+    0,
+  )
 }
 
 test('long ASCII, CJK and emoji content uses one lossless copy under the FCM cap', () => {
@@ -35,7 +45,9 @@ test('long ASCII, CJK and emoji content uses one lossless copy under the FCM cap
 test('boundary payloads retain all content without truncation or sync substitution', () => {
   for (const unit of ['a', '药', '💊']) {
     let body = ''
-    while (dataBytes(fcmData({ ...payload, body: body + unit }, 'ja-JP')) <= 4096) {
+    while (
+      dataBytes(fcmData({ ...payload, body: body + unit }, 'ja-JP')) <= 4096
+    ) {
       body += unit
     }
     const below = fcmData({ ...payload, body }, 'ja-JP')
@@ -55,17 +67,31 @@ test('literal template-like content, empty bodies and unmarked messages preserve
   assert.equal(data.bodyRange, `0:${body.length}`)
   assert.equal(data.body, `${body}（已升级提醒）`)
   assert.equal(fcmData({ ...payload, body: '' }, 'fr-CA').bodyRange, '0:0')
-  assert.equal(fcmData({ ...payload, body: '' }, 'fr-CA').body, message('fr-CA', 'Escalated'))
+  assert.equal(
+    fcmData({ ...payload, body: '' }, 'fr-CA').body,
+    message('fr-CA', 'Escalated'),
+  )
   const fire = fcmData({ ...payload, type: 'fire', body }, 'de-DE')
   assert.equal(fire.body, body)
   assert.equal(fire.bodyRange, undefined)
 })
 
 test('FCM failure diagnostics retain safe status codes without echoed reminder content or tokens', () => {
-  assert.equal(fcmFailureCode(JSON.stringify({ error: {
-    status: 'INVALID_ARGUMENT', message: 'private token and medicine detail',
-    details: [{ body: 'private content' }]
-  } })), 'INVALID_ARGUMENT')
-  assert.equal(fcmFailureCode('{"error":{"status":"private token"}}'), undefined)
+  assert.equal(
+    fcmFailureCode(
+      JSON.stringify({
+        error: {
+          status: 'INVALID_ARGUMENT',
+          message: 'private token and medicine detail',
+          details: [{ body: 'private content' }],
+        },
+      }),
+    ),
+    'INVALID_ARGUMENT',
+  )
+  assert.equal(
+    fcmFailureCode('{"error":{"status":"private token"}}'),
+    undefined,
+  )
   assert.equal(fcmFailureCode('proxy error with private content'), undefined)
 })

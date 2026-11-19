@@ -5,5 +5,9 @@ import Chip from '@mui/joy/Chip'
 
 export function ShareCountChip({ count }: { count: number }) {
   useTranslation()
-  return <Chip component="span" size="sm" variant="soft">{formatNumber(count)}</Chip>
+  return (
+    <Chip component="span" size="sm" variant="soft">
+      {formatNumber(count)}
+    </Chip>
+  )
 }

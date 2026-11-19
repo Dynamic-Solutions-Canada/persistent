@@ -1,12 +1,15 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { buildAssignmentInvitationEmail, buildShareInvitationEmail } from './share-invitation-email.js'
+import {
+  buildAssignmentInvitationEmail,
+  buildShareInvitationEmail,
+} from './share-invitation-email.js'
 
 test('invitation email is readable and does not render sender HTML', () => {
   const email = buildShareInvitationEmail({
     ownerName: '<Ryan & team>',
     email: 'friend@example.com',
-    appUrl: 'https://persistent.example'
+    appUrl: 'https://persistent.example',
   })
 
   assert.match(email.subject, /invited you/)
@@ -21,7 +24,7 @@ test('assignment invitation keeps reminder details private before sign-in', () =
   const email = buildAssignmentInvitationEmail({
     ownerName: '<Ryan & team>',
     email: 'friend@example.com',
-    appUrl: 'https://persistent.example'
+    appUrl: 'https://persistent.example',
   })
 
   assert.match(email.subject, /reminder for you/)

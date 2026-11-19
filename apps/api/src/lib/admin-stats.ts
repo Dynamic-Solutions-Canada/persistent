@@ -1,15 +1,25 @@
 /** Database aggregates only: no reminder content, account identities or session credentials are loaded. */
 import { Prisma } from '@prisma/client'
 import {
-  adminStatsSchema, reminderStatLabels, occurrenceStatLabels, collaborationStatLabels,
-  type AdminGrowthDays, type AdminMetric, type AdminStats
+  adminStatsSchema,
+  reminderStatLabels,
+  occurrenceStatLabels,
+  collaborationStatLabels,
+  type AdminGrowthDays,
+  type AdminMetric,
+  type AdminStats,
 } from '@persistent/shared'
 import { prisma } from './prisma.js'
 
 /** Fill absent groups so an empty database still produces explicit zero metrics. */
-function completeMetrics(rows: AdminMetric[], labels: Record<string, string>): AdminMetric[] {
+function completeMetrics(
+  rows: AdminMetric[],
+  labels: Record<string, string>,
+): AdminMetric[] {
   const byKey = new Map(rows.map((row) => [row.key, row]))
-  return Object.keys(labels).map((key) => byKey.get(key) ?? { key, count: 0, users: 0 })
+  return Object.keys(labels).map(
+    (key) => byKey.get(key) ?? { key, count: 0, users: 0 },
+  )
 }
 
 /**
@@ -17,15 +27,20 @@ function completeMetrics(rows: AdminMetric[], labels: Record<string, string>): A
  * window; growthDays uses Toronto calendar days and includes today as a partial day.
  * Activity includes authenticated background sync; clients are self-reported.
  */
-export async function readAdminStats(activeDays: 7 | 30, now = new Date(), growthDays: AdminGrowthDays = 90): Promise<AdminStats> {
+export async function readAdminStats(
+  activeDays: 7 | 30,
+  now = new Date(),
+  growthDays: AdminGrowthDays = 90,
+): Promise<AdminStats> {
   const asOf = now.toISOString()
   const day = new Date(now.getTime() - 24 * 60 * 60 * 1000)
   const week = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
   const month = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-  return prisma.$transaction(async (db) => {
-    // Retain activity from logged-out/expired sessions: expiry is not inactivity.
-    const [users] = await db.$queryRaw<AdminStats['users'][]>`
+  return prisma.$transaction(
+    async (db) => {
+      // Retain activity from logged-out/expired sessions: expiry is not inactivity.
+      const [users] = await db.$queryRaw<AdminStats['users'][]>`
       WITH activity AS (
         SELECT "userId", MAX(COALESCE("lastSeenAt", "createdAt")) AS seen FROM "Session" GROUP BY "userId"
       )
@@ -37,15 +52,15 @@ export async function readAdminStats(activeDays: 7 | 30, now = new Date(), growt
         COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM "Reminder" r WHERE r."userId" = u.id))::int AS "withReminders"
       FROM "User" u LEFT JOIN activity a ON a."userId" = u.id
     `
-    if (!users) throw new Error('User aggregate missing.')
-    users.active = activeDays === 7 ? users.week : users.month
-    users.inactive = users.total - users.active
+      if (!users) throw new Error('User aggregate missing.')
+      users.active = activeDays === 7 ? users.week : users.month
+      users.inactive = users.total - users.active
 
-    // Prisma timestamps are UTC without a SQL time zone. Convert explicitly before
-    // grouping into Toronto calendar days; generate dates rather than 24-hour steps
-    // so DST transitions and days with no sign-ups are represented correctly. Keep
-    // the snapshot's ISO offset rather than casting an instant to a local timestamp.
-    const growth = await db.$queryRaw<AdminStats['userGrowth']['points']>`
+      // Prisma timestamps are UTC without a SQL time zone. Convert explicitly before
+      // grouping into Toronto calendar days; generate dates rather than 24-hour steps
+      // so DST transitions and days with no sign-ups are represented correctly. Keep
+      // the snapshot's ISO offset rather than casting an instant to a local timestamp.
+      const growth = await db.$queryRaw<AdminStats['userGrowth']['points']>`
       WITH bounds AS (
         SELECT (${asOf}::timestamptz AT TIME ZONE 'America/Toronto')::date AS today
       ), calendar AS (
@@ -63,8 +78,8 @@ export async function readAdminStats(activeDays: 7 | 30, now = new Date(), growt
       FROM calendar c LEFT JOIN daily d ON d.day = c.day ORDER BY c.day
     `
 
-    // Notes never alert. Counts describe saved configuration, including paused definitions.
-    const reminders = await db.$queryRaw<AdminMetric[]>`
+      // Notes never alert. Counts describe saved configuration, including paused definitions.
+      const reminders = await db.$queryRaw<AdminMetric[]>`
       SELECT m.key, COUNT(*)::int AS count, COUNT(DISTINCT r."userId")::int AS users
       FROM "Reminder" r CROSS JOIN LATERAL (VALUES
         ('total', true),
@@ -80,15 +95,15 @@ export async function readAdminStats(activeDays: 7 | 30, now = new Date(), growt
         ('emailEscalation', r.schedule->>'kind' <> 'never' AND r."escalateEmail" IS NOT NULL AND r."escalateEmailAfterMinutes" IS NOT NULL)
       ) AS m(key, matches) WHERE m.matches GROUP BY m.key
     `
-    const types = await db.$queryRaw<AdminMetric[]>`
+      const types = await db.$queryRaw<AdminMetric[]>`
       SELECT type::text AS key, COUNT(*)::int AS count, COUNT(DISTINCT "userId")::int AS users
       FROM "Reminder" GROUP BY type ORDER BY type
     `
-    const schedules = await db.$queryRaw<AdminMetric[]>`
+      const schedules = await db.$queryRaw<AdminMetric[]>`
       SELECT schedule->>'kind' AS key, COUNT(*)::int AS count, COUNT(DISTINCT "userId")::int AS users
       FROM "Reminder" GROUP BY schedule->>'kind' ORDER BY key
     `
-    const occurrences = await db.$queryRaw<AdminMetric[]>`
+      const occurrences = await db.$queryRaw<AdminMetric[]>`
       SELECT m.key, COUNT(*)::int AS count, COUNT(DISTINCT o."userId")::int AS users
       FROM "ReminderOccurrence" o CROSS JOIN LATERAL (VALUES
         ('waiting', o.status IN ('FIRED', 'ESCALATED') AND o."acknowledgedAt" IS NULL),
@@ -99,7 +114,7 @@ export async function readAdminStats(activeDays: 7 | 30, now = new Date(), growt
         ('emailedMonth', o."escalationEmailedAt" >= ${month})
       ) AS m(key, matches) WHERE m.matches GROUP BY m.key
     `
-    const collaboration = await db.$queryRaw<AdminMetric[]>`
+      const collaboration = await db.$queryRaw<AdminMetric[]>`
       SELECT 'shares' AS key, COUNT(*)::int AS count, COUNT(DISTINCT r."userId")::int AS users
         FROM "ReminderShare" s JOIN "Reminder" r ON r.id = s."reminderId"
       UNION ALL SELECT 'invitations', COUNT(*)::int, COUNT(DISTINCT r."userId")::int
@@ -108,20 +123,31 @@ export async function readAdminStats(activeDays: 7 | 30, now = new Date(), growt
       UNION ALL SELECT 'pendingAssignments', COUNT(*)::int, COUNT(DISTINCT "creatorId")::int
         FROM "ReminderAssignment" WHERE state = 'PENDING'
     `
-    // Distinct users per group, not installs/devices. A user can appear in several groups.
-    const clients = await db.$queryRaw<AdminStats['clients']>`
+      // Distinct users per group, not installs/devices. A user can appear in several groups.
+      const clients = await db.$queryRaw<AdminStats['clients']>`
       SELECT "clientApp" AS app, "clientPlatform" AS platform, "webVersion", "nativeVersion",
         COUNT(DISTINCT "userId")::int AS users, COUNT(*)::int AS sessions
       FROM "Session" WHERE COALESCE("lastSeenAt", "createdAt") >= ${month}
       GROUP BY "clientApp", "clientPlatform", "webVersion", "nativeVersion"
       ORDER BY users DESC, app, platform, "webVersion", "nativeVersion"
     `
-    return adminStatsSchema.parse({
-      generatedAt: now.toISOString(), activeDays, users,
-      userGrowth: { days: growthDays, timeZone: 'America/Toronto', points: growth },
-      reminders: completeMetrics(reminders, reminderStatLabels), types, schedules,
-      occurrences: completeMetrics(occurrences, occurrenceStatLabels),
-      collaboration: completeMetrics(collaboration, collaborationStatLabels), clients
-    })
-  }, { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead })
+      return adminStatsSchema.parse({
+        generatedAt: now.toISOString(),
+        activeDays,
+        users,
+        userGrowth: {
+          days: growthDays,
+          timeZone: 'America/Toronto',
+          points: growth,
+        },
+        reminders: completeMetrics(reminders, reminderStatLabels),
+        types,
+        schedules,
+        occurrences: completeMetrics(occurrences, occurrenceStatLabels),
+        collaboration: completeMetrics(collaboration, collaborationStatLabels),
+        clients,
+      })
+    },
+    { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead },
+  )
 }

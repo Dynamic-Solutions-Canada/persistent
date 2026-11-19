@@ -3,7 +3,14 @@
  * function; it shows a brief Joy Snackbar. Lives above the router so a toast
  * fired right before navigation (e.g. "Saved" then close the editor) still shows.
  */
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react'
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  type ReactNode,
+} from 'react'
 import Snackbar from '@mui/joy/Snackbar'
 import { setToastHandler } from '../lib/toast.js'
 

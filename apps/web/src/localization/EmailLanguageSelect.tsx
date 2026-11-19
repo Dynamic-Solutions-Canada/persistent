@@ -20,21 +20,39 @@ export function EmailLanguageSelect() {
   return (
     <FormControl>
       <FormLabel>{tr('Email language')}</FormLabel>
-      <Select value={user?.emailLanguage ?? 'en-US'} disabled={offline || busy} onChange={async (_event, emailLanguage) => {
-        if (!emailLanguage) return
-        setBusy(true)
-        try {
-          await apiFetch('/api/auth/preferences', { method: 'PATCH', body: JSON.stringify({ emailLanguage }) })
-          await refreshSession()
-        } catch (error) {
-          notify(extractErrorMessage(error, tr('Could not save email language.')), 'danger')
-        } finally {
-          setBusy(false)
-        }
-      }}>
-        {supportedLocales.map((locale) => <Option key={locale} value={locale}>{localeNames[locale]}</Option>)}
+      <Select
+        value={user?.emailLanguage ?? 'en-US'}
+        disabled={offline || busy}
+        onChange={async (_event, emailLanguage) => {
+          if (!emailLanguage) return
+          setBusy(true)
+          try {
+            await apiFetch('/api/auth/preferences', {
+              method: 'PATCH',
+              body: JSON.stringify({ emailLanguage }),
+            })
+            await refreshSession()
+          } catch (error) {
+            notify(
+              extractErrorMessage(error, tr('Could not save email language.')),
+              'danger',
+            )
+          } finally {
+            setBusy(false)
+          }
+        }}
+      >
+        {supportedLocales.map((locale) => (
+          <Option key={locale} value={locale}>
+            {localeNames[locale]}
+          </Option>
+        ))}
       </Select>
-      <FormHelperText>{tr('Used for emails sent to your account. Invitation and escalation contacts use their own email language, or English if unknown.')}</FormHelperText>
+      <FormHelperText>
+        {tr(
+          'Used for emails sent to your account. Invitation and escalation contacts use their own email language, or English if unknown.',
+        )}
+      </FormHelperText>
     </FormControl>
   )
 }

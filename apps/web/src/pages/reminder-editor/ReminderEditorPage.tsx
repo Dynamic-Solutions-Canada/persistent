@@ -21,21 +21,35 @@ import TabList from '@mui/joy/TabList'
 import Tab, { tabClasses } from '@mui/joy/Tab'
 import TabPanel from '@mui/joy/TabPanel'
 import ShareIcon from '@mui/icons-material/Share'
-import { isTimeless, type ReminderType, type ScheduleKind, type ShareInput } from '@persistent/shared'
+import {
+  isTimeless,
+  type ReminderType,
+  type ScheduleKind,
+  type ShareInput,
+} from '@persistent/shared'
 import { extractErrorMessage } from '../../localization/errorMessage.js'
 import {
   useReminders,
   useCreateReminder,
   useUpdateReminder,
   useDeleteReminder,
-  useCheckReminderItem
+  useCheckReminderItem,
 } from '../../data/reminders.js'
-import { useActiveOccurrences, useCheckOccurrenceItem } from '../../data/occurrences.js'
+import {
+  useActiveOccurrences,
+  useCheckOccurrenceItem,
+} from '../../data/occurrences.js'
 import { useReceivedShares } from '../../data/shares.js'
-import { useCreateAssignment, useReceivedAssignments } from '../../data/assignments.js'
+import {
+  useCreateAssignment,
+  useReceivedAssignments,
+} from '../../data/assignments.js'
 import { compareFirings } from '../../lib/firingOrder.js'
 import { isNote as isNoteReminder } from '../../lib/notes.js'
-import { hasConsumedOneTimeSchedule, showScheduleEnabled } from './scheduleControls.js'
+import {
+  hasConsumedOneTimeSchedule,
+  showScheduleEnabled,
+} from './scheduleControls.js'
 import { fireSummary } from '../../lib/schedule-preview.js'
 import { formatWhen } from '../../lib/datetime.js'
 import { useSettings } from '../../settings/useSettings.js'
@@ -61,10 +75,15 @@ import {
   toInput,
   type FormState,
   type MedicationRow,
-  type TodoRow
+  type TodoRow,
 } from './formState.js'
 
-export function ReminderEditorPage({ reminderId, onClose, onFinished, registerClose }: {
+export function ReminderEditorPage({
+  reminderId,
+  onClose,
+  onFinished,
+  registerClose,
+}: {
   reminderId?: string
   onClose?: () => void
   onFinished?: (destination: string) => void
@@ -93,16 +112,27 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
   const active = useActiveOccurrences()
   const checkOccurrenceItem = useCheckOccurrenceItem()
   const checkNoteItem = useCheckReminderItem()
-  const shared = received.data?.find((item) => item.id === id && item.permission === 'EDIT')
-  const assignedToMe = receivedAssignments.data?.find((item) => item.reminderId === id)
-  const existing = useMemo(
-    () => reminders.data?.find((r) => r.id === id) ?? shared?.editableReminder ?? undefined,
-    [reminders.data, shared, id]
+  const shared = received.data?.find(
+    (item) => item.id === id && item.permission === 'EDIT',
   )
-  const [form, setForm] = useState<FormState>(() => (existing ? fromReminder(existing) : emptyForm()))
+  const assignedToMe = receivedAssignments.data?.find(
+    (item) => item.reminderId === id,
+  )
+  const existing = useMemo(
+    () =>
+      reminders.data?.find((r) => r.id === id) ??
+      shared?.editableReminder ??
+      undefined,
+    [reminders.data, shared, id],
+  )
+  const [form, setForm] = useState<FormState>(() =>
+    existing ? fromReminder(existing) : emptyForm(),
+  )
   // The state the editor was opened in, to tell edits from the untouched form.
   const [original, setOriginal] = useState<FormState>(form)
-  const [expectedUpdatedAt, setExpectedUpdatedAt] = useState(existing?.updatedAt)
+  const [expectedUpdatedAt, setExpectedUpdatedAt] = useState(
+    existing?.updatedAt,
+  )
   // Where to go once the user confirms discarding; null = no prompt showing.
   const [discardTo, setDiscardTo] = useState<string | null>(null)
   // Set while leaving deliberately (saved, deleted, or discarded), so the guard
@@ -110,7 +140,9 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
   const [leaving, setLeaving] = useState(false)
 
   // If the reminder loads after first render (deep link), hydrate once.
-  const [hydratedId, setHydratedId] = useState<string | null>(existing?.id ?? null)
+  const [hydratedId, setHydratedId] = useState<string | null>(
+    existing?.id ?? null,
+  )
   if (existing && existing.id !== hydratedId) {
     const hydrated = fromReminder(existing)
     setForm(hydrated)
@@ -120,7 +152,10 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
     setExpectedUpdatedAt(existing.updatedAt)
   }
 
-  const dirty = !leaving && (isFormDirty(original, form) || (!id && (draftShares.length > 0 || draftMode === 'assign')))
+  const dirty =
+    !leaving &&
+    (isFormDirty(original, form) ||
+      (!id && (draftShares.length > 0 || draftMode === 'assign')))
 
   useEffect(() => {
     if (!registerClose) return
@@ -155,17 +190,26 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
-  function setMedication(index: number, key: keyof MedicationRow, value: string) {
+  function setMedication(
+    index: number,
+    key: keyof MedicationRow,
+    value: string,
+  ) {
     setForm((prev) => ({
       ...prev,
-      medications: prev.medications.map((m, i) => (i === index ? { ...m, [key]: value } : m))
+      medications: prev.medications.map((m, i) =>
+        i === index ? { ...m, [key]: value } : m,
+      ),
     }))
   }
 
   // Only the text changes — the row keeps the id it was minted with, so a firing
   // part-way through this checklist keeps its ticks on the right items.
   function setTodo(index: number, text: string) {
-    setForm((prev) => ({ ...prev, todos: prev.todos.map((t, i) => (i === index ? { ...t, text } : t)) }))
+    setForm((prev) => ({
+      ...prev,
+      todos: prev.todos.map((t, i) => (i === index ? { ...t, text } : t)),
+    }))
   }
 
   // The field mints the row (it needs the id to focus it), so this only places it.
@@ -202,8 +246,11 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
         ? {}
         : {
             kind: defaultKindForType(type),
-            when: prev.when === 'now' && type === 'MEDICATION' ? 'scheduled' : prev.when
-          })
+            when:
+              prev.when === 'now' && type === 'MEDICATION'
+                ? 'scheduled'
+                : prev.when,
+          }),
     }))
   }
 
@@ -212,8 +259,9 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
     setForm((prev) => ({
       ...prev,
       kind,
-      timesOfDay: kind === 'once' ? prev.timesOfDay.slice(0, 1) : prev.timesOfDay,
-      endDate: kind === 'once' ? '' : prev.endDate
+      timesOfDay:
+        kind === 'once' ? prev.timesOfDay.slice(0, 1) : prev.timesOfDay,
+      endDate: kind === 'once' ? '' : prev.endDate,
     }))
   }
 
@@ -242,16 +290,19 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
     setError(null)
     const input = toInput(form)
     if (!id && draftMode === 'assign' && !draftAssignee) {
-      setError(tr("Choose an assignee in Share before creating this reminder."))
+      setError(tr('Choose an assignee in Share before creating this reminder.'))
       return
     }
     if (!id && draftMode === 'assign' && !navigator.onLine) {
-      setError(tr("Connect to the internet to assign this reminder."))
+      setError(tr('Connect to the internet to assign this reminder.'))
       return
     }
-    const destination = !id && draftMode === 'assign'
-      ? '/assigned'
-      : shared ? `/shared/${id}` : landingTab(input.schedule.kind)
+    const destination =
+      !id && draftMode === 'assign'
+        ? '/assigned'
+        : shared
+          ? `/shared/${id}`
+          : landingTab(input.schedule.kind)
     const savedMessage = tr(id ? 'Saved' : 'Created')
     setLeaving(true)
     // Preserve both the opening version and submission time through offline queueing.
@@ -267,17 +318,32 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
     }
     try {
       let failedInvitations: string[] = []
-      if (id) await update.mutateAsync({ id, input, editedAt, expectedUpdatedAt })
+      if (id)
+        await update.mutateAsync({ id, input, editedAt, expectedUpdatedAt })
       else if (draftMode === 'assign') {
-        const result = await createAssignment.mutateAsync({ recipientEmail: draftAssignee, reminder: input })
+        const result = await createAssignment.mutateAsync({
+          recipientEmail: draftAssignee,
+          reminder: input,
+        })
         if (result.invitationFailed) failedInvitations = [draftAssignee]
-      } else failedInvitations = (await create.mutateAsync({ ...input, shares: draftShares })).failedInvitations
-      toast(failedInvitations.length > 0
-        ? draftMode === 'assign'
-          ? tr('Assigned, but the invitation email could not be sent. Resend it from Assigned by me.')
-          : tr('Created, but an invitation email could not be sent. Open Share to resend.')
-        : draftMode === 'assign' ? tr('Assigned') : savedMessage,
-        failedInvitations.length > 0 ? 'danger' : 'neutral')
+      } else
+        failedInvitations = (
+          await create.mutateAsync({ ...input, shares: draftShares })
+        ).failedInvitations
+      toast(
+        failedInvitations.length > 0
+          ? draftMode === 'assign'
+            ? tr(
+                'Assigned, but the invitation email could not be sent. Resend it from Assigned by me.',
+              )
+            : tr(
+                'Created, but an invitation email could not be sent. Open Share to resend.',
+              )
+          : draftMode === 'assign'
+            ? tr('Assigned')
+            : savedMessage,
+        failedInvitations.length > 0 ? 'danger' : 'neutral',
+      )
       finish(destination)
     } catch (err) {
       // Still here, edits intact — re-arm the guard that the departure disabled.
@@ -319,7 +385,9 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
    */
   const todoFiring = useMemo(() => {
     if (!id || form.type !== 'TODO') return undefined
-    return (active.data ?? []).filter((o) => o.reminderId === id).sort(compareFirings)[0]
+    return (active.data ?? [])
+      .filter((o) => o.reminderId === id)
+      .sort(compareFirings)[0]
   }, [active.data, id, form.type])
   // A note has no firing, so its ticks live on the reminder itself
   // (docs/notification-behavior.md §7) — the one case where the definition holds them.
@@ -327,8 +395,12 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
   // Judged by what is *saved*, not by the draft: the server rejects a tick on anything
   // that is not already a note, so keying this off `form.when` would offer a checkbox
   // that 400s the moment someone switches When to Never and ticks before saving.
-  const noteTicks = id && form.type === 'TODO' && existing && isNoteReminder(existing) ? existing : undefined
-  const todoCheckedItemIds = todoFiring?.checkedItemIds ?? noteTicks?.checkedItemIds
+  const noteTicks =
+    id && form.type === 'TODO' && existing && isNoteReminder(existing)
+      ? existing
+      : undefined
+  const todoCheckedItemIds =
+    todoFiring?.checkedItemIds ?? noteTicks?.checkedItemIds
 
   /**
    * Ticking from the editor writes the same object the card's checkbox writes — the
@@ -337,12 +409,17 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
    */
   const onToggleTodo = todoFiring
     ? (itemId: string, checked: boolean) =>
-        checkOccurrenceItem.mutate({ id: todoFiring.id, arg: { itemId, checked } })
+        checkOccurrenceItem.mutate({
+          id: todoFiring.id,
+          arg: { itemId, checked },
+        })
     : noteTicks
-      ? (itemId: string, checked: boolean) => checkNoteItem.mutate({ id: noteTicks.id, arg: { itemId, checked } })
+      ? (itemId: string, checked: boolean) =>
+          checkNoteItem.mutate({ id: noteTicks.id, arg: { itemId, checked } })
       : undefined
 
-  const busy = create.isPending || createAssignment.isPending || update.isPending
+  const busy =
+    create.isPending || createAssignment.isPending || update.isPending
   // Driven purely by the toggle now that `none` and `never` are real saved states:
   // editing an unscheduled reminder (or a note) must keep showing it as what it is
   // — and offer to give it a schedule — instead of forcing the date/time controls
@@ -351,7 +428,9 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
   const isNote = form.when === 'never'
   // The local browser preview cannot interpret the owner's recurring calendar
   // through DST. Recipients see the server's saved next instant instead.
-  const fireSummaryText = shared ? null : fireSummary(previewInput(form), timeFormat)
+  const fireSummaryText = shared
+    ? null
+    : fireSummary(previewInput(form), timeFormat)
   // Caught here rather than left to the server: saving offline queues the mutation
   // and navigates away, so a rejection would surface much later as a stray toast.
   const missingTodoItems = todoNeedsItems(form)
@@ -360,9 +439,13 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
     : draftShares.length
 
   if (id && !existing) {
-    return <Typography level="body-sm">
-      {reminders.isLoading || received.isLoading ? tr("Loading…") : tr("Reminder not found or you do not have edit access.")}
-    </Typography>
+    return (
+      <Typography level="body-sm">
+        {reminders.isLoading || received.isLoading
+          ? tr('Loading…')
+          : tr('Reminder not found or you do not have edit access.')}
+      </Typography>
+    )
   }
 
   return (
@@ -373,31 +456,83 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
           p: onClose ? 0 : 2,
           border: onClose ? 'none' : undefined,
           borderRadius: 'md',
-          bgcolor: onClose ? 'transparent' : 'background.surface'
+          bgcolor: onClose ? 'transparent' : 'background.surface',
         }}
       >
         <Stack spacing={2}>
-          <Typography level="title-lg">{id ? tr("Edit reminder") : tr("New reminder")}</Typography>
+          <Typography level="title-lg">
+            {id ? tr('Edit reminder') : tr('New reminder')}
+          </Typography>
           {shared && (
-            <Typography level="body-sm"><Trans i18nKey={"Shared by <v0/>. Recurring times are set in <v1/>;<v2/>"} components={{ v0: <>{shared.ownerName}</>, v1: <>{shared.ownerTimeZone}</>, v2: <>{shared.nextScheduledFor
-                ? tr(' Your next notification is {{time}} in your time zone.', { time: formatWhen(shared.nextScheduledFor, timeFormat, user?.timeZone) })
-                : tr(' You will see notifications in your time zone.')}</> }} /></Typography>
+            <Typography level="body-sm">
+              <Trans
+                i18nKey={
+                  'Shared by <v0/>. Recurring times are set in <v1/>;<v2/>'
+                }
+                components={{
+                  v0: <>{shared.ownerName}</>,
+                  v1: <>{shared.ownerTimeZone}</>,
+                  v2: (
+                    <>
+                      {shared.nextScheduledFor
+                        ? tr(
+                            ' Your next notification is {{time}} in your time zone.',
+                            {
+                              time: formatWhen(
+                                shared.nextScheduledFor,
+                                timeFormat,
+                                user?.timeZone,
+                              ),
+                            },
+                          )
+                        : tr(' You will see notifications in your time zone.')}
+                    </>
+                  ),
+                }}
+              />
+            </Typography>
           )}
           {assignedToMe && (
-            <Typography level="body-sm"><Trans i18nKey={"Assigned by <v0/>. You can edit, finish, snooze, or decline this reminder."} components={{ v0: <>{assignedToMe.creatorName}</> }} /></Typography>
+            <Typography level="body-sm">
+              <Trans
+                i18nKey={
+                  'Assigned by <v0/>. You can edit, finish, snooze, or decline this reminder.'
+                }
+                components={{ v0: <>{assignedToMe.creatorName}</> }}
+              />
+            </Typography>
           )}
           {error && <Alert color="danger">{error}</Alert>}
           {!leaving && existing && expectedUpdatedAt !== existing.updatedAt && (
-            <Alert color="warning" endDecorator={<Button size="sm" variant="outlined" color="warning" onClick={() => {
-              const latest = fromReminder(existing)
-              setForm(latest)
-              setOriginal(latest)
-              setExpectedUpdatedAt(existing.updatedAt)
-              setError(null)
-            }}>{tr("Load latest")}</Button>}>{tr("This reminder has changed. Your draft is kept here. Load latest replaces your draft with the saved version.")}</Alert>
+            <Alert
+              color="warning"
+              endDecorator={
+                <Button
+                  size="sm"
+                  variant="outlined"
+                  color="warning"
+                  onClick={() => {
+                    const latest = fromReminder(existing)
+                    setForm(latest)
+                    setOriginal(latest)
+                    setExpectedUpdatedAt(existing.updatedAt)
+                    setError(null)
+                  }}
+                >
+                  {tr('Load latest')}
+                </Button>
+              }
+            >
+              {tr(
+                'This reminder has changed. Your draft is kept here. Load latest replaces your draft with the saved version.',
+              )}
+            </Alert>
           )}
 
-          <Tabs defaultValue="details" sx={{ bgcolor: 'transparent', minWidth: 0 }}>
+          <Tabs
+            defaultValue="details"
+            sx={{ bgcolor: 'transparent', minWidth: 0 }}
+          >
             <TabList
               disableUnderline
               sx={{
@@ -428,20 +563,31 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
                   borderRadius: 0,
                   // No focus/selected box — the bottom underline is the only indicator.
                   '&:focus, &:focus-visible': { outline: 'none' },
-                  '&:hover': { bgcolor: 'transparent', color: 'primary.plainColor' },
+                  '&:hover': {
+                    bgcolor: 'transparent',
+                    color: 'primary.plainColor',
+                  },
                   [`&.${tabClasses.selected}`]: {
                     color: 'primary.plainColor',
                     fontWeight: 'lg',
                     borderBottomColor: 'primary.500',
-                    bgcolor: 'transparent'
-                  }
-                }
+                    bgcolor: 'transparent',
+                  },
+                },
               }}
             >
-              <Tab value="details" disableIndicator>{tr("Details")}</Tab>
-              <Tab value="schedule" disableIndicator>{tr("Schedule")}</Tab>
-              <Tab value="nagging" disableIndicator>{tr("Notifications")}</Tab>
-              <Tab value="escalation" disableIndicator>{tr("Escalation")}</Tab>
+              <Tab value="details" disableIndicator>
+                {tr('Details')}
+              </Tab>
+              <Tab value="schedule" disableIndicator>
+                {tr('Schedule')}
+              </Tab>
+              <Tab value="nagging" disableIndicator>
+                {tr('Notifications')}
+              </Tab>
+              <Tab value="escalation" disableIndicator>
+                {tr('Escalation')}
+              </Tab>
             </TabList>
 
             <TabPanel value="details" keepMounted>
@@ -453,21 +599,39 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
                 onToggleTodo={onToggleTodo}
                 onTypeChange={setType}
                 onMedicationChange={setMedication}
-                onAddMedication={() => setForm((prev) => ({ ...prev, medications: [...prev.medications, emptyMedication()] }))}
+                onAddMedication={() =>
+                  setForm((prev) => ({
+                    ...prev,
+                    medications: [...prev.medications, emptyMedication()],
+                  }))
+                }
                 onRemoveMedication={(index) =>
-                  setForm((prev) => ({ ...prev, medications: prev.medications.filter((_m, i) => i !== index) }))
+                  setForm((prev) => ({
+                    ...prev,
+                    medications: prev.medications.filter(
+                      (_m, i) => i !== index,
+                    ),
+                  }))
                 }
                 onTodoChange={setTodo}
                 onInsertTodo={insertTodo}
                 onMoveTodo={moveTodo}
                 onRemoveTodo={(index) =>
-                  setForm((prev) => ({ ...prev, todos: prev.todos.filter((_t, i) => i !== index) }))
+                  setForm((prev) => ({
+                    ...prev,
+                    todos: prev.todos.filter((_t, i) => i !== index),
+                  }))
                 }
               />
             </TabPanel>
 
             <TabPanel value="schedule" keepMounted>
-              <ScheduleTab form={form} set={set} onKindChange={setKind} isEditing={Boolean(id)} />
+              <ScheduleTab
+                form={form}
+                set={set}
+                onKindChange={setKind}
+                isEditing={Boolean(id)}
+              />
             </TabPanel>
 
             <TabPanel value="nagging" keepMounted>
@@ -481,55 +645,114 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
 
           <Divider />
           {showScheduleEnabled(form, existing) && (
-            <FormControl orientation="horizontal" sx={{ justifyContent: 'space-between' }}>
-              <FormLabel>{tr("Schedule enabled")}</FormLabel>
-              <Switch checked={form.active} onChange={(e) => set('active', e.target.checked)} />
+            <FormControl
+              orientation="horizontal"
+              sx={{ justifyContent: 'space-between' }}
+            >
+              <FormLabel>{tr('Schedule enabled')}</FormLabel>
+              <Switch
+                checked={form.active}
+                onChange={(e) => set('active', e.target.checked)}
+              />
             </FormControl>
           )}
 
           {missingTodoItems ? (
-            <Alert color="warning" variant="soft" size="sm">{tr("Add at least one checklist item on the Details tab.")}</Alert>
+            <Alert color="warning" variant="soft" size="sm">
+              {tr('Add at least one checklist item on the Details tab.')}
+            </Alert>
           ) : !id && draftMode === 'assign' ? (
-            <Alert color="primary" variant="soft" size="sm">{tr("The assignee receives this reminder on their own schedule and in their local time zone. You can track its firings in Assigned by me.")}</Alert>
+            <Alert color="primary" variant="soft" size="sm">
+              {tr(
+                'The assignee receives this reminder on their own schedule and in their local time zone. You can track its firings in Assigned by me.',
+              )}
+            </Alert>
           ) : isNote ? (
             // Ahead of the paused case on purpose: "won't fire until you turn it
             // on" is a promise a note can't keep — turning it on changes nothing.
-            <Alert color="neutral" variant="soft" size="sm">{tr("Never notifies you, kept as a note.")}</Alert>
+            <Alert color="neutral" variant="soft" size="sm">
+              {tr('Never notifies you, kept as a note.')}
+            </Alert>
           ) : hasConsumedOneTimeSchedule(form, existing) ? (
-            <Alert color="neutral" variant="soft" size="sm">{tr("This one-time reminder has already notified you. Use History to undo Done, or change the schedule to notify again.")}</Alert>
+            <Alert color="neutral" variant="soft" size="sm">
+              {tr(
+                'This one-time reminder has already notified you. Use History to undo Done, or change the schedule to notify again.',
+              )}
+            </Alert>
           ) : showSchedule && !form.active ? (
-            <Alert color="neutral" variant="soft" size="sm">{tr("Schedule paused, no future notifications until enabled. Current firings still need Done.")}</Alert>
+            <Alert color="neutral" variant="soft" size="sm">
+              {tr(
+                'Schedule paused, no future notifications until enabled. Current firings still need Done.',
+              )}
+            </Alert>
           ) : !showSchedule ? (
             // An unscheduled reminder fires once, on creation — so this is a promise
             // when creating one and a statement of history when editing one.
             <Alert color={id ? 'neutral' : 'primary'} variant="soft" size="sm">
-              {id ? tr("Already notified you when you created it, nothing more scheduled.") : tr("Notifies you right away")}
+              {id
+                ? tr(
+                    'Already notified you when you created it, nothing more scheduled.',
+                  )
+                : tr('Notifies you right away')}
             </Alert>
           ) : shared && showSchedule ? (
-            <Alert color="primary" variant="soft" size="sm">{tr("Schedule changes will notify everyone at the same instant. The next time shown above reflects the saved schedule.")}</Alert>
+            <Alert color="primary" variant="soft" size="sm">
+              {tr(
+                'Schedule changes will notify everyone at the same instant. The next time shown above reflects the saved schedule.',
+              )}
+            </Alert>
           ) : fireSummaryText ? (
             <Alert color="primary" variant="soft" size="sm">
               {fireSummaryText}
             </Alert>
           ) : (
-            <Alert color="warning" variant="soft" size="sm">{tr("No upcoming notification, check the date and time.")}</Alert>
+            <Alert color="warning" variant="soft" size="sm">
+              {tr('No upcoming notification, check the date and time.')}
+            </Alert>
           )}
 
-          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            useFlexGap
+            flexWrap="wrap"
+            sx={{ mt: 1 }}
+          >
             {!assignedToMe && (
               <Button
                 type="button"
                 variant="outlined"
                 size="sm"
                 startDecorator={<ShareIcon />}
-                endDecorator={shareButtonCount > 0 ? <ShareCountChip count={shareButtonCount} /> : undefined}
+                endDecorator={
+                  shareButtonCount > 0 ? (
+                    <ShareCountChip count={shareButtonCount} />
+                  ) : undefined
+                }
                 onClick={() => setShareOpen(true)}
-              >{tr("Share")}</Button>
+              >
+                {tr('Share')}
+              </Button>
             )}
-            <Button type="submit" loading={busy} disabled={missingTodoItems} sx={{ flex: 1 }}>
-              {id ? tr("Save") : draftMode === 'assign' ? tr("Assign") : tr("Create")}
+            <Button
+              type="submit"
+              loading={busy}
+              disabled={missingTodoItems}
+              sx={{ flex: 1 }}
+            >
+              {id
+                ? tr('Save')
+                : draftMode === 'assign'
+                  ? tr('Assign')
+                  : tr('Create')}
             </Button>
-            <Button variant="outlined" color="neutral" onClick={() => leaveFor('/')}>{tr("Cancel")}</Button>
+            <Button
+              variant="outlined"
+              color="neutral"
+              onClick={() => leaveFor('/')}
+            >
+              {tr('Cancel')}
+            </Button>
           </Stack>
           {id && !shared && (
             <Button
@@ -540,7 +763,7 @@ export function ReminderEditorPage({ reminderId, onClose, onFinished, registerCl
               onClick={onDelete}
               sx={{ alignSelf: 'center', mt: 0.5 }}
             >
-              {assignedToMe ? tr("Decline assignment") : tr("Delete reminder")}
+              {assignedToMe ? tr('Decline assignment') : tr('Delete reminder')}
             </Button>
           )}
         </Stack>

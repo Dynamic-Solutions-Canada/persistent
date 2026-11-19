@@ -38,13 +38,13 @@ function lookup<T>(map: Record<string, T>, key: string, fallback: T): T {
 const TYPE_ICON: Record<ReminderType, SvgIconComponent> = {
   NONE: NotificationsNoneIcon,
   TODO: ChecklistIcon,
-  MEDICATION: MedicationIcon
+  MEDICATION: MedicationIcon,
 }
 
 export function TypeIcon({
   type,
   fontSize = 'small',
-  size
+  size,
 }: {
   type: ReminderType
   fontSize?: IconSize
@@ -55,7 +55,12 @@ export function TypeIcon({
   const Icon = lookup(TYPE_ICON, type, NotificationsNoneIcon)
   // aria-label (not titleAccess) so no <title> text leaks into e.g. Select values.
   return (
-    <Icon fontSize={fontSize} sx={size ? { fontSize: size } : undefined} role="img" aria-label={reminderTypeLabel(type)} />
+    <Icon
+      fontSize={fontSize}
+      sx={size ? { fontSize: size } : undefined}
+      role="img"
+      aria-label={reminderTypeLabel(type)}
+    />
   )
 }
 
@@ -66,7 +71,7 @@ const STATUS_ICON: Record<OccurrenceStatus, SvgIconComponent> = {
   SNOOZED: SnoozeIcon,
   ESCALATED: CampaignIcon,
   MISSED: ErrorOutlineIcon,
-  SUPERSEDED: SkipNextIcon
+  SUPERSEDED: SkipNextIcon,
 }
 
 const STATUS_TITLE: Record<OccurrenceStatus, string> = {
@@ -76,13 +81,25 @@ const STATUS_TITLE: Record<OccurrenceStatus, string> = {
   SNOOZED: 'Snoozed',
   ESCALATED: 'Escalated',
   MISSED: 'Missed',
-  SUPERSEDED: 'Superseded'
+  SUPERSEDED: 'Superseded',
 }
 
-export function StatusIcon({ status, fontSize = 'small' }: { status: OccurrenceStatus; fontSize?: IconSize }) {
+export function StatusIcon({
+  status,
+  fontSize = 'small',
+}: {
+  status: OccurrenceStatus
+  fontSize?: IconSize
+}) {
   useTranslation()
   const Icon = lookup(STATUS_ICON, status, NotificationsActiveIcon)
-  return <Icon fontSize={fontSize} role="img" aria-label={tr(lookup(STATUS_TITLE, status, status))} />
+  return (
+    <Icon
+      fontSize={fontSize}
+      role="img"
+      aria-label={tr(lookup(STATUS_TITLE, status, status))}
+    />
+  )
 }
 
 const STATUS_COLOR: Record<OccurrenceStatus, ColorPaletteProp> = {
@@ -92,7 +109,7 @@ const STATUS_COLOR: Record<OccurrenceStatus, ColorPaletteProp> = {
   SNOOZED: 'primary',
   ESCALATED: 'danger',
   MISSED: 'danger',
-  SUPERSEDED: 'neutral'
+  SUPERSEDED: 'neutral',
 }
 
 /** A colored, labeled status chip (e.g. green "Done", red "Missed") for list rows. */

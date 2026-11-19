@@ -18,13 +18,19 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { deviceAgendaEntrySchema, deviceAlarmSchema } from '../../packages/shared/src/device-alarms.js'
+import {
+  deviceAgendaEntrySchema,
+  deviceAlarmSchema,
+} from '../../packages/shared/src/device-alarms.js'
 
 /** Every `json.optX("name")` / `json.has("name")` key read in a Kotlin source. */
 function keysReadBy(file: string): Set<string> {
   const source = readFileSync(new URL(`../../${file}`, import.meta.url), 'utf8')
   const keys = new Set<string>()
-  for (const match of source.matchAll(/json\.(?:opt\w+|has|get\w+)\("([^"]+)"/g)) keys.add(match[1]!)
+  for (const match of source.matchAll(
+    /json\.(?:opt\w+|has|get\w+)\("([^"]+)"/g,
+  ))
+    keys.add(match[1]!)
   return keys
 }
 
@@ -43,7 +49,7 @@ test('the native alarm parser reads every field the server sends', () => {
   assert.deepEqual(
     missed,
     [],
-    `SyncClient.parseAlarm ignores DeviceAlarm field(s): ${missed.join(', ')} — the device would arm an alarm without them`
+    `SyncClient.parseAlarm ignores DeviceAlarm field(s): ${missed.join(', ')} — the device would arm an alarm without them`,
   )
 })
 
@@ -54,7 +60,7 @@ test('the native agenda parser reads every field the server sends', () => {
   assert.deepEqual(
     missed,
     [],
-    `AgendaEntry.fromJson ignores DeviceAgendaEntry field(s): ${missed.join(', ')} — the car list would silently drop them`
+    `AgendaEntry.fromJson ignores DeviceAgendaEntry field(s): ${missed.join(', ')} — the car list would silently drop them`,
   )
 })
 
@@ -64,7 +70,11 @@ test('the agenda round-trips through its own storage', () => {
   const sent = Object.keys(deviceAgendaEntrySchema.shape)
   const written = keysWrittenBy('apps/mobile/android-plugin/AgendaStore.kt')
   const missed = sent.filter((key) => !written.has(key))
-  assert.deepEqual(missed, [], `AgendaEntry.toJson drops field(s): ${missed.join(', ')}`)
+  assert.deepEqual(
+    missed,
+    [],
+    `AgendaEntry.toJson drops field(s): ${missed.join(', ')}`,
+  )
 })
 
 test('neither parser reads a field the server does not send', () => {
@@ -72,11 +82,14 @@ test('neither parser reads a field the server does not send', () => {
   // forever, which looks like a working field rather than a dead one.
   for (const [file, schema] of [
     ['apps/mobile/android-plugin/SyncClient.kt', deviceAlarmSchema],
-    ['apps/mobile/android-plugin/AgendaStore.kt', deviceAgendaEntrySchema]
+    ['apps/mobile/android-plugin/AgendaStore.kt', deviceAgendaEntrySchema],
   ] as const) {
     const sent = new Set(Object.keys(schema.shape))
     for (const key of keysReadBy(file)) {
-      assert.ok(sent.has(key), `${file} reads "${key}", which is not in the shared schema`)
+      assert.ok(
+        sent.has(key),
+        `${file} reads "${key}", which is not in the shared schema`,
+      )
     }
   }
 })

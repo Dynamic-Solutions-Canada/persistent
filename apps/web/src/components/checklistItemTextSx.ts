@@ -2,6 +2,6 @@
 export function checklistItemTextSx(checked: boolean) {
   return {
     color: checked ? 'text.tertiary' : 'text.secondary',
-    textDecoration: checked ? 'line-through' : 'none'
+    textDecoration: checked ? 'line-through' : 'none',
   }
 }

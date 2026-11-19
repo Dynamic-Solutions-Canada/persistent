@@ -24,7 +24,10 @@ import FormLabel from '@mui/joy/FormLabel'
 import { useAuth } from '../auth/useAuth.js'
 import { LanguageSettingsCard } from '../localization/LanguageSettingsCard.js'
 import { useSettings, type SoundChoice } from '../settings/useSettings.js'
-import { doodleColorOptions, type DoodleColorId } from '../settings/doodleColors.js'
+import {
+  doodleColorOptions,
+  type DoodleColorId,
+} from '../settings/doodleColors.js'
 import { useAppTheme } from '../settings/useAppTheme.js'
 import { THEME_OPTIONS } from '../settings/themes.js'
 import { SectionHeading } from '../components/SectionHeading.js'
@@ -53,7 +56,7 @@ export function SettingsPage() {
     setNotificationSound,
     setNagSound,
     shadeProminence,
-    setShadeProminence
+    setShadeProminence,
   } = useSettings()
 
   const theme = useAppTheme()
@@ -61,10 +64,14 @@ export function SettingsPage() {
   const doodleBackgroundOptions = [
     ...doodleColors.slice(0, 1),
     { id: 'none' as const, name: 'No doodles', color: null },
-    ...doodleColors.slice(1)
+    ...doodleColors.slice(1),
   ]
 
-  async function chooseSound(type: 'alarm' | 'notification', current: SoundChoice, apply: (s: SoundChoice) => void) {
+  async function chooseSound(
+    type: 'alarm' | 'notification',
+    current: SoundChoice,
+    apply: (s: SoundChoice) => void,
+  ) {
     const picked = await pickSound(type, current.uri)
     if (!picked) return
     apply(picked)
@@ -76,26 +83,33 @@ export function SettingsPage() {
   function changeShadeProminence(value: 'NORMAL' | 'MINIMIZED') {
     setShadeProminence(value)
     // Update the native default + re-post any live notifications immediately.
-    void AlarmPlugin.setDefaultShadeProminence({ minimized: value === 'MINIMIZED' }).catch(() => {})
+    void AlarmPlugin.setDefaultShadeProminence({
+      minimized: value === 'MINIMIZED',
+    }).catch(() => {})
   }
   return (
     <Stack spacing={1.5}>
       <SectionHeading
-        title={tr("Settings")}
-        subtitle={tr("Appearance, sounds, notifications, and account")}
+        title={tr('Settings')}
+        subtitle={tr('Appearance, sounds, notifications, and account')}
       />
 
       {user?.isAdmin && (
-        <Button component={RouterLink} to="/admin" variant="outlined">{tr("Administration")}</Button>
+        <Button component={RouterLink} to="/admin" variant="outlined">
+          {tr('Administration')}
+        </Button>
       )}
 
       <LanguageSettingsCard />
 
       <Card variant="outlined">
-        <Typography level="title-sm">{tr("Appearance")}</Typography>
+        <Typography level="title-sm">{tr('Appearance')}</Typography>
         <FormControl>
-          <FormLabel>{tr("Theme")}</FormLabel>
-          <Select value={themeId} onChange={(_e, value) => value && setThemeId(value)}>
+          <FormLabel>{tr('Theme')}</FormLabel>
+          <Select
+            value={themeId}
+            onChange={(_e, value) => value && setThemeId(value)}
+          >
             {THEME_OPTIONS.map((t) => (
               <Option key={t.id} value={t.id}>
                 {tr(t.name)}
@@ -103,9 +117,13 @@ export function SettingsPage() {
             ))}
           </Select>
         </FormControl>
-        <Typography level="body-xs">{tr("Match system automatically follows your device's light or dark appearance.")}</Typography>
+        <Typography level="body-xs">
+          {tr(
+            "Match system automatically follows your device's light or dark appearance.",
+          )}
+        </Typography>
         <FormControl>
-          <FormLabel>{tr("Doodle background")}</FormLabel>
+          <FormLabel>{tr('Doodle background')}</FormLabel>
           <Select<DoodleColorId | 'none'>
             value={doodles ? doodleColor : 'none'}
             onChange={(_event, value) => {
@@ -120,11 +138,24 @@ export function SettingsPage() {
             }}
           >
             {doodleBackgroundOptions.map((option) => (
-              <Option key={option.id} value={option.id} label={tr(option.name)} sx={{ gap: 1 }}>
+              <Option
+                key={option.id}
+                value={option.id}
+                label={tr(option.name)}
+                sx={{ gap: 1 }}
+              >
                 {option.color && (
                   <Box
                     aria-hidden="true"
-                    sx={{ width: 14, height: 14, flexShrink: 0, borderRadius: '50%', bgcolor: option.color, border: '1px solid', borderColor: 'neutral.outlinedBorder' }}
+                    sx={{
+                      width: 14,
+                      height: 14,
+                      flexShrink: 0,
+                      borderRadius: '50%',
+                      bgcolor: option.color,
+                      border: '1px solid',
+                      borderColor: 'neutral.outlinedBorder',
+                    }}
                   />
                 )}
                 {tr(option.name)}
@@ -132,47 +163,88 @@ export function SettingsPage() {
             ))}
           </Select>
         </FormControl>
-        <Typography level="body-xs">{tr("Choose the doodle line color. Light themes use pale colors; darker themes use dark colors.")}</Typography>
+        <Typography level="body-xs">
+          {tr(
+            'Choose the doodle line color. Light themes use pale colors; darker themes use dark colors.',
+          )}
+        </Typography>
       </Card>
 
       <Card variant="outlined">
-        <Typography level="title-sm">{tr("Sounds")}</Typography>
+        <Typography level="title-sm">{tr('Sounds')}</Typography>
         {isNative() ? (
           <Stack spacing={1.5}>
             <SoundPickerRow
-              label={tr("Notification sound")}
-              value={notificationSound.uri ? notificationSound.title : tr('Default')}
-              onChoose={() => void chooseSound('notification', notificationSound, setNotificationSound)}
+              label={tr('Notification sound')}
+              value={
+                notificationSound.uri ? notificationSound.title : tr('Default')
+              }
+              onChoose={() =>
+                void chooseSound(
+                  'notification',
+                  notificationSound,
+                  setNotificationSound,
+                )
+              }
             />
             <SoundPickerRow
-              label={tr("Nag sound")}
-              value={nagSound.uri ? nagSound.title : tr('Same as notification ({{title}})', { title: notificationSound.uri ? notificationSound.title : tr('Default') })}
-              onChoose={() => void chooseSound('notification', nagSound, setNagSound)}
+              label={tr('Nag sound')}
+              value={
+                nagSound.uri
+                  ? nagSound.title
+                  : tr('Same as notification ({{title}})', {
+                      title: notificationSound.uri
+                        ? notificationSound.title
+                        : tr('Default'),
+                    })
+              }
+              onChoose={() =>
+                void chooseSound('notification', nagSound, setNagSound)
+              }
             />
-            <Typography level="body-xs">{tr("The notification sound plays the first time a reminder notifies you; the nag sound plays on each repeat after that, for reminders with a nag interval set. Alarms ring one continuous tone, so this doesn't apply to them.")}</Typography>
+            <Typography level="body-xs">
+              {tr(
+                "The notification sound plays the first time a reminder notifies you; the nag sound plays on each repeat after that, for reminders with a nag interval set. Alarms ring one continuous tone, so this doesn't apply to them.",
+              )}
+            </Typography>
             <SoundPickerRow
-              label={tr("Alarm sound")}
+              label={tr('Alarm sound')}
               value={alarmSound.uri ? alarmSound.title : tr('Default')}
-              onChoose={() => void chooseSound('alarm', alarmSound, setAlarmSound)}
+              onChoose={() =>
+                void chooseSound('alarm', alarmSound, setAlarmSound)
+              }
             />
-            <Typography level="body-xs">{tr("These are this device's tones. A single reminder can override them on its Notifications tab.")}</Typography>
+            <Typography level="body-xs">
+              {tr(
+                "These are this device's tones. A single reminder can override them on its Notifications tab.",
+              )}
+            </Typography>
           </Stack>
         ) : (
-          <Typography level="body-sm">{tr("Choosing sounds is available in the Android app.")}</Typography>
+          <Typography level="body-sm">
+            {tr('Choosing sounds is available in the Android app.')}
+          </Typography>
         )}
       </Card>
 
       {isNative() && (
         <Card variant="outlined">
-          <Typography level="title-sm">{tr("Notification shade")}</Typography>
+          <Typography level="title-sm">{tr('Notification shade')}</Typography>
           <FormControl>
-            <FormLabel>{tr("Default prominence")}</FormLabel>
-            <Select value={shadeProminence} onChange={(_e, value) => value && changeShadeProminence(value)}>
-              <Option value="NORMAL">{tr("Normal")}</Option>
-              <Option value="MINIMIZED">{tr("Minimized")}</Option>
+            <FormLabel>{tr('Default prominence')}</FormLabel>
+            <Select
+              value={shadeProminence}
+              onChange={(_e, value) => value && changeShadeProminence(value)}
+            >
+              <Option value="NORMAL">{tr('Normal')}</Option>
+              <Option value="MINIMIZED">{tr('Minimized')}</Option>
             </Select>
           </FormControl>
-          <Typography level="body-xs">{tr("Where reminders sit in the Android notification shade by default. Minimized tucks them into the collapsed section at the bottom with no pop-up banner. This is visual only, it doesn't change the sound, and a reminder can override it. Escalations always stay prominent.")}</Typography>
+          <Typography level="body-xs">
+            {tr(
+              "Where reminders sit in the Android notification shade by default. Minimized tucks them into the collapsed section at the bottom with no pop-up banner. This is visual only, it doesn't change the sound, and a reminder can override it. Escalations always stay prominent.",
+            )}
+          </Typography>
         </Card>
       )}
 
@@ -182,22 +254,45 @@ export function SettingsPage() {
       <AccountSettingsCard />
 
       <Card variant="outlined">
-        <Typography level="title-sm">{tr("Help")}</Typography>
-        <Typography level="body-sm"><Trans i18nKey={"New here, or want a refresher on how nagging, escalation, and Done/De-escalate/Snooze work? <c0>How Persistent works</c0>"} components={{ c0: <Link component={RouterLink} to="/help" /> }} /></Typography>
+        <Typography level="title-sm">{tr('Help')}</Typography>
+        <Typography level="body-sm">
+          <Trans
+            i18nKey={
+              'New here, or want a refresher on how nagging, escalation, and Done/De-escalate/Snooze work? <c0>How Persistent works</c0>'
+            }
+            components={{ c0: <Link component={RouterLink} to="/help" /> }}
+          />
+        </Typography>
       </Card>
 
       <Card variant="outlined">
-        <Typography level="title-sm">{tr("Privacy")}</Typography>
-        <Typography level="body-sm"><Trans i18nKey={"What Persistent stores and who it's shared with: <c0>Privacy policy</c0> · <c1>Deleting your account</c1>"} components={{ c0: <Link component={RouterLink} to="/privacy" />, c1: <Link component={RouterLink} to="/delete-account" /> }} /></Typography>
+        <Typography level="title-sm">{tr('Privacy')}</Typography>
+        <Typography level="body-sm">
+          <Trans
+            i18nKey={
+              "What Persistent stores and who it's shared with: <c0>Privacy policy</c0> · <c1>Deleting your account</c1>"
+            }
+            components={{
+              c0: <Link component={RouterLink} to="/privacy" />,
+              c1: <Link component={RouterLink} to="/delete-account" />,
+            }}
+          />
+        </Typography>
       </Card>
 
       <UpdateSettings />
 
       <Card variant="outlined">
-        <Typography level="title-sm">{tr("Apps")}</Typography>
-        <Typography level="body-sm">{tr("Get alarms that work offline on Android, or persistent alerts while your computer is awake with the Windows and Linux apps.")}</Typography>
+        <Typography level="title-sm">{tr('Apps')}</Typography>
+        <Typography level="body-sm">
+          {tr(
+            'Get alarms that work offline on Android, or persistent alerts while your computer is awake with the Windows and Linux apps.',
+          )}
+        </Typography>
         <NativeAppButtons />
-        <Link component={RouterLink} to="/settings/apps">{tr("Our other apps")}</Link>
+        <Link component={RouterLink} to="/settings/apps">
+          {tr('Our other apps')}
+        </Link>
       </Card>
     </Stack>
   )

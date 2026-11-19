@@ -21,7 +21,7 @@ export function SoundPickerRow({
   label,
   value,
   onChoose,
-  onClear
+  onClear,
 }: {
   label: string
   /** What this row sounds like right now, already worded for the caller's context. */
@@ -33,17 +33,24 @@ export function SoundPickerRow({
 }) {
   useTranslation()
   return (
-    <FormControl orientation="horizontal" sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+    <FormControl
+      orientation="horizontal"
+      sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 1 }}
+    >
       <Box sx={{ minWidth: 0 }}>
         <FormLabel>{label}</FormLabel>
         <Typography level="body-xs">{value}</Typography>
       </Box>
       <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
         {onClear && (
-          <Button size="sm" variant="plain" color="neutral" onClick={onClear}>{tr("Reset")}</Button>
+          <Button size="sm" variant="plain" color="neutral" onClick={onClear}>
+            {tr('Reset')}
+          </Button>
         )}
         {onChoose && (
-          <Button size="sm" variant="outlined" onClick={onChoose}>{tr("Choose")}</Button>
+          <Button size="sm" variant="outlined" onClick={onChoose}>
+            {tr('Choose')}
+          </Button>
         )}
       </Stack>
     </FormControl>

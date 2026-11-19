@@ -26,7 +26,7 @@ The overview, subsystem documents and the list of where data lives are in `ARCHI
   - Sharing: recipient reads and permitted actions must prove an explicit `ReminderShare` grant for that recipient and reminder, and firings stay owned by the creator.
   - Assignment: an assigned reminder belongs to the assignee, and its creator reads only the `ReminderAssignment` progress record scoped by `creatorId`.
   - Administrators may read aggregate cross-user counts after a fresh database admin grant check, exposing no account identities or reminder content.
-  See `docs/auth-architecture.md` and `apps/api/AGENTS.md`.
+    See `docs/auth-architecture.md` and `apps/api/AGENTS.md`.
 
 ## Conventions and gotchas
 
@@ -56,16 +56,16 @@ The overview, subsystem documents and the list of where data lives are in `ARCHI
 
 The devkit-managed Compose stack is the complete development environment. Use the exact Node and npm versions in `package.json`.
 
-| Command | Proves | Does not prove |
-| --- | --- | --- |
-| `npm run dev` | Shared (watch), API and web run together | Anything native |
-| `npm run validate` | Lint, tests, typecheck and Prisma schema validity; needs no database or `DATABASE_URL` | Native Android, Windows or Linux behaviour |
-| `npm run db:migrate` | Creates and applies Prisma migrations | |
-| `npm run db:seed` | Fills a dev account with reminders in every type and state (`-- --keep`, `-- --email=...`) | |
-| `npm run build:linux` | The Linux host builds under the pinned Node runtime | Linux desktop runtime behaviour |
-| `npm run test:desktop`, `test:android`, `test:integration` | Toolchain suites (.NET, Android SDK, a `_test` database), each a CI job | |
-| `npm run verify:desktop` | Full Windows Debug compile, including XAML | That the app starts |
-| `npm run install:desktop` | Installs a dev-signed build on Windows: the only check that sees packaging and startup | Store certification |
+| Command                                                    | Proves                                                                                     | Does not prove                             |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------ |
+| `npm run dev`                                              | Shared (watch), API and web run together                                                   | Anything native                            |
+| `npm run validate`                                         | Lint, tests, typecheck and Prisma schema validity; needs no database or `DATABASE_URL`     | Native Android, Windows or Linux behaviour |
+| `npm run db:migrate`                                       | Creates and applies Prisma migrations                                                      |                                            |
+| `npm run db:seed`                                          | Fills a dev account with reminders in every type and state (`-- --keep`, `-- --email=...`) |                                            |
+| `npm run build:linux`                                      | The Linux host builds under the pinned Node runtime                                        | Linux desktop runtime behaviour            |
+| `npm run test:desktop`, `test:android`, `test:integration` | Toolchain suites (.NET, Android SDK, a `_test` database), each a CI job                    |                                            |
+| `npm run verify:desktop`                                   | Full Windows Debug compile, including XAML                                                 | That the app starts                        |
+| `npm run install:desktop`                                  | Installs a dev-signed build on Windows: the only check that sees packaging and startup     | Store certification                        |
 
 `npm test` is `devkit-test`: every `*.test.ts(x)` except `*.integration.test.ts` and `external/`. Kotlin and Java changes have their own compile check (`apps/mobile/AGENTS.md`), and the Windows app has its own plus a CI job (`apps/desktop/AGENTS.md`); neither is optional before finishing. Windows builds go through the shared build bridge from WSL: use the `desktop` skill. CI (`ci.yml`) runs `validate` and the three toolchain suites, and every publishing workflow calls it as its gate.
 
@@ -75,38 +75,38 @@ Android and web releases use the `release` skill and server deploys the `deploy`
 
 ## Guidance map
 
-| Guide, doc, or skill | Read or use when | Governs |
-| --- | --- | --- |
-| `.agents/guides/reminder-model.md` | Changing reminder types, schedules, occurrences or notification content | `apps/api`, `apps/web`, `apps/mobile`, `packages/shared` |
-| `.agents/guides/ui-conventions.md` | Changing any screen, dialog or control | `apps/web/src/**` |
-| `docs/auth-architecture.md` | Touching auth, sessions, passkeys or data isolation | `apps/api/src/routes/auth.ts`, domain queries |
-| `docs/data-event-contract.md` | Changing HTTP or WebSocket data flow or offline sync | `apps/api`, `apps/web/src/lib`, `apps/web/src/data` |
-| `docs/alarm-architecture.md` | Changing the notification, alarm or escalation mechanism | `apps/api/src/lib/delivery`, `apps/mobile` |
-| `docs/notification-behavior.md` | Changing the user-facing done, silence or snooze guarantee | every surface |
-| `docs/desktop-architecture.md` | Changing the Windows tray app | `apps/desktop/**` |
-| `docs/linux-desktop-architecture.md` | Changing the Linux tray host | `apps/linux-desktop/**` |
-| `docs/localization.md` | Changing copy, catalogs or locale handling | `packages/shared/src/messages/**`, all UIs |
-| `ARCHITECTURE.md` | Orienting, or changing where the product stores data | repo-wide |
-| `docs/development.md` | Running, testing or releasing | repo-wide |
-| `docs/deployment.md` | Deploying, server config, backup, export or account deletion | `Dockerfile`, `compose.server.yml`, `nginx.server.conf` |
-| `scripts/hooks/README.md` | A Claude Code hook blocked an edit | `scripts/hooks/**`, `.claude/settings.json` |
-| `commit` skill | Committing here | repo-wide |
-| `deploy`, `release` skills | Deploying the server, releasing Android and web | `compose.server.yml`, `.github/workflows/release.yml` |
-| `desktop` skill | Building, packaging or installing the Windows app | `apps/desktop/**` |
-| `verify` skill | Confirming a change works in the running app | all surfaces |
-| `audit-docs` skill | Checking docs and agent files for drift | `docs/**`, `**/AGENTS.md`, `.agents/**` |
-| `test-android-device`, `store-screenshots` skills | Testing on a physical phone; refreshing store images | `apps/mobile`, `store-assets/**` |
+| Guide, doc, or skill                              | Read or use when                                                        | Governs                                                  |
+| ------------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------- |
+| `.agents/guides/reminder-model.md`                | Changing reminder types, schedules, occurrences or notification content | `apps/api`, `apps/web`, `apps/mobile`, `packages/shared` |
+| `.agents/guides/ui-conventions.md`                | Changing any screen, dialog or control                                  | `apps/web/src/**`                                        |
+| `docs/auth-architecture.md`                       | Touching auth, sessions, passkeys or data isolation                     | `apps/api/src/routes/auth.ts`, domain queries            |
+| `docs/data-event-contract.md`                     | Changing HTTP or WebSocket data flow or offline sync                    | `apps/api`, `apps/web/src/lib`, `apps/web/src/data`      |
+| `docs/alarm-architecture.md`                      | Changing the notification, alarm or escalation mechanism                | `apps/api/src/lib/delivery`, `apps/mobile`               |
+| `docs/notification-behavior.md`                   | Changing the user-facing done, silence or snooze guarantee              | every surface                                            |
+| `docs/desktop-architecture.md`                    | Changing the Windows tray app                                           | `apps/desktop/**`                                        |
+| `docs/linux-desktop-architecture.md`              | Changing the Linux tray host                                            | `apps/linux-desktop/**`                                  |
+| `docs/localization.md`                            | Changing copy, catalogs or locale handling                              | `packages/shared/src/messages/**`, all UIs               |
+| `ARCHITECTURE.md`                                 | Orienting, or changing where the product stores data                    | repo-wide                                                |
+| `docs/development.md`                             | Running, testing or releasing                                           | repo-wide                                                |
+| `docs/deployment.md`                              | Deploying, server config, backup, export or account deletion            | `Dockerfile`, `compose.server.yml`, `nginx.server.conf`  |
+| `scripts/hooks/README.md`                         | A Claude Code hook blocked an edit                                      | `scripts/hooks/**`, `.claude/settings.json`              |
+| `commit` skill                                    | Committing here                                                         | repo-wide                                                |
+| `deploy`, `release` skills                        | Deploying the server, releasing Android and web                         | `compose.server.yml`, `.github/workflows/release.yml`    |
+| `desktop` skill                                   | Building, packaging or installing the Windows app                       | `apps/desktop/**`                                        |
+| `verify` skill                                    | Confirming a change works in the running app                            | all surfaces                                             |
+| `audit-docs` skill                                | Checking docs and agent files for drift                                 | `docs/**`, `**/AGENTS.md`, `.agents/**`                  |
+| `test-android-device`, `store-screenshots` skills | Testing on a physical phone; refreshing store images                    | `apps/mobile`, `store-assets/**`                         |
 
 Skills live in `.agents/skills/`; Claude Code reads them through the `.claude/skills` symlink.
 
 ## Keeping docs current
 
-| What changed | Update |
-| --- | --- |
-| A file, command, script or setting that agent files name | Every `AGENTS.md`, guide and skill naming it, in the same commit |
-| Reminder types, schedules or occurrence lifecycle | `.agents/guides/reminder-model.md` |
-| A UI convention | `.agents/guides/ui-conventions.md` |
-| Auth, data flow, alarms, notification guarantee, a desktop host | The matching contract in the guidance map |
-| An environment variable | `.env.dev.example` or `.env.server.example`, `compose.server.yml` (enforced by `apps/api/src/lib/env.test.ts`) |
-| A place the product writes data, or what deletion removes | `ARCHITECTURE.md` (Where data lives), `docs/deployment.md` |
-| A generated directory or generator | `scripts/hooks/generated-file-guard.json` and `scripts/hooks/README.md` |
+| What changed                                                    | Update                                                                                                         |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| A file, command, script or setting that agent files name        | Every `AGENTS.md`, guide and skill naming it, in the same commit                                               |
+| Reminder types, schedules or occurrence lifecycle               | `.agents/guides/reminder-model.md`                                                                             |
+| A UI convention                                                 | `.agents/guides/ui-conventions.md`                                                                             |
+| Auth, data flow, alarms, notification guarantee, a desktop host | The matching contract in the guidance map                                                                      |
+| An environment variable                                         | `.env.dev.example` or `.env.server.example`, `compose.server.yml` (enforced by `apps/api/src/lib/env.test.ts`) |
+| A place the product writes data, or what deletion removes       | `ARCHITECTURE.md` (Where data lives), `docs/deployment.md`                                                     |
+| A generated directory or generator                              | `scripts/hooks/generated-file-guard.json` and `scripts/hooks/README.md`                                        |

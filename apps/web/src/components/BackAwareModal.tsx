@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, type ComponentProps } from 'react'
 import { Modal } from '@mui/joy'
-import { notifyBackAwareDialogs, setBackAwareDialogProbe } from './backAwareDialogStack.js'
+import {
+  notifyBackAwareDialogs,
+  setBackAwareDialogProbe,
+} from './backAwareDialogStack.js'
 import { useStartupDataReady } from './startupDataContext.js'
 
 /**
@@ -32,7 +35,7 @@ const closingDialogTokensFromHistory = new Set<string>()
 // navigates; hand it a reader over the live stack rather than a copy of the count.
 setBackAwareDialogProbe(
   () => activeDialogEntries.length > 0,
-  () => activeDialogEntries.length > 0 || dialogHistoryDismissalPending
+  () => activeDialogEntries.length > 0 || dialogHistoryDismissalPending,
 )
 
 /** Prevent an automatic dialog from registering while a previous history pop is in flight. */
@@ -48,7 +51,9 @@ function createDialogHistoryToken() {
 }
 
 function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((entry) => typeof entry === 'string')
+  return (
+    Array.isArray(value) && value.every((entry) => typeof entry === 'string')
+  )
 }
 
 function readDialogHistoryStack(state: unknown): string[] {
@@ -59,7 +64,10 @@ function readDialogHistoryStack(state: unknown): string[] {
 
 function buildDialogHistoryState(stack: string[]) {
   const currentState = window.history.state
-  const baseState = currentState != null && typeof currentState === 'object' ? (currentState as Record<string, unknown>) : {}
+  const baseState =
+    currentState != null && typeof currentState === 'object'
+      ? (currentState as Record<string, unknown>)
+      : {}
   return { ...baseState, [dialogHistoryStackStateKey]: stack }
 }
 
@@ -68,11 +76,17 @@ function getActiveDialogStack() {
 }
 
 function areDialogStacksEqual(left: string[], right: string[]) {
-  return left.length === right.length && left.every((entry, index) => entry === right[index])
+  return (
+    left.length === right.length &&
+    left.every((entry, index) => entry === right[index])
+  )
 }
 
 function isDialogStackPrefix(prefix: string[], full: string[]) {
-  return prefix.length <= full.length && prefix.every((entry, index) => entry === full[index])
+  return (
+    prefix.length <= full.length &&
+    prefix.every((entry, index) => entry === full[index])
+  )
 }
 
 function isTopHistoryDialog(token: string) {
@@ -81,11 +95,16 @@ function isTopHistoryDialog(token: string) {
 }
 
 function replaceCurrentDialogHistoryWithActiveStack() {
-  window.history.replaceState(buildDialogHistoryState(getActiveDialogStack()), document.title)
+  window.history.replaceState(
+    buildDialogHistoryState(getActiveDialogStack()),
+    document.title,
+  )
 }
 
 function registerActiveDialog(token: string, requestClose: () => void) {
-  const existingEntry = activeDialogEntries.find((entry) => entry.token === token)
+  const existingEntry = activeDialogEntries.find(
+    (entry) => entry.token === token,
+  )
   if (existingEntry) {
     existingEntry.requestClose = requestClose
     return false
@@ -96,7 +115,9 @@ function registerActiveDialog(token: string, requestClose: () => void) {
 }
 
 function unregisterActiveDialog(token: string) {
-  const entryIndex = activeDialogEntries.findIndex((entry) => entry.token === token)
+  const entryIndex = activeDialogEntries.findIndex(
+    (entry) => entry.token === token,
+  )
   if (entryIndex === -1) return false
   activeDialogEntries.splice(entryIndex, 1)
   notifyBackAwareDialogs()
@@ -121,7 +142,8 @@ function handleDialogHistoryPopState(event: PopStateEvent) {
   }
 
   const isStaleDialogEntry =
-    nextStack.some((token) => dismissedDialogTokens.has(token)) || !isDialogStackPrefix(currentStack, nextStack)
+    nextStack.some((token) => dismissedDialogTokens.has(token)) ||
+    !isDialogStackPrefix(currentStack, nextStack)
   if (!isStaleDialogEntry) return
 
   queueMicrotask(() => {
@@ -136,7 +158,12 @@ function installDialogHistoryListener() {
   dialogHistoryListenerInstalled = true
 }
 
-export function BackAwareModal({ open, onClose, keepMounted, ...props }: BackAwareModalProps) {
+export function BackAwareModal({
+  open,
+  onClose,
+  keepMounted,
+  ...props
+}: BackAwareModalProps) {
   const dataReady = useStartupDataReady()
   const previousOpenRef = useRef(open)
   const onCloseRef = useRef(onClose)
@@ -148,17 +175,24 @@ export function BackAwareModal({ open, onClose, keepMounted, ...props }: BackAwa
     onCloseRef.current?.({}, 'backdropClick')
   }, [])
 
-  const syncClosedDialog = useCallback((token: string, closeViaHistory: boolean) => {
-    const closedFromHistory = closingDialogTokensFromHistory.delete(token)
-    const popHistory = !closedFromHistory && closeViaHistory && isTopHistoryDialog(token) && window.history.length > 1
-    if (popHistory) dialogHistoryDismissalPending = true
-    dismissedDialogTokens.add(token)
-    unregisterActiveDialog(token)
-    dialogTokenRef.current = null
-    if (popHistory) {
-      dismissDialogHistory()
-    }
-  }, [])
+  const syncClosedDialog = useCallback(
+    (token: string, closeViaHistory: boolean) => {
+      const closedFromHistory = closingDialogTokensFromHistory.delete(token)
+      const popHistory =
+        !closedFromHistory &&
+        closeViaHistory &&
+        isTopHistoryDialog(token) &&
+        window.history.length > 1
+      if (popHistory) dialogHistoryDismissalPending = true
+      dismissedDialogTokens.add(token)
+      unregisterActiveDialog(token)
+      dialogTokenRef.current = null
+      if (popHistory) {
+        dismissDialogHistory()
+      }
+    },
+    [],
+  )
 
   useEffect(() => {
     if (!open || typeof window === 'undefined') return
@@ -167,7 +201,10 @@ export function BackAwareModal({ open, onClose, keepMounted, ...props }: BackAwa
     dialogTokenRef.current = dialogToken
     const didRegister = registerActiveDialog(dialogToken, requestClose)
     if (didRegister) {
-      window.history.pushState(buildDialogHistoryState(getActiveDialogStack()), document.title)
+      window.history.pushState(
+        buildDialogHistoryState(getActiveDialogStack()),
+        document.title,
+      )
     }
   }, [open, requestClose])
 
@@ -206,5 +243,12 @@ export function BackAwareModal({ open, onClose, keepMounted, ...props }: BackAwa
 
   // Portalled dialogs escape the page's hidden container. Temporarily close the
   // modal surface while retaining its editor state and history entry.
-  return <Modal {...props} open={open && dataReady} onClose={handleClose} keepMounted={keepMounted || Boolean(open)} />
+  return (
+    <Modal
+      {...props}
+      open={open && dataReady}
+      onClose={handleClose}
+      keepMounted={keepMounted || Boolean(open)}
+    />
+  )
 }

@@ -14,7 +14,7 @@ import type {
   ReminderCreateInput,
   ReminderInput,
   RenameTodoItemInput,
-  ReorderTodoItemsInput
+  ReorderTodoItemsInput,
 } from '@persistent/shared'
 import { apiFetch } from '../lib/apiClient.js'
 import { mutationKeys, queryKeys } from '../lib/queryClient.js'
@@ -22,29 +22,47 @@ import { mutationKeys, queryKeys } from '../lib/queryClient.js'
 export function useReminders() {
   return useQuery({
     queryKey: queryKeys.reminders,
-    queryFn: async () => (await apiFetch<{ reminders: Reminder[] }>('/api/reminders')).reminders
+    queryFn: async () =>
+      (await apiFetch<{ reminders: Reminder[] }>('/api/reminders')).reminders,
   })
 }
 
 export function useCreateReminder() {
-  return useMutation<{ reminder: Reminder; failedInvitations: string[] }, Error, ReminderCreateInput>({ mutationKey: mutationKeys.createReminder })
+  return useMutation<
+    { reminder: Reminder; failedInvitations: string[] },
+    Error,
+    ReminderCreateInput
+  >({ mutationKey: mutationKeys.createReminder })
 }
 
 export function useUpdateReminder() {
-  return useMutation<{ reminder: Reminder }, Error, { id: string; input: ReminderInput; editedAt?: string; expectedUpdatedAt?: string }>({
-    mutationKey: mutationKeys.updateReminder
+  return useMutation<
+    { reminder: Reminder },
+    Error,
+    {
+      id: string
+      input: ReminderInput
+      editedAt?: string
+      expectedUpdatedAt?: string
+    }
+  >({
+    mutationKey: mutationKeys.updateReminder,
   })
 }
 
 /** Change only a title or note body from the reading dialog. */
 export function useUpdateReminderContent() {
-  return useMutation<unknown, Error, { id: string; arg: ReminderContentInput }>({
-    mutationKey: mutationKeys.updateReminderContent
-  })
+  return useMutation<unknown, Error, { id: string; arg: ReminderContentInput }>(
+    {
+      mutationKey: mutationKeys.updateReminderContent,
+    },
+  )
 }
 
 export function useDeleteReminder() {
-  return useMutation<unknown, Error, string>({ mutationKey: mutationKeys.deleteReminder })
+  return useMutation<unknown, Error, string>({
+    mutationKey: mutationKeys.deleteReminder,
+  })
 }
 
 /**
@@ -54,7 +72,7 @@ export function useDeleteReminder() {
  */
 export function useCheckReminderItem() {
   return useMutation<unknown, Error, { id: string; arg: CheckItemInput }>({
-    mutationKey: mutationKeys.checkReminderItem
+    mutationKey: mutationKeys.checkReminderItem,
   })
 }
 
@@ -65,14 +83,14 @@ export function useCheckReminderItem() {
  */
 export function useAddTodoItem() {
   return useMutation<unknown, Error, { id: string; arg: AddTodoItemInput }>({
-    mutationKey: mutationKeys.addTodoItem
+    mutationKey: mutationKeys.addTodoItem,
   })
 }
 
 /** Delete a checklist item from the reminder definition. */
 export function useRemoveTodoItem() {
   return useMutation<unknown, Error, { id: string; itemId: string }>({
-    mutationKey: mutationKeys.removeTodoItem
+    mutationKey: mutationKeys.removeTodoItem,
   })
 }
 
@@ -82,8 +100,12 @@ export function useRemoveTodoItem() {
  * reshuffle but never drop an item added in the meantime.
  */
 export function useReorderTodoItems() {
-  return useMutation<unknown, Error, { id: string; arg: ReorderTodoItemsInput }>({
-    mutationKey: mutationKeys.reorderTodoItems
+  return useMutation<
+    unknown,
+    Error,
+    { id: string; arg: ReorderTodoItemsInput }
+  >({
+    mutationKey: mutationKeys.reorderTodoItems,
   })
 }
 
@@ -92,8 +114,12 @@ export function useReorderTodoItems() {
  * simultaneous edit to that line is reported as a conflict.
  */
 export function useRenameTodoItem() {
-  return useMutation<unknown, Error, { id: string; itemId: string; arg: RenameTodoItemInput }>({
-    mutationKey: mutationKeys.renameTodoItem
+  return useMutation<
+    unknown,
+    Error,
+    { id: string; itemId: string; arg: RenameTodoItemInput }
+  >({
+    mutationKey: mutationKeys.renameTodoItem,
   })
 }
 
@@ -104,6 +130,6 @@ export function useRenameTodoItem() {
  */
 export function useSetHideCheckedItems() {
   return useMutation<unknown, Error, { id: string; arg: HideCheckedInput }>({
-    mutationKey: mutationKeys.hideCheckedItems
+    mutationKey: mutationKeys.hideCheckedItems,
   })
 }

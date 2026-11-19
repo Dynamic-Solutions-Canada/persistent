@@ -7,7 +7,11 @@ import type { NextFunction, Request, Response } from 'express'
 import { resolveUserId } from './auth-session.js'
 import { unauthorized } from './http-error.js'
 
-export async function attachUser(request: Request, response: Response, next: NextFunction): Promise<void> {
+export async function attachUser(
+  request: Request,
+  response: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     request.userId = await resolveUserId(request, response)
     next()
@@ -16,7 +20,11 @@ export async function attachUser(request: Request, response: Response, next: Nex
   }
 }
 
-export function requireUser(request: Request, _response: Response, next: NextFunction): void {
+export function requireUser(
+  request: Request,
+  _response: Response,
+  next: NextFunction,
+): void {
   if (!request.userId) {
     next(unauthorized('Sign in to continue.'))
     return

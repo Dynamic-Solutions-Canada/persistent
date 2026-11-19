@@ -17,7 +17,13 @@ import type { ReactNode } from 'react'
 import Box from '@mui/joy/Box'
 import Typography from '@mui/joy/Typography'
 
-export function SectionHeading({ title, subtitle }: { title: ReactNode; subtitle?: ReactNode }) {
+export function SectionHeading({
+  title,
+  subtitle,
+}: {
+  title: ReactNode
+  subtitle?: ReactNode
+}) {
   return (
     <Box>
       <Typography level="title-md">{title}</Typography>

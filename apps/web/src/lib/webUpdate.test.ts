@@ -12,8 +12,12 @@ function fixture() {
   const values = new Map<string, string>()
   const storage = {
     getItem: (key: string) => values.get(key) ?? null,
-    setItem: (key: string, value: string) => { values.set(key, value) },
-    removeItem: (key: string) => { values.delete(key) }
+    setItem: (key: string, value: string) => {
+      values.set(key, value)
+    },
+    removeItem: (key: string) => {
+      values.delete(key)
+    },
   } as Storage
   const environment = {
     localBuildId: () => local,
@@ -25,16 +29,26 @@ function fixture() {
       if (blockedStorage) throw new Error('blocked')
       return storage
     },
-    reload: () => { reloads += 1 }
+    reload: () => {
+      reloads += 1
+    },
   }
   return {
     check: createWebUpdateChecker(environment),
     nextPage: () => createWebUpdateChecker(environment),
-    setLocal: (value: string | null) => { local = value },
-    setTarget: (value: string | null) => { target = value },
-    blockStorage: () => { blockedStorage = true },
-    goOffline: () => { offline = true },
-    reloads: () => reloads
+    setLocal: (value: string | null) => {
+      local = value
+    },
+    setTarget: (value: string | null) => {
+      target = value
+    },
+    blockStorage: () => {
+      blockedStorage = true
+    },
+    goOffline: () => {
+      offline = true
+    },
+    reloads: () => reloads,
   }
 }
 

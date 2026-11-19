@@ -35,7 +35,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const { doodles, doodleColor } = useSettings()
   const theme = useAppTheme()
   return (
-    <Box sx={{ minHeight: '100dvh', bgcolor: 'background.body', ...themeSx(theme, doodles, doodleColor) }}>
+    <Box
+      sx={{
+        minHeight: '100dvh',
+        bgcolor: 'background.body',
+        ...themeSx(theme, doodles, doodleColor),
+      }}
+    >
       <Sheet
         variant="solid"
         sx={{
@@ -51,13 +57,19 @@ export function AppLayout({ children }: { children: ReactNode }) {
           pt: `calc(12px + ${safeAreaInset('top')})`,
           pl: `calc(16px + ${safeAreaInset('left')})`,
           pr: `calc(16px + ${safeAreaInset('right')})`,
-          bgcolor: 'background.surface'
+          bgcolor: 'background.surface',
         }}
       >
         <Box
           component={RouterLink}
           to="/"
-          sx={{ display: 'flex', alignItems: 'center', gap: 1, textDecoration: 'none', color: 'inherit' }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            textDecoration: 'none',
+            color: 'inherit',
+          }}
         >
           <BrandMark size={26} />
           <Typography level="title-lg">Persistent</Typography>
@@ -70,7 +82,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           variant="plain"
           color="neutral"
           size="sm"
-          aria-label={tr("Help")}
+          aria-label={tr('Help')}
           sx={{ ml: 0.5 }}
         >
           <HelpOutlineIcon />
@@ -84,7 +96,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           mx: 'auto',
           px: 2,
           py: 2,
-          pb: `calc(80px + ${safeAreaInset('bottom')})`
+          pb: `calc(80px + ${safeAreaInset('bottom')})`,
         }}
       >
         <AlarmPermissionsBanner />

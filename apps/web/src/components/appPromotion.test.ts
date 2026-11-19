@@ -1,10 +1,20 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { getNativeAppsPromotion, PLAY_STORE_URL, WINDOWS_STORE_URL } from './appPromotion.js'
+import {
+  getNativeAppsPromotion,
+  PLAY_STORE_URL,
+  WINDOWS_STORE_URL,
+} from './appPromotion.js'
 
 test('uses the published Store listings', () => {
-  assert.equal(PLAY_STORE_URL, 'https://play.google.com/store/apps/details?id=ca.dynamicsolutions.persistent')
-  assert.equal(WINDOWS_STORE_URL, 'https://apps.microsoft.com/detail/9PCX2XGQ7CJS')
+  assert.equal(
+    PLAY_STORE_URL,
+    'https://play.google.com/store/apps/details?id=ca.dynamicsolutions.persistent',
+  )
+  assert.equal(
+    WINDOWS_STORE_URL,
+    'https://apps.microsoft.com/detail/9PCX2XGQ7CJS',
+  )
 })
 
 test('promotes Windows without redundantly promoting Android inside Android', () => {

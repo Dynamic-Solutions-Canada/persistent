@@ -48,14 +48,16 @@ const ITEMS: NavItem[] = [
   { to: '/upcoming', label: 'Upcoming', icon: ScheduleIcon },
   { to: '/notes', label: 'Notes', icon: StickyNote2Icon },
   { to: '/history', label: 'History', icon: HistoryIcon },
-  { to: '/settings', label: 'Settings', icon: SettingsIcon }
+  { to: '/settings', label: 'Settings', icon: SettingsIcon },
 ]
 
 /** An on-screen keyboard can only be up if something typeable has focus. */
 function isEditableFocused(): boolean {
   const el = document.activeElement as HTMLElement | null
   if (!el) return false
-  return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable
+  return (
+    el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable
+  )
 }
 
 /**
@@ -118,7 +120,8 @@ export function BottomNav() {
   const { pathname } = useLocation()
   const reminders = useReminders()
   const received = useReceivedShares()
-  const isActive = (to: string) => (to === '/' ? pathname === '/' : pathname.startsWith(to))
+  const isActive = (to: string) =>
+    to === '/' ? pathname === '/' : pathname.startsWith(to)
   // Hide the bar while typing so the keyboard doesn't push it up over the content.
   const keyboardOpen = useKeyboardOpen()
   if (keyboardOpen) return null
@@ -126,8 +129,12 @@ export function BottomNav() {
   // The Notes tab earns its place only when there is a note to show — but never
   // disappears from under the user while they are standing on it, which is what
   // deleting their last note would otherwise do.
-  const hasNotes = (reminders.data ?? []).some(isNote) || (received.data ?? []).some((share) => share.isNote)
-  const items = ITEMS.filter((item) => item.to !== '/notes' || hasNotes || isActive('/notes'))
+  const hasNotes =
+    (reminders.data ?? []).some(isNote) ||
+    (received.data ?? []).some((share) => share.isNote)
+  const items = ITEMS.filter(
+    (item) => item.to !== '/notes' || hasNotes || isActive('/notes'),
+  )
 
   return (
     <Sheet
@@ -145,7 +152,7 @@ export function BottomNav() {
         // buttons above it — otherwise the tabs sit under the system navigation.
         pb: safeAreaInset('bottom'),
         pl: safeAreaInset('left'),
-        pr: safeAreaInset('right')
+        pr: safeAreaInset('right'),
       }}
     >
       <Stack direction="row" sx={{ maxWidth: 640, mx: 'auto' }}>
@@ -161,10 +168,28 @@ export function BottomNav() {
               // `minWidth: 0` + a small inline padding is what lets five tabs share a
               // 320px phone: a Button won't shrink below its own content otherwise, so the
               // row would overflow the centred column instead of dividing it.
-              sx={{ flex: 1, minWidth: 0, flexDirection: 'column', justifyContent: 'flex-start', gap: 0.25, py: 1, px: 0.5, borderRadius: 0 }}
+              sx={{
+                flex: 1,
+                minWidth: 0,
+                flexDirection: 'column',
+                justifyContent: 'flex-start',
+                gap: 0.25,
+                py: 1,
+                px: 0.5,
+                borderRadius: 0,
+              }}
             >
               <Icon fontSize="small" />
-              <Typography level="body-xs" sx={{ color: 'inherit', maxWidth: '100%', lineHeight: 1.2, textAlign: 'center', overflowWrap: 'anywhere' }}>
+              <Typography
+                level="body-xs"
+                sx={{
+                  color: 'inherit',
+                  maxWidth: '100%',
+                  lineHeight: 1.2,
+                  textAlign: 'center',
+                  overflowWrap: 'anywhere',
+                }}
+              >
                 {tr(label)}
               </Typography>
             </Button>

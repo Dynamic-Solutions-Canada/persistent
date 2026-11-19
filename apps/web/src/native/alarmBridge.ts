@@ -6,7 +6,14 @@
  */
 import { Capacitor, registerPlugin } from '@capacitor/core'
 import type { AlarmGrant } from './permissions/alarmGrants.js'
-import type { DeviceAgendaEntry, SoundChoice, NativeAppearance, NativeLocale, NativeLanguageState, Locale } from '@persistent/shared'
+import type {
+  DeviceAgendaEntry,
+  SoundChoice,
+  NativeAppearance,
+  NativeLocale,
+  NativeLanguageState,
+  Locale,
+} from '@persistent/shared'
 
 export interface ScheduledAlarm {
   /** Occurrence id — the alarm's stable key and what we ack against. */
@@ -61,8 +68,13 @@ export interface AlarmPluginPlugin {
   /** Persist device language for alarms and background sync; unsupported in older wrappers. */
   setLocale(options: { locale: NativeLocale }): Promise<void>
   /** New hosts reconcile Android's per-app picker before the page publishes a stored choice. */
-  getLocale(options: { fallbackLanguageOverride: Locale | null }): Promise<NativeLanguageState>
-  addListener(eventName: 'localeChanged', listener: (state: NativeLanguageState) => void): Promise<{ remove: () => Promise<void> }>
+  getLocale(options: {
+    fallbackLanguageOverride: Locale | null
+  }): Promise<NativeLanguageState>
+  addListener(
+    eventName: 'localeChanged',
+    listener: (state: NativeLanguageState) => void,
+  ): Promise<{ remove: () => Promise<void> }>
   /** Persist the app palettes for full-screen alarms, snooze screens, and shade accents. */
   setAppearance(options: { appearance: NativeAppearance }): Promise<void>
   schedule(options: ScheduledAlarm): Promise<void>
@@ -114,7 +126,9 @@ export interface AlarmPluginPlugin {
    * has no such screen); the outcome arrives by re-reading readiness on resume.
    * Missing from older hosts, which reject with `UNIMPLEMENTED`.
    */
-  openPermissionSettings(options: { grant: AlarmGrant }): Promise<{ opened: boolean }>
+  openPermissionSettings(options: {
+    grant: AlarmGrant
+  }): Promise<{ opened: boolean }>
   /**
    * Set the device default shade prominence (for reminders set to INHERIT) and
    * re-post any live notifications so the change applies immediately.
@@ -125,14 +139,19 @@ export interface AlarmPluginPlugin {
   ensureFullScreenIntent(): Promise<{ allowed: boolean }>
 
   /** Open the system ringtone picker; returns the chosen uri + title (or cancelled). */
-  pickSound(options: { type: 'alarm' | 'notification'; current?: string }): Promise<{
+  pickSound(options: {
+    type: 'alarm' | 'notification'
+    current?: string
+  }): Promise<{
     uri?: string
     title?: string
     cancelled?: boolean
   }>
   drainPendingAcks(): Promise<{ occurrenceIds: string[] }>
   /** Snoozes made from the native notification, awaiting POST to the server. */
-  drainPendingSnoozes(): Promise<{ snoozes: { occurrenceId: string; minutes: number }[] }>
+  drainPendingSnoozes(): Promise<{
+    snoozes: { occurrenceId: string; minutes: number }[]
+  }>
   /** Silences made from the native alarm, awaiting POST to the server. */
   drainPendingSilences(): Promise<{ occurrenceIds: string[] }>
   /** Reminder id from a tapped notification (cleared on read); '' if none. */
@@ -145,7 +164,7 @@ export interface AlarmPluginPlugin {
    */
   addListener(
     eventName: 'pendingNavigation',
-    listener: () => void
+    listener: () => void,
   ): Promise<{ remove: () => Promise<void> }>
   /**
    * Mirror what the background sync worker needs but can't read from the WebView:
@@ -177,7 +196,10 @@ export const AlarmPlugin = registerPlugin<AlarmPluginPlugin>('AlarmPlugin')
  * empty uri is *not* one of those; it is the picker's own "Default" row, a real
  * choice meaning "the system tone for this kind".
  */
-export async function pickSound(type: 'alarm' | 'notification', currentUri: string): Promise<SoundChoice | null> {
+export async function pickSound(
+  type: 'alarm' | 'notification',
+  currentUri: string,
+): Promise<SoundChoice | null> {
   try {
     const result = await AlarmPlugin.pickSound({ type, current: currentUri })
     if (result.cancelled) return null
@@ -200,7 +222,9 @@ export interface UpdatePluginPlugin {
 export const UpdatePlugin = registerPlugin<UpdatePluginPlugin>('Update')
 
 /** Minimal proxy to @capacitor/app's getInfo — the installed APK's versionName. */
-export const NativeApp = registerPlugin<{ getInfo(): Promise<{ version: string; build: string }> }>('App')
+export const NativeApp = registerPlugin<{
+  getInfo(): Promise<{ version: string; build: string }>
+}>('App')
 
 /**
  * Native passkey bridge to Android's Credential Manager (the WebView lacks
@@ -219,7 +243,8 @@ export interface GoogleAuthNativePlugin {
   signIn(options: { serverClientId: string }): Promise<{ idToken: string }>
 }
 
-export const GoogleAuthNative = registerPlugin<GoogleAuthNativePlugin>('GoogleAuth')
+export const GoogleAuthNative =
+  registerPlugin<GoogleAuthNativePlugin>('GoogleAuth')
 
 export function isNative(): boolean {
   return Capacitor.isNativePlatform()

@@ -19,7 +19,13 @@ const MAX_PULL = 90
 const TRIGGER = 64
 const SPINNER_AT = 48
 
-export function PullToRefresh({ onRefresh, children }: { onRefresh: () => Promise<unknown>; children: ReactNode }) {
+export function PullToRefresh({
+  onRefresh,
+  children,
+}: {
+  onRefresh: () => Promise<unknown>
+  children: ReactNode
+}) {
   const ref = useRef<HTMLDivElement>(null)
   const [pull, setPull] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
@@ -98,7 +104,7 @@ export function PullToRefresh({ onRefresh, children }: { onRefresh: () => Promis
           transform: `translateY(${pull}px)`,
           transition: pull === 0 ? 'transform 0.2s ease' : 'none',
           pointerEvents: 'none',
-          opacity: pull > 4 || refreshing ? 1 : 0
+          opacity: pull > 4 || refreshing ? 1 : 0,
         }}
       >
         <CircularProgress
@@ -110,7 +116,7 @@ export function PullToRefresh({ onRefresh, children }: { onRefresh: () => Promis
       <Box
         sx={{
           transform: `translateY(${pull}px)`,
-          transition: pull === 0 ? 'transform 0.2s ease' : 'none'
+          transition: pull === 0 ? 'transform 0.2s ease' : 'none',
         }}
       >
         {children}

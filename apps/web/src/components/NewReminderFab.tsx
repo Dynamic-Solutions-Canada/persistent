@@ -76,7 +76,7 @@ export function NewReminderFab() {
             px: 2,
             display: 'flex',
             justifyContent: 'flex-end',
-            pointerEvents: 'none'
+            pointerEvents: 'none',
           }}
         >
           <Button
@@ -100,12 +100,14 @@ export function NewReminderFab() {
                 // from variables the accent themes actually override.
                 backgroundImage:
                   'linear-gradient(var(--joy-palette-primary-softBg), var(--joy-palette-primary-softBg)), ' +
-                  'linear-gradient(var(--joy-palette-primary-softBg), var(--joy-palette-primary-softBg))'
-              }
+                  'linear-gradient(var(--joy-palette-primary-softBg), var(--joy-palette-primary-softBg))',
+              },
             }}
-          >{tr("New reminder")}</Button>
+          >
+            {tr('New reminder')}
+          </Button>
         </Box>,
-        document.body
+        document.body,
       )}
     </>
   )

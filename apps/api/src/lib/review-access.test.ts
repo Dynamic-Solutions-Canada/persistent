@@ -6,7 +6,8 @@ process.env.DATABASE_URL ??= 'postgresql://localhost:5432/test'
 process.env.REVIEW_ACCOUNT_EMAIL = 'store-review@example.com'
 process.env.REVIEW_ACCOUNT_CODE = 'review-code-1234567890'
 
-const { isReviewAccount, isReviewLogin, reviewAccessEnabled } = await import('./review-access.js')
+const { isReviewAccount, isReviewLogin, reviewAccessEnabled } =
+  await import('./review-access.js')
 
 test('review access is enabled when both vars are set', () => {
   assert.equal(reviewAccessEnabled(), true)
@@ -22,11 +23,17 @@ test('any other account is not the review account', () => {
 })
 
 test('the correct email + code signs in', () => {
-  assert.equal(isReviewLogin('store-review@example.com', 'review-code-1234567890'), true)
+  assert.equal(
+    isReviewLogin('store-review@example.com', 'review-code-1234567890'),
+    true,
+  )
 })
 
 test('a wrong code is rejected', () => {
-  assert.equal(isReviewLogin('store-review@example.com', 'review-code-0000000000'), false)
+  assert.equal(
+    isReviewLogin('store-review@example.com', 'review-code-0000000000'),
+    false,
+  )
 })
 
 test('a code of a different length is rejected without throwing', () => {
@@ -36,5 +43,8 @@ test('a code of a different length is rejected without throwing', () => {
 
 test('the review code does not work for any other account', () => {
   // The whole point: this is one account's bypass, not a master key.
-  assert.equal(isReviewLogin('someone@example.com', 'review-code-1234567890'), false)
+  assert.equal(
+    isReviewLogin('someone@example.com', 'review-code-1234567890'),
+    false,
+  )
 })

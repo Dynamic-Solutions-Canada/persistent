@@ -11,13 +11,19 @@ import Button from '@mui/joy/Button'
 import Input from '@mui/joy/Input'
 import Select from '@mui/joy/Select'
 import Option from '@mui/joy/Option'
-import { DURATION_PRESETS, DURATION_UNITS, customToMinutes, minutesToCustom, type DurationPreset } from '../lib/durations.js'
+import {
+  DURATION_PRESETS,
+  DURATION_UNITS,
+  customToMinutes,
+  minutesToCustom,
+  type DurationPreset,
+} from '../lib/durations.js'
 
 export function DurationField({
   value,
   onChange,
   presets = DURATION_PRESETS,
-  extra
+  extra,
 }: {
   value: number
   onChange: (minutes: number) => void
@@ -68,14 +74,18 @@ export function DurationField({
             setUnit(minutesToCustom(value || 5).unit)
             setCustomOpen(true)
           }}
-        >{tr("Custom")}</Button>
+        >
+          {tr('Custom')}
+        </Button>
       </Stack>
       {showCustom && (
         <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
           <Input
             type="number"
             value={shownValue}
-            onChange={(e) => onChange(customToMinutes(Number(e.target.value) || 1, unit))}
+            onChange={(e) =>
+              onChange(customToMinutes(Number(e.target.value) || 1, unit))
+            }
             slotProps={{ input: { min: 1 } }}
             sx={{ flex: 1, minWidth: 0 }}
           />

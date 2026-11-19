@@ -164,5 +164,5 @@ export const COMMON_MEDICATIONS: readonly string[] = [
   'Potassium chloride',
   'Multivitamin',
   'Fish oil',
-  'Melatonin'
+  'Melatonin',
 ]

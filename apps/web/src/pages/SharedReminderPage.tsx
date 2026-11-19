@@ -15,14 +15,22 @@ import { formatMedications, reminderBodyText } from '@persistent/shared'
 import { useReceivedShares } from '../data/shares.js'
 import { SectionHeading } from '../components/SectionHeading.js'
 import { SnoozeDialog } from '../components/SnoozeDialog.js'
-import { useAckOccurrence, useSnoozeOccurrence, useSilenceOccurrence } from '../data/occurrences.js'
+import {
+  useAckOccurrence,
+  useSnoozeOccurrence,
+  useSilenceOccurrence,
+} from '../data/occurrences.js'
 import { useUpdateReminderContent } from '../data/reminders.js'
 import { InlineReminderText } from '../components/InlineReminderText.js'
 import { formatDateTime, formatWhen } from '../lib/datetime.js'
 import { useSettings } from '../settings/useSettings.js'
 import { useAuth } from '../auth/useAuth.js'
 
-export function SharedReminderPage({ reminderId, onClose, onEdit }: {
+export function SharedReminderPage({
+  reminderId,
+  onClose,
+  onEdit,
+}: {
   reminderId?: string
   onClose?: () => void
   onEdit?: () => void
@@ -41,21 +49,40 @@ export function SharedReminderPage({ reminderId, onClose, onEdit }: {
   const [snoozeId, setSnoozeId] = useState<string | null>(null)
   const [shareOpen, setShareOpen] = useState(false)
   const canEdit = Boolean(onClose && reminder?.permission === 'EDIT')
-  const canEditBody = Boolean(canEdit && reminder?.isNote && reminder?.type !== 'TODO')
-  let body = reminder ? (reminder.type === 'TODO' ? reminder.details : reminderBodyText(reminder)) : null
+  const canEditBody = Boolean(
+    canEdit && reminder?.isNote && reminder?.type !== 'TODO',
+  )
+  let body = reminder
+    ? reminder.type === 'TODO'
+      ? reminder.details
+      : reminderBodyText(reminder)
+    : null
   if (canEditBody && reminder) {
-    body = reminder.type === 'MEDICATION' ? formatMedications(reminder.typeData) : null
+    body =
+      reminder.type === 'MEDICATION'
+        ? formatMedications(reminder.typeData)
+        : null
   }
 
   return (
     <Stack spacing={2}>
       {!onClose && (
-        <Button component={RouterLink} to="/" variant="plain" color="neutral" sx={{ alignSelf: 'flex-start' }}>{tr("Back")}</Button>
+        <Button
+          component={RouterLink}
+          to="/"
+          variant="plain"
+          color="neutral"
+          sx={{ alignSelf: 'flex-start' }}
+        >
+          {tr('Back')}
+        </Button>
       )}
       {received.isLoading ? (
-        <Typography level="body-sm">{tr("Loading...")}</Typography>
+        <Typography level="body-sm">{tr('Loading...')}</Typography>
       ) : !reminder ? (
-        <Typography level="body-sm">{tr("This reminder is no longer shared with you.")}</Typography>
+        <Typography level="body-sm">
+          {tr('This reminder is no longer shared with you.')}
+        </Typography>
       ) : (
         <>
           {canEdit ? (
@@ -63,51 +90,146 @@ export function SharedReminderPage({ reminderId, onClose, onEdit }: {
               <InlineReminderText
                 kind="title"
                 text={reminder.title}
-                onSave={(title, expectedText) => updateContent.mutateAsync({ id: reminder.id, arg: { title, expectedText } })}
+                onSave={(title, expectedText) =>
+                  updateContent.mutateAsync({
+                    id: reminder.id,
+                    arg: { title, expectedText },
+                  })
+                }
               />
-              <Typography level="body-sm" sx={{ color: 'text.tertiary' }}><Trans i18nKey={"Shared by <v0/>"} components={{ v0: <>{reminder.ownerName}</> }} /></Typography>
+              <Typography level="body-sm" sx={{ color: 'text.tertiary' }}>
+                <Trans
+                  i18nKey={'Shared by <v0/>'}
+                  components={{ v0: <>{reminder.ownerName}</> }}
+                />
+              </Typography>
             </Stack>
           ) : (
-            <SectionHeading title={reminder.title} subtitle={tr("Shared by {{v0}}", { v0: reminder.ownerName })} />
+            <SectionHeading
+              title={reminder.title}
+              subtitle={tr('Shared by {{v0}}', { v0: reminder.ownerName })}
+            />
           )}
           {reminder.nextScheduledFor && (
-            <Typography level="body-sm"><Trans i18nKey={"Next notification for you: <v0/> (your time zone)"} components={{ v0: <>{formatWhen(reminder.nextScheduledFor, timeFormat, user?.timeZone)}</> }} /></Typography>
+            <Typography level="body-sm">
+              <Trans
+                i18nKey={'Next notification for you: <v0/> (your time zone)'}
+                components={{
+                  v0: (
+                    <>
+                      {formatWhen(
+                        reminder.nextScheduledFor,
+                        timeFormat,
+                        user?.timeZone,
+                      )}
+                    </>
+                  ),
+                }}
+              />
+            </Typography>
           )}
           {!onClose && reminder.permission === 'EDIT' && (
-            <Button component={onEdit ? 'button' : RouterLink} to={onEdit ? undefined : `/reminders/${reminder.id}/edit`} onClick={onEdit} variant="outlined" sx={{ alignSelf: 'flex-start' }}>{tr("Edit reminder")}</Button>
+            <Button
+              component={onEdit ? 'button' : RouterLink}
+              to={onEdit ? undefined : `/reminders/${reminder.id}/edit`}
+              onClick={onEdit}
+              variant="outlined"
+              sx={{ alignSelf: 'flex-start' }}
+            >
+              {tr('Edit reminder')}
+            </Button>
           )}
-          {(body || canEditBody || (reminder.type === 'TODO' && reminder.activeFirings.length === 0)) && <Card
-            variant={reminder.type === 'TODO' && reminder.activeFirings.length === 0 ? 'plain' : 'soft'}
-            sx={reminder.type === 'TODO' && reminder.activeFirings.length === 0
-              ? { p: 0, bgcolor: 'transparent', boxShadow: 'none' }
-              : undefined}
-          >
-            {body && <Typography level="body-sm" sx={{ whiteSpace: 'pre-wrap' }}>{body}</Typography>}
-            {canEditBody && (
-              <InlineReminderText
-                kind="body"
-                text={reminder.details ?? ''}
-                onSave={(details, expectedText) => updateContent.mutateAsync({ id: reminder.id, arg: { details: details || null, expectedText } })}
-              />
-            )}
-            {reminder.type === 'TODO' && reminder.activeFirings.length === 0 && (
-              <ReminderChecklist
-                reminder={{ ...reminder, hideCheckedItems: reminder.editableReminder?.hideCheckedItems ?? false }}
-                isNote={reminder.isNote}
-                editable={reminder.permission === 'EDIT'}
-                actionable={reminder.permission !== 'VIEW'}
-              />
-            )}
-          </Card>}
+          {(body ||
+            canEditBody ||
+            (reminder.type === 'TODO' &&
+              reminder.activeFirings.length === 0)) && (
+            <Card
+              variant={
+                reminder.type === 'TODO' && reminder.activeFirings.length === 0
+                  ? 'plain'
+                  : 'soft'
+              }
+              sx={
+                reminder.type === 'TODO' && reminder.activeFirings.length === 0
+                  ? { p: 0, bgcolor: 'transparent', boxShadow: 'none' }
+                  : undefined
+              }
+            >
+              {body && (
+                <Typography level="body-sm" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {body}
+                </Typography>
+              )}
+              {canEditBody && (
+                <InlineReminderText
+                  kind="body"
+                  text={reminder.details ?? ''}
+                  onSave={(details, expectedText) =>
+                    updateContent.mutateAsync({
+                      id: reminder.id,
+                      arg: { details: details || null, expectedText },
+                    })
+                  }
+                />
+              )}
+              {reminder.type === 'TODO' &&
+                reminder.activeFirings.length === 0 && (
+                  <ReminderChecklist
+                    reminder={{
+                      ...reminder,
+                      hideCheckedItems:
+                        reminder.editableReminder?.hideCheckedItems ?? false,
+                    }}
+                    isNote={reminder.isNote}
+                    editable={reminder.permission === 'EDIT'}
+                    actionable={reminder.permission !== 'VIEW'}
+                  />
+                )}
+            </Card>
+          )}
           {reminder.activeFirings.map((firing) => (
             <Card key={firing.id} variant="outlined">
-              <Typography level="title-sm"><Trans i18nKey={"Needs attention: <v0/>"} components={{ v0: <>{formatDateTime(firing.scheduledFor, timeFormat, user?.timeZone)}</> }} /></Typography>
+              <Typography level="title-sm">
+                <Trans
+                  i18nKey={'Needs attention: <v0/>'}
+                  components={{
+                    v0: (
+                      <>
+                        {formatDateTime(
+                          firing.scheduledFor,
+                          timeFormat,
+                          user?.timeZone,
+                        )}
+                      </>
+                    ),
+                  }}
+                />
+              </Typography>
               {firing.status === 'SNOOZED' && firing.snoozedUntil && (
-                <Typography level="body-sm"><Trans i18nKey={"Snoozed for you until <v0/>"} components={{ v0: <>{formatDateTime(firing.snoozedUntil, timeFormat, user?.timeZone)}</> }} /></Typography>
+                <Typography level="body-sm">
+                  <Trans
+                    i18nKey={'Snoozed for you until <v0/>'}
+                    components={{
+                      v0: (
+                        <>
+                          {formatDateTime(
+                            firing.snoozedUntil,
+                            timeFormat,
+                            user?.timeZone,
+                          )}
+                        </>
+                      ),
+                    }}
+                  />
+                </Typography>
               )}
               {reminder.type === 'TODO' && (
                 <ReminderChecklist
-                  reminder={{ ...reminder, hideCheckedItems: reminder.editableReminder?.hideCheckedItems ?? false }}
+                  reminder={{
+                    ...reminder,
+                    hideCheckedItems:
+                      reminder.editableReminder?.hideCheckedItems ?? false,
+                  }}
                   isNote={reminder.isNote}
                   firing={firing}
                   editable={reminder.permission === 'EDIT'}
@@ -119,15 +241,28 @@ export function SharedReminderPage({ reminderId, onClose, onEdit }: {
                 onDone={() => ack.mutate({ id: firing.id, arg: undefined })}
                 doneLoading={ack.isPending}
                 onSnooze={() => setSnoozeId(firing.id)}
-                onSilence={() => silence.mutate({ id: firing.id, arg: undefined })}
+                onSilence={() =>
+                  silence.mutate({ id: firing.id, arg: undefined })
+                }
                 silenceLoading={silence.isPending}
               />
             </Card>
           ))}
           {!onClose && (
-            <Button variant="plain" startDecorator={<ShareIcon />} sx={{ alignSelf: 'flex-start' }} onClick={() => setShareOpen(true)}>{tr("Share")}</Button>
+            <Button
+              variant="plain"
+              startDecorator={<ShareIcon />}
+              sx={{ alignSelf: 'flex-start' }}
+              onClick={() => setShareOpen(true)}
+            >
+              {tr('Share')}
+            </Button>
           )}
-          <ReminderSharing open={shareOpen} onClose={() => setShareOpen(false)} reminderId={reminder.id} />
+          <ReminderSharing
+            open={shareOpen}
+            onClose={() => setShareOpen(false)}
+            reminderId={reminder.id}
+          />
           <SnoozeDialog
             open={snoozeId !== null}
             busy={snooze.isPending}

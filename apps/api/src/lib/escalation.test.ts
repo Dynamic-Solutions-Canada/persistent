@@ -1,7 +1,11 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { DateTime } from 'luxon'
-import { escalateAtFor, groupEmailEscalationAt, shouldEscalateNow } from './escalation.js'
+import {
+  escalateAtFor,
+  groupEmailEscalationAt,
+  shouldEscalateNow,
+} from './escalation.js'
 
 const TZ = 'America/Toronto'
 
@@ -14,32 +18,63 @@ test('escalateAtTime earlier in the day than the firing rolls to the next mornin
   // Meds: fires 23:45, escalates 01:30. The escalation must be the NEXT day's
   // 01:30 (after firing), not the same day's 01:30 (~22h before firing).
   const scheduledFor = toronto('2026-06-24T23:45')
-  const escalateAt = escalateAtFor(scheduledFor, scheduledFor, { escalateAfterMinutes: null, escalateAtTime: '01:30' }, TZ)
+  const escalateAt = escalateAtFor(
+    scheduledFor,
+    scheduledFor,
+    { escalateAfterMinutes: null, escalateAtTime: '01:30' },
+    TZ,
+  )
   assert.deepEqual(escalateAt, toronto('2026-06-25T01:30'))
-  assert.ok(escalateAt!.getTime() > scheduledFor.getTime(), 'escalation must be after the firing')
+  assert.ok(
+    escalateAt!.getTime() > scheduledFor.getTime(),
+    'escalation must be after the firing',
+  )
 })
 
 test('escalateAtTime later in the day than the firing stays on the same day', () => {
   const scheduledFor = toronto('2026-06-24T08:00')
-  const escalateAt = escalateAtFor(scheduledFor, scheduledFor, { escalateAfterMinutes: null, escalateAtTime: '10:00' }, TZ)
+  const escalateAt = escalateAtFor(
+    scheduledFor,
+    scheduledFor,
+    { escalateAfterMinutes: null, escalateAtTime: '10:00' },
+    TZ,
+  )
   assert.deepEqual(escalateAt, toronto('2026-06-24T10:00'))
 })
 
 test('escalateAtTime equal to the firing time rolls to the next day (never simultaneous)', () => {
   const scheduledFor = toronto('2026-06-24T08:00')
-  const escalateAt = escalateAtFor(scheduledFor, scheduledFor, { escalateAfterMinutes: null, escalateAtTime: '08:00' }, TZ)
+  const escalateAt = escalateAtFor(
+    scheduledFor,
+    scheduledFor,
+    { escalateAfterMinutes: null, escalateAtTime: '08:00' },
+    TZ,
+  )
   assert.deepEqual(escalateAt, toronto('2026-06-25T08:00'))
 })
 
 test('escalateAfterMinutes counts from the fired base', () => {
   const scheduledFor = toronto('2026-06-24T23:45')
-  const escalateAt = escalateAtFor(scheduledFor, scheduledFor, { escalateAfterMinutes: 30, escalateAtTime: null }, TZ)
+  const escalateAt = escalateAtFor(
+    scheduledFor,
+    scheduledFor,
+    { escalateAfterMinutes: 30, escalateAtTime: null },
+    TZ,
+  )
   assert.deepEqual(escalateAt, toronto('2026-06-25T00:15'))
 })
 
 test('no escalation configured yields null', () => {
   const scheduledFor = toronto('2026-06-24T23:45')
-  assert.equal(escalateAtFor(scheduledFor, scheduledFor, { escalateAfterMinutes: null, escalateAtTime: null }, TZ), null)
+  assert.equal(
+    escalateAtFor(
+      scheduledFor,
+      scheduledFor,
+      { escalateAfterMinutes: null, escalateAtTime: null },
+      TZ,
+    ),
+    null,
+  )
 })
 
 const SNOOZE_NOW = new Date('2026-06-24T12:00:00.000Z')
@@ -74,11 +109,17 @@ test('covering email waits for the latest participant snooze', () => {
   const firedAt = new Date('2026-06-24T11:00:00.000Z')
   const ownerUntil = new Date('2026-06-24T11:20:00.000Z')
   const recipientUntil = new Date('2026-06-24T11:45:00.000Z')
-  assert.deepEqual(groupEmailEscalationAt(firedAt, 30, [ownerUntil, recipientUntil]), recipientUntil)
+  assert.deepEqual(
+    groupEmailEscalationAt(firedAt, 30, [ownerUntil, recipientUntil]),
+    recipientUntil,
+  )
 })
 
 test('covering email still waits for its configured delay when all snoozes end earlier', () => {
   const firedAt = new Date('2026-06-24T11:00:00.000Z')
   const earlierSnooze = new Date('2026-06-24T11:20:00.000Z')
-  assert.deepEqual(groupEmailEscalationAt(firedAt, 30, [earlierSnooze, null]), new Date('2026-06-24T11:30:00.000Z'))
+  assert.deepEqual(
+    groupEmailEscalationAt(firedAt, 30, [earlierSnooze, null]),
+    new Date('2026-06-24T11:30:00.000Z'),
+  )
 })

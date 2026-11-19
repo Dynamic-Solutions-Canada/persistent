@@ -18,7 +18,7 @@ export function MedicationFields({
   medications,
   onChange,
   onAdd,
-  onRemove
+  onRemove,
 }: {
   medications: MedicationRow[]
   onChange: (index: number, key: keyof MedicationRow, value: string) => void
@@ -31,21 +31,29 @@ export function MedicationFields({
       {medications.map((med, index) => (
         <Stack key={index} spacing={1}>
           <FormControl>
-            <FormLabel>{medications.length > 1 ? tr("Medication {{v0}}", { v0: index + 1 }) : tr("Medication")}</FormLabel>
+            <FormLabel>
+              {medications.length > 1
+                ? tr('Medication {{v0}}', { v0: index + 1 })
+                : tr('Medication')}
+            </FormLabel>
             <Stack direction="row" spacing={1} alignItems="center">
               <Autocomplete
                 sx={{ flex: 1, minWidth: 0 }}
                 freeSolo
                 autoComplete
                 options={COMMON_MEDICATIONS}
-                placeholder={tr("Ibuprofen")}
+                placeholder={tr('Ibuprofen')}
                 value={med.name}
                 onChange={(_e, value) => onChange(index, 'name', value ?? '')}
                 inputValue={med.name}
                 onInputChange={(_e, value) => onChange(index, 'name', value)}
               />
               {medications.length > 1 && (
-                <IconButton variant="outlined" color="danger" onClick={() => onRemove(index)}>
+                <IconButton
+                  variant="outlined"
+                  color="danger"
+                  onClick={() => onRemove(index)}
+                >
                   ✕
                 </IconButton>
               )}
@@ -53,7 +61,7 @@ export function MedicationFields({
           </FormControl>
           <Stack direction="row" spacing={1}>
             <FormControl sx={{ flex: 1, minWidth: 0 }}>
-              <FormLabel>{tr("Qty")}</FormLabel>
+              <FormLabel>{tr('Qty')}</FormLabel>
               <Input
                 type="number"
                 value={med.quantity}
@@ -62,13 +70,24 @@ export function MedicationFields({
               />
             </FormControl>
             <FormControl sx={{ flex: 1, minWidth: 0 }}>
-              <FormLabel>{tr("Unit")}</FormLabel>
-              <Input value={med.unit} onChange={(e) => onChange(index, 'unit', e.target.value)} placeholder={tr("mg")} />
+              <FormLabel>{tr('Unit')}</FormLabel>
+              <Input
+                value={med.unit}
+                onChange={(e) => onChange(index, 'unit', e.target.value)}
+                placeholder={tr('mg')}
+              />
             </FormControl>
           </Stack>
         </Stack>
       ))}
-      <Button variant="outlined" size="sm" onClick={onAdd} sx={{ alignSelf: 'flex-start' }}>{tr("Add medication")}</Button>
+      <Button
+        variant="outlined"
+        size="sm"
+        onClick={onAdd}
+        sx={{ alignSelf: 'flex-start' }}
+      >
+        {tr('Add medication')}
+      </Button>
     </Stack>
   )
 }

@@ -26,7 +26,10 @@ import { extractErrorMessage } from '../localization/errorMessage.js'
 import { apiFetch } from '../lib/apiClient.js'
 import { formatDate } from '../lib/datetime.js'
 import { passkeyRegister } from '../native/passkeyClient.js'
-import { describePasskey, type PasskeyVisualKind } from '../lib/passkeyMetadata.js'
+import {
+  describePasskey,
+  type PasskeyVisualKind,
+} from '../lib/passkeyMetadata.js'
 import { useToast } from './ToastProvider.js'
 
 const PASSKEYS_KEY = ['passkeys'] as const
@@ -52,43 +55,52 @@ export function PasskeysSection() {
   const toast = useToast()
   const passkeys = useQuery({
     queryKey: PASSKEYS_KEY,
-    queryFn: () => apiFetch<PasskeyListResponse>('/api/auth/passkeys')
+    queryFn: () => apiFetch<PasskeyListResponse>('/api/auth/passkeys'),
   })
 
   const add = useMutation({
     mutationFn: async () => {
-      const begin = await apiFetch<{ options: PublicKeyCredentialCreationOptionsJSON }>(
-        '/api/auth/passkey/register/options',
-        { method: 'POST' }
-      )
+      const begin = await apiFetch<{
+        options: PublicKeyCredentialCreationOptionsJSON
+      }>('/api/auth/passkey/register/options', { method: 'POST' })
       const registration = await passkeyRegister(begin.options)
       await apiFetch('/api/auth/passkey/register/verify', {
         method: 'POST',
-        body: JSON.stringify({ response: registration })
+        body: JSON.stringify({ response: registration }),
       })
     },
     onSuccess: async () => {
-      toast(tr("Passkey added"))
+      toast(tr('Passkey added'))
       await queryClient.invalidateQueries({ queryKey: PASSKEYS_KEY })
     },
-    onError: (err) => toast(extractErrorMessage(err, tr("Couldn't add a passkey.")), 'danger')
+    onError: (err) =>
+      toast(extractErrorMessage(err, tr("Couldn't add a passkey.")), 'danger'),
   })
 
   const remove = useMutation({
-    mutationFn: (id: string) => apiFetch(`/api/auth/passkeys/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: string) =>
+      apiFetch(`/api/auth/passkeys/${id}`, { method: 'DELETE' }),
     onSuccess: async () => {
-      toast(tr("Passkey removed"), 'neutral')
+      toast(tr('Passkey removed'), 'neutral')
       await queryClient.invalidateQueries({ queryKey: PASSKEYS_KEY })
     },
-    onError: (err) => toast(extractErrorMessage(err, tr("Couldn't remove the passkey.")), 'danger')
+    onError: (err) =>
+      toast(
+        extractErrorMessage(err, tr("Couldn't remove the passkey.")),
+        'danger',
+      ),
   })
 
   const list = passkeys.data?.passkeys ?? []
 
   return (
     <Stack spacing={1.5}>
-      <Typography level="title-sm">{tr("Passkeys")}</Typography>
-      <Typography level="body-sm">{tr("Sign in without an email code using your device's biometrics or PIN.")}</Typography>
+      <Typography level="title-sm">{tr('Passkeys')}</Typography>
+      <Typography level="body-sm">
+        {tr(
+          "Sign in without an email code using your device's biometrics or PIN.",
+        )}
+      </Typography>
 
       {list.length > 0 && (
         <Stack spacing={1.25} sx={{ mt: 0.5 }}>
@@ -96,12 +108,19 @@ export function PasskeysSection() {
             const meta = describePasskey(pk)
             const title = pk.name || meta.providerLabel || tr(meta.defaultLabel)
             const details = [
-              tr("Added {{v0}}", { v0: formatDate(pk.createdAt) }),
-              pk.lastUsedAt ? tr("last used {{v0}}", { v0: formatDate(pk.lastUsedAt) }) : tr("never used"),
-              meta.transportLabel ? tr(meta.transportLabel) : null
+              tr('Added {{v0}}', { v0: formatDate(pk.createdAt) }),
+              pk.lastUsedAt
+                ? tr('last used {{v0}}', { v0: formatDate(pk.lastUsedAt) })
+                : tr('never used'),
+              meta.transportLabel ? tr(meta.transportLabel) : null,
             ].filter(Boolean)
             return (
-              <Stack key={pk.id} direction="row" alignItems="center" spacing={1.25}>
+              <Stack
+                key={pk.id}
+                direction="row"
+                alignItems="center"
+                spacing={1.25}
+              >
                 <Avatar size="sm" variant="soft" color="primary">
                   <KindIcon kind={meta.visualKind} />
                 </Avatar>
@@ -116,10 +135,16 @@ export function PasskeysSection() {
                       </Chip>
                     )}
                     {pk.backedUp && (
-                      <Chip size="sm" variant="soft" color="success">{tr("synced")}</Chip>
+                      <Chip size="sm" variant="soft" color="success">
+                        {tr('synced')}
+                      </Chip>
                     )}
                   </Stack>
-                  <Typography level="body-xs" sx={{ color: 'text.tertiary' }} noWrap>
+                  <Typography
+                    level="body-xs"
+                    sx={{ color: 'text.tertiary' }}
+                    noWrap
+                  >
                     {details.join(' · ')}
                   </Typography>
                 </Box>
@@ -129,7 +154,7 @@ export function PasskeysSection() {
                   color="danger"
                   loading={remove.isPending && remove.variables === pk.id}
                   onClick={() => remove.mutate(pk.id)}
-                  aria-label={tr("Remove passkey")}
+                  aria-label={tr('Remove passkey')}
                 >
                   <DeleteOutlineIcon />
                 </IconButton>
@@ -139,7 +164,9 @@ export function PasskeysSection() {
         </Stack>
       )}
 
-      {passkeys.isError && <Alert color="danger">{tr("Couldn't load passkeys.")}</Alert>}
+      {passkeys.isError && (
+        <Alert color="danger">{tr("Couldn't load passkeys.")}</Alert>
+      )}
 
       <Button
         variant="outlined"
@@ -147,7 +174,9 @@ export function PasskeysSection() {
         loading={add.isPending}
         onClick={() => add.mutate()}
         sx={{ alignSelf: 'flex-start', mt: 0.5 }}
-      >{tr("Add a passkey")}</Button>
+      >
+        {tr('Add a passkey')}
+      </Button>
     </Stack>
   )
 }

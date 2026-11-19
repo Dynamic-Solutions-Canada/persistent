@@ -16,14 +16,14 @@ function reminder(overrides: Partial<Reminder> = {}): Reminder {
     soundIntervalSeconds: 0,
     shadeProminence: 'INHERIT',
     sounds: {},
-    ...overrides
+    ...overrides,
   } as unknown as Reminder
 }
 
 const TONES = {
   notification: { uri: 'content://media/1', title: 'Chime' },
   nag: { uri: 'content://media/2', title: 'Bell' },
-  alarm: { uri: 'content://media/3', title: 'Argon' }
+  alarm: { uri: 'content://media/3', title: 'Argon' },
 }
 
 function occurrence(overrides: Record<string, unknown> = {}) {
@@ -37,7 +37,7 @@ function occurrence(overrides: Record<string, unknown> = {}) {
     escalationSilencedAt: null,
     checkedItems: [],
     reminder: reminder(),
-    ...overrides
+    ...overrides,
   } as Parameters<typeof buildDeviceAlarms>[0]
 }
 
@@ -53,7 +53,10 @@ test('a plain PERSISTENT occurrence yields one notification alarm', () => {
 })
 
 test('ALARM persistence rings (alarm tone)', () => {
-  const alarms = buildDeviceAlarms(occurrence({ reminder: reminder({ persistence: 'ALARM' }) }), null)
+  const alarms = buildDeviceAlarms(
+    occurrence({ reminder: reminder({ persistence: 'ALARM' }) }),
+    null,
+  )
   assert.equal(alarms[0]!.alarm, true)
   assert.equal(alarms[0]!.soundKind, 'alarm')
 })
@@ -77,13 +80,19 @@ test('escalation never rings before the main fire (the ~22h-early guard)', () =>
 
 test('a snoozed occurrence fires at snoozedUntil, not the scheduled time', () => {
   const snoozedUntil = new Date(scheduledFor.getTime() + 30 * 60_000)
-  const alarms = buildDeviceAlarms(occurrence({ status: 'SNOOZED', snoozedUntil }), null)
+  const alarms = buildDeviceAlarms(
+    occurrence({ status: 'SNOOZED', snoozedUntil }),
+    null,
+  )
   assert.equal(alarms[0]!.fireAtMs, snoozedUntil.getTime())
 })
 
 test('an already-escalated occurrence rings and adds no future escalation alarm', () => {
   const escalateAt = new Date(scheduledFor.getTime() + 15 * 60_000)
-  const alarms = buildDeviceAlarms(occurrence({ status: 'ESCALATED', escalatedAt: escalateAt }), escalateAt)
+  const alarms = buildDeviceAlarms(
+    occurrence({ status: 'ESCALATED', escalatedAt: escalateAt }),
+    escalateAt,
+  )
   assert.equal(alarms.length, 1)
   assert.equal(alarms[0]!.alarm, true)
   assert.equal(alarms[0]!.canSilence, true) // soft reminder escalated -> silenceable
@@ -100,9 +109,9 @@ test('snoozing an escalated firing brings the alarm back, not a soft nag', () =>
     occurrence({
       status: 'SNOOZED',
       snoozedUntil,
-      escalatedAt: new Date(scheduledFor.getTime() + 15 * 60_000)
+      escalatedAt: new Date(scheduledFor.getTime() + 15 * 60_000),
     }),
-    null
+    null,
   )
   assert.equal(alarms.length, 1)
   assert.equal(alarms[0]!.fireAtMs, snoozedUntil.getTime())
@@ -120,9 +129,9 @@ test('a silenced escalation stays silent across a snooze', () => {
       status: 'SNOOZED',
       snoozedUntil,
       escalatedAt: new Date(scheduledFor.getTime() + 15 * 60_000),
-      escalationSilencedAt: new Date(scheduledFor.getTime() + 16 * 60_000)
+      escalationSilencedAt: new Date(scheduledFor.getTime() + 16 * 60_000),
     }),
-    null
+    null,
   )
   assert.equal(alarms.length, 1)
   assert.equal(alarms[0]!.alarm, false)
@@ -135,7 +144,10 @@ test('a snooze that outlasts a pending escalation returns escalated', () => {
   // ringing rather than as a nag the sweep has to escalate a minute later.
   const escalateAt = new Date(scheduledFor.getTime() + 15 * 60_000)
   const snoozedUntil = new Date(scheduledFor.getTime() + 30 * 60_000)
-  const alarms = buildDeviceAlarms(occurrence({ status: 'SNOOZED', snoozedUntil }), escalateAt)
+  const alarms = buildDeviceAlarms(
+    occurrence({ status: 'SNOOZED', snoozedUntil }),
+    escalateAt,
+  )
   assert.equal(alarms.length, 1) // no second ::esc alarm — this one already rings
   assert.equal(alarms[0]!.alarm, true)
   assert.equal(alarms[0]!.canSilence, true)
@@ -145,7 +157,10 @@ test('a snooze that ends before a pending escalation still returns as a nag', ()
   // The escalation is still ahead, so it rides its own ::esc alarm as usual.
   const escalateAt = new Date(scheduledFor.getTime() + 60 * 60_000)
   const snoozedUntil = new Date(scheduledFor.getTime() + 30 * 60_000)
-  const alarms = buildDeviceAlarms(occurrence({ status: 'SNOOZED', snoozedUntil }), escalateAt)
+  const alarms = buildDeviceAlarms(
+    occurrence({ status: 'SNOOZED', snoozedUntil }),
+    escalateAt,
+  )
   assert.equal(alarms.length, 2)
   assert.equal(alarms[0]!.alarm, false)
   assert.equal(alarms[1]!.fireAtMs, escalateAt.getTime())
@@ -155,15 +170,29 @@ test('a snooze that ends before a pending escalation still returns as a nag', ()
 test("an armed alarm's body lists only the checklist items this firing has left", () => {
   const todo = reminder({
     type: 'TODO',
-    typeData: { items: [{ id: 'a', text: 'Vitamins' }, { id: 'b', text: 'Inhaler' }] }
+    typeData: {
+      items: [
+        { id: 'a', text: 'Vitamins' },
+        { id: 'b', text: 'Inhaler' },
+      ],
+    },
   })
-  const alarms = buildDeviceAlarms(occurrence({ reminder: todo, checkedItems: ['a'] }), null)
+  const alarms = buildDeviceAlarms(
+    occurrence({ reminder: todo, checkedItems: ['a'] }),
+    null,
+  )
   assert.equal(alarms[0]!.body, '• Inhaler')
 })
 
 test('ticking the last item leaves a body-less nag — it still needs Done', () => {
-  const todo = reminder({ type: 'TODO', typeData: { items: [{ id: 'a', text: 'Vitamins' }] } })
-  const alarms = buildDeviceAlarms(occurrence({ reminder: todo, checkedItems: ['a'] }), null)
+  const todo = reminder({
+    type: 'TODO',
+    typeData: { items: [{ id: 'a', text: 'Vitamins' }] },
+  })
+  const alarms = buildDeviceAlarms(
+    occurrence({ reminder: todo, checkedItems: ['a'] }),
+    null,
+  )
   assert.equal(alarms.length, 1)
   assert.equal(alarms[0]!.body, '')
 })
@@ -177,14 +206,20 @@ test('a reminder that overrides nothing sends no tones, leaving the device its o
 })
 
 test('a soft nag carries the reminder’s notification tone and its nag tone', () => {
-  const alarms = buildDeviceAlarms(occurrence({ reminder: reminder({ sounds: TONES }) }), null)
+  const alarms = buildDeviceAlarms(
+    occurrence({ reminder: reminder({ sounds: TONES }) }),
+    null,
+  )
   assert.deepEqual(alarms[0]!.sound, TONES.notification)
   assert.deepEqual(alarms[0]!.nagSound, TONES.nag)
 })
 
 test('a ringing alarm carries the alarm tone and no nag tone', () => {
   // An alarm loops one continuous tone — there is no follow-up to re-tone.
-  const alarms = buildDeviceAlarms(occurrence({ reminder: reminder({ persistence: 'ALARM', sounds: TONES }) }), null)
+  const alarms = buildDeviceAlarms(
+    occurrence({ reminder: reminder({ persistence: 'ALARM', sounds: TONES }) }),
+    null,
+  )
   assert.deepEqual(alarms[0]!.sound, TONES.alarm)
   assert.equal(alarms[0]!.nagSound, null)
 })
@@ -193,7 +228,10 @@ test('the ::esc twin takes the alarm tone, not the notification tone it was clon
   // The escalation is built by spreading the main (soft) alarm, so the tones have to
   // be re-asked rather than inherited: an escalation rings, so it is the alarm tone.
   const escalateAt = new Date(scheduledFor.getTime() + 15 * 60_000)
-  const alarms = buildDeviceAlarms(occurrence({ reminder: reminder({ sounds: TONES }) }), escalateAt)
+  const alarms = buildDeviceAlarms(
+    occurrence({ reminder: reminder({ sounds: TONES }) }),
+    escalateAt,
+  )
   assert.equal(alarms.length, 2)
   assert.deepEqual(alarms[0]!.sound, TONES.notification)
   assert.deepEqual(alarms[1]!.sound, TONES.alarm)
@@ -207,25 +245,34 @@ test('an escalated firing rings in the alarm tone even though its status came ba
       status: 'SNOOZED',
       snoozedUntil,
       escalatedAt: new Date(scheduledFor.getTime() + 15 * 60_000),
-      reminder: reminder({ sounds: TONES })
+      reminder: reminder({ sounds: TONES }),
     }),
-    null
+    null,
   )
   assert.deepEqual(alarms[0]!.sound, TONES.alarm)
 })
 
 test('device locale changes only escalation presentation, preserving identities, times, medicine content and actions', () => {
-  const source = occurrence({ reminder: reminder({
-    title: 'Insulin <name>', details: 'Before food', type: 'MEDICATION',
-    typeData: { medications: [{ name: 'Insulin', quantity: 10, unit: 'units' }] }
-  }) })
+  const source = occurrence({
+    reminder: reminder({
+      title: 'Insulin <name>',
+      details: 'Before food',
+      type: 'MEDICATION',
+      typeData: {
+        medications: [{ name: 'Insulin', quantity: 10, unit: 'units' }],
+      },
+    }),
+  })
   const escalateAt = new Date(scheduledFor.getTime() + 15 * 60_000)
   const english = buildDeviceAlarms(source, escalateAt, 'en-US')
   const japanese = buildDeviceAlarms(source, escalateAt, 'ja-JP')
   assert.deepEqual(japanese[0], english[0])
   assert.equal(japanese[1]!.baseBody, 'Insulin 10 units · Before food')
   assert.equal(japanese[1]!.bodyTemplate, 'escalated')
-  assert.equal(japanese[1]!.body, 'Insulin 10 units · Before food（アラート強化）')
+  assert.equal(
+    japanese[1]!.body,
+    'Insulin 10 units · Before food（アラート強化）',
+  )
   const { body: englishBody, ...englishSemantics } = english[1]!
   const { body: japaneseBody, ...japaneseSemantics } = japanese[1]!
   assert.notEqual(japaneseBody, englishBody)

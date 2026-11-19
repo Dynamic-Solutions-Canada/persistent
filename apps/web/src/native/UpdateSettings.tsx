@@ -16,12 +16,20 @@ function AppUpdateInformation() {
   if (isNative()) {
     return (
       <>
-        <Typography level="body-xs">{tr("You can get updates through Google Play or install newer APKs from GitHub.")}</Typography>
+        <Typography level="body-xs">
+          {tr(
+            'You can get updates through Google Play or install newer APKs from GitHub.',
+          )}
+        </Typography>
         <AndroidDownloads />
       </>
     )
   }
-  return <Typography level="body-xs">{tr("This web app updates automatically through your browser.")}</Typography>
+  return (
+    <Typography level="body-xs">
+      {tr('This web app updates automatically through your browser.')}
+    </Typography>
+  )
 }
 
 export function UpdateSettings() {
@@ -30,8 +38,13 @@ export function UpdateSettings() {
 
   return (
     <Card variant="outlined">
-      <Typography level="title-sm">{tr("About")}</Typography>
-      <Typography level="body-sm"><Trans i18nKey={"Version <v0/>"} components={{ v0: <>{currentVersion}</> }} /></Typography>
+      <Typography level="title-sm">{tr('About')}</Typography>
+      <Typography level="body-sm">
+        <Trans
+          i18nKey={'Version <v0/>'}
+          components={{ v0: <>{currentVersion}</> }}
+        />
+      </Typography>
       <Stack spacing={1.5}>
         <AppUpdateInformation />
       </Stack>

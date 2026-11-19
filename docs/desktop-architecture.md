@@ -30,7 +30,7 @@ wake Windows. The Android app schedules alarms on the phone so they can sound
 even without an internet connection.
 
 This is the honest description and the docs, the Connection page and the About
-page all say it. A Windows app that *looked* like it would nag you, and then
+page all say it. A Windows app that _looked_ like it would nag you, and then
 didn't because the machine was asleep, would be worse than no Windows app.
 
 **Persistent Windows notifications are the native signal it offers**, off by
@@ -48,7 +48,7 @@ the shipped PWA instead means:
   `@persistent/shared` to drift from the server.
 - **No second implementation of the done/silence/snooze rules.**
   [`notification-behavior.md`](notification-behavior.md) requires every surface to
-  converge on the same outcome; a surface that *is* the web client cannot diverge
+  converge on the same outcome; a surface that _is_ the web client cannot diverge
   from it.
 - **Sign-in for free, including passkeys.** WebView2 is Chromium and exposes
   `navigator.credentials`, so Windows Hello works — unlike the Android WebView,
@@ -211,13 +211,13 @@ The page renders what it is handed and posts back what the user changed.
 
 The split is by which surface a setting describes, not by who stores it:
 
-| Setting | Where | Why |
-|---|---|---|
-| Windows notifications, snooze default | Page | It is a notification setting, and the user is already on the notification screen |
-| Start at sign-in, flyout size and placement, pin | Page | They describe what the app does for the user |
-| Server address, "Clear saved sign-in" | Native (`ConnectionPage`) | A control for the setting that decides whether the page loads is no use inside the page |
-| Version, update check, log folder | Native (`AboutPage`) | Both are needed precisely when the page is not working |
-| Settings window theme | Native (`AppSettingsPage`) | It themes that separate window; the flyout follows the page |
+| Setting                                          | Where                      | Why                                                                                     |
+| ------------------------------------------------ | -------------------------- | --------------------------------------------------------------------------------------- |
+| Windows notifications, snooze default            | Page                       | It is a notification setting, and the user is already on the notification screen        |
+| Start at sign-in, flyout size and placement, pin | Page                       | They describe what the app does for the user                                            |
+| Server address, "Clear saved sign-in"            | Native (`ConnectionPage`)  | A control for the setting that decides whether the page loads is no use inside the page |
+| Version, update check, log folder                | Native (`AboutPage`)       | Both are needed precisely when the page is not working                                  |
+| Settings window theme                            | Native (`AppSettingsPage`) | It themes that separate window; the flyout follows the page                             |
 
 Time format lives in the page's Language and region card. Supporting hosts add read-only `deviceTimeFormat` (`12h` or `24h`) to `hostSettings`, reading `DateTimeFormatter.ShortTime.Clock` on every send so Match device follows Windows' chosen clock independently of the app's regional format. The settings provider subscribes before requesting and refreshes on the existing resume message. An explicit saved clock choice wins. Older hosts keep the regional-locale fallback; deploying the hosted page alone does not update their native clock detection. See [localization](localization.md) for the cross-platform contract.
 
@@ -250,7 +250,7 @@ Consequences worth knowing before changing this:
 - **The page ships ahead of the host.** The bundle is hosted and updates itself,
   while the `.exe` may be an older portable build or a pending Store update. A host
   that does not answer `getHostSettings` simply never sends `hostSettings`, and the
-  page renders no card at all. That silence *is* the version check; don't replace
+  page renders no card at all. That silence _is_ the version check; don't replace
   it with a hardcoded version compare.
 - **The pin has two controls** (title bar and Settings), so each pushes to the
   other. It is the only setting that does.
@@ -292,7 +292,7 @@ The flyout is not a browser, so:
 `OverlappedPresenter.CreateForContextMenu()`, because it hosts a full web app with
 text entry and needs ordinary activation and keyboard focus.
 
-The naive version — hide on any `Deactivated` — is wrong: focus moving *into* the
+The naive version — hide on any `Deactivated` — is wrong: focus moving _into_ the
 hosted WebView2 can surface as a top-level deactivation, which would close the
 flyout the instant the user clicked into the page. So the handler re-checks on the
 next dispatcher turn (by which point the foreground window has settled) and stays
@@ -303,7 +303,7 @@ flyout-vanishing bug below — read that first if you are debugging this again.
 
 - `TakeForeground()` retries `SetForegroundWindow` while briefly attached to the
   foreground thread's input queue (`AttachThreadInput`). Windows' foreground lock
-  only lets the foreground process call it, and a tray click leaves the *shell*
+  only lets the foreground process call it, and a tray click leaves the _shell_
   foreground, so the plain call can return false — a `bool` the code used to
   ignore — and the window would open unfocused.
 - `SettleMs` makes the flyout refuse to light-dismiss for the first half-second
@@ -329,7 +329,7 @@ if (message.type === 'navigate') { … return }
 if (performBack(here, go) === 'exhausted') requestClose()
 ```
 
-so *every* message that wasn't `navigate` was treated as a Back press. Adding
+so _every_ message that wasn't `navigate` was treated as a Back press. Adding
 `checkForUpdate` — which the host posts on every resume — meant opening the flyout
 ran Back, Back from the root screen is "exhausted", and the page asked the host to
 close the window it had just opened.
@@ -337,7 +337,7 @@ close the window it had just opened.
 The lesson is the shape, not the missing case: **host messages are handled by an
 explicit switch with a `default: return`.** A channel whose unknown-message
 behaviour is "close the window" will break again the next time one is added. Note
-also that the fix shipped in the *web* bundle, so it reached every installed
+also that the fix shipped in the _web_ bundle, so it reached every installed
 desktop version without a new build.
 
 ### Every close is logged, because they look identical from outside
@@ -385,7 +385,7 @@ to shut".
 during the grace window, which left the flyout stuck open for good: click away
 inside the first half-second and the deactivation was dropped, and since the
 window was already deactivated no second one was ever coming, so nothing re-asked.
-The delay decides only *when* to look; `CheckLightDismiss`'s foreground test is
+The delay decides only _when_ to look; `CheckLightDismiss`'s foreground test is
 what answers, and it is just as correct late as early.
 
 ## The flyout is themed, opaque, and frameless
@@ -398,7 +398,7 @@ app cannot paint, so it read as a pale hairline around a dark window no matter
 what the content did. A context-menu presenter is popup-based and has no frame,
 which is what the sibling tray app uses for the same job.
 
-**Do not set `IsResizable = true` on it either.** It is *accepted* (no exception,
+**Do not set `IsResizable = true` on it either.** It is _accepted_ (no exception,
 and it reads back `true`), so this looks like a free way to get drag-to-resize.
 Measured on the same 150%-scaled display it brings the frame straight back:
 `non-client top=10 left=10 bottom=10` against `0/0/0` for a fixed presenter, and
@@ -427,7 +427,7 @@ window rect against the client rect, and a non-zero `top`/`left`/`bottom` says
 the pixels are non-client — i.e. not a colour problem at all. Four rounds went
 into colour attributes before that measurement existed.
 
-Two further things had produced a *band across the top* specifically, and are
+Two further things had produced a _band across the top_ specifically, and are
 worth keeping straight because fixing one did not fix the other:
 
 - **`DesktopAcrylicBackdrop` follows the system theme.** The flyout has no
@@ -438,11 +438,10 @@ worth keeping straight because fixing one did not fix the other:
   through the page's existing OS listener. Initial chrome follows the OS until
   the page loads. `ThemeManager` remains scoped to the separate settings window.
 - **`ExtendsContentIntoTitleBar` + `SetTitleBar` on a window with no title bar.**
-  Those are for a window that *has* a caption and wants to draw into it. Setting
+  Those are for a window that _has_ a caption and wants to draw into it. Setting
   them while the presenter is `SetBorderAndTitleBar(false, false)` left WinUI
   reserving a caption strip and painting it the system caption colour. Don't set
   them here. The client-area header handles dragging without adding a system frame.
-
 
 ## Tray placement
 
@@ -522,14 +521,14 @@ Persistent running, but the app cannot wake a sleeping or shut-down machine.
 
 `Persistent.Desktop/Notifications/` is the whole feature:
 
-| File | Role |
-|---|---|
-| `RealtimeClient.cs` | The host's own `/ws` invalidation and immediate-dismiss connection |
-| `OccurrenceSyncClient.cs` | Reads due, display-ready device alarms for recovery |
+| File                                | Role                                                               |
+| ----------------------------------- | ------------------------------------------------------------------ |
+| `RealtimeClient.cs`                 | The host's own `/ws` invalidation and immediate-dismiss connection |
+| `OccurrenceSyncClient.cs`           | Reads due, display-ready device alarms for recovery                |
 | `NotificationPersistenceMonitor.cs` | Restores dismissed toasts, repeats nags and requests recovery sync |
-| `ToastNotifier.cs` | Builds, inspects, replaces and removes `AppNotification` toasts |
-| `OccurrenceApi.cs` | The three notification actions: `ack`, `snooze` and `silence` |
-| `NotificationService.cs` | Wires those together and owns the lifecycle |
+| `ToastNotifier.cs`                  | Builds, inspects, replaces and removes `AppNotification` toasts    |
+| `OccurrenceApi.cs`                  | The three notification actions: `ack`, `snooze` and `silence`      |
+| `NotificationService.cs`            | Wires those together and owns the lifecycle                        |
 
 **Why the host connects to `/ws` instead of letting the page do it.** The page has
 its own socket, but the WebView is suspended whenever the flyout is hidden, which
@@ -593,7 +592,7 @@ short picker rather than the feature.
   would let a 13:00 dose replace an unconfirmed 09:00 one in the Action Center —
   the self-collapse the app exists to reject.
 - **Done is a two-tap confirm** (§1). A toast button cannot ask a question, so the
-  first Done re-shows the *same tag* as a "Mark this done?" variant with Confirm /
+  first Done re-shows the _same tag_ as a "Mark this done?" variant with Confirm /
   Not yet; only Confirm acks. Windows replaces a toast sharing a tag and group, so
   it reads as the buttons changing in place.
 - **Undo done is available in the hosted History view.** The server restores the
@@ -642,13 +641,13 @@ The Linux development container includes the .NET SDK for non-XAML C# checks and
   `npm run install:desktop`. See [the shared Windows build guide](https://github.com/Dynamic-Solutions-Canada/windows-build-tools#readme).
 - Icons: `.\Persistent.DesktopMSIX\generate-msix-images.ps1` (renders the same
   bell mark as `apps/web/public/favicon.svg`; keep the two in step)
-**Start at sign-in works in the portable build**, via the unpackaged fallback in
-`StartupManager`: no MSIX `windows.startupTask` exists, so it writes
-`HKCU\…\Run` with this executable's absolute path. That path is the catch —
-a portable build lives wherever it was unzipped, so a newer download in a new
-folder would leave the entry aimed at the old copy. `RefreshRunKeyPath()` runs at
-launch and re-points an *existing* entry at the running executable, so whichever
-copy you last opened is the one that starts at sign-in.
+  **Start at sign-in works in the portable build**, via the unpackaged fallback in
+  `StartupManager`: no MSIX `windows.startupTask` exists, so it writes
+  `HKCU\…\Run` with this executable's absolute path. That path is the catch —
+  a portable build lives wherever it was unzipped, so a newer download in a new
+  folder would leave the entry aimed at the old copy. `RefreshRunKeyPath()` runs at
+  launch and re-points an _existing_ entry at the running executable, so whichever
+  copy you last opened is the one that starts at sign-in.
 
 - **Testing: `.\publish-portable.ps1`.** A self-contained unpackaged build —
   unzip and run `Persistent.Desktop.exe` on a clean Windows 11 machine with
@@ -660,7 +659,7 @@ copy you last opened is the one that starts at sign-in.
   plain language). Every CI run uploads this zip as an artifact for both
   architectures, so any commit can be tried without tagging a release.
 - **A GitHub release carries the portable zip and nothing else. MSIX is for the
-  Store.** The two packages are not interchangeable: the Store wants an *unsigned*
+  Store.** The two packages are not interchangeable: the Store wants an _unsigned_
   one carrying the real Partner Center identity (`build-msix.ps1 -Upload`, driven
   by `store-publish.yml`), while `build-msix.ps1` without `-Store` rewrites the
   identity and signs with a local development certificate. The shared WSL workflow
@@ -668,9 +667,9 @@ copy you last opened is the one that starts at sign-in.
   used to attach that second one, which asked anyone downloading it to trust a
   certificate off the internet and was not the Store package either, so it served
   neither audience. Nothing builds a sideload MSIX in CI now; `npm run
-  install:desktop` exercises that path constantly during development instead.
+install:desktop` exercises that path constantly during development instead.
 - **`build-msix.ps1` packages externally**, which is why it must not pass
-  `-p:WindowsPackageType=MSIX`. The SDK rejects that unless the *project* declares
+  `-p:WindowsPackageType=MSIX`. The SDK rejects that unless the _project_ declares
   an `<AppxManifest>` item
   (`Microsoft.Windows.SDK.BuildTools.MSIX.Packaging.targets`, whose error message
   reads backwards), and this script publishes a plain layout, writes the manifest
@@ -697,7 +696,7 @@ copy you last opened is the one that starts at sign-in.
 - Release: bump `<Version>` in `apps/desktop/Directory.Build.props`, tag
   `desktop-vX.Y.Z`. The tag prefix keeps desktop releases from colliding with the
   Android `vX.Y.Z` tags in this same repo — which is also why `UpdateService`
-  reads the release *list* and filters by prefix instead of calling
+  reads the release _list_ and filters by prefix instead of calling
   `releases/latest`.
 - **Desktop releases pin `make_latest: false`** (and the Android workflow pins
   `true`). The two series interleave by date, so GitHub's default gave "Latest" to
@@ -730,12 +729,12 @@ in its header and is disabled for it).
 Center values, and the Store rejects a package that differs from them by a
 character:
 
-| Field | Value |
-|---|---|
-| `Identity/Name` | `27766TechnicallyReal.Persistent` |
-| `Identity/Publisher` | `CN=C21E6CEF-D0D1-4497-93F9-3718D054DA0E` |
-| `Properties/PublisherDisplayName` | `Dynamic Solutions Canada` |
-| Package family name | `27766TechnicallyReal.Persistent_gfb69tsnc4jnp` |
+| Field                             | Value                                           |
+| --------------------------------- | ----------------------------------------------- |
+| `Identity/Name`                   | `27766TechnicallyReal.Persistent`               |
+| `Identity/Publisher`              | `CN=C21E6CEF-D0D1-4497-93F9-3718D054DA0E`       |
+| `Properties/PublisherDisplayName` | `Dynamic Solutions Canada`                      |
+| Package family name               | `27766TechnicallyReal.Persistent_gfb69tsnc4jnp` |
 
 The legacy `TechnicallyReal` text in the package name and package family is part
 of the app's immutable Store identity. It must not be renamed when the publisher
@@ -759,12 +758,12 @@ before any work when either is missing.
   Store re-signs at ingestion, so any signature applied here is discarded.
 - `-StoreIdentity`: retains the Store identity and signs a single-architecture
   Release bundle with a matching publisher certificate. Use `npm run
-  install:desktop -- --store-identity` to update the Store installation in place
+install:desktop -- --store-identity` to update the Store installation in place
   without publishing. Release sideloads may remain installed; separate dev test
   packages should be removed after verification.
 - `-Upload`: implies `-Store`, builds x64 and ARM64, then verifies a single
   `.msixbundle` contains both before wrapping it in `.msixupload` for `msstore
-  publish`. The loose per-architecture `.msix` files remain for manual Partner
+publish`. The loose per-architecture `.msix` files remain for manual Partner
   Center uploads. The earlier upload container held both loose packages, but
   Partner Center treated the 0.5.5 submission as x64 only and left ARM64 on 0.5.1.
 
@@ -775,7 +774,7 @@ and CI could not tell because its packaging step is `continue-on-error` and nobo
 installed the artifact.
 
 - **Compiled XAML (`.xbf`) has to be copied into the layout by hand.** `dotnet
-  publish` emits it into the RID *build* directory and leaves it out of the
+publish` emits it into the RID _build_ directory and leaves it out of the
   publish output. Without it the process dies in the `App` constructor, where
   `InitializeComponent` cannot find its markup — which is before `OnLaunched`, so
   before NLog and before `StartupDiagnostics`. The symptom is nothing at all: no
@@ -785,7 +784,7 @@ installed the artifact.
 - **The Windows App SDK auto-initializer has to be suppressed**
   (`-p:WindowsAppSdkBootstrapInitialize=false`). The project is
   `WindowsPackageType=None`, which injects a bootstrapper whose job is locating the
-  framework for an *unpackaged* process; a packaged app must not run it. The
+  framework for an _unpackaged_ process; a packaged app must not run it. The
   sibling apps suppress it by publishing with `WindowsPackageType=MSIX`, which is
   not available here — `EnableMsixTooling` is on, and that makes the SDK demand an
   `<AppxManifest>` item the project deliberately does not have.
@@ -830,7 +829,7 @@ container. The public promo submodule needs no separate checkout credential.
 reading an app registration's own `passwordCredentials` needs Graph permissions
 the Store credential does not have and should not be given. So `set-ci-secrets.sh`
 prompts for the date when it sets the secret and records it as the
-`STORE_SECRET_EXPIRES` repository *variable*; `credential-expiry.yml` checks it
+`STORE_SECRET_EXPIRES` repository _variable_; `credential-expiry.yml` checks it
 weekly and fails the run from 60 days out, and `store-publish.yml` warns on it in
 passing. The two cannot drift, because rotating the secret is what updates the
 date. It is a variable rather than a secret deliberately: an expiry date is not
@@ -847,7 +846,7 @@ stores a literal hyphen and silently discards the pipe.
 The names match Little Launcher's rather than describing this workflow, because
 the same Entra app registration and seller account back every Dynamic Solutions
 Canada app. A rotation is then the same four values in every repo. They cannot be copied
-between repos programmatically: GitHub returns secret *names* only, never values,
+between repos programmatically: GitHub returns secret _names_ only, never values,
 and the script deliberately never writes them to disk.
 
 The Entra app registration behind them must be added under Partner Center →
@@ -860,7 +859,7 @@ copies check GitHub Releases and get a link; packaged copies go through
 `StoreContext`, which installs in place. Offering a GitHub download beside a Store
 install is the alternative update mechanism Store policy exists to stop. Two traps
 in that code are load-bearing and documented at the call site: a listed
-`StorePackageUpdate` reports the version *already installed*, so requiring it to be
+`StorePackageUpdate` reports the version _already installed_, so requiring it to be
 newer means never offering an update at all; and download and install must be two
 separate calls, or a tray app that never exits hides the download behind a wait
 that cannot resolve.
@@ -876,7 +875,6 @@ publish mode. The combined upload uses the exact `.msixupload` package name
 registered by the CLI. Other listing fields, logos, languages, pricing, and package policy
 are preserved. Draft mode does not submit for certification. The local `--check`
 path validates assets without credentials or remote calls.
-
 
 ## The `external/promo` submodule
 

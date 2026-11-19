@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react'
 import { NativeApp, isNative } from './alarmBridge.js'
 
-const WEB_VERSION = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '0.0.0'
+const WEB_VERSION =
+  typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : '0.0.0'
 
 /** Prefer the installed APK version; fall back to the web version when native metadata is unavailable. */
 async function resolveAppVersion(): Promise<string> {
@@ -24,7 +25,9 @@ export function useAppVersion(): string {
     void resolveAppVersion().then((resolved) => {
       if (!cancelled) setVersion(resolved)
     })
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [])
   return version
 }

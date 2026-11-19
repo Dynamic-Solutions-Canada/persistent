@@ -7,7 +7,13 @@ import { ALARM_GRANTS } from './alarmGrants.js'
 test('every grant explanation has a catalog entry', () => {
   const english = catalogs['en-US']!
   for (const copy of ALARM_GRANTS) {
-    const keys = [copy.title, copy.consequence, copy.why, copy.manualPath, ...Object.values(copy.instructions)]
+    const keys = [
+      copy.title,
+      copy.consequence,
+      copy.why,
+      copy.manualPath,
+      ...Object.values(copy.instructions),
+    ]
     for (const key of keys) assert.ok(english[key!], `${copy.grant}: ${key}`)
   }
 })

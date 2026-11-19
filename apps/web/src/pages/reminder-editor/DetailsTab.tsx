@@ -1,4 +1,7 @@
-import { localizeInvalidInput, clearInputValidity } from '../../localization/inputValidation.js'
+import {
+  localizeInvalidInput,
+  clearInputValidity,
+} from '../../localization/inputValidation.js'
 /**
  * Details tab: title, the reminder's type, and then the body that type calls for.
  *
@@ -28,7 +31,11 @@ import { TypeIcon } from '../../components/ReminderIcons.js'
 import { reminderTypeLabel } from '../../lib/format.js'
 import { MedicationFields } from './MedicationFields.js'
 import { TodoItemsField } from './TodoItemsField.js'
-import { type FormState, type MedicationRow, type TodoRow } from './formState.js'
+import {
+  type FormState,
+  type MedicationRow,
+  type TodoRow,
+} from './formState.js'
 
 export function DetailsTab({
   form,
@@ -43,7 +50,7 @@ export function DetailsTab({
   onTodoChange,
   onInsertTodo,
   onMoveTodo,
-  onRemoveTodo
+  onRemoveTodo,
 }: {
   form: FormState
   set: <K extends keyof FormState>(key: K, value: FormState[K]) => void
@@ -54,7 +61,11 @@ export function DetailsTab({
   /** Tick one item on that firing — absent when there is no firing to tick. */
   onToggleTodo?: (itemId: string, checked: boolean) => void
   onTypeChange: (type: ReminderType) => void
-  onMedicationChange: (index: number, key: keyof MedicationRow, value: string) => void
+  onMedicationChange: (
+    index: number,
+    key: keyof MedicationRow,
+    value: string,
+  ) => void
   onAddMedication: () => void
   onRemoveMedication: (index: number) => void
   onTodoChange: (index: number, text: string) => void
@@ -66,12 +77,22 @@ export function DetailsTab({
   return (
     <Stack spacing={2}>
       <FormControl required>
-        <FormLabel>{tr("Title")}</FormLabel>
-        <Input slotProps={{ input: { onInvalid: localizeInvalidInput, onInput: clearInputValidity } }} value={form.title} onChange={(e) => set('title', e.target.value)} autoFocus={autoFocusTitle} />
+        <FormLabel>{tr('Title')}</FormLabel>
+        <Input
+          slotProps={{
+            input: {
+              onInvalid: localizeInvalidInput,
+              onInput: clearInputValidity,
+            },
+          }}
+          value={form.title}
+          onChange={(e) => set('title', e.target.value)}
+          autoFocus={autoFocusTitle}
+        />
       </FormControl>
 
       <FormControl>
-        <FormLabel>{tr("Type")}</FormLabel>
+        <FormLabel>{tr('Type')}</FormLabel>
         <Select
           value={form.type}
           onChange={(_e, value) => value && onTypeChange(value)}
@@ -98,8 +119,12 @@ export function DetailsTab({
         />
       ) : (
         <FormControl>
-          <FormLabel>{tr("Details")}</FormLabel>
-          <Textarea minRows={2} value={form.details} onChange={(e) => set('details', e.target.value)} />
+          <FormLabel>{tr('Details')}</FormLabel>
+          <Textarea
+            minRows={2}
+            value={form.details}
+            onChange={(e) => set('details', e.target.value)}
+          />
         </FormControl>
       )}
 

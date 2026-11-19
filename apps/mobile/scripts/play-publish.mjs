@@ -65,14 +65,19 @@
  *     --tracks production --notes RELEASE_NOTES.md
  */
 import { readFileSync, readdirSync } from 'node:fs'
-import { getPlayAccessToken as getAccessToken, playRequest as request, readPlayServiceAccount } from './play-api.mjs'
+import {
+  getPlayAccessToken as getAccessToken,
+  playRequest as request,
+  readPlayServiceAccount,
+} from './play-api.mjs'
 import { retirePhoneTestingTracks } from './play-tracks.mjs'
 import { PlayMetadata } from './play-metadata.mjs'
 
 // PLAY_API_BASE is a test seam: play-publish.test.ts points it at a local mock
 // to assert the request sequence (one edit, one upload, every track). Never set
 // it in CI.
-const API = process.env.PLAY_API_BASE || 'https://androidpublisher.googleapis.com'
+const API =
+  process.env.PLAY_API_BASE || 'https://androidpublisher.googleapis.com'
 const DEFAULT_PACKAGE = 'ca.dynamicsolutions.persistent'
 
 /** Play hard-caps a release note at 500 characters and rejects an empty one. */
@@ -101,7 +106,12 @@ const SCREENSHOT_TYPE = 'phoneScreenshots'
  * Play's rules for a phone screenshot. Checked here because the API's rejection
  * arrives mid-edit with a message that doesn't name the offending file.
  */
-export const SCREENSHOT_RULES = { min: 320, max: 3840, maxBytes: 8 * 1024 * 1024, count: [2, 8] }
+export const SCREENSHOT_RULES = {
+  min: 320,
+  max: 3840,
+  maxBytes: 8 * 1024 * 1024,
+  count: [2, 8],
+}
 
 function fail(message) {
   console.error(`\n[play-publish] ${message}\n`)
@@ -112,7 +122,9 @@ function read(path, what, encoding) {
   try {
     return readFileSync(path, encoding)
   } catch (error) {
-    return fail(`Could not read the ${what} at ${path}: ${error?.message || error}`)
+    return fail(
+      `Could not read the ${what} at ${path}: ${error?.message || error}`,
+    )
   }
 }
 
@@ -215,7 +227,10 @@ function fencedBlockUnder(markdown, heading) {
 
   const close = lines.findIndex((line, i) => i > open && line.startsWith('```'))
   if (close === -1) return null
-  return lines.slice(open + 1, close).join('\n').trim()
+  return lines
+    .slice(open + 1, close)
+    .join('\n')
+    .trim()
 }
 
 /**
@@ -228,12 +243,12 @@ export function listingFromMarkdown(markdown) {
   const fullDescription = fencedBlockUnder(markdown, 'Full description')
   const missing = [
     shortDescription === null ? 'Short description' : null,
-    fullDescription === null ? 'Full description' : null
+    fullDescription === null ? 'Full description' : null,
   ].filter(Boolean)
   if (missing.length) {
     throw new Error(
       `Could not find a fenced block under: ${missing.map((m) => `"## ${m}"`).join(' and ')}.\n` +
-        'The listing copy is read from the first ``` block beneath each of those headings.'
+        'The listing copy is read from the first ``` block beneath each of those headings.',
     )
   }
   return { shortDescription, fullDescription }
@@ -246,8 +261,10 @@ export function listingProblems(listing) {
     // Spread, not .length: counts characters the way a person does, so an em
     // dash or a bullet costs one rather than a surrogate pair's two.
     const size = [...(listing?.[field] ?? '')].length
-    if (size === 0) problems.push(`${field} is empty — Play would clear the live text.`)
-    else if (size > limit) problems.push(`${field} is ${size} characters; Play's limit is ${limit}.`)
+    if (size === 0)
+      problems.push(`${field} is empty — Play would clear the live text.`)
+    else if (size > limit)
+      problems.push(`${field} is ${size} characters; Play's limit is ${limit}.`)
   }
   return problems
 }
@@ -271,8 +288,11 @@ export function describeListingDiff(current, next) {
  * Play accepts JPEG too, but everything here is a screen capture.
  */
 export function pngSize(buffer) {
-  const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
-  if (buffer.length < 24 || !buffer.subarray(0, 8).equals(signature)) return null
+  const signature = Buffer.from([
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+  ])
+  if (buffer.length < 24 || !buffer.subarray(0, 8).equals(signature))
+    return null
   return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) }
 }
 
@@ -293,7 +313,9 @@ export function screenshotProblems(shots) {
   const problems = []
   const [min, max] = SCREENSHOT_RULES.count
   if (shots.length < min || shots.length > max) {
-    problems.push(`Play takes ${min}-${max} phone screenshots; found ${shots.length}.`)
+    problems.push(
+      `Play takes ${min}-${max} phone screenshots; found ${shots.length}.`,
+    )
   }
   for (const shot of shots) {
     const size = pngSize(shot.bytes)
@@ -302,16 +324,23 @@ export function screenshotProblems(shots) {
       continue
     }
     if (pngHasAlpha(shot.bytes)) {
-      problems.push(`${shot.name}: has an alpha channel; Play wants 24-bit PNG with none.`)
+      problems.push(
+        `${shot.name}: has an alpha channel; Play wants 24-bit PNG with none.`,
+      )
     }
     const { width, height } = size
-    if (Math.min(width, height) < SCREENSHOT_RULES.min || Math.max(width, height) > SCREENSHOT_RULES.max) {
+    if (
+      Math.min(width, height) < SCREENSHOT_RULES.min ||
+      Math.max(width, height) > SCREENSHOT_RULES.max
+    ) {
       problems.push(
-        `${shot.name}: ${width}x${height} — each side must be ${SCREENSHOT_RULES.min}-${SCREENSHOT_RULES.max}px.`
+        `${shot.name}: ${width}x${height} — each side must be ${SCREENSHOT_RULES.min}-${SCREENSHOT_RULES.max}px.`,
       )
     }
     if (shot.bytes.length > SCREENSHOT_RULES.maxBytes) {
-      problems.push(`${shot.name}: ${(shot.bytes.length / 1e6).toFixed(1)} MB exceeds Play's 8 MB cap.`)
+      problems.push(
+        `${shot.name}: ${(shot.bytes.length / 1e6).toFixed(1)} MB exceeds Play's 8 MB cap.`,
+      )
     }
   }
   return problems
@@ -428,7 +457,8 @@ export function describeTracks(tracks) {
   return tracks
     .map((track) => {
       const releases = (track.releases ?? []).map(
-        (r) => `${(r.versionCodes ?? ['-']).join(', ')} (${r.status ?? 'unknown'})`
+        (r) =>
+          `${(r.versionCodes ?? ['-']).join(', ')} (${r.status ?? 'unknown'})`,
       )
       return `  ${track.track}: ${releases.length ? releases.join(' | ') : '(empty)'}`
     })
@@ -442,7 +472,11 @@ export function describeTracks(tracks) {
  * otherwise the body is JSON. Returns the parsed response, or the error text
  * when `tolerate` matches so the caller can react to a specific failure.
  */
-async function playFetch(token, path, { method = 'GET', body, raw, rawType, tolerate, bestEffort } = {}) {
+async function playFetch(
+  token,
+  path,
+  { method = 'GET', body, raw, rawType, tolerate, bestEffort } = {},
+) {
   const headers = { Authorization: `Bearer ${token}` }
   let payload
   if (raw) {
@@ -455,7 +489,11 @@ async function playFetch(token, path, { method = 'GET', body, raw, rawType, tole
     payload = JSON.stringify(body)
   }
 
-  const response = await request(`${API}${path}`, { method, headers, body: payload }, 'the Play Developer API')
+  const response = await request(
+    `${API}${path}`,
+    { method, headers, body: payload },
+    'the Play Developer API',
+  )
   const text = await response.text()
   if (!response.ok) {
     if (tolerate && text.includes(tolerate)) return { error: text }
@@ -467,15 +505,20 @@ async function playFetch(token, path, { method = 'GET', body, raw, rawType, tole
   return text ? JSON.parse(text) : {}
 }
 
-const editsPath = (pkg, editId = '') => `/androidpublisher/v3/applications/${pkg}/edits${editId ? `/${editId}` : ''}`
+const editsPath = (pkg, editId = '') =>
+  `/androidpublisher/v3/applications/${pkg}/edits${editId ? `/${editId}` : ''}`
 
 /** Clear active phone testing releases, logging each update before the caller commits. */
 async function retireTestingTracks(token, packageName, editId, current) {
   await retirePhoneTestingTracks(current, async (body) => {
-    await playFetch(token, `${editsPath(packageName, editId)}/tracks/${encodeURIComponent(body.track)}`, {
-      method: 'PUT',
-      body
-    })
+    await playFetch(
+      token,
+      `${editsPath(packageName, editId)}/tracks/${encodeURIComponent(body.track)}`,
+      {
+        method: 'PUT',
+        body,
+      },
+    )
     console.log(`[play-publish] track ${body.track} <- no active releases`)
   })
 }
@@ -489,10 +532,17 @@ async function retireTestingTracks(token, packageName, editId, current) {
  */
 async function commitEdit(token, packageName, editId) {
   const path = `${editsPath(packageName, editId)}:commit`
-  const committed = await playFetch(token, path, { method: 'POST', tolerate: 'changesNotSentForReview' })
+  const committed = await playFetch(token, path, {
+    method: 'POST',
+    tolerate: 'changesNotSentForReview',
+  })
   if (committed.error) {
-    console.log('[play-publish] Play declined to auto-submit for review; committing with changesNotSentForReview=true')
-    await playFetch(token, `${path}?changesNotSentForReview=true`, { method: 'POST' })
+    console.log(
+      '[play-publish] Play declined to auto-submit for review; committing with changesNotSentForReview=true',
+    )
+    await playFetch(token, `${path}?changesNotSentForReview=true`, {
+      method: 'POST',
+    })
   }
 }
 
@@ -507,38 +557,51 @@ async function main() {
   const promoteMode = Boolean(args.promote)
   const setNotesMode = Boolean(args['set-notes'])
   const testersMode = Boolean(args.testers)
-  const publishing = !args.check && !listingMode && !promoteMode && !setNotesMode && !testersMode
+  const publishing =
+    !args.check && !listingMode && !promoteMode && !setNotesMode && !testersMode
   const aab = args.aab
   const tracks = parseList(args.tracks)
   const versionName = args['version-name']
   const status = args.status || 'completed'
   const rollout = args.rollout === undefined ? null : Number(args.rollout)
   const productionOnly = Boolean(args['production-only'])
-  if (productionOnly && (!publishing && !promoteMode)) {
+  if (productionOnly && !publishing && !promoteMode) {
     fail('--production-only needs an upload or --promote.')
   }
   if (productionOnly && (tracks.length !== 1 || tracks[0] !== 'production')) {
-    fail('--production-only requires --tracks production as the sole destination.')
+    fail(
+      '--production-only requires --tracks production as the sole destination.',
+    )
   }
   if (testersMode && !tracks.length) {
-    fail('--testers needs --tracks <alpha[,beta,...]>: testers are per closed/open track.')
+    fail(
+      '--testers needs --tracks <alpha[,beta,...]>: testers are per closed/open track.',
+    )
   }
   if (setNotesMode) {
     if (!Number.isFinite(Number(args['version-code']))) {
-      fail('--set-notes needs --version-code <n>: the release already on Play to rewrite.')
+      fail(
+        '--set-notes needs --version-code <n>: the release already on Play to rewrite.',
+      )
     }
-    if (!tracks.length) fail('--set-notes needs --tracks <internal[,alpha,...]>.')
-    if (!args.notes && !args['localized-notes']) fail('--set-notes needs --notes or --localized-notes <file>.')
+    if (!tracks.length)
+      fail('--set-notes needs --tracks <internal[,alpha,...]>.')
+    if (!args.notes && !args['localized-notes'])
+      fail('--set-notes needs --notes or --localized-notes <file>.')
   }
   if (promoteMode) {
     if (!Number.isFinite(Number(args['version-code']))) {
-      fail('--promote needs --version-code <n>: the build already on Play to move.')
+      fail(
+        '--promote needs --version-code <n>: the build already on Play to move.',
+      )
     }
     if (tracks.length !== 1) {
       fail('--promote takes exactly one --tracks value, the destination.')
     }
     if (rollout !== null && !(rollout > 0 && rollout < 1)) {
-      fail(`--rollout must be between 0 and 1 exclusive, got '${args.rollout}'.`)
+      fail(
+        `--rollout must be between 0 and 1 exclusive, got '${args.rollout}'.`,
+      )
     }
   }
   if (publishing) {
@@ -549,9 +612,12 @@ async function main() {
       fail(`--status must be 'completed' or 'draft', got '${status}'.`)
     }
   }
-  if (args.listing && localizedListingMode) fail('Choose --listing or --listing-json, not both.')
-  if (localizedListingMode && args.screenshots) fail('--listing-json updates text only; publish screenshots separately.')
-  if (args.notes && args['localized-notes']) fail('Choose --notes or --localized-notes, not both.')
+  if (args.listing && localizedListingMode)
+    fail('Choose --listing or --listing-json, not both.')
+  if (localizedListingMode && args.screenshots)
+    fail('--listing-json updates text only; publish screenshots separately.')
+  if (args.notes && args['localized-notes'])
+    fail('Choose --notes or --localized-notes, not both.')
   // Read the AAB and notes up front too — a bad path is a caller error, and
   // finding it now avoids leaving an uncommitted edit behind on Play.
   const notes =
@@ -560,22 +626,36 @@ async function main() {
       : NOTE_FALLBACK
   const bundle = publishing ? read(aab, 'AAB') : null
   const localizedNotes = args['localized-notes']
-    ? PlayMetadata.notes(JSON.parse(read(args['localized-notes'], 'localized release notes', 'utf8')), versionName)
+    ? PlayMetadata.notes(
+        JSON.parse(
+          read(args['localized-notes'], 'localized release notes', 'utf8'),
+        ),
+        versionName,
+      )
     : null
   const notesLog = localizedNotes
-    ? localizedNotes.map(({ language, text }) => `${language}: ${text}`).join('\n')
+    ? localizedNotes
+        .map(({ language, text }) => `${language}: ${text}`)
+        .join('\n')
     : notes
   const localizedListings = localizedListingMode
-    ? PlayMetadata.listings(JSON.parse(read(args['listing-json'], 'localized listings', 'utf8')))
+    ? PlayMetadata.listings(
+        JSON.parse(read(args['listing-json'], 'localized listings', 'utf8')),
+      )
     : null
 
   // Same reasoning for the listing: parse and length-check the copy before
   // authenticating, so a malformed file never opens an edit on Play.
-  const listingFile = typeof args.listing === 'string' ? args.listing : DEFAULT_LISTING
-  const shotsDir = typeof args.screenshots === 'string' ? args.screenshots : DEFAULT_SCREENSHOTS
+  const listingFile =
+    typeof args.listing === 'string' ? args.listing : DEFAULT_LISTING
+  const shotsDir =
+    typeof args.screenshots === 'string'
+      ? args.screenshots
+      : DEFAULT_SCREENSHOTS
   // `--no-screenshots` pushes copy alone, for a wording fix that shouldn't
   // re-upload six images (each upload is a fresh asset on Play's side).
-  const withShots = listingMode && !localizedListingMode && !args['no-screenshots']
+  const withShots =
+    listingMode && !localizedListingMode && !args['no-screenshots']
   let listing = null
   let shots = []
   if (listingMode && !localizedListingMode) {
@@ -586,7 +666,8 @@ async function main() {
       fail(`${listingFile}: ${error.message}`)
     }
     const problems = listingProblems(listing)
-    if (problems.length) fail(`${listingFile} is not publishable:\n  - ${problems.join('\n  - ')}`)
+    if (problems.length)
+      fail(`${listingFile} is not publishable:\n  - ${problems.join('\n  - ')}`)
   }
   if (withShots) {
     // Sorted by filename: Play shows screenshots in upload order, and the names
@@ -597,14 +678,22 @@ async function main() {
         .filter((name) => name.toLowerCase().endsWith('.png'))
         .sort()
     } catch (error) {
-      return fail(`Could not read the screenshots directory at ${shotsDir}: ${error?.message || error}`)
+      return fail(
+        `Could not read the screenshots directory at ${shotsDir}: ${error?.message || error}`,
+      )
     }
-    shots = names.map((name) => ({ name, bytes: read(`${shotsDir}/${name}`, `screenshot ${name}`) }))
+    shots = names.map((name) => ({
+      name,
+      bytes: read(`${shotsDir}/${name}`, `screenshot ${name}`),
+    }))
     const problems = screenshotProblems(shots)
-    if (problems.length) fail(`${shotsDir} is not publishable:\n  - ${problems.join('\n  - ')}`)
+    if (problems.length)
+      fail(`${shotsDir} is not publishable:\n  - ${problems.join('\n  - ')}`)
   }
 
-  const serviceAccount = readPlayServiceAccount(process.env.PLAY_SERVICE_ACCOUNT_JSON)
+  const serviceAccount = readPlayServiceAccount(
+    process.env.PLAY_SERVICE_ACCOUNT_JSON,
+  )
 
   const token = await getAccessToken(serviceAccount)
   console.log(`[play-publish] authenticated as ${serviceAccount.client_email}`)
@@ -616,25 +705,32 @@ async function main() {
       request: (path, options) => playFetch(token, path, options),
       commit: (id) => commitEdit(token, packageName, id),
       editPath: editsPath(packageName),
-      check: Boolean(args.check)
+      check: Boolean(args.check),
     })
     return
   }
 
   // --- --listing: push the store copy from listing.md ------------------------
   if (listingMode) {
-    const edit = await playFetch(token, editsPath(packageName), { method: 'POST', body: {} })
+    const edit = await playFetch(token, editsPath(packageName), {
+      method: 'POST',
+      body: {},
+    })
     const path = `${editsPath(packageName, edit.id)}/listings/${LISTING_LANGUAGE}`
     const current = await playFetch(token, path)
 
-    console.log(`[play-publish] ${LISTING_LANGUAGE} listing — Play vs ${listingFile}:`)
+    console.log(
+      `[play-publish] ${LISTING_LANGUAGE} listing — Play vs ${listingFile}:`,
+    )
     console.log(describeListingDiff(current, listing))
 
     const imagesPath = `${editsPath(packageName, edit.id)}/listings/${LISTING_LANGUAGE}/${SCREENSHOT_TYPE}`
     if (withShots) {
       const live = await playFetch(token, imagesPath)
       const liveCount = live.images?.length ?? 0
-      console.log(`  ${SCREENSHOT_TYPE}: ${liveCount} on Play -> ${shots.length} from ${shotsDir}`)
+      console.log(
+        `  ${SCREENSHOT_TYPE}: ${liveCount} on Play -> ${shots.length} from ${shotsDir}`,
+      )
       for (const shot of shots) {
         const { width, height } = pngSize(shot.bytes)
         console.log(`    ${shot.name} (${width}x${height})`)
@@ -643,7 +739,9 @@ async function main() {
 
     if (args.check) {
       // Read-only probe: drop the edit so it can't linger and block later ones.
-      await playFetch(token, editsPath(packageName, edit.id), { method: 'DELETE' })
+      await playFetch(token, editsPath(packageName, edit.id), {
+        method: 'DELETE',
+      })
       console.log('[play-publish] --check: nothing written, edit discarded')
       return
     }
@@ -656,8 +754,8 @@ async function main() {
       body: {
         language: LISTING_LANGUAGE,
         shortDescription: listing.shortDescription,
-        fullDescription: listing.fullDescription
-      }
+        fullDescription: listing.fullDescription,
+      },
     })
     // Replace the whole set rather than diffing: Play has no stable identity for
     // "the third screenshot", so there is nothing to match a local file against.
@@ -669,16 +767,23 @@ async function main() {
         await playFetch(token, `/upload${imagesPath}?uploadType=media`, {
           method: 'POST',
           raw: shot.bytes,
-          rawType: 'image/png'
+          rawType: 'image/png',
         })
         console.log(`[play-publish] uploaded ${shot.name}`)
       }
     }
 
     await commitEdit(token, packageName, edit.id)
-    console.log(`[play-publish] committed. ${LISTING_LANGUAGE} listing updated from ${listingFile}`)
-    if (withShots) console.log(`[play-publish] ${shots.length} screenshots replaced from ${shotsDir}`)
-    console.log('[play-publish] Upload committed. Verify Publishing overview in Play Console: API success does not prove the changes were sent for review or published.')
+    console.log(
+      `[play-publish] committed. ${LISTING_LANGUAGE} listing updated from ${listingFile}`,
+    )
+    if (withShots)
+      console.log(
+        `[play-publish] ${shots.length} screenshots replaced from ${shotsDir}`,
+      )
+    console.log(
+      '[play-publish] Upload committed. Verify Publishing overview in Play Console: API success does not prove the changes were sent for review or published.',
+    )
     return
   }
 
@@ -689,7 +794,10 @@ async function main() {
   // for a second app is both slow and easy to get wrong by one address.
   if (testersMode) {
     const groups = args.groups === undefined ? null : parseList(args.groups)
-    const edit = await playFetch(token, editsPath(packageName), { method: 'POST', body: {} })
+    const edit = await playFetch(token, editsPath(packageName), {
+      method: 'POST',
+      body: {},
+    })
 
     for (const track of tracks) {
       const path = `${editsPath(packageName, edit.id)}/testers/${track}`
@@ -697,21 +805,29 @@ async function main() {
         const current = await playFetch(token, path)
         const found = current.googleGroups ?? []
         console.log(
-          `[play-publish] ${packageName} ${track}: ${found.length ? found.join(', ') : '(no Google Groups)'}`
+          `[play-publish] ${packageName} ${track}: ${found.length ? found.join(', ') : '(no Google Groups)'}`,
         )
       } else {
-        await playFetch(token, path, { method: 'PUT', body: { googleGroups: groups } })
-        console.log(`[play-publish] ${packageName} ${track} <- ${groups.join(', ')}`)
+        await playFetch(token, path, {
+          method: 'PUT',
+          body: { googleGroups: groups },
+        })
+        console.log(
+          `[play-publish] ${packageName} ${track} <- ${groups.join(', ')}`,
+        )
       }
     }
 
     if (groups === null) {
       // A read must not commit: it would publish an empty edit, and the point of
       // reading is to change nothing.
-      await playFetch(token, editsPath(packageName, edit.id), { method: 'DELETE', bestEffort: true })
+      await playFetch(token, editsPath(packageName, edit.id), {
+        method: 'DELETE',
+        bestEffort: true,
+      })
       console.log('[play-publish] read only, nothing written.')
       console.log(
-        '[play-publish] Individually-listed tester emails are invisible here; Play\'s API knows only groups.'
+        "[play-publish] Individually-listed tester emails are invisible here; Play's API knows only groups.",
       )
       return
     }
@@ -728,8 +844,14 @@ async function main() {
   // same edit from the same generated file the release used.
   if (setNotesMode) {
     const versionCode = Number(args['version-code'])
-    const edit = await playFetch(token, editsPath(packageName), { method: 'POST', body: {} })
-    const { tracks: current } = await playFetch(token, `${editsPath(packageName, edit.id)}/tracks`)
+    const edit = await playFetch(token, editsPath(packageName), {
+      method: 'POST',
+      body: {},
+    })
+    const { tracks: current } = await playFetch(
+      token,
+      `${editsPath(packageName, edit.id)}/tracks`,
+    )
 
     // Resolve every track before writing any: a partial rewrite would leave the
     // tracks disagreeing about what the same build changed.
@@ -737,23 +859,43 @@ async function main() {
     for (const track of tracks) {
       const found = findRelease(current, versionCode, track)
       if (!found || found.track !== track) {
-        await playFetch(token, editsPath(packageName, edit.id), { method: 'DELETE', bestEffort: true })
-        fail(`versionCode ${versionCode} is not on '${track}', so it has no notes there to rewrite.`)
+        await playFetch(token, editsPath(packageName, edit.id), {
+          method: 'DELETE',
+          bestEffort: true,
+        })
+        fail(
+          `versionCode ${versionCode} is not on '${track}', so it has no notes there to rewrite.`,
+        )
       }
       targets.push({ track, release: found.release })
     }
 
     for (const { track, release } of targets) {
-      await playFetch(token, `${editsPath(packageName, edit.id)}/tracks/${track}`, {
-        method: 'PUT',
-        body: { track, releases: [{ ...withReleaseNotes(release, notes),
-          ...(localizedNotes ? { releaseNotes: localizedNotes } : {}) }] }
-      })
-      console.log(`[play-publish] track ${track} <- new notes for versionCode ${versionCode}`)
+      await playFetch(
+        token,
+        `${editsPath(packageName, edit.id)}/tracks/${track}`,
+        {
+          method: 'PUT',
+          body: {
+            track,
+            releases: [
+              {
+                ...withReleaseNotes(release, notes),
+                ...(localizedNotes ? { releaseNotes: localizedNotes } : {}),
+              },
+            ],
+          },
+        },
+      )
+      console.log(
+        `[play-publish] track ${track} <- new notes for versionCode ${versionCode}`,
+      )
     }
     await commitEdit(token, packageName, edit.id)
-    console.log(`[play-publish] committed. notes rewritten on ${tracks.join(', ')}`)
-    console.log('--- what\'s new ---')
+    console.log(
+      `[play-publish] committed. notes rewritten on ${tracks.join(', ')}`,
+    )
+    console.log("--- what's new ---")
     console.log(notesLog)
     return
   }
@@ -767,22 +909,32 @@ async function main() {
   if (promoteMode) {
     const target = tracks[0]
     const versionCode = Number(args['version-code'])
-    const edit = await playFetch(token, editsPath(packageName), { method: 'POST', body: {} })
-    const { tracks: current } = await playFetch(token, `${editsPath(packageName, edit.id)}/tracks`)
+    const edit = await playFetch(token, editsPath(packageName), {
+      method: 'POST',
+      body: {},
+    })
+    const { tracks: current } = await playFetch(
+      token,
+      `${editsPath(packageName, edit.id)}/tracks`,
+    )
     console.log('[play-publish] current Play tracks:')
     console.log(describeTracks(current))
 
     const found = findRelease(current, versionCode, args.from)
     if (!found) {
-      await playFetch(token, editsPath(packageName, edit.id), { method: 'DELETE' })
+      await playFetch(token, editsPath(packageName, edit.id), {
+        method: 'DELETE',
+      })
       fail(
         `versionCode ${versionCode} is not on any track, so there is nothing to promote.\n` +
-          'Upload the build through the release workflow first.'
+          'Upload the build through the release workflow first.',
       )
     }
     const blocker = promotionBlocker(current, versionCode, target)
     if (blocker) {
-      await playFetch(token, editsPath(packageName, edit.id), { method: 'DELETE' })
+      await playFetch(token, editsPath(packageName, edit.id), {
+        method: 'DELETE',
+      })
       fail(blocker)
     }
 
@@ -792,7 +944,7 @@ async function main() {
     const release = {
       name: versionName || source.name,
       versionCodes: [String(versionCode)],
-      status: rollout === null ? 'completed' : 'inProgress'
+      status: rollout === null ? 'completed' : 'inProgress',
     }
     if (rollout !== null) release.userFraction = rollout
     if (source.releaseNotes?.length) release.releaseNotes = source.releaseNotes
@@ -800,43 +952,66 @@ async function main() {
     // `tolerate` rather than a bare call: Play answers an ineligible track with a
     // bare "Precondition check failed", and passing that through verbatim is the
     // difference between a two-minute answer and an afternoon.
-    const written = await playFetch(token, `${editsPath(packageName, edit.id)}/tracks/${target}`, {
-      method: 'PUT',
-      body: { track: target, releases: [release] },
-      tolerate: 'FAILED_PRECONDITION'
-    })
+    const written = await playFetch(
+      token,
+      `${editsPath(packageName, edit.id)}/tracks/${target}`,
+      {
+        method: 'PUT',
+        body: { track: target, releases: [release] },
+        tolerate: 'FAILED_PRECONDITION',
+      },
+    )
     if (written?.error) {
-      await playFetch(token, editsPath(packageName, edit.id), { method: 'DELETE', bestEffort: true })
+      await playFetch(token, editsPath(packageName, edit.id), {
+        method: 'DELETE',
+        bestEffort: true,
+      })
       fail(trackPreconditionHelp(target, 'FAILED_PRECONDITION'))
     }
-    if (productionOnly) await retireTestingTracks(token, packageName, edit.id, current)
+    if (productionOnly)
+      await retireTestingTracks(token, packageName, edit.id, current)
     await commitEdit(token, packageName, edit.id)
 
-    const reach = rollout === null ? 'all users' : `${(rollout * 100).toFixed(0)}% of users`
+    const reach =
+      rollout === null ? 'all users' : `${(rollout * 100).toFixed(0)}% of users`
     console.log(
       `[play-publish] committed. versionCode ${versionCode} promoted from ${found.track} ` +
-        `to ${target} (${release.name}) for ${reach}`
+        `to ${target} (${release.name}) for ${reach}`,
     )
     if (!source.releaseNotes?.length) {
-      console.log('[play-publish] the source release carried no notes, so none were set.')
+      console.log(
+        '[play-publish] the source release carried no notes, so none were set.',
+      )
     }
     return
   }
 
   // --- --check: report state, verify the versionCode can still be used ------
   if (args.check) {
-    const edit = await playFetch(token, editsPath(packageName), { method: 'POST', body: {} })
-    const { tracks } = await playFetch(token, `${editsPath(packageName, edit.id)}/tracks`)
+    const edit = await playFetch(token, editsPath(packageName), {
+      method: 'POST',
+      body: {},
+    })
+    const { tracks } = await playFetch(
+      token,
+      `${editsPath(packageName, edit.id)}/tracks`,
+    )
     console.log('[play-publish] current Play tracks:')
     console.log(describeTracks(tracks))
     const highest = highestVersionCode(tracks)
-    console.log(`[play-publish] highest versionCode on Play: ${highest || '(none)'}`)
+    console.log(
+      `[play-publish] highest versionCode on Play: ${highest || '(none)'}`,
+    )
     // Read-only probe: drop the edit so it can't linger and block later edits.
-    await playFetch(token, editsPath(packageName, edit.id), { method: 'DELETE' })
+    await playFetch(token, editsPath(packageName, edit.id), {
+      method: 'DELETE',
+    })
 
     const intended = Number(args['version-code'])
     if (Number.isFinite(intended) && intended > 0) {
-      console.log(`[play-publish] this build would upload versionCode ${intended}`)
+      console.log(
+        `[play-publish] this build would upload versionCode ${intended}`,
+      )
       if (intended <= highest) {
         fail(
           `versionCode ${intended} is not higher than ${highest}, which Play already has.\n` +
@@ -844,7 +1019,7 @@ async function main() {
             'rejected after the Android build finishes.\n\n' +
             `Fix: set the repo variable PLAY_VERSION_CODE_OFFSET to at least ${highest - intended + 1}\n` +
             '(gh variable set PLAY_VERSION_CODE_OFFSET --body "<n>"). It is added to the workflow\n' +
-            'run number, so every later run stays above Play as well.'
+            'run number, so every later run stays above Play as well.',
         )
       }
     }
@@ -852,44 +1027,62 @@ async function main() {
   }
 
   // --- publish -------------------------------------------------------------
-  const edit = await playFetch(token, editsPath(packageName), { method: 'POST', body: {} })
+  const edit = await playFetch(token, editsPath(packageName), {
+    method: 'POST',
+    body: {},
+  })
   console.log(`[play-publish] edit ${edit.id} created`)
 
   const uploaded = await playFetch(
     token,
     `/upload${editsPath(packageName, edit.id)}/bundles?uploadType=media`,
-    { method: 'POST', raw: bundle }
+    { method: 'POST', raw: bundle },
   )
   const versionCode = uploaded.versionCode
-  console.log(`[play-publish] uploaded ${aab} (${(bundle.length / 1e6).toFixed(1)} MB) as versionCode ${versionCode}`)
+  console.log(
+    `[play-publish] uploaded ${aab} (${(bundle.length / 1e6).toFixed(1)} MB) as versionCode ${versionCode}`,
+  )
 
   // All release changes stay inside this edit until every track update succeeds.
   for (const track of tracks) {
-    await playFetch(token, `${editsPath(packageName, edit.id)}/tracks/${track}`, {
-      method: 'PUT',
-      body: {
-        track,
-        releases: [
-          {
-            name: versionName,
-            versionCodes: [String(versionCode)],
-            status,
-            releaseNotes: localizedNotes ?? [{ language: NOTE_LANGUAGE, text: notes }]
-          }
-        ]
-      }
-    })
-    console.log(`[play-publish] track ${track} <- versionCode ${versionCode} (${status})`)
+    await playFetch(
+      token,
+      `${editsPath(packageName, edit.id)}/tracks/${track}`,
+      {
+        method: 'PUT',
+        body: {
+          track,
+          releases: [
+            {
+              name: versionName,
+              versionCodes: [String(versionCode)],
+              status,
+              releaseNotes: localizedNotes ?? [
+                { language: NOTE_LANGUAGE, text: notes },
+              ],
+            },
+          ],
+        },
+      },
+    )
+    console.log(
+      `[play-publish] track ${track} <- versionCode ${versionCode} (${status})`,
+    )
   }
 
   if (productionOnly) {
-    const { tracks: current } = await playFetch(token, `${editsPath(packageName, edit.id)}/tracks`)
+    const { tracks: current } = await playFetch(
+      token,
+      `${editsPath(packageName, edit.id)}/tracks`,
+    )
     await retireTestingTracks(token, packageName, edit.id, current)
   }
   await commitEdit(token, packageName, edit.id)
 
-  console.log(`[play-publish] committed. ${versionName} (versionCode ${versionCode}) -> ${tracks.join(', ')}`)
-  console.log('--- what\'s new ---')
+  console.log(
+    `[play-publish] committed. ${versionName} (versionCode ${versionCode}) -> ${tracks.join(', ')}`,
+  )
+  console.log("--- what's new ---")
   console.log(notesLog)
 }
 

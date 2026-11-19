@@ -17,7 +17,9 @@ const listeners = new Set<() => void>()
 /** Subscribe to dialog-stack changes without polling or duplicating its state. */
 export function subscribeBackAwareDialogs(listener: () => void): () => void {
   listeners.add(listener)
-  return () => { listeners.delete(listener) }
+  return () => {
+    listeners.delete(listener)
+  }
 }
 
 /** Notify subscribers after the authoritative dialog stack changes. */
@@ -26,7 +28,10 @@ export function notifyBackAwareDialogs(): void {
 }
 
 /** Called once by BackAwareModal with a reader over its live dialog stack. */
-export function setBackAwareDialogProbe(fn: () => boolean, pending: () => boolean = fn): void {
+export function setBackAwareDialogProbe(
+  fn: () => boolean,
+  pending: () => boolean = fn,
+): void {
   probe = fn
   pendingProbe = pending
 }

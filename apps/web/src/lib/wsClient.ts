@@ -32,18 +32,30 @@ function handleEvent(event: WsEvent): void {
       break
     case 'occurrence.fired':
     case 'occurrence.changed':
-      void queryClient.invalidateQueries({ queryKey: queryKeys.occurrencesActive })
-      void queryClient.invalidateQueries({ queryKey: queryKeys.occurrencesUpcoming })
-      void queryClient.invalidateQueries({ queryKey: queryKeys.occurrencesHistory })
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.occurrencesActive,
+      })
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.occurrencesUpcoming,
+      })
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.occurrencesHistory,
+      })
       // The list shows each reminder's latest-occurrence status, so refresh it too.
       void queryClient.invalidateQueries({ queryKey: queryKeys.reminders })
       break
     case 'reminder.changed':
       void queryClient.invalidateQueries({ queryKey: queryKeys.reminders })
       void queryClient.invalidateQueries({ queryKey: queryKeys.receivedShares })
-      void queryClient.invalidateQueries({ queryKey: queryKeys.occurrencesActive })
-      void queryClient.invalidateQueries({ queryKey: queryKeys.occurrencesUpcoming })
-      void queryClient.invalidateQueries({ queryKey: queryKeys.occurrencesHistory })
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.occurrencesActive,
+      })
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.occurrencesUpcoming,
+      })
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.occurrencesHistory,
+      })
       break
     case 'share.changed':
       // Remove old content immediately: this event may mean access was revoked.
@@ -54,8 +66,12 @@ function handleEvent(event: WsEvent): void {
       void queryClient.resetQueries({ queryKey: ['occurrences'] })
       break
     case 'assignment.changed':
-      void queryClient.invalidateQueries({ queryKey: queryKeys.assignmentsSent })
-      void queryClient.invalidateQueries({ queryKey: queryKeys.assignmentsReceived })
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.assignmentsSent,
+      })
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.assignmentsReceived,
+      })
       break
     case 'dismiss':
       // Another device acked/snoozed/deleted: clear any OS notification we're
@@ -66,7 +82,9 @@ function handleEvent(event: WsEvent): void {
       // Another device silenced the escalation: the occurrence is still active,
       // so just refresh the feed. The SW gets its own `silence` push to downgrade
       // the shown notification; native handles it in nativeSync.
-      void queryClient.invalidateQueries({ queryKey: queryKeys.occurrencesActive })
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.occurrencesActive,
+      })
       void queryClient.invalidateQueries({ queryKey: queryKeys.reminders })
       break
     case 'ping':
@@ -83,9 +101,12 @@ function handleEvent(event: WsEvent): void {
 
 /** Close any service-worker notification tagged with this occurrence id. */
 function closeDeviceNotification(occurrenceId: string): void {
-  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator))
+    return
   navigator.serviceWorker.ready
-    .then((registration) => registration.getNotifications({ tag: occurrenceId }))
+    .then((registration) =>
+      registration.getNotifications({ tag: occurrenceId }),
+    )
     .then((list) => list.forEach((n) => n.close()))
     .catch(() => {})
 }

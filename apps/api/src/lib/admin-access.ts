@@ -12,7 +12,10 @@ export function initialAdminGrant(verifiedEmail: string): boolean {
 /** Reject anonymous and ordinary accounts before querying cross-user statistics. */
 export async function requireAdmin(request: Request): Promise<string> {
   const userId = requireUserId(request)
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { isAdmin: true } })
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { isAdmin: true },
+  })
   if (!user?.isAdmin) throw forbidden('Administrator access required.')
   return userId
 }

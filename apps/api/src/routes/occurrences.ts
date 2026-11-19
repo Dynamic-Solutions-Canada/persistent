@@ -17,7 +17,7 @@ import {
   snoozeInputSchema,
   todoItems,
   type OccurrenceStatus,
-  type TypeData
+  type TypeData,
 } from '@persistent/shared'
 import { prisma } from '../lib/prisma.js'
 import { requireUser, requireUserId } from '../lib/auth-middleware.js'
@@ -25,10 +25,18 @@ import { badRequest, conflict, notFound } from '../lib/http-error.js'
 import { toOccurrence, toCheckedItemIds } from '../lib/serializers.js'
 import { broadcast } from '../lib/realtime.js'
 import { dispatchToUser, nudgeNativeSync } from '../lib/delivery/index.js'
-import { notificationTitle, notificationBody } from '../lib/notification-format.js'
+import {
+  notificationTitle,
+  notificationBody,
+} from '../lib/notification-format.js'
 import { ackDecision } from '../lib/occurrence-ack.js'
 import { logger } from '../lib/logger.js'
-import { actionableOccurrence, broadcastSharedChange, participantIds, personalOccurrence } from '../lib/share-access.js'
+import {
+  actionableOccurrence,
+  broadcastSharedChange,
+  participantIds,
+  personalOccurrence,
+} from '../lib/share-access.js'
 import { withSharingReminder } from '../lib/sharing-access.js'
 import { occurrenceForActor } from '../lib/recipient-alert-state.js'
 import { broadcastAssignmentProgress } from '../lib/assignment-progress.js'
@@ -39,7 +47,11 @@ occurrencesRouter.use(requireUser)
 /** Statuses that still need user attention. */
 const ACTIVE_STATUSES: OccurrenceStatus[] = ['FIRED', 'ESCALATED', 'SNOOZED']
 /** Past entries: handled, expired, or auto-resolved by a newer firing. */
-const HISTORY_STATUSES: OccurrenceStatus[] = ['ACKNOWLEDGED', 'MISSED', 'SUPERSEDED']
+const HISTORY_STATUSES: OccurrenceStatus[] = [
+  'ACKNOWLEDGED',
+  'MISSED',
+  'SUPERSEDED',
+]
 
 /**
  * History is the only feed that grows without bound — nothing prunes acknowledged
@@ -54,18 +66,31 @@ const HISTORY_PAGE_SIZE = 50
 occurrencesRouter.get('/', async (request, response) => {
   const userId = requireUserId(request)
   const scope =
-    request.query.scope === 'upcoming' ? 'upcoming' : request.query.scope === 'history' ? 'history' : 'active'
+    request.query.scope === 'upcoming'
+      ? 'upcoming'
+      : request.query.scope === 'history'
+        ? 'history'
+        : 'active'
 
   if (scope === 'history') {
     const cursor =
-      typeof request.query.cursor === 'string' && request.query.cursor.length > 0 ? request.query.cursor : undefined
+      typeof request.query.cursor === 'string' &&
+      request.query.cursor.length > 0
+        ? request.query.cursor
+        : undefined
 
     const rows = await prisma.reminderOccurrence.findMany({
       where: {
-        OR: [{ userId }, { reminder: { shares: { some: { recipientId: userId } } } }],
-        status: { in: HISTORY_STATUSES }
+        OR: [
+          { userId },
+          { reminder: { shares: { some: { recipientId: userId } } } },
+        ],
+        status: { in: HISTORY_STATUSES },
       },
-      include: { reminder: true, recipientAlerts: { where: { recipientId: userId } } },
+      include: {
+        reminder: true,
+        recipientAlerts: { where: { recipientId: userId } },
+      },
       // A *total* ordering, deliberately. One reminder can't have two firings at
       // the same instant (@@unique([reminderId, scheduledFor])), but *different*
       // reminders routinely share one — every reminder set to 09:00 fires
@@ -77,14 +102,16 @@ occurrencesRouter.get('/', async (request, response) => {
       // query; it is sliced off before serializing.
       take: HISTORY_PAGE_SIZE + 1,
       // `skip: 1` steps past the cursor row itself — the client already has it.
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {})
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     })
 
     const hasMore = rows.length > HISTORY_PAGE_SIZE
     const page = hasMore ? rows.slice(0, HISTORY_PAGE_SIZE) : rows
     response.json({
-      occurrences: page.map((row) => toOccurrence(occurrenceForActor(row, userId, row.recipientAlerts[0]))),
-      nextCursor: hasMore ? (page[page.length - 1]?.id ?? null) : null
+      occurrences: page.map((row) =>
+        toOccurrence(occurrenceForActor(row, userId, row.recipientAlerts[0])),
+      ),
+      nextCursor: hasMore ? (page[page.length - 1]?.id ?? null) : null,
     })
     return
   }
@@ -97,15 +124,23 @@ occurrencesRouter.get('/', async (request, response) => {
   const occurrences = await prisma.reminderOccurrence.findMany({
     where: {
       ...statusWhere,
-      OR: [{ userId }, { reminder: { shares: { some: { recipientId: userId } } } }]
+      OR: [
+        { userId },
+        { reminder: { shares: { some: { recipientId: userId } } } },
+      ],
     },
-    include: { reminder: true, recipientAlerts: { where: { recipientId: userId } } },
+    include: {
+      reminder: true,
+      recipientAlerts: { where: { recipientId: userId } },
+    },
     orderBy: { scheduledFor: scope === 'upcoming' ? 'asc' : 'desc' },
-    take: scope === 'upcoming' ? 100 : 200
+    take: scope === 'upcoming' ? 100 : 200,
   })
   response.json({
-    occurrences: occurrences.map((row) => toOccurrence(occurrenceForActor(row, userId, row.recipientAlerts[0]))),
-    nextCursor: null
+    occurrences: occurrences.map((row) =>
+      toOccurrence(occurrenceForActor(row, userId, row.recipientAlerts[0])),
+    ),
+    nextCursor: null,
   })
 })
 
@@ -125,7 +160,7 @@ occurrencesRouter.post('/:id/ack', async (request, response) => {
     reminderId: existing.reminderId,
     priorStatus: personal.status,
     decision,
-    userAgent: request.get('user-agent') ?? undefined
+    userAgent: request.get('user-agent') ?? undefined,
   })
 
   if (decision === 'reject') {
@@ -140,29 +175,39 @@ occurrencesRouter.post('/:id/ack', async (request, response) => {
   // Another participant may finish between the read and write. Do not let a
   // delayed request overwrite that terminal state or send a second dismissal.
   const claimed = await prisma.reminderOccurrence.updateMany({
-    where: { id: existing.id, status: { in: ['PENDING', 'FIRED', 'ESCALATED', 'SNOOZED'] } },
+    where: {
+      id: existing.id,
+      status: { in: ['PENDING', 'FIRED', 'ESCALATED', 'SNOOZED'] },
+    },
     data: {
       status: 'ACKNOWLEDGED',
       acknowledgedAt: now,
       // A due PENDING ack (native alarm beat the server tick) never got a firedAt;
       // stamp it from scheduledFor so history/escalation anchors stay coherent.
-      ...(existing.firedAt ? {} : { firedAt: existing.scheduledFor })
-    }
+      ...(existing.firedAt ? {} : { firedAt: existing.scheduledFor }),
+    },
   })
   const updated = await prisma.reminderOccurrence.findUniqueOrThrow({
     where: { id: existing.id },
-    include: { reminder: true }
+    include: { reminder: true },
   })
   if (claimed.count === 0) {
-    response.json({ occurrence: toOccurrence(occurrenceForActor(updated, userId, null)) })
+    response.json({
+      occurrence: toOccurrence(occurrenceForActor(updated, userId, null)),
+    })
     return
   }
 
   const members = await participantIds(existing.reminderId, existing.userId)
   for (const memberId of members) await dismissEverywhere(memberId, updated.id)
-  broadcast(existing.userId, { type: 'occurrence.changed', occurrence: toOccurrence(updated) })
+  broadcast(existing.userId, {
+    type: 'occurrence.changed',
+    occurrence: toOccurrence(updated),
+  })
   await broadcastSharedChange(existing.reminderId, existing.userId)
-  response.json({ occurrence: toOccurrence(occurrenceForActor(updated, userId, null)) })
+  response.json({
+    occurrence: toOccurrence(occurrenceForActor(updated, userId, null)),
+  })
 })
 
 // Undo reopens exactly one completion; it never creates a new firing or changes its schedule.
@@ -173,49 +218,90 @@ occurrencesRouter.post('/:id/undo-done', async (request, response) => {
   const existing = await actionableOccurrence(request.params.id, userId)
   if (!existing) throw notFound('Occurrence not found.')
   const now = new Date()
-  const updated = await withSharingReminder(existing.reminderId, userId, async (transaction, reminder) => {
-    // The conditional write also serializes against Done. A retry after a later
-    // completion must never reopen that newer completion.
-    const changed = await transaction.reminderOccurrence.updateMany({
-      where: {
-        id: existing.id, userId: reminder.userId, reminderId: reminder.id,
-        status: 'ACKNOWLEDGED', acknowledgedAt: new Date(parsed.data.acknowledgedAt)
-      },
-      data: {
-        status: 'FIRED', acknowledgedAt: null, snoozedUntil: null,
-        escalatedAt: null, escalationSilencedAt: now, lastNotifiedAt: now
+  const updated = await withSharingReminder(
+    existing.reminderId,
+    userId,
+    async (transaction, reminder) => {
+      // The conditional write also serializes against Done. A retry after a later
+      // completion must never reopen that newer completion.
+      const changed = await transaction.reminderOccurrence.updateMany({
+        where: {
+          id: existing.id,
+          userId: reminder.userId,
+          reminderId: reminder.id,
+          status: 'ACKNOWLEDGED',
+          acknowledgedAt: new Date(parsed.data.acknowledgedAt),
+        },
+        data: {
+          status: 'FIRED',
+          acknowledgedAt: null,
+          snoozedUntil: null,
+          escalatedAt: null,
+          escalationSilencedAt: now,
+          lastNotifiedAt: now,
+        },
+      })
+      if (!changed.count)
+        throw conflict(
+          'This completion has changed. Refresh History before trying again.',
+        )
+      // Notes cannot have live firings. Changing back to a reminder is a separate edit.
+      if ((reminder.schedule as { kind?: string }).kind === 'never') {
+        throw conflict(
+          'This reminder is now a note. Change its schedule before undoing completion.',
+        )
       }
-    })
-    if (!changed.count) throw conflict('This completion has changed. Refresh History before trying again.')
-    // Notes cannot have live firings. Changing back to a reminder is a separate edit.
-    if ((reminder.schedule as { kind?: string }).kind === 'never') {
-      throw conflict('This reminder is now a note. Change its schedule before undoing completion.')
-    }
-    // A member who never snoozed/escalated may not have a personal state yet.
-    // Give every current recipient the same restored, non-escalated starting point.
-    const shares = await transaction.reminderShare.findMany({
-      where: { reminderId: reminder.id, reminder: { userId: reminder.userId } },
-      select: { recipientId: true }
-    })
-    await transaction.recipientAlertState.createMany({
-      data: shares.map(({ recipientId }) => ({
-        occurrenceId: existing.id, recipientId, escalationSilencedAt: now, lastNotifiedAt: now
-      })),
-      skipDuplicates: true
-    })
-    await transaction.recipientAlertState.updateMany({
-      where: { occurrenceId: existing.id, occurrence: { userId: reminder.userId } },
-      data: { snoozedUntil: null, escalatedAt: null, escalationSilencedAt: now, lastNotifiedAt: now }
-    })
-    return transaction.reminderOccurrence.findFirstOrThrow({
-      where: { id: existing.id, userId: reminder.userId }, include: { reminder: true }
-    })
+      // A member who never snoozed/escalated may not have a personal state yet.
+      // Give every current recipient the same restored, non-escalated starting point.
+      const shares = await transaction.reminderShare.findMany({
+        where: {
+          reminderId: reminder.id,
+          reminder: { userId: reminder.userId },
+        },
+        select: { recipientId: true },
+      })
+      await transaction.recipientAlertState.createMany({
+        data: shares.map(({ recipientId }) => ({
+          occurrenceId: existing.id,
+          recipientId,
+          escalationSilencedAt: now,
+          lastNotifiedAt: now,
+        })),
+        skipDuplicates: true,
+      })
+      await transaction.recipientAlertState.updateMany({
+        where: {
+          occurrenceId: existing.id,
+          occurrence: { userId: reminder.userId },
+        },
+        data: {
+          snoozedUntil: null,
+          escalatedAt: null,
+          escalationSilencedAt: now,
+          lastNotifiedAt: now,
+        },
+      })
+      return transaction.reminderOccurrence.findFirstOrThrow({
+        where: { id: existing.id, userId: reminder.userId },
+        include: { reminder: true },
+      })
+    },
+  )
+  logger.info('occurrence completion undone', {
+    occurrenceId: updated.id,
+    reminderId: updated.reminderId,
+    actorId: userId,
   })
-  logger.info('occurrence completion undone', { occurrenceId: updated.id, reminderId: updated.reminderId, actorId: userId })
-  broadcast(updated.userId, { type: 'occurrence.changed', occurrence: toOccurrence(updated) })
+  broadcast(updated.userId, {
+    type: 'occurrence.changed',
+    occurrence: toOccurrence(updated),
+  })
   await broadcastSharedChange(updated.reminderId, updated.userId)
   void nudgeNativeSync(updated.userId).catch((error) =>
-    logger.warn('undo completion sync nudge failed', { error: String(error), occurrenceId: updated.id })
+    logger.warn('undo completion sync nudge failed', {
+      error: String(error),
+      occurrenceId: updated.id,
+    }),
   )
   response.json({ occurrence: toOccurrence(updated) })
 })
@@ -231,50 +317,75 @@ occurrencesRouter.post('/:id/snooze', async (request, response) => {
 
   // Only a nagging occurrence can be snoozed — a queued device snooze draining
   // after an ack must not resurrect a terminal occurrence (same guard as silence).
-  if (personal.status !== 'FIRED' && personal.status !== 'ESCALATED' && personal.status !== 'SNOOZED') {
+  if (
+    personal.status !== 'FIRED' &&
+    personal.status !== 'ESCALATED' &&
+    personal.status !== 'SNOOZED'
+  ) {
     response.json({ occurrence: toOccurrence(personal) })
     return
   }
 
   const now = Date.now()
-  const snoozedUntil = 'until' in parsed.data
-    ? new Date(parsed.data.until)
-    : new Date(now + parsed.data.minutes * 60_000)
+  const snoozedUntil =
+    'until' in parsed.data
+      ? new Date(parsed.data.until)
+      : new Date(now + parsed.data.minutes * 60_000)
   // The picker sends an exact instant. Check its range when the request reaches
   // the server, including when an offline mutation is replayed later.
-  if (snoozedUntil.getTime() <= now || snoozedUntil.getTime() - now > MAX_SNOOZE_MINUTES * 60_000) {
+  if (
+    snoozedUntil.getTime() <= now ||
+    snoozedUntil.getTime() - now > MAX_SNOOZE_MINUTES * 60_000
+  ) {
     logger.warn('snooze time rejected', { occurrenceId: existing.id, userId })
     throw badRequest('Snooze time must be in the future and within one year.')
   }
   if (userId === existing.userId) {
     const changed = await prisma.reminderOccurrence.updateMany({
-      where: { id: existing.id, status: { in: ['FIRED', 'ESCALATED', 'SNOOZED'] } },
-      data: { status: 'SNOOZED', snoozedUntil }
+      where: {
+        id: existing.id,
+        status: { in: ['FIRED', 'ESCALATED', 'SNOOZED'] },
+      },
+      data: { status: 'SNOOZED', snoozedUntil },
     })
     const updated = await prisma.reminderOccurrence.findUniqueOrThrow({
       where: { id: existing.id },
-      include: { reminder: true }
+      include: { reminder: true },
     })
     if (changed.count === 0) {
       response.json({ occurrence: toOccurrence(updated) })
       return
     }
     await dismissEverywhere(userId, updated.id)
-    broadcast(userId, { type: 'occurrence.changed', occurrence: toOccurrence(updated) })
+    broadcast(userId, {
+      type: 'occurrence.changed',
+      occurrence: toOccurrence(updated),
+    })
     await broadcastAssignmentProgress(existing.reminderId)
     response.json({ occurrence: toOccurrence(updated) })
     return
   }
 
   const state = await prisma.recipientAlertState.upsert({
-    where: { occurrenceId_recipientId: { occurrenceId: existing.id, recipientId: userId } },
+    where: {
+      occurrenceId_recipientId: {
+        occurrenceId: existing.id,
+        recipientId: userId,
+      },
+    },
     create: { occurrenceId: existing.id, recipientId: userId, snoozedUntil },
-    update: { snoozedUntil }
+    update: { snoozedUntil },
   })
   const updated = occurrenceForActor(existing, userId, state)
   await dismissEverywhere(userId, updated.id)
-  broadcast(userId, { type: 'occurrence.changed', occurrence: toOccurrence(updated) })
-  broadcast(userId, { type: 'reminder.changed', reminderId: existing.reminderId })
+  broadcast(userId, {
+    type: 'occurrence.changed',
+    occurrence: toOccurrence(updated),
+  })
+  broadcast(userId, {
+    type: 'reminder.changed',
+    reminderId: existing.reminderId,
+  })
   await broadcastAssignmentProgress(existing.reminderId)
   response.json({ occurrence: toOccurrence(updated) })
 })
@@ -293,36 +404,49 @@ occurrencesRouter.post('/:id/check', async (request, response) => {
 
   const existing = await actionableOccurrence(request.params.id, userId)
   if (!existing) throw notFound('Occurrence not found.')
-  const result = await withSharingReminder(existing.reminderId, userId, async (transaction, reminder) => {
-    const current = await transaction.reminderOccurrence.findFirst({
-      where: { id: existing.id, userId: reminder.userId, reminderId: reminder.id },
-      include: { reminder: true }
-    })
-    if (!current) throw notFound('Occurrence not found.')
-    if (current.reminder.type !== 'TODO') throw badRequest('This reminder has no checklist.')
+  const result = await withSharingReminder(
+    existing.reminderId,
+    userId,
+    async (transaction, reminder) => {
+      const current = await transaction.reminderOccurrence.findFirst({
+        where: {
+          id: existing.id,
+          userId: reminder.userId,
+          reminderId: reminder.id,
+        },
+        include: { reminder: true },
+      })
+      if (!current) throw notFound('Occurrence not found.')
+      if (current.reminder.type !== 'TODO')
+        throw badRequest('This reminder has no checklist.')
 
-    const items = todoItems((current.reminder.typeData ?? {}) as TypeData)
-    if (!items.some((item) => item.id === parsed.data.itemId)) throw notFound('Checklist item not found.')
+      const items = todoItems((current.reminder.typeData ?? {}) as TypeData)
+      if (!items.some((item) => item.id === parsed.data.itemId))
+        throw notFound('Checklist item not found.')
 
-    // Only a nagging firing has a checklist to work through. Same guard as
-    // silence/snooze: a toggle queued on a device and drained after the ack must not
-    // rewrite a finished firing's record of what was actually done.
-    if (current.status !== 'FIRED' && current.status !== 'ESCALATED' && current.status !== 'SNOOZED') {
-      return { updated: current, changed: false }
-    }
+      // Only a nagging firing has a checklist to work through. Same guard as
+      // silence/snooze: a toggle queued on a device and drained after the ack must not
+      // rewrite a finished firing's record of what was actually done.
+      if (
+        current.status !== 'FIRED' &&
+        current.status !== 'ESCALATED' &&
+        current.status !== 'SNOOZED'
+      ) {
+        return { updated: current, changed: false }
+      }
 
-    // Applied as ONE atomic statement rather than the obvious read-modify-write,
-    // which loses a tick whenever two arrive together — and they do: working down a
-    // checklist means tapping several items in quick succession, and each tap is its
-    // own request. Read-modify-write has both read `[]` before either write lands, so
-    // the second overwrites the first.
-    //
-    // `-` removes every matching element (so re-ticking can't duplicate, making the
-    // toggle idempotent for offline replays) and `||` appends. The tagged template
-    // parameterizes this atomic write; ownership and live status remain predicates
-    // even after authorization was rechecked under the reminder lock.
-    const { itemId, checked } = parsed.data
-    const changed = await transaction.$executeRaw`
+      // Applied as ONE atomic statement rather than the obvious read-modify-write,
+      // which loses a tick whenever two arrive together — and they do: working down a
+      // checklist means tapping several items in quick succession, and each tap is its
+      // own request. Read-modify-write has both read `[]` before either write lands, so
+      // the second overwrites the first.
+      //
+      // `-` removes every matching element (so re-ticking can't duplicate, making the
+      // toggle idempotent for offline replays) and `||` appends. The tagged template
+      // parameterizes this atomic write; ownership and live status remain predicates
+      // even after authorization was rechecked under the reminder lock.
+      const { itemId, checked } = parsed.data
+      const changed = await transaction.$executeRaw`
       UPDATE "ReminderOccurrence"
       SET "checkedItems" = CASE
         WHEN ${checked}::boolean THEN ("checkedItems" - ${itemId}::text) || jsonb_build_array(${itemId}::text)
@@ -331,13 +455,14 @@ occurrencesRouter.post('/:id/check', async (request, response) => {
       WHERE "id" = ${current.id} AND "userId" = ${current.userId}
         AND "status" IN ('FIRED', 'ESCALATED', 'SNOOZED')
     `
-    const updated = await transaction.reminderOccurrence.findFirstOrThrow({
-      where: { id: current.id, userId: current.userId },
-      include: { reminder: true }
-    })
+      const updated = await transaction.reminderOccurrence.findFirstOrThrow({
+        where: { id: current.id, userId: current.userId },
+        include: { reminder: true },
+      })
 
-    return { updated, changed: changed > 0 }
-  })
+      return { updated, changed: changed > 0 }
+    },
+  )
   const { updated } = result
   if (!result.changed) {
     response.json({ occurrence: toOccurrence(updated) })
@@ -350,10 +475,16 @@ occurrencesRouter.post('/:id/check', async (request, response) => {
   // with `alertOnce`, so refreshing the list never re-alerts).
   // Not awaited: working down a checklist is a burst of taps, and none of them
   // should wait on an FCM round trip to answer.
-  broadcast(existing.userId, { type: 'occurrence.changed', occurrence: toOccurrence(updated) })
+  broadcast(existing.userId, {
+    type: 'occurrence.changed',
+    occurrence: toOccurrence(updated),
+  })
   await broadcastSharedChange(existing.reminderId, existing.userId)
   void nudgeNativeSync(existing.userId).catch((error) =>
-    logger.warn('checklist sync nudge failed', { error: String(error), occurrenceId: updated.id })
+    logger.warn('checklist sync nudge failed', {
+      error: String(error),
+      occurrenceId: updated.id,
+    }),
   )
   response.json({ occurrence: toOccurrence(updated) })
 })
@@ -372,39 +503,64 @@ occurrencesRouter.post('/:id/silence', async (request, response) => {
   // terminal one: a device can queue a silence and an ack for the same occurrence
   // and drain them in one batch — without this guard the trailing silence flipped
   // the just-ACKNOWLEDGED occurrence back to FIRED, resurrecting a done reminder.
-  if (personal.status !== 'FIRED' && personal.status !== 'ESCALATED' && personal.status !== 'SNOOZED') {
+  if (
+    personal.status !== 'FIRED' &&
+    personal.status !== 'ESCALATED' &&
+    personal.status !== 'SNOOZED'
+  ) {
     response.json({ occurrence: toOccurrence(personal) })
     return
   }
 
   if (userId !== existing.userId) {
     const state = await prisma.recipientAlertState.upsert({
-      where: { occurrenceId_recipientId: { occurrenceId: existing.id, recipientId: userId } },
+      where: {
+        occurrenceId_recipientId: {
+          occurrenceId: existing.id,
+          recipientId: userId,
+        },
+      },
       create: {
         occurrenceId: existing.id,
         recipientId: userId,
-        escalationSilencedAt: new Date()
+        escalationSilencedAt: new Date(),
       },
-      update: { escalationSilencedAt: personal.escalationSilencedAt ?? new Date(), snoozedUntil: null }
+      update: {
+        escalationSilencedAt: personal.escalationSilencedAt ?? new Date(),
+        snoozedUntil: null,
+      },
     })
     const updated = occurrenceForActor(existing, userId, state)
     await silenceEverywhere(userId, updated)
-    broadcast(userId, { type: 'occurrence.changed', occurrence: toOccurrence(updated) })
-    broadcast(userId, { type: 'reminder.changed', reminderId: existing.reminderId })
+    broadcast(userId, {
+      type: 'occurrence.changed',
+      occurrence: toOccurrence(updated),
+    })
+    broadcast(userId, {
+      type: 'reminder.changed',
+      reminderId: existing.reminderId,
+    })
     await broadcastAssignmentProgress(existing.reminderId)
     response.json({ occurrence: toOccurrence(updated) })
     return
   }
 
   const changed = await prisma.reminderOccurrence.updateMany({
-    where: { id: existing.id, status: { in: ['FIRED', 'ESCALATED', 'SNOOZED'] } },
+    where: {
+      id: existing.id,
+      status: { in: ['FIRED', 'ESCALATED', 'SNOOZED'] },
+    },
     // Back to FIRED (still nagging); keep firedAt as the original anchor. The
     // silenced stamp is what stops re-escalation, not the status.
-    data: { status: 'FIRED', escalationSilencedAt: existing.escalationSilencedAt ?? new Date(), snoozedUntil: null }
+    data: {
+      status: 'FIRED',
+      escalationSilencedAt: existing.escalationSilencedAt ?? new Date(),
+      snoozedUntil: null,
+    },
   })
   const updated = await prisma.reminderOccurrence.findUniqueOrThrow({
     where: { id: existing.id },
-    include: { reminder: true }
+    include: { reminder: true },
   })
   if (changed.count === 0) {
     response.json({ occurrence: toOccurrence(updated) })
@@ -412,12 +568,18 @@ occurrencesRouter.post('/:id/silence', async (request, response) => {
   }
 
   await silenceEverywhere(userId, updated)
-  broadcast(userId, { type: 'occurrence.changed', occurrence: toOccurrence(updated) })
+  broadcast(userId, {
+    type: 'occurrence.changed',
+    occurrence: toOccurrence(updated),
+  })
   await broadcastAssignmentProgress(existing.reminderId)
   response.json({ occurrence: toOccurrence(updated) })
 })
 
-async function dismissEverywhere(userId: string, occurrenceId: string): Promise<void> {
+async function dismissEverywhere(
+  userId: string,
+  occurrenceId: string,
+): Promise<void> {
   broadcast(userId, { type: 'dismiss', occurrenceId })
   await dispatchToUser(userId, { type: 'dismiss', occurrenceId })
 }
@@ -429,7 +591,10 @@ async function dismissEverywhere(userId: string, occurrenceId: string): Promise<
  */
 async function silenceEverywhere(
   userId: string,
-  occurrence: ReminderOccurrence & { reminder: Parameters<typeof notificationTitle>[0] & Parameters<typeof notificationBody>[0] }
+  occurrence: ReminderOccurrence & {
+    reminder: Parameters<typeof notificationTitle>[0] &
+      Parameters<typeof notificationBody>[0]
+  },
 ): Promise<void> {
   broadcast(userId, { type: 'silence', occurrenceId: occurrence.id })
   // No tones here, deliberately. What the alarm drops back to is a soft nag, which
@@ -442,7 +607,10 @@ async function silenceEverywhere(
     type: 'silence',
     occurrenceId: occurrence.id,
     title: notificationTitle(occurrence.reminder),
-    body: notificationBody(occurrence.reminder, toCheckedItemIds(occurrence.checkedItems)),
-    alarm: false
+    body: notificationBody(
+      occurrence.reminder,
+      toCheckedItemIds(occurrence.checkedItems),
+    ),
+    alarm: false,
   })
 }

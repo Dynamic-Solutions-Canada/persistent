@@ -70,7 +70,7 @@ npm run prepare:android   # build web -> cap add android -> wire plugin -> cap s
      meta-data plus `automotive_app_desc.xml` that project reminder notifications into
      the car (`CarProjection.kt`), and the templated car screen listing the whole
      reminder set (`ReminderCarAppService.kt`). The Play build carries no Auto surface —
-     declaring the notification mirror makes it a *messaging* app in Play's Auto review,
+     declaring the notification mirror makes it a _messaging_ app in Play's Auto review,
      which a reminder app fails; see `docs/alarm-architecture.md` (Android Auto) and
      `store/play-readiness.md` #1b,
    - adds the `androidx.viewpager2` dependency, which the full-screen alarm surface
@@ -83,6 +83,7 @@ npm run prepare:android   # build web -> cap add android -> wire plugin -> cap s
 
 To turn on FCM (the wake / cross-device / closed-app backup; on-device alarms cover
 the core firing), provision Firebase — it stays inert until you do:
+
 - **APK:** drop `google-services.json` into `android/app/` before assembling (the
   generated `app/build.gradle` applies the Google Services Gradle plugin only when
   the file is present). CI injects it from the `GOOGLE_SERVICES_JSON` secret in
@@ -208,7 +209,7 @@ The complete carousel remains blocked by native escalation and unrelated lab ico
 
 `MainActivity.drawEdgeToEdge()` lets the WebView fill the display under
 transparent system bars, rather than padding it by the insets. Padding left a grey
-band above and below every screen: that band showed the *window* background, which
+band above and below every screen: that band showed the _window_ background, which
 the web UI's own themed background never reaches.
 
 That makes the layout depend on the **hosted** web bundle, which the APK loads
@@ -322,13 +323,13 @@ Both distribution channels now use the Play flavor. The direct flavor remains
 for legacy compatibility and local testing, including the native updater and
 Android Auto capabilities that Google Play does not allow in this app:
 
-| | `direct` (legacy/local builds) | `play` (Play and GitHub) |
-| --- | --- | --- |
-| `UpdatePlugin` | compiled in, registered | absent |
-| `REQUEST_INSTALL_PACKAGES` | declared | **not** declared |
-| Updates via | retired; install the new app | Google Play or manual GitHub APKs |
-| Android Auto **car screen** (`ReminderCarAppService`) | compiled in, declared | absent |
-| Android Auto **notification** mirror | yes | **no** |
+|                                                       | `direct` (legacy/local builds) | `play` (Play and GitHub)          |
+| ----------------------------------------------------- | ------------------------------ | --------------------------------- |
+| `UpdatePlugin`                                        | compiled in, registered        | absent                            |
+| `REQUEST_INSTALL_PACKAGES`                            | declared                       | **not** declared                  |
+| Updates via                                           | retired; install the new app   | Google Play or manual GitHub APKs |
+| Android Auto **car screen** (`ReminderCarAppService`) | compiled in, declared          | absent                            |
+| Android Auto **notification** mirror                  | yes                            | **no**                            |
 
 The whole Auto integration is split out because a templated Auto app has to declare one
 of Auto's approved categories and a reminder app is none of them. The Play artifact has

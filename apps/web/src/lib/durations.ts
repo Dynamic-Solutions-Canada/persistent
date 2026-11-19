@@ -21,7 +21,7 @@ export const DURATION_PRESETS: DurationPreset[] = [
   { label: '1 day', minutes: 1440 },
   { label: '1 week', minutes: 10080 },
   { label: '2 weeks', minutes: 20160 },
-  { label: '1 month', minutes: 43200 }
+  { label: '1 month', minutes: 43200 },
 ]
 
 /** Presets offered when snoozing. */
@@ -32,7 +32,7 @@ export const SNOOZE_PRESETS: DurationPreset[] = [
   { label: '30 min', minutes: 30 },
   { label: '1 hr', minutes: 60 },
   { label: '3 hr', minutes: 180 },
-  { label: '1 day', minutes: 1440 }
+  { label: '1 day', minutes: 1440 },
 ]
 
 export interface DurationUnit {
@@ -46,13 +46,17 @@ export const DURATION_UNITS: DurationUnit[] = [
   { label: 'hrs', minutes: 60 },
   { label: 'days', minutes: 1440 },
   { label: 'months', minutes: 43200 },
-  { label: 'years', minutes: 525600 }
+  { label: 'years', minutes: 525600 },
 ]
 
 /** Split a minute total into the largest whole unit (for the custom editor). */
-export function minutesToCustom(total: number): { value: number; unit: string } {
+export function minutesToCustom(total: number): {
+  value: number
+  unit: string
+} {
   for (const u of [...DURATION_UNITS].reverse()) {
-    if (total % u.minutes === 0) return { value: total / u.minutes, unit: u.label }
+    if (total % u.minutes === 0)
+      return { value: total / u.minutes, unit: u.label }
   }
   return { value: total, unit: 'mins' }
 }
@@ -66,10 +70,18 @@ export function customToMinutes(value: number, unit: string): number {
  * Preserve a chosen local minute as an exact instant. Converting it to a whole
  * minute duration can move the saved time into the preceding displayed minute.
  */
-export function snoozeUntilInput(local: string, from: Date = new Date()): SnoozeInput | null {
+export function snoozeUntilInput(
+  local: string,
+  from: Date = new Date(),
+): SnoozeInput | null {
   const target = new Date(local)
   const delay = target.getTime() - from.getTime()
-  if (!Number.isFinite(delay) || delay <= 0 || delay > MAX_SNOOZE_MINUTES * 60_000) return null
+  if (
+    !Number.isFinite(delay) ||
+    delay <= 0 ||
+    delay > MAX_SNOOZE_MINUTES * 60_000
+  )
+    return null
   return { until: target.toISOString() }
 }
 

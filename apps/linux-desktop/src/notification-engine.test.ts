@@ -1,20 +1,43 @@
 /** Native presentation invariants with injected time and a controllable notification daemon. */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { NotificationEngine, type NotificationSurface } from './notification-engine.js'
+import {
+  NotificationEngine,
+  type NotificationSurface,
+} from './notification-engine.js'
 import { activeProjection, type PresentedAlarm } from './projection.js'
 
-function alarm(id = 'one', extra: Partial<PresentedAlarm> = {}): PresentedAlarm {
+function alarm(
+  id = 'one',
+  extra: Partial<PresentedAlarm> = {},
+): PresentedAlarm {
   return {
-    occurrenceId: id, reminderId: 'reminder', title: 'Synthetic reminder', body: 'Unticked item', fireAtMs: 0,
-    soundIntervalSeconds: 0, alarm: false, ongoing: true, canSilence: false, soundKind: 'notification',
-    sound: null, nagSound: null, shadeProminence: 'INHERIT', escalated: false, ...extra
+    occurrenceId: id,
+    reminderId: 'reminder',
+    title: 'Synthetic reminder',
+    body: 'Unticked item',
+    fireAtMs: 0,
+    soundIntervalSeconds: 0,
+    alarm: false,
+    ongoing: true,
+    canSilence: false,
+    soundKind: 'notification',
+    sound: null,
+    nagSound: null,
+    shadeProminence: 'INHERIT',
+    escalated: false,
+    ...extra,
   }
 }
 function fixture() {
   let time = 10_000
   let sequence = 0
-  const shown: { id: number; alarm: PresentedAlarm; confirming: boolean; audible: boolean }[] = []
+  const shown: {
+    id: number
+    alarm: PresentedAlarm
+    confirming: boolean
+    audible: boolean
+  }[] = []
   const closed: number[] = []
   const audio: boolean[] = []
   const writes: [string, string][] = []
@@ -26,33 +49,65 @@ function fixture() {
       shown.push({ id, alarm, confirming, audible })
       return id
     },
-    async close(id) { closed.push(id) },
-    audio: (active) => audio.push(active), open: (id, snooze) => opened.push([id, snooze]),
-    async write(id, action) { writes.push([id, action]); return true },
-    error: (message) => errors.push(message)
+    async close(id) {
+      closed.push(id)
+    },
+    audio: (active) => audio.push(active),
+    open: (id, snooze) => opened.push([id, snooze]),
+    async write(id, action) {
+      writes.push([id, action])
+      return true
+    },
+    error: (message) => errors.push(message),
   }
   const engine = new NotificationEngine(surface, () => time)
-  return { engine, surface, shown, closed, audio, writes, opened, errors, advance: (ms: number) => { time += ms } }
+  return {
+    engine,
+    surface,
+    shown,
+    closed,
+    audio,
+    writes,
+    opened,
+    errors,
+    advance: (ms: number) => {
+      time += ms
+    },
+  }
 }
 
 test('shared projection selects only due alarms, escalation wins independent of order, and malformed reads reject', () => {
   const base = alarm()
   const escalated = alarm('one::esc', { fireAtMs: 100 })
-  const snapshot = { serverTime: new Date(200).toISOString(), alarms: [escalated, base, alarm('future', { fireAtMs: 300 })] }
+  const snapshot = {
+    serverTime: new Date(200).toISOString(),
+    alarms: [escalated, base, alarm('future', { fireAtMs: 300 })],
+  }
   const projection = activeProjection(snapshot)
   assert.equal(projection.size, 1)
   assert.equal(projection.get('one')?.alarm, true)
   assert.equal(projection.get('one')?.canSilence, true)
-  assert.throws(() => activeProjection({ serverTime: snapshot.serverTime, alarms: [{}] }))
+  assert.throws(() =>
+    activeProjection({ serverTime: snapshot.serverTime, alarms: [{}] }),
+  )
   assert.throws(() => activeProjection({ alarms: [] }))
-  for (const invalid of [{ fireAtMs: Infinity }, { soundIntervalSeconds: Infinity }, { soundIntervalSeconds: -1 }]) {
-    assert.throws(() => activeProjection({ ...snapshot, alarms: [{ ...base, ...invalid }] }))
+  for (const invalid of [
+    { fireAtMs: Infinity },
+    { soundIntervalSeconds: Infinity },
+    { soundIntervalSeconds: -1 },
+  ]) {
+    assert.throws(() =>
+      activeProjection({ ...snapshot, alarms: [{ ...base, ...invalid }] }),
+    )
   }
 })
 
 test('two occurrences of the same reminder remain independent and unchanged recovery is quiet', async () => {
   const f = fixture()
-  const projection = new Map([['one', alarm()], ['two', alarm('two')]])
+  const projection = new Map([
+    ['one', alarm()],
+    ['two', alarm('two')],
+  ])
   await f.engine.reconcile(projection)
   await f.engine.reconcile(projection)
   assert.equal(f.shown.length, 2)
@@ -95,7 +150,9 @@ test('rejected native actions retain presentation and Snooze opens the existing 
 
 test('dismissal restoration is quiet, nags repeat on the server interval, confirmation does not re-nag', async () => {
   const f = fixture()
-  await f.engine.reconcile(new Map([['one', alarm('one', { soundIntervalSeconds: 60 })]]))
+  await f.engine.reconcile(
+    new Map([['one', alarm('one', { soundIntervalSeconds: 60 })]]),
+  )
   f.engine.closed(1, 2)
   f.advance(4999)
   await f.engine.tick()
@@ -114,7 +171,12 @@ test('dismissal restoration is quiet, nags repeat on the server interval, confir
 
 test('alarm audio remains while any alarm is active and De-escalate waits for a server projection', async () => {
   const f = fixture()
-  await f.engine.reconcile(new Map([['one', alarm('one', { alarm: true, canSilence: true })], ['two', alarm('two', { alarm: true })]]))
+  await f.engine.reconcile(
+    new Map([
+      ['one', alarm('one', { alarm: true, canSilence: true })],
+      ['two', alarm('two', { alarm: true })],
+    ]),
+  )
   assert.equal(f.audio.at(-1), true)
   await f.engine.action(1, 'silence')
   assert.deepEqual(f.writes, [['one', 'silence']])
@@ -128,8 +190,13 @@ test('alarm audio remains while any alarm is active and De-escalate waits for a 
 test('late native publication after sign-out is removed and its actions cannot reach another account', async () => {
   const f = fixture()
   let release!: (id: number) => void
-  f.surface.show = () => new Promise((resolve) => { release = resolve })
-  const pending = f.engine.reconcile(new Map([['one', alarm('one', { alarm: true })]]))
+  f.surface.show = () =>
+    new Promise((resolve) => {
+      release = resolve
+    })
+  const pending = f.engine.reconcile(
+    new Map([['one', alarm('one', { alarm: true })]]),
+  )
   await Promise.resolve()
   await f.engine.reset()
   release(99)

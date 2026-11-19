@@ -32,8 +32,17 @@ test('the new-reminder form goes up to the list', () => {
 test('screens opened from Settings go back to Settings', () => {
   // Reached only from the Settings page, so returning to the reminders list would
   // strand the user somewhere they never came from.
-  for (const child of ['/help', '/privacy', '/delete-account', '/settings/apps']) {
-    assert.equal(parentRoute(child), '/settings', `${child} should return to Settings`)
+  for (const child of [
+    '/help',
+    '/privacy',
+    '/delete-account',
+    '/settings/apps',
+  ]) {
+    assert.equal(
+      parentRoute(child),
+      '/settings',
+      `${child} should return to Settings`,
+    )
   }
 })
 

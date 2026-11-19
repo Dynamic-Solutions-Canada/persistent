@@ -22,7 +22,7 @@ import {
   findRelease,
   promotionBlocker,
   trackPreconditionHelp,
-  withReleaseNotes
+  withReleaseNotes,
   // @ts-expect-error - plain .mjs script, no type declarations
 } from './play-publish.mjs'
 
@@ -41,24 +41,35 @@ function fakePng(width: number, height: number, colorType = 2): Buffer {
 
 describe('parseArgs', () => {
   it('reads flag/value pairs', () => {
-    assert.deepEqual(parseArgs(['--aab', 'app.aab', '--tracks', 'internal,alpha']), {
-      aab: 'app.aab',
-      tracks: 'internal,alpha'
-    })
+    assert.deepEqual(
+      parseArgs(['--aab', 'app.aab', '--tracks', 'internal,alpha']),
+      {
+        aab: 'app.aab',
+        tracks: 'internal,alpha',
+      },
+    )
   })
 
   it('treats a flag with no value as a boolean', () => {
-    assert.deepEqual(parseArgs(['--check', '--version-code', '40']), { check: true, 'version-code': '40' })
+    assert.deepEqual(parseArgs(['--check', '--version-code', '40']), {
+      check: true,
+      'version-code': '40',
+    })
   })
 
   it('ignores positional noise', () => {
-    assert.deepEqual(parseArgs(['stray', '--status', 'draft']), { status: 'draft' })
+    assert.deepEqual(parseArgs(['stray', '--status', 'draft']), {
+      status: 'draft',
+    })
   })
 })
 
 describe('parseList', () => {
   it('splits, trims and dedupes', () => {
-    assert.deepEqual(parseList(' internal, alpha ,internal'), ['internal', 'alpha'])
+    assert.deepEqual(parseList(' internal, alpha ,internal'), [
+      'internal',
+      'alpha',
+    ])
   })
 
   it('returns nothing for empty input', () => {
@@ -74,21 +85,34 @@ describe('playNotesFrom', () => {
     '- Alarms survive a reboot',
     '- Snooze picker remembers the last choice',
     '',
-    '**Full changelog**: https://github.com/x/y/compare/v1...v2'
+    '**Full changelog**: https://github.com/x/y/compare/v1...v2',
   ].join('\n')
 
   it('strips the heading and the compare link', () => {
-    assert.equal(playNotesFrom(notes), '- Alarms survive a reboot\n- Snooze picker remembers the last choice')
+    assert.equal(
+      playNotesFrom(notes),
+      '- Alarms survive a reboot\n- Snooze picker remembers the last choice',
+    )
   })
 
   it('never exceeds the limit', () => {
-    const many = Array.from({ length: 200 }, (_, i) => `- Change number ${i}`).join('\n')
+    const many = Array.from(
+      { length: 200 },
+      (_, i) => `- Change number ${i}`,
+    ).join('\n')
     const result = playNotesFrom(many)
-    assert.ok(result.length <= 500, `expected <= 500 chars, got ${result.length}`)
+    assert.ok(
+      result.length <= 500,
+      `expected <= 500 chars, got ${result.length}`,
+    )
   })
 
   it('truncates on a line boundary, keeping whole entries', () => {
-    const long = ['- ' + 'a'.repeat(300), '- ' + 'b'.repeat(300), '- ' + 'c'.repeat(10)].join('\n')
+    const long = [
+      '- ' + 'a'.repeat(300),
+      '- ' + 'b'.repeat(300),
+      '- ' + 'c'.repeat(10),
+    ].join('\n')
     const result = playNotesFrom(long)
     // Only the first line fits in 500; a partial second line would read as a
     // sentence that stops mid-word in the Play listing.
@@ -102,7 +126,10 @@ describe('playNotesFrom', () => {
   })
 
   it('falls back to generic text when nothing survives', () => {
-    assert.equal(playNotesFrom("## What's changed\n\n"), 'Bug fixes and improvements.')
+    assert.equal(
+      playNotesFrom("## What's changed\n\n"),
+      'Bug fixes and improvements.',
+    )
     assert.equal(playNotesFrom(''), 'Bug fixes and improvements.')
   })
 })
@@ -110,8 +137,11 @@ describe('playNotesFrom', () => {
 describe('highestVersionCode', () => {
   it('spans every track and release', () => {
     const tracks = [
-      { track: 'internal', releases: [{ versionCodes: ['39'] }, { versionCodes: ['41'] }] },
-      { track: 'alpha', releases: [{ versionCodes: ['40'] }] }
+      {
+        track: 'internal',
+        releases: [{ versionCodes: ['39'] }, { versionCodes: ['41'] }],
+      },
+      { track: 'alpha', releases: [{ versionCodes: ['40'] }] },
     ]
     assert.equal(highestVersionCode(tracks), 41)
   })
@@ -126,8 +156,11 @@ describe('highestVersionCode', () => {
 describe('describeTracks', () => {
   it('renders one line per track', () => {
     const out = describeTracks([
-      { track: 'internal', releases: [{ versionCodes: ['40'], status: 'completed' }] },
-      { track: 'production', releases: [] }
+      {
+        track: 'internal',
+        releases: [{ versionCodes: ['40'], status: 'completed' }],
+      },
+      { track: 'production', releases: [] },
     ])
     assert.equal(out, '  internal: 40 (completed)\n  production: (empty)')
   })
@@ -167,18 +200,24 @@ describe('listingFromMarkdown', () => {
     '',
     '```',
     'adb exec-out screencap -p > shot.png',
-    '```'
+    '```',
   ].join('\n')
 
   it('takes the block under each heading, not the Nth block in the file', () => {
     const listing = listingFromMarkdown(markdown)
-    assert.equal(listing.shortDescription, 'Reminders that nag until you confirm them done.')
+    assert.equal(
+      listing.shortDescription,
+      'Reminders that nag until you confirm them done.',
+    )
     assert.equal(listing.fullDescription, 'Line one.\n\nLine two.')
   })
 
   it('keeps blank lines inside the description', () => {
     // Play renders the paragraph breaks; collapsing them would reflow the listing.
-    assert.match(listingFromMarkdown(markdown).fullDescription, /Line one\.\n\nLine two\./)
+    assert.match(
+      listingFromMarkdown(markdown).fullDescription,
+      /Line one\.\n\nLine two\./,
+    )
   })
 
   it('throws rather than returning a partial listing', () => {
@@ -187,34 +226,51 @@ describe('listingFromMarkdown', () => {
   })
 
   it('does not borrow the next section when a heading has no block', () => {
-    const empty = ['## Short description (max 80 chars)', '', '## Full description (max 4000 chars)', '', '```', 'x', '```'].join('\n')
+    const empty = [
+      '## Short description (max 80 chars)',
+      '',
+      '## Full description (max 4000 chars)',
+      '',
+      '```',
+      'x',
+      '```',
+    ].join('\n')
     assert.throws(() => listingFromMarkdown(empty), /Short description/)
   })
 })
 
 describe('listingProblems', () => {
   it('passes copy inside the limits', () => {
-    assert.deepEqual(listingProblems({ shortDescription: 'Short.', fullDescription: 'Full.' }), [])
+    assert.deepEqual(
+      listingProblems({ shortDescription: 'Short.', fullDescription: 'Full.' }),
+      [],
+    )
   })
 
   it('catches an over-long description — the bug a hand-written count missed', () => {
     const problems = listingProblems({
       shortDescription: 'ok',
-      fullDescription: 'x'.repeat(LISTING_LIMITS.fullDescription + 1)
+      fullDescription: 'x'.repeat(LISTING_LIMITS.fullDescription + 1),
     })
     assert.equal(problems.length, 1)
     assert.match(problems[0], /fullDescription is 4001 characters/)
   })
 
   it('treats an empty field as a problem — Play reads it as "clear this"', () => {
-    const problems = listingProblems({ shortDescription: '', fullDescription: 'Full.' })
+    const problems = listingProblems({
+      shortDescription: '',
+      fullDescription: 'Full.',
+    })
     assert.match(problems[0], /shortDescription is empty/)
   })
 
   it('counts characters the way a person does, not UTF-16 units', () => {
     // An em dash and a bullet are one character each; the description is full of
     // both, so a naive .length would over-count and reject valid copy.
-    assert.deepEqual(listingProblems({ shortDescription: '— • ✓', fullDescription: 'ok' }), [])
+    assert.deepEqual(
+      listingProblems({ shortDescription: '— • ✓', fullDescription: 'ok' }),
+      [],
+    )
   })
 })
 
@@ -222,20 +278,29 @@ describe('describeListingDiff', () => {
   it('names the fields that would change', () => {
     const out = describeListingDiff(
       { shortDescription: 'old', fullDescription: 'same' },
-      { shortDescription: 'new copy', fullDescription: 'same' }
+      { shortDescription: 'new copy', fullDescription: 'same' },
     )
     assert.match(out, /shortDescription: CHANGED \(3 -> 8\/80 chars\)/)
     assert.match(out, /fullDescription: unchanged \(4\/4000 chars\)/)
   })
 
   it('handles Play returning no listing at all', () => {
-    assert.match(describeListingDiff(undefined, { shortDescription: 'a', fullDescription: 'b' }), /CHANGED \(0 -> 1/)
+    assert.match(
+      describeListingDiff(undefined, {
+        shortDescription: 'a',
+        fullDescription: 'b',
+      }),
+      /CHANGED \(0 -> 1/,
+    )
   })
 })
 
 describe('screenshot checks', () => {
   it('reads dimensions out of the PNG header', () => {
-    assert.deepEqual(pngSize(fakePng(1120, 2495)), { width: 1120, height: 2495 })
+    assert.deepEqual(pngSize(fakePng(1120, 2495)), {
+      width: 1120,
+      height: 2495,
+    })
   })
 
   it('rejects anything that is not a PNG', () => {
@@ -251,28 +316,47 @@ describe('screenshot checks', () => {
   it('passes a healthy set', () => {
     const shots = [
       { name: '00.png', bytes: fakePng(960, 2142) },
-      { name: '01.png', bytes: fakePng(1120, 2495) }
+      { name: '01.png', bytes: fakePng(1120, 2495) },
     ]
     assert.deepEqual(screenshotProblems(shots), [])
   })
 
-  it('names the offending file, since Play\'s own error does not', () => {
+  it("names the offending file, since Play's own error does not", () => {
     const shots = [
       { name: 'good.png', bytes: fakePng(1120, 2495) },
       { name: 'alpha.png', bytes: fakePng(960, 2142, 6) },
-      { name: 'tiny.png', bytes: fakePng(200, 400) }
+      { name: 'tiny.png', bytes: fakePng(200, 400) },
     ]
     const problems = screenshotProblems(shots)
-    assert.ok(problems.some((p: string) => p.startsWith('alpha.png') && /alpha channel/.test(p)))
-    assert.ok(problems.some((p: string) => p.startsWith('tiny.png') && /320-3840/.test(p)))
+    assert.ok(
+      problems.some(
+        (p: string) => p.startsWith('alpha.png') && /alpha channel/.test(p),
+      ),
+    )
+    assert.ok(
+      problems.some(
+        (p: string) => p.startsWith('tiny.png') && /320-3840/.test(p),
+      ),
+    )
     assert.ok(!problems.some((p: string) => p.startsWith('good.png')))
   })
 
-  it('enforces Play\'s 2-8 count', () => {
+  it("enforces Play's 2-8 count", () => {
     const one = [{ name: 'a.png', bytes: fakePng(1120, 2495) }]
-    assert.ok(screenshotProblems(one).some((p: string) => /2-8 phone screenshots/.test(p)))
-    const nine = Array.from({ length: 9 }, (_, i) => ({ name: `${i}.png`, bytes: fakePng(1120, 2495) }))
-    assert.ok(screenshotProblems(nine).some((p: string) => /2-8 phone screenshots/.test(p)))
+    assert.ok(
+      screenshotProblems(one).some((p: string) =>
+        /2-8 phone screenshots/.test(p),
+      ),
+    )
+    const nine = Array.from({ length: 9 }, (_, i) => ({
+      name: `${i}.png`,
+      bytes: fakePng(1120, 2495),
+    }))
+    assert.ok(
+      screenshotProblems(nine).some((p: string) =>
+        /2-8 phone screenshots/.test(p),
+      ),
+    )
   })
 })
 
@@ -283,8 +367,26 @@ describe('screenshot checks', () => {
  */
 describe('findRelease', () => {
   const tracks = [
-    { track: 'internal', releases: [{ name: '0.21.1', versionCodes: ['45'], releaseNotes: [{ language: 'en-US', text: 'internal notes' }] }] },
-    { track: 'alpha', releases: [{ name: '0.21.1 alpha', versionCodes: ['45'], releaseNotes: [{ language: 'en-US', text: 'alpha notes' }] }] }
+    {
+      track: 'internal',
+      releases: [
+        {
+          name: '0.21.1',
+          versionCodes: ['45'],
+          releaseNotes: [{ language: 'en-US', text: 'internal notes' }],
+        },
+      ],
+    },
+    {
+      track: 'alpha',
+      releases: [
+        {
+          name: '0.21.1 alpha',
+          versionCodes: ['45'],
+          releaseNotes: [{ language: 'en-US', text: 'alpha notes' }],
+        },
+      ],
+    },
   ]
 
   it('finds the release carrying a versionCode', () => {
@@ -310,28 +412,47 @@ describe('findRelease', () => {
 
 describe('promotionBlocker', () => {
   it('allows a first release to an empty track', () => {
-    assert.equal(promotionBlocker([{ track: 'alpha', releases: [{ versionCodes: ['45'] }] }], 45, 'production'), null)
+    assert.equal(
+      promotionBlocker(
+        [{ track: 'alpha', releases: [{ versionCodes: ['45'] }] }],
+        45,
+        'production',
+      ),
+      null,
+    )
   })
 
   it('allows promoting the same code the track already serves', () => {
     // Re-running a promotion should be harmless, not an error: it is how a
     // half-finished rollout gets finished.
-    const tracks = [{ track: 'production', releases: [{ versionCodes: ['45'] }] }]
+    const tracks = [
+      { track: 'production', releases: [{ versionCodes: ['45'] }] },
+    ]
     assert.equal(promotionBlocker(tracks, 45, 'production'), null)
   })
 
   it('refuses to move a track backwards', () => {
     // Play accepts this silently, and it would un-ship whatever production served.
-    const tracks = [{ track: 'production', releases: [{ versionCodes: ['46'] }] }]
-    assert.match(String(promotionBlocker(tracks, 45, 'production')), /would move it backwards/)
+    const tracks = [
+      { track: 'production', releases: [{ versionCodes: ['46'] }] },
+    ]
+    assert.match(
+      String(promotionBlocker(tracks, 45, 'production')),
+      /would move it backwards/,
+    )
   })
 })
 
 describe('withReleaseNotes', () => {
   it('replaces the notes and keeps the rest of the release', () => {
     const next = withReleaseNotes(
-      { name: '0.22.0', versionCodes: ['46'], status: 'completed', releaseNotes: [{ language: 'en-US', text: 'old' }] },
-      'new'
+      {
+        name: '0.22.0',
+        versionCodes: ['46'],
+        status: 'completed',
+        releaseNotes: [{ language: 'en-US', text: 'old' }],
+      },
+      'new',
     )
     assert.deepEqual(next.versionCodes, ['46'])
     assert.equal(next.name, '0.22.0')
@@ -342,19 +463,28 @@ describe('withReleaseNotes', () => {
   it('preserves a staged rollout rather than completing it', () => {
     // The write is a whole-release replace, so dropping userFraction/status here
     // would push a deliberately-held rollout out to everyone.
-    const next = withReleaseNotes({ versionCodes: ['46'], status: 'inProgress', userFraction: 0.2 }, 'new')
+    const next = withReleaseNotes(
+      { versionCodes: ['46'], status: 'inProgress', userFraction: 0.2 },
+      'new',
+    )
     assert.equal(next.status, 'inProgress')
     assert.equal(next.userFraction, 0.2)
   })
 
   it('does not invent a userFraction on a full release', () => {
-    assert.equal('userFraction' in withReleaseNotes({ versionCodes: ['46'], status: 'completed' }, 'new'), false)
+    assert.equal(
+      'userFraction' in
+        withReleaseNotes({ versionCodes: ['46'], status: 'completed' }, 'new'),
+      false,
+    )
   })
 })
 
 describe('trackPreconditionHelp', () => {
   it('explains an ineligible track, naming the closed-testing rule first', () => {
-    const help = String(trackPreconditionHelp('production', 'FAILED_PRECONDITION'))
+    const help = String(
+      trackPreconditionHelp('production', 'FAILED_PRECONDITION'),
+    )
     assert.match(help, /production/)
     assert.match(help, /12 testers/)
     assert.match(help, /14 continuous days/)
@@ -378,8 +508,13 @@ describe('publish request sequence', () => {
       existingListing?: unknown
       trackWriteFails?: string
       trackWriteFailsOn?: string
-    } = {}
-  ): Promise<{ calls: Call[]; stdout: string; stderr: string; code: number | null }> {
+    } = {},
+  ): Promise<{
+    calls: Call[]
+    stdout: string
+    stderr: string
+    code: number | null
+  }> {
     const http = await import('node:http')
     const { generateKeyPairSync } = await import('node:crypto')
     // spawn, not spawnSync: the mock server shares this process's event loop, so
@@ -398,25 +533,48 @@ describe('publish request sequence', () => {
       req.on('end', () => {
         const path = req.url ?? ''
         const body = Buffer.concat(chunks)
-        calls.push({ method: req.method ?? '', path, body: body.toString('utf8').slice(0, 10000) })
+        calls.push({
+          method: req.method ?? '',
+          path,
+          body: body.toString('utf8').slice(0, 10000),
+        })
         const json = (payload: unknown, status = 200) => {
           res.writeHead(status, { 'Content-Type': 'application/json' })
           res.end(JSON.stringify(payload))
         }
         if (path.endsWith('/token')) return json({ access_token: 'test-token' })
-        if (path.endsWith('/bundles?uploadType=media')) return json({ versionCode: 40 })
-        if (path.endsWith('/tracks') && req.method === 'GET') return json({ tracks: opts.existingTracks ?? [] })
-        if (opts.trackWriteFails && path.includes('/tracks/') && req.method === 'PUT' &&
-            (!opts.trackWriteFailsOn || path.endsWith(`/tracks/${opts.trackWriteFailsOn}`))) {
-          return json({ error: { code: 400, message: 'Precondition check failed.', status: opts.trackWriteFails } }, 400)
+        if (path.endsWith('/bundles?uploadType=media'))
+          return json({ versionCode: 40 })
+        if (path.endsWith('/tracks') && req.method === 'GET')
+          return json({ tracks: opts.existingTracks ?? [] })
+        if (
+          opts.trackWriteFails &&
+          path.includes('/tracks/') &&
+          req.method === 'PUT' &&
+          (!opts.trackWriteFailsOn ||
+            path.endsWith(`/tracks/${opts.trackWriteFailsOn}`))
+        ) {
+          return json(
+            {
+              error: {
+                code: 400,
+                message: 'Precondition check failed.',
+                status: opts.trackWriteFails,
+              },
+            },
+            400,
+          )
         }
         if (path.includes(`/${'phoneScreenshots'}`)) {
-          if (req.method === 'GET') return json({ images: [{ id: 'old-1' }, { id: 'old-2' }] })
+          if (req.method === 'GET')
+            return json({ images: [{ id: 'old-1' }, { id: 'old-2' }] })
           if (req.method === 'DELETE') return json({})
           return json({ image: { id: 'new' } })
         }
         if (path.endsWith('/listings') && req.method === 'GET') {
-          return json({ listings: [{ language: 'en-US', video: 'https://youtu.be/promo' }] })
+          return json({
+            listings: [{ language: 'en-US', video: 'https://youtu.be/promo' }],
+          })
         }
         if (path.includes('/listings/') && req.method === 'GET') {
           return json(
@@ -425,18 +583,30 @@ describe('publish request sequence', () => {
               title: 'Persistent: Reminders That Nag',
               shortDescription: 'The old short description.',
               fullDescription: 'The old full description.',
-              video: 'https://youtu.be/promo'
-            }
+              video: 'https://youtu.be/promo',
+            },
           )
         }
         if (path.includes(':commit')) {
           commitAttempts++
-          if (opts.commitFailsForReview && !path.includes('changesNotSentForReview')) {
-            return json({ error: { message: 'Please set the query parameter changesNotSentForReview to true.' } }, 400)
+          if (
+            opts.commitFailsForReview &&
+            !path.includes('changesNotSentForReview')
+          ) {
+            return json(
+              {
+                error: {
+                  message:
+                    'Please set the query parameter changesNotSentForReview to true.',
+                },
+              },
+              400,
+            )
           }
           return json({ id: 'edit-1', commitAttempts })
         }
-        if (path.endsWith('/edits') && req.method === 'POST') return json({ id: 'edit-1' })
+        if (path.endsWith('/edits') && req.method === 'POST')
+          return json({ id: 'edit-1' })
         return json({})
       })
     })
@@ -448,13 +618,16 @@ describe('publish request sequence', () => {
     const { privateKey: pem } = generateKeyPairSync('rsa', {
       modulusLength: 2048,
       privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
-      publicKeyEncoding: { type: 'spki', format: 'pem' }
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
     })
     const dir = mkdtempSync(join(tmpdir(), 'play-publish-'))
     const aabPath = join(dir, 'app.aab')
     writeFileSync(aabPath, Buffer.alloc(1024, 7))
     const notesPath = join(dir, 'RELEASE_NOTES.md')
-    writeFileSync(notesPath, "## What's changed\n\n- Alarms survive a reboot\n\n**Full changelog**: https://x/y\n")
+    writeFileSync(
+      notesPath,
+      "## What's changed\n\n- Alarms survive a reboot\n\n**Full changelog**: https://x/y\n",
+    )
     const listingPath = join(dir, 'listing.md')
     writeFileSync(
       listingPath,
@@ -470,8 +643,8 @@ describe('publish request sequence', () => {
         '```',
         'Every other reminder app lets you swipe away and forget.',
         '```',
-        ''
-      ].join('\n')
+        '',
+      ].join('\n'),
     )
 
     try {
@@ -480,8 +653,11 @@ describe('publish request sequence', () => {
         [
           'scripts/play-publish.mjs',
           ...args.map((a) =>
-            a.replace('{aab}', aabPath).replace('{notes}', notesPath).replace('{listing}', listingPath)
-          )
+            a
+              .replace('{aab}', aabPath)
+              .replace('{notes}', notesPath)
+              .replace('{listing}', listingPath),
+          ),
         ],
         {
           cwd: new URL('..', import.meta.url).pathname,
@@ -491,16 +667,18 @@ describe('publish request sequence', () => {
             PLAY_SERVICE_ACCOUNT_JSON: JSON.stringify({
               client_email: 'ci@test.iam.gserviceaccount.com',
               private_key: pem,
-              token_uri: `${base}/token`
-            })
-          }
-        }
+              token_uri: `${base}/token`,
+            }),
+          },
+        },
       )
       let stdout = ''
       let stderr = ''
       child.stdout.on('data', (c) => (stdout += c))
       child.stderr.on('data', (c) => (stderr += c))
-      const code = await new Promise<number | null>((resolve) => child.on('close', resolve))
+      const code = await new Promise<number | null>((resolve) =>
+        child.on('close', resolve),
+      )
       return { calls, stdout, stderr, code }
     } finally {
       // Always close: a leaked listener keeps the test runner alive forever.
@@ -517,22 +695,32 @@ describe('publish request sequence', () => {
       '--version-name',
       '0.17.0',
       '--notes',
-      '{notes}'
+      '{notes}',
     ])
     assert.equal(code, 0, `expected success, stdout:\n${stdout}`)
 
-    const edits = calls.filter((c) => c.method === 'POST' && c.path.endsWith('/edits'))
-    const uploads = calls.filter((c) => c.path.includes('/bundles?uploadType=media'))
-    const trackPuts = calls.filter((c) => c.method === 'PUT' && c.path.includes('/tracks/'))
+    const edits = calls.filter(
+      (c) => c.method === 'POST' && c.path.endsWith('/edits'),
+    )
+    const uploads = calls.filter((c) =>
+      c.path.includes('/bundles?uploadType=media'),
+    )
+    const trackPuts = calls.filter(
+      (c) => c.method === 'PUT' && c.path.includes('/tracks/'),
+    )
     const commits = calls.filter((c) => c.path.includes(':commit'))
 
     assert.equal(edits.length, 1, 'exactly one edit')
-    assert.equal(uploads.length, 1, 'the AAB is uploaded exactly once — Play rejects a reused versionCode')
+    assert.equal(
+      uploads.length,
+      1,
+      'the AAB is uploaded exactly once — Play rejects a reused versionCode',
+    )
     assert.equal(commits.length, 1, 'exactly one commit')
     assert.deepEqual(
       trackPuts.map((c) => c.path.split('/tracks/')[1]),
       ['internal', 'alpha'],
-      'both requested tracks are set'
+      'both requested tracks are set',
     )
 
     // Every track carries the versionCode the upload returned, with the notes.
@@ -541,7 +729,10 @@ describe('publish request sequence', () => {
       assert.deepEqual(payload.releases[0].versionCodes, ['40'])
       assert.equal(payload.releases[0].status, 'completed')
       assert.equal(payload.releases[0].name, '0.17.0')
-      assert.equal(payload.releases[0].releaseNotes[0].text, '- Alarms survive a reboot')
+      assert.equal(
+        payload.releases[0].releaseNotes[0].text,
+        '- Alarms survive a reboot',
+      )
     }
     // All track writes happen inside the single edit, before the commit.
     assert.ok(calls.indexOf(trackPuts[1]) < calls.indexOf(commits[0]))
@@ -550,7 +741,7 @@ describe('publish request sequence', () => {
   it('retries the commit without review submission when Play demands it', async () => {
     const { calls, code, stdout } = await runPublish(
       ['--aab', '{aab}', '--tracks', 'internal', '--version-name', '0.17.0'],
-      { commitFailsForReview: true }
+      { commitFailsForReview: true },
     )
     assert.equal(code, 0, `expected recovery, stdout:\n${stdout}`)
     const commits = calls.filter((c) => c.path.includes(':commit'))
@@ -560,20 +751,40 @@ describe('publish request sequence', () => {
   })
 
   it('--check rejects a versionCode Play already has, and leaves no edit behind', async () => {
-    const { calls, stderr, code } = await runPublish(['--check', '--version-code', '40'], {
-      existingTracks: [{ track: 'internal', releases: [{ versionCodes: ['41'], status: 'completed' }] }]
-    })
+    const { calls, stderr, code } = await runPublish(
+      ['--check', '--version-code', '40'],
+      {
+        existingTracks: [
+          {
+            track: 'internal',
+            releases: [{ versionCodes: ['41'], status: 'completed' }],
+          },
+        ],
+      },
+    )
     assert.equal(code, 1)
     assert.match(stderr, /not higher than 41/)
     assert.match(stderr, /PLAY_VERSION_CODE_OFFSET to at least 2/)
     // The read-only probe must clean up its edit even on the failure path.
-    assert.ok(calls.some((c) => c.method === 'DELETE' && c.path.includes('/edits/edit-1')))
+    assert.ok(
+      calls.some(
+        (c) => c.method === 'DELETE' && c.path.includes('/edits/edit-1'),
+      ),
+    )
   })
 
   it('--check passes and uploads nothing when the versionCode is clear', async () => {
-    const { calls, code, stdout } = await runPublish(['--check', '--version-code', '42'], {
-      existingTracks: [{ track: 'internal', releases: [{ versionCodes: ['41'], status: 'completed' }] }]
-    })
+    const { calls, code, stdout } = await runPublish(
+      ['--check', '--version-code', '42'],
+      {
+        existingTracks: [
+          {
+            track: 'internal',
+            releases: [{ versionCodes: ['41'], status: 'completed' }],
+          },
+        ],
+      },
+    )
     assert.equal(code, 0, stdout)
     assert.equal(calls.filter((c) => c.path.includes('/bundles')).length, 0)
     assert.match(stdout, /highest versionCode on Play: 41/)
@@ -581,10 +792,23 @@ describe('publish request sequence', () => {
 
   it('--promote writes the destination track without uploading, carrying the notes over', async () => {
     const { calls, code, stdout } = await runPublish(
-      ['--promote', '--version-code', '45', '--tracks', 'production', '--from', 'alpha'],
+      [
+        '--promote',
+        '--version-code',
+        '45',
+        '--tracks',
+        'production',
+        '--from',
+        'alpha',
+      ],
       {
         existingTracks: [
-          { track: 'internal', releases: [{ name: '0.21.1', versionCodes: ['45'], status: 'completed' }] },
+          {
+            track: 'internal',
+            releases: [
+              { name: '0.21.1', versionCodes: ['45'], status: 'completed' },
+            ],
+          },
           {
             track: 'alpha',
             releases: [
@@ -592,45 +816,79 @@ describe('publish request sequence', () => {
                 name: '0.21.1',
                 versionCodes: ['45'],
                 status: 'completed',
-                releaseNotes: [{ language: 'en-US', text: 'Alarms survive a reboot' }]
-              }
-            ]
-          }
-        ]
-      }
+                releaseNotes: [
+                  { language: 'en-US', text: 'Alarms survive a reboot' },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     )
     assert.equal(code, 0, stdout)
     // The build is already on Play; re-uploading it is both pointless and rejected.
     assert.equal(calls.filter((c) => c.path.includes('/bundles')).length, 0)
 
-    const puts = calls.filter((c) => c.method === 'PUT' && c.path.includes('/tracks/production'))
+    const puts = calls.filter(
+      (c) => c.method === 'PUT' && c.path.includes('/tracks/production'),
+    )
     assert.equal(puts.length, 1, 'exactly one track write')
     const body = JSON.parse(puts[0].body)
     assert.deepEqual(body.releases[0].versionCodes, ['45'])
     assert.equal(body.releases[0].status, 'completed')
-    assert.equal(body.releases[0].releaseNotes[0].text, 'Alarms survive a reboot')
+    assert.equal(
+      body.releases[0].releaseNotes[0].text,
+      'Alarms survive a reboot',
+    )
     assert.ok(calls.some((c) => c.path.includes(':commit')))
   })
 
   it('production-only promotion retires phone testing releases in the same edit without re-uploading', async () => {
     const { calls, code, stdout } = await runPublish(
-      ['--promote', '--version-code', '49', '--tracks', 'production', '--production-only'],
-      { existingTracks: [
-        { track: 'production', releases: [{ versionCodes: ['47'] }] },
-        { track: 'internal', releases: [{ name: '0.25.0', versionCodes: ['49'], releaseNotes: [{ language: 'en-US', text: 'Quiet calls' }] }] },
-        { track: 'alpha', releases: [{ versionCodes: ['49'] }] },
-        { track: 'beta', releases: [] },
-        { track: 'wear:production', releases: [{ versionCodes: ['48'] }] }
-      ] }
+      [
+        '--promote',
+        '--version-code',
+        '49',
+        '--tracks',
+        'production',
+        '--production-only',
+      ],
+      {
+        existingTracks: [
+          { track: 'production', releases: [{ versionCodes: ['47'] }] },
+          {
+            track: 'internal',
+            releases: [
+              {
+                name: '0.25.0',
+                versionCodes: ['49'],
+                releaseNotes: [{ language: 'en-US', text: 'Quiet calls' }],
+              },
+            ],
+          },
+          { track: 'alpha', releases: [{ versionCodes: ['49'] }] },
+          { track: 'beta', releases: [] },
+          { track: 'wear:production', releases: [{ versionCodes: ['48'] }] },
+        ],
+      },
     )
     assert.equal(code, 0, stdout)
-    assert.equal(calls.filter((call) => call.path.includes('/bundles')).length, 0)
+    assert.equal(
+      calls.filter((call) => call.path.includes('/bundles')).length,
+      0,
+    )
     const writes = calls.filter((call) => call.method === 'PUT')
-    assert.deepEqual(writes.map((call) => call.path.split('/tracks/')[1]), ['production', 'internal', 'alpha'])
+    assert.deepEqual(
+      writes.map((call) => call.path.split('/tracks/')[1]),
+      ['production', 'internal', 'alpha'],
+    )
     const production = JSON.parse(writes[0].body)
     assert.deepEqual(production.releases[0].versionCodes, ['49'])
     assert.equal(production.releases[0].releaseNotes[0].text, 'Quiet calls')
-    for (const write of writes.slice(1)) assert.deepEqual(JSON.parse(write.body).releases, [{ status: 'completed', versionCodes: [] }])
+    for (const write of writes.slice(1))
+      assert.deepEqual(JSON.parse(write.body).releases, [
+        { status: 'completed', versionCodes: [] },
+      ])
     const commits = calls.filter((call) => call.path.includes(':commit'))
     assert.equal(commits.length, 1)
     assert.ok(calls.indexOf(writes.at(-1)!) < calls.indexOf(commits[0]))
@@ -638,36 +896,82 @@ describe('publish request sequence', () => {
 
   it('production-only upload retires active testing tracks while keeping production as the sole destination', async () => {
     const { calls, code, stdout } = await runPublish(
-      ['--aab', '{aab}', '--version-name', '0.25.0', '--tracks', 'production', '--production-only'],
-      { existingTracks: [
-        { track: 'production', releases: [{ versionCodes: ['40'] }] },
-        { track: 'old-closed-test', releases: [{ versionCodes: ['39'] }] }
-      ] }
+      [
+        '--aab',
+        '{aab}',
+        '--version-name',
+        '0.25.0',
+        '--tracks',
+        'production',
+        '--production-only',
+      ],
+      {
+        existingTracks: [
+          { track: 'production', releases: [{ versionCodes: ['40'] }] },
+          { track: 'old-closed-test', releases: [{ versionCodes: ['39'] }] },
+        ],
+      },
     )
     assert.equal(code, 0, stdout)
-    assert.equal(calls.filter((call) => call.path.includes('/bundles')).length, 1)
+    assert.equal(
+      calls.filter((call) => call.path.includes('/bundles')).length,
+      1,
+    )
     const writes = calls.filter((call) => call.method === 'PUT')
-    assert.deepEqual(writes.map((call) => call.path.split('/tracks/')[1]), ['production', 'old-closed-test'])
-    assert.deepEqual(JSON.parse(writes[1].body).releases, [{ status: 'completed', versionCodes: [] }])
-    assert.equal(calls.filter((call) => call.path.includes(':commit')).length, 1)
+    assert.deepEqual(
+      writes.map((call) => call.path.split('/tracks/')[1]),
+      ['production', 'old-closed-test'],
+    )
+    assert.deepEqual(JSON.parse(writes[1].body).releases, [
+      { status: 'completed', versionCodes: [] },
+    ])
+    assert.equal(
+      calls.filter((call) => call.path.includes(':commit')).length,
+      1,
+    )
   })
 
   it('a testing-track retirement failure never commits a partial production transition', async () => {
     const { calls, code, stderr } = await runPublish(
-      ['--promote', '--version-code', '49', '--tracks', 'production', '--production-only'],
-      { existingTracks: [{ track: 'alpha', releases: [{ versionCodes: ['49'] }] }],
-        trackWriteFails: 'FAILED_PRECONDITION', trackWriteFailsOn: 'alpha' }
+      [
+        '--promote',
+        '--version-code',
+        '49',
+        '--tracks',
+        'production',
+        '--production-only',
+      ],
+      {
+        existingTracks: [
+          { track: 'alpha', releases: [{ versionCodes: ['49'] }] },
+        ],
+        trackWriteFails: 'FAILED_PRECONDITION',
+        trackWriteFailsOn: 'alpha',
+      },
     )
     assert.equal(code, 1)
     assert.match(stderr, /tracks\/alpha failed/)
-    assert.ok(calls.some((call) => call.method === 'PUT' && call.path.endsWith('/tracks/production')))
-    assert.equal(calls.filter((call) => call.path.includes(':commit')).length, 0)
+    assert.ok(
+      calls.some(
+        (call) =>
+          call.method === 'PUT' && call.path.endsWith('/tracks/production'),
+      ),
+    )
+    assert.equal(
+      calls.filter((call) => call.path.includes(':commit')).length,
+      0,
+    )
   })
 
   it('production-only rejects a testing destination before authenticating or writing', async () => {
-    const { calls, code, stderr } = await runPublish(
-      ['--promote', '--version-code', '49', '--tracks', 'alpha', '--production-only']
-    )
+    const { calls, code, stderr } = await runPublish([
+      '--promote',
+      '--version-code',
+      '49',
+      '--tracks',
+      'alpha',
+      '--production-only',
+    ])
     assert.equal(code, 1)
     assert.match(stderr, /requires --tracks production/)
     assert.equal(calls.length, 0)
@@ -675,11 +979,30 @@ describe('publish request sequence', () => {
 
   it('--promote with --rollout starts a staged release instead of a full one', async () => {
     const { calls, code, stdout } = await runPublish(
-      ['--promote', '--version-code', '45', '--tracks', 'production', '--rollout', '0.2'],
-      { existingTracks: [{ track: 'alpha', releases: [{ name: '0.21.1', versionCodes: ['45'] }] }] }
+      [
+        '--promote',
+        '--version-code',
+        '45',
+        '--tracks',
+        'production',
+        '--rollout',
+        '0.2',
+      ],
+      {
+        existingTracks: [
+          {
+            track: 'alpha',
+            releases: [{ name: '0.21.1', versionCodes: ['45'] }],
+          },
+        ],
+      },
     )
     assert.equal(code, 0, stdout)
-    const body = JSON.parse(calls.find((c) => c.method === 'PUT' && c.path.includes('/tracks/production'))!.body)
+    const body = JSON.parse(
+      calls.find(
+        (c) => c.method === 'PUT' && c.path.includes('/tracks/production'),
+      )!.body,
+    )
     assert.equal(body.releases[0].status, 'inProgress')
     assert.equal(body.releases[0].userFraction, 0.2)
   })
@@ -687,34 +1010,69 @@ describe('publish request sequence', () => {
   it('--promote refuses a versionCode that is not on Play, leaving no edit behind', async () => {
     const { calls, code, stderr } = await runPublish(
       ['--promote', '--version-code', '99', '--tracks', 'production'],
-      { existingTracks: [{ track: 'alpha', releases: [{ versionCodes: ['45'] }] }] }
+      {
+        existingTracks: [
+          { track: 'alpha', releases: [{ versionCodes: ['45'] }] },
+        ],
+      },
     )
     assert.equal(code, 1)
     assert.match(stderr, /not on any track/)
     assert.equal(calls.filter((c) => c.method === 'PUT').length, 0)
-    assert.ok(calls.some((c) => c.method === 'DELETE' && c.path.includes('/edits/edit-1')))
+    assert.ok(
+      calls.some(
+        (c) => c.method === 'DELETE' && c.path.includes('/edits/edit-1'),
+      ),
+    )
   })
 
   it('--set-notes rewrites every named track and uploads nothing', async () => {
     const { calls, code, stdout } = await runPublish(
-      ['--set-notes', '--version-code', '46', '--tracks', 'internal,alpha', '--notes', '{notes}'],
+      [
+        '--set-notes',
+        '--version-code',
+        '46',
+        '--tracks',
+        'internal,alpha',
+        '--notes',
+        '{notes}',
+      ],
       {
         existingTracks: [
-          { track: 'internal', releases: [{ name: '0.22.0', versionCodes: ['46'], status: 'completed' }] },
-          { track: 'alpha', releases: [{ name: '0.22.0', versionCodes: ['46'], status: 'completed' }] }
-        ]
-      }
+          {
+            track: 'internal',
+            releases: [
+              { name: '0.22.0', versionCodes: ['46'], status: 'completed' },
+            ],
+          },
+          {
+            track: 'alpha',
+            releases: [
+              { name: '0.22.0', versionCodes: ['46'], status: 'completed' },
+            ],
+          },
+        ],
+      },
     )
     assert.equal(code, 0, stdout)
     assert.equal(calls.filter((c) => c.path.includes('/bundles')).length, 0)
 
-    const puts = calls.filter((c) => c.method === 'PUT' && c.path.includes('/tracks/'))
+    const puts = calls.filter(
+      (c) => c.method === 'PUT' && c.path.includes('/tracks/'),
+    )
     assert.equal(puts.length, 2, 'one write per track')
     for (const put of puts) {
       const body = JSON.parse(put.body)
       assert.deepEqual(body.releases[0].versionCodes, ['46'])
-      assert.equal(body.releases[0].name, '0.22.0', 'the release name is left alone')
-      assert.match(body.releases[0].releaseNotes[0].text, /Alarms survive a reboot/)
+      assert.equal(
+        body.releases[0].name,
+        '0.22.0',
+        'the release name is left alone',
+      )
+      assert.match(
+        body.releases[0].releaseNotes[0].text,
+        /Alarms survive a reboot/,
+      )
     }
     assert.ok(calls.some((c) => c.path.includes(':commit')))
   })
@@ -723,8 +1081,23 @@ describe('publish request sequence', () => {
     // Resolved up front on purpose: a partial rewrite would leave two tracks
     // disagreeing about what the same versionCode changed.
     const { calls, code, stderr } = await runPublish(
-      ['--set-notes', '--version-code', '46', '--tracks', 'internal,alpha', '--notes', '{notes}'],
-      { existingTracks: [{ track: 'internal', releases: [{ name: '0.22.0', versionCodes: ['46'] }] }] }
+      [
+        '--set-notes',
+        '--version-code',
+        '46',
+        '--tracks',
+        'internal,alpha',
+        '--notes',
+        '{notes}',
+      ],
+      {
+        existingTracks: [
+          {
+            track: 'internal',
+            releases: [{ name: '0.22.0', versionCodes: ['46'] }],
+          },
+        ],
+      },
     )
     assert.equal(code, 1)
     assert.match(stderr, /not on 'alpha'/)
@@ -732,19 +1105,28 @@ describe('publish request sequence', () => {
     assert.equal(calls.filter((c) => c.path.includes(':commit')).length, 0)
   })
 
-  it('--promote turns Play\'s bare precondition refusal into the actual checklist', async () => {
+  it("--promote turns Play's bare precondition refusal into the actual checklist", async () => {
     const { calls, code, stderr } = await runPublish(
       ['--promote', '--version-code', '45', '--tracks', 'production'],
       {
-        existingTracks: [{ track: 'alpha', releases: [{ name: '0.21.1', versionCodes: ['45'] }] }],
-        trackWriteFails: 'FAILED_PRECONDITION'
-      }
+        existingTracks: [
+          {
+            track: 'alpha',
+            releases: [{ name: '0.21.1', versionCodes: ['45'] }],
+          },
+        ],
+        trackWriteFails: 'FAILED_PRECONDITION',
+      },
     )
     assert.equal(code, 1)
     assert.match(stderr, /12 testers/)
     assert.match(stderr, /the track is untouched/)
     // The refused edit is dropped rather than left dangling, and never committed.
-    assert.ok(calls.some((c) => c.method === 'DELETE' && c.path.includes('/edits/edit-1')))
+    assert.ok(
+      calls.some(
+        (c) => c.method === 'DELETE' && c.path.includes('/edits/edit-1'),
+      ),
+    )
     assert.equal(calls.filter((c) => c.path.includes(':commit')).length, 0)
   })
 
@@ -754,9 +1136,9 @@ describe('publish request sequence', () => {
       {
         existingTracks: [
           { track: 'alpha', releases: [{ versionCodes: ['45'] }] },
-          { track: 'production', releases: [{ versionCodes: ['46'] }] }
-        ]
-      }
+          { track: 'production', releases: [{ versionCodes: ['46'] }] },
+        ],
+      },
     )
     assert.equal(code, 1)
     assert.match(stderr, /would move it backwards/)
@@ -764,30 +1146,59 @@ describe('publish request sequence', () => {
   })
 
   it('--listing patches only the descriptions, then commits', async () => {
-    const { calls, code, stdout } = await runPublish(['--listing', '{listing}', '--no-screenshots'])
+    const { calls, code, stdout } = await runPublish([
+      '--listing',
+      '{listing}',
+      '--no-screenshots',
+    ])
     assert.equal(code, 0, `expected success, stdout:\n${stdout}`)
 
-    const patches = calls.filter((c) => c.method === 'PATCH' && c.path.includes('/listings/'))
+    const patches = calls.filter(
+      (c) => c.method === 'PATCH' && c.path.includes('/listings/'),
+    )
     assert.equal(patches.length, 1, 'exactly one listing write')
     assert.ok(patches[0].path.endsWith('/listings/en-US'))
 
     const payload = JSON.parse(patches[0].body)
-    assert.equal(payload.shortDescription, 'Reminders that nag until you confirm them done.')
-    assert.equal(payload.fullDescription, 'Every other reminder app lets you swipe away and forget.')
+    assert.equal(
+      payload.shortDescription,
+      'Reminders that nag until you confirm them done.',
+    )
+    assert.equal(
+      payload.fullDescription,
+      'Every other reminder app lets you swipe away and forget.',
+    )
     // PATCH, and only these fields: the same resource holds the app title and
     // the promo video, and naming them here would be the way to wipe them.
-    assert.deepEqual(Object.keys(payload).sort(), ['fullDescription', 'language', 'shortDescription'])
+    assert.deepEqual(Object.keys(payload).sort(), [
+      'fullDescription',
+      'language',
+      'shortDescription',
+    ])
 
     assert.equal(calls.filter((c) => c.path.includes(':commit')).length, 1)
-    assert.equal(calls.filter((c) => c.path.includes('/bundles')).length, 0, 'no bundle touched')
+    assert.equal(
+      calls.filter((c) => c.path.includes('/bundles')).length,
+      0,
+      'no bundle touched',
+    )
   })
 
   it('--listing --check writes nothing and leaves no edit behind', async () => {
-    const { calls, code, stdout } = await runPublish(['--listing', '{listing}', '--check', '--no-screenshots'])
+    const { calls, code, stdout } = await runPublish([
+      '--listing',
+      '{listing}',
+      '--check',
+      '--no-screenshots',
+    ])
     assert.equal(code, 0, stdout)
     assert.equal(calls.filter((c) => c.method === 'PATCH').length, 0)
     assert.equal(calls.filter((c) => c.path.includes(':commit')).length, 0)
-    assert.ok(calls.some((c) => c.method === 'DELETE' && c.path.includes('/edits/edit-1')))
+    assert.ok(
+      calls.some(
+        (c) => c.method === 'DELETE' && c.path.includes('/edits/edit-1'),
+      ),
+    )
     // It still reports what a push would change.
     assert.match(stdout, /shortDescription: CHANGED/)
   })
@@ -802,25 +1213,51 @@ describe('publish request sequence', () => {
     for (const name of ['02-b.png', '00-a.png', '01-c.png']) {
       writeFileSync(join(dir, name), fakePng(1120, 2495))
     }
-    const { calls, code, stdout } = await runPublish(['--listing', '{listing}', '--screenshots', dir])
+    const { calls, code, stdout } = await runPublish([
+      '--listing',
+      '{listing}',
+      '--screenshots',
+      dir,
+    ])
     assert.equal(code, 0, `expected success, stdout:\n${stdout}`)
 
-    const deletes = calls.filter((c) => c.method === 'DELETE' && c.path.includes('phoneScreenshots'))
-    const uploads = calls.filter((c) => c.method === 'POST' && c.path.includes('phoneScreenshots'))
+    const deletes = calls.filter(
+      (c) => c.method === 'DELETE' && c.path.includes('phoneScreenshots'),
+    )
+    const uploads = calls.filter(
+      (c) => c.method === 'POST' && c.path.includes('phoneScreenshots'),
+    )
     assert.equal(deletes.length, 1, 'the old set is cleared exactly once')
     assert.equal(uploads.length, 3, 'every local screenshot is uploaded')
 
     const commit = calls.findIndex((c) => c.path.includes(':commit'))
-    assert.ok(calls.indexOf(uploads[2]) < commit, 'uploads land inside the edit, before the commit')
-    assert.ok(calls.indexOf(deletes[0]) < calls.indexOf(uploads[0]), 'clear before upload')
+    assert.ok(
+      calls.indexOf(uploads[2]) < commit,
+      'uploads land inside the edit, before the commit',
+    )
+    assert.ok(
+      calls.indexOf(deletes[0]) < calls.indexOf(uploads[0]),
+      'clear before upload',
+    )
     // The descriptions still go up in the same edit.
-    assert.equal(calls.filter((c) => c.method === 'PATCH' && c.path.includes('/listings/')).length, 1)
+    assert.equal(
+      calls.filter((c) => c.method === 'PATCH' && c.path.includes('/listings/'))
+        .length,
+      1,
+    )
   })
 
   it('--no-screenshots leaves the images on Play alone', async () => {
-    const { calls, code } = await runPublish(['--listing', '{listing}', '--no-screenshots'])
+    const { calls, code } = await runPublish([
+      '--listing',
+      '{listing}',
+      '--no-screenshots',
+    ])
     assert.equal(code, 0)
-    assert.equal(calls.filter((c) => c.path.includes('phoneScreenshots')).length, 0)
+    assert.equal(
+      calls.filter((c) => c.path.includes('phoneScreenshots')).length,
+      0,
+    )
   })
 
   it('--listing refuses an over-limit description before opening an edit', async () => {
@@ -830,9 +1267,26 @@ describe('publish request sequence', () => {
     const bad = join(mkdtempSync(join(tmpdir(), 'play-listing-')), 'listing.md')
     writeFileSync(
       bad,
-      ['## Short description (max 80 chars)', '', '```', 'ok', '```', '', '## Full description (max 4000 chars)', '', '```', 'x'.repeat(4001), '```', ''].join('\n')
+      [
+        '## Short description (max 80 chars)',
+        '',
+        '```',
+        'ok',
+        '```',
+        '',
+        '## Full description (max 4000 chars)',
+        '',
+        '```',
+        'x'.repeat(4001),
+        '```',
+        '',
+      ].join('\n'),
     )
-    const { calls, code, stderr } = await runPublish(['--listing', bad, '--no-screenshots'])
+    const { calls, code, stderr } = await runPublish([
+      '--listing',
+      bad,
+      '--no-screenshots',
+    ])
     assert.equal(code, 1)
     assert.match(stderr, /fullDescription is 4001 characters/)
     // Nothing reached Play — not even an edit that would linger uncommitted.
@@ -842,29 +1296,74 @@ describe('publish request sequence', () => {
     const path = new URL('../store/listings.json', import.meta.url).pathname
     const { calls, code, stderr } = await runPublish(['--listing-json', path])
     assert.equal(code, 0, stderr)
-    const writes = calls.filter((call) => ['PUT', 'PATCH'].includes(call.method))
+    const writes = calls.filter((call) =>
+      ['PUT', 'PATCH'].includes(call.method),
+    )
     assert.equal(writes.length, 9)
     assert.equal(writes[0].method, 'PATCH')
     assert.equal(writes[1].method, 'PUT')
     assert.equal(JSON.parse(writes[1].body).language, 'en-CA')
-    assert.ok(calls.every((call) => !/phoneScreenshots|details|countryavailability/.test(call.path)))
-    assert.equal(calls.filter((call) => call.path.includes(':commit')).length, 1)
+    assert.ok(
+      calls.every(
+        (call) =>
+          !/phoneScreenshots|details|countryavailability/.test(call.path),
+      ),
+    )
+    assert.equal(
+      calls.filter((call) => call.path.includes(':commit')).length,
+      1,
+    )
   })
 
   it('--localized-notes reaches production upload and existing-release rewrite with nine languages', async () => {
-    const path = new URL('../store/releases/0.29.0.json', import.meta.url).pathname
+    const path = new URL('../store/releases/0.29.0.json', import.meta.url)
+      .pathname
     for (const mode of ['upload', 'rewrite']) {
-      const args = mode === 'upload'
-        ? ['--aab', '{aab}', '--tracks', 'production', '--version-name', '0.29.0', '--localized-notes', path]
-        : ['--set-notes', '--version-code', '53', '--tracks', 'production', '--version-name', '0.29.0', '--localized-notes', path]
+      const args =
+        mode === 'upload'
+          ? [
+              '--aab',
+              '{aab}',
+              '--tracks',
+              'production',
+              '--version-name',
+              '0.29.0',
+              '--localized-notes',
+              path,
+            ]
+          : [
+              '--set-notes',
+              '--version-code',
+              '53',
+              '--tracks',
+              'production',
+              '--version-name',
+              '0.29.0',
+              '--localized-notes',
+              path,
+            ]
       const { calls, code, stderr } = await runPublish(args, {
-        existingTracks: [{ track: 'production', releases: [{ versionCodes: ['53'], status: 'inProgress', userFraction: 0.2 }] }]
+        existingTracks: [
+          {
+            track: 'production',
+            releases: [
+              { versionCodes: ['53'], status: 'inProgress', userFraction: 0.2 },
+            ],
+          },
+        ],
       })
       assert.equal(code, 0, stderr)
-      const write = calls.find((call) => call.method === 'PUT' && call.path.endsWith('/tracks/production'))!
+      const write = calls.find(
+        (call) =>
+          call.method === 'PUT' && call.path.endsWith('/tracks/production'),
+      )!
       const release = JSON.parse(write.body).releases[0]
       assert.equal(release.releaseNotes.length, 9)
-      assert.ok(release.releaseNotes.some((note: { language: string }) => note.language === 'zh-CN'))
+      assert.ok(
+        release.releaseNotes.some(
+          (note: { language: string }) => note.language === 'zh-CN',
+        ),
+      )
       if (mode === 'rewrite') {
         assert.equal(release.userFraction, 0.2)
         assert.equal(release.status, 'inProgress')
@@ -873,13 +1372,20 @@ describe('publish request sequence', () => {
   })
 
   it('mismatched localized release notes fail before OAuth or any Play request', async () => {
-    const path = new URL('../store/releases/0.29.0.json', import.meta.url).pathname
+    const path = new URL('../store/releases/0.29.0.json', import.meta.url)
+      .pathname
     const { calls, code, stderr } = await runPublish([
-      '--aab', '{aab}', '--tracks', 'production', '--version-name', '0.30.0', '--localized-notes', path
+      '--aab',
+      '{aab}',
+      '--tracks',
+      'production',
+      '--version-name',
+      '0.30.0',
+      '--localized-notes',
+      path,
     ])
     assert.equal(code, 1)
     assert.match(stderr, /versionName/)
     assert.equal(calls.length, 0)
   })
-
 })

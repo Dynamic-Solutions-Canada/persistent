@@ -6,25 +6,40 @@ import { broadcast } from './realtime.js'
 import { participantIds } from './share-access.js'
 
 /** Read a sharing roster or invite someone only through ownership or a current share. */
-export async function sharingReminder(id: string, actorId: string, database: Prisma.TransactionClient = prisma) {
+export async function sharingReminder(
+  id: string,
+  actorId: string,
+  database: Prisma.TransactionClient = prisma,
+) {
   return database.reminder.findFirst({
     where: {
       id,
-      OR: [{ userId: actorId }, { shares: { some: { recipientId: actorId } } }]
+      OR: [{ userId: actorId }, { shares: { some: { recipientId: actorId } } }],
     },
-    include: { user: { select: { id: true, email: true, displayName: true } } }
+    include: { user: { select: { id: true, email: true, displayName: true } } },
   })
 }
 
 /** Only the owner or original inviter may remove access, never by re-adding an existing member. */
-export function canManageInvitation(ownerId: string, invitedById: string | null, actorId: string): boolean {
+export function canManageInvitation(
+  ownerId: string,
+  invitedById: string | null,
+  actorId: string,
+): boolean {
   return actorId === ownerId || actorId === invitedById
 }
 
 /** Refresh every member's roster, including a member whose access was just removed. */
-export async function broadcastSharingChange(reminderId: string, ownerId: string, removedId?: string): Promise<void> {
+export async function broadcastSharingChange(
+  reminderId: string,
+  ownerId: string,
+  removedId?: string,
+): Promise<void> {
   const members = await participantIds(reminderId, ownerId)
-  for (const memberId of new Set([...members, ...(removedId ? [removedId] : [])])) {
+  for (const memberId of new Set([
+    ...members,
+    ...(removedId ? [removedId] : []),
+  ])) {
     broadcast(memberId, { type: 'share.changed' })
   }
 }
@@ -32,7 +47,11 @@ export async function broadcastSharingChange(reminderId: string, ownerId: string
 /** Serialize membership changes on the canonical definition, then recheck the grant.
  * A lock waiter must not authorize from the snapshot taken before revocation committed.
  */
-export async function lockSharingReminder(transaction: Prisma.TransactionClient, id: string, actorId: string) {
+export async function lockSharingReminder(
+  transaction: Prisma.TransactionClient,
+  id: string,
+  actorId: string,
+) {
   const locked = await transaction.$queryRaw<Array<{ id: string }>>`
     SELECT r.id FROM "Reminder" r
     WHERE r.id = ${id} AND (r."userId" = ${actorId} OR EXISTS (
@@ -49,7 +68,10 @@ export async function lockSharingReminder(transaction: Prisma.TransactionClient,
 export async function withSharingReminder<T>(
   id: string,
   actorId: string,
-  action: (transaction: Prisma.TransactionClient, reminder: NonNullable<Awaited<ReturnType<typeof sharingReminder>>>) => Promise<T>
+  action: (
+    transaction: Prisma.TransactionClient,
+    reminder: NonNullable<Awaited<ReturnType<typeof sharingReminder>>>,
+  ) => Promise<T>,
 ): Promise<T> {
   return prisma.$transaction(async (transaction) => {
     const reminder = await lockSharingReminder(transaction, id, actorId)

@@ -13,34 +13,70 @@ test('taskbar requests add both hints to the selected root and close the connect
   let terminated = false
   let sent: unknown[] = []
   const client = {
-    screenNum: 1, on: () => {}, terminate: () => { terminated = true }, sync: async () => {},
-    InternAtom: (_exists: boolean, name: string, done: (error: null, atom: number) => void) => done(null, name === '_NET_WM_STATE' ? 10 : name.endsWith('TASKBAR') ? 11 : 12),
-    SendClientMessage: (...args: unknown[]) => { sent = args }
+    screenNum: 1,
+    on: () => {},
+    terminate: () => {
+      terminated = true
+    },
+    sync: async () => {},
+    InternAtom: (
+      _exists: boolean,
+      name: string,
+      done: (error: null, atom: number) => void,
+    ) =>
+      done(
+        null,
+        name === '_NET_WM_STATE' ? 10 : name.endsWith('TASKBAR') ? 11 : 12,
+      ),
+    SendClientMessage: (...args: unknown[]) => {
+      sent = args
+    },
   }
-  mock.method(x11, 'createClient', (ready: (error: null, display: unknown) => void) => {
-    queueMicrotask(() => ready(null, { client, screen: [{ root: 1 }, { root: 2 }] }))
-    return client
-  })
+  mock.method(
+    x11,
+    'createClient',
+    (ready: (error: null, display: unknown) => void) => {
+      queueMicrotask(() =>
+        ready(null, { client, screen: [{ root: 1 }, { root: 2 }] }),
+      )
+      return client
+    },
+  )
   try {
     await hideFromTaskbar(Buffer.from([49, 0, 192, 0]))
     assert.deepEqual(sent, [2, 0xc00031, 10, 32, [1, 11, 12, 1, 0]])
     assert.equal(terminated, true)
-  } finally { mock.restoreAll() }
+  } finally {
+    mock.restoreAll()
+  }
 })
 
 test('a refused X11 request closes the connection and reports failure', async () => {
   let terminated = false
   const failure = new Error('Disconnected')
   const client = {
-    on: () => {}, terminate: () => { terminated = true },
-    InternAtom: (_exists: boolean, _name: string, done: (error: Error) => void) => done(failure)
+    on: () => {},
+    terminate: () => {
+      terminated = true
+    },
+    InternAtom: (
+      _exists: boolean,
+      _name: string,
+      done: (error: Error) => void,
+    ) => done(failure),
   }
-  mock.method(x11, 'createClient', (ready: (error: null, display: unknown) => void) => {
-    queueMicrotask(() => ready(null, { client }))
-    return client
-  })
+  mock.method(
+    x11,
+    'createClient',
+    (ready: (error: null, display: unknown) => void) => {
+      queueMicrotask(() => ready(null, { client }))
+      return client
+    },
+  )
   try {
     await assert.rejects(hideFromTaskbar(Buffer.alloc(4)), failure)
     assert.equal(terminated, true)
-  } finally { mock.restoreAll() }
+  } finally {
+    mock.restoreAll()
+  }
 })

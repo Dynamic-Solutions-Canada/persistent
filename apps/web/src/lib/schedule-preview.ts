@@ -48,10 +48,19 @@ function combine(dayMidnight: Date, hhmm: string): Date | null {
 }
 
 function sameDate(a: Date, b: Date): boolean {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  )
 }
 
-function dayMatches(kind: ScheduleKind, cur: Date, start: Date, input: SchedulePreviewInput): boolean {
+function dayMatches(
+  kind: ScheduleKind,
+  cur: Date,
+  start: Date,
+  input: SchedulePreviewInput,
+): boolean {
   const weekday = cur.getDay()
   const weekend = weekday === 0 || weekday === 6
   switch (kind) {
@@ -70,7 +79,11 @@ function dayMatches(kind: ScheduleKind, cur: Date, start: Date, input: ScheduleP
     case 'monthly': {
       if (input.daysOfMonth.includes(cur.getDate())) return true
       // Day 0 of the next month is the last day of this one.
-      const lastDay = new Date(cur.getFullYear(), cur.getMonth() + 1, 0).getDate()
+      const lastDay = new Date(
+        cur.getFullYear(),
+        cur.getMonth() + 1,
+        0,
+      ).getDate()
       return input.lastDayOfMonth && cur.getDate() === lastDay
     }
     case 'interval': {
@@ -82,7 +95,10 @@ function dayMatches(kind: ScheduleKind, cur: Date, start: Date, input: ScheduleP
 }
 
 /** The next instant this schedule fires at or after now, or null if none. */
-export function nextFire(input: SchedulePreviewInput, now: Date = new Date()): Date | null {
+export function nextFire(
+  input: SchedulePreviewInput,
+  now: Date = new Date(),
+): Date | null {
   const start = parseLocalDate(input.startDate)
   if (!start) return null
   const end = input.endDate ? parseLocalDate(input.endDate) : null
@@ -116,7 +132,10 @@ export function nextFire(input: SchedulePreviewInput, now: Date = new Date()): D
  * returns null for these (there's no *future* fire), so the preview would wrongly
  * read "no upcoming fire" without this.
  */
-export function firesRightAway(input: SchedulePreviewInput, now: Date = new Date()): boolean {
+export function firesRightAway(
+  input: SchedulePreviewInput,
+  now: Date = new Date(),
+): boolean {
   if (input.kind !== 'once') return false
   const start = parseLocalDate(input.startDate)
   if (!start) return false
@@ -133,7 +152,10 @@ export function firesRightAway(input: SchedulePreviewInput, now: Date = new Date
 }
 
 /** The next fire instant for a reminder (null if paused or no upcoming fire). */
-export function reminderNextFire(reminder: Reminder, now: Date = new Date()): Date | null {
+export function reminderNextFire(
+  reminder: Reminder,
+  now: Date = new Date(),
+): Date | null {
   if (!reminder.active) return null
   const s = reminder.schedule
   return nextFire(
@@ -146,9 +168,9 @@ export function reminderNextFire(reminder: Reminder, now: Date = new Date()): Da
       everyNDays: s.everyNDays ?? 1,
       skipWeekends: s.skipWeekends ?? false,
       startDate: reminder.startDate,
-      endDate: reminder.endDate ?? ''
+      endDate: reminder.endDate ?? '',
     },
-    now
+    now,
   )
 }
 
@@ -165,10 +187,15 @@ function hhmm(d: Date): string {
  * word, "fires" — see the vocabulary note in docs/notification-behavior.md. The
  * identifiers here keep the model's word; only what the user reads changes.
  */
-export function fireSummary(input: SchedulePreviewInput, timeFormat: TimeFormat, now: Date = new Date()): string | null {
+export function fireSummary(
+  input: SchedulePreviewInput,
+  timeFormat: TimeFormat,
+  now: Date = new Date(),
+): string | null {
   const fire = nextFire(input, now)
   // No future fire, but a just-passed one-shot the server back-fills fires now.
-  if (!fire) return firesRightAway(input, now) ? tr('Notifies you right away') : null
+  if (!fire)
+    return firesRightAway(input, now) ? tr('Notifies you right away') : null
 
   const time = formatTimeOfDay(hhmm(fire), timeFormat)
   const today = new Date(now)
@@ -180,12 +207,20 @@ export function fireSummary(input: SchedulePreviewInput, timeFormat: TimeFormat,
   const minutes = Math.round((fire.getTime() - now.getTime()) / 60_000)
   let soon = ''
   if (minutes < 60) {
-    soon = minutes < 1 ? tr('preview.under-minute') : tr('preview.minutes', { count: minutes })
+    soon =
+      minutes < 1
+        ? tr('preview.under-minute')
+        : tr('preview.minutes', { count: minutes })
   } else if (minutes < 24 * 60) {
     soon = tr('preview.hours', { count: Math.round(minutes / 60) })
   }
 
-  const key = dayDiff === 0 ? 'preview.today' : dayDiff === 1 ? 'preview.tomorrow' : 'preview.date'
+  const key =
+    dayDiff === 0
+      ? 'preview.today'
+      : dayDiff === 1
+        ? 'preview.tomorrow'
+        : 'preview.date'
   return tr(key, { time, date: formatDate(fire), soon })
 }
 
