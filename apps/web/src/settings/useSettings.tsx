@@ -34,8 +34,7 @@ import {
 import { detectTimeFormat, type TimeFormat } from '../lib/datetime.js'
 import { readDoodleColor, type DoodleColorId } from './doodleColors.js'
 import { readThemeId, DEFAULT_THEME_ID, type ThemeId } from './themes.js'
-
-const STORAGE_KEY = 'persistent-settings'
+import { SETTINGS_KEY } from '../lib/deviceStorage.js'
 
 /**
  * A picked tone, `{ uri, title }` — the same shape a *reminder* stores, so it comes
@@ -101,7 +100,7 @@ const DEFAULT_SOUND: SoundChoice = { uri: '', title: 'Default' }
 /** Save device preferences; unavailable storage must not prevent using the app. */
 function saveSettings(settings: StoredState): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
   } catch {
     // Retain the in-memory choice when storage is unavailable.
   }
@@ -146,7 +145,7 @@ function loadSettings(): StoredState {
     shadeProminence: 'NORMAL',
   }
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(SETTINGS_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<StoredState>
       const chosen =

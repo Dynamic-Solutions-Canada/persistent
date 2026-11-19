@@ -7,13 +7,12 @@ import {
 } from '../../../desktop/external/promo/catalog.js'
 import { apiFetch } from '../lib/apiClient.js'
 import { queryKeys } from '../lib/queryClient.js'
-
-const CACHE_KEY = 'persistent-promoted-apps-v1'
+import { PROMOTED_APPS_CACHE_KEY } from '../lib/deviceStorage.js'
 
 /** A damaged or unavailable local cache must never prevent opening Settings. */
 function readCatalog() {
   try {
-    const saved = localStorage.getItem(CACHE_KEY)
+    const saved = localStorage.getItem(PROMOTED_APPS_CACHE_KEY)
     if (saved) return parseCatalog(JSON.parse(saved))
   } catch {
     /* Use bundled content if storage is blocked or obsolete. */
@@ -45,7 +44,10 @@ export function usePromotedApps() {
         })
         const apps = parseCatalog(value)
         try {
-          localStorage.setItem(CACHE_KEY, JSON.stringify({ apps }))
+          localStorage.setItem(
+            PROMOTED_APPS_CACHE_KEY,
+            JSON.stringify({ apps }),
+          )
         } catch {
           /* The page still works when storage is full or unavailable. */
         }

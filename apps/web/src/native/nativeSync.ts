@@ -23,6 +23,7 @@ import { apiFetch } from '../lib/apiClient.js'
 import { subscribeWs } from '../lib/wsClient.js'
 import { AlarmPlugin, isNative, type ScheduledAlarm } from './alarmBridge.js'
 import { navigateApp } from './navTo.js'
+import { SETTINGS_KEY } from '../lib/deviceStorage.js'
 
 interface SyncResponse {
   serverTime: string
@@ -41,7 +42,7 @@ function chosenSoundUri(
   kind: 'alarmSound' | 'notificationSound' | 'nagSound',
 ): string {
   try {
-    const raw = localStorage.getItem('persistent-settings')
+    const raw = localStorage.getItem(SETTINGS_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as Record<string, { uri?: string }>
       return parsed[kind]?.uri ?? ''
@@ -55,7 +56,7 @@ function chosenSoundUri(
 /** The device-default shade prominence (for reminders set to INHERIT). */
 function defaultShadeMinimized(): boolean {
   try {
-    const raw = localStorage.getItem('persistent-settings')
+    const raw = localStorage.getItem(SETTINGS_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as { shadeProminence?: string }
       return parsed.shadeProminence === 'MINIMIZED'

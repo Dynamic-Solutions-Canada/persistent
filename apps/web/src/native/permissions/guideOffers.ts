@@ -12,14 +12,13 @@ import {
   type AlarmGrant,
   type AlarmReadiness,
 } from './alarmGrants.js'
-
-const OFFERED_KEY = 'persistent-permission-guide-offered'
+import { PERMISSION_GUIDE_OFFERED_KEY } from '../../lib/deviceStorage.js'
 
 /** Grants offered before; empty when storage is unavailable or unreadable. */
 export function readOfferedGrants(): AlarmGrant[] {
   try {
     const parsed: unknown = JSON.parse(
-      localStorage.getItem(OFFERED_KEY) ?? '[]',
+      localStorage.getItem(PERMISSION_GUIDE_OFFERED_KEY) ?? '[]',
     )
     if (!Array.isArray(parsed)) return []
     const known = ALARM_GRANTS.map((entry) => entry.grant)
@@ -35,7 +34,10 @@ export function readOfferedGrants(): AlarmGrant[] {
 export function recordOfferedGrants(grants: readonly AlarmGrant[]): void {
   const offered = new Set([...readOfferedGrants(), ...grants])
   try {
-    localStorage.setItem(OFFERED_KEY, JSON.stringify([...offered]))
+    localStorage.setItem(
+      PERMISSION_GUIDE_OFFERED_KEY,
+      JSON.stringify([...offered]),
+    )
   } catch {
     // Storage may be unavailable; the guide may then return next launch, which is harmless.
   }

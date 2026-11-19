@@ -99,6 +99,7 @@
   lives in `native/nativeSync.ts`: `initFcm()` registers the
   token (gated on the server's `fcmEnabled`) and resyncs on push; the native
   `FcmService` acts on pushes when the bridge is dead (see `docs/alarm-architecture.md`).
+- **Browser storage keys** are all declared in `lib/deviceStorage.ts`, each with its kind (preference, session or cache), so "reset this device" can enumerate them; `lib/deviceStorage.test.ts` fails on a literal key anywhere else. Existing keys keep their names (renaming needs a read-old, write-new migration); a new key is `persistent.<area>.<name>`.
 - **Client display prefs** (time format, theme, chosen sounds, and the
   device-default notification-shade prominence) live in `settings/useSettings.tsx`
   (localStorage-backed, per-device: not server-synced). They describe a _device_,

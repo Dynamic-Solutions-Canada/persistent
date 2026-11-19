@@ -6,6 +6,7 @@ import {
   type Locale,
   type LocalePreferences,
 } from '@persistent/shared'
+import { SETTINGS_KEY } from '../lib/deviceStorage.js'
 
 /** Browser preferences are ordered and may change while the resident app is open. */
 export function deviceLanguages(): string[] {
@@ -20,7 +21,7 @@ export function readLocalePreferences(value?: unknown): LocalePreferences {
   let stored = value
   if (stored === undefined) {
     try {
-      stored = JSON.parse(localStorage.getItem('persistent-settings') ?? '{}')
+      stored = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}')
     } catch {
       stored = {}
     }

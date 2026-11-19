@@ -1,8 +1,9 @@
 /** Saved account identity for local offline access, never a credential or server authorization. */
 import { sessionUserSchema, type SessionUser } from '@persistent/shared'
 
-export const OFFLINE_SESSION_KEY = 'persistent-offline-session'
-export const QUERY_CACHE_KEY = 'persistent-query-cache'
+import { OFFLINE_SESSION_KEY, QUERY_CACHE_KEY } from '../lib/deviceStorage.js'
+
+export { OFFLINE_SESSION_KEY, QUERY_CACHE_KEY }
 export const OFFLINE_MAX_AGE = 7 * 24 * 60 * 60 * 1000
 
 /** Read a recently confirmed identity. Invalid or expired profiles cannot unlock cached data. */

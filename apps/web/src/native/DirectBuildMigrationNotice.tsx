@@ -10,15 +10,14 @@ import Stack from '@mui/joy/Stack'
 import { hasNativeUpdater } from './alarmBridge.js'
 import { BackAwareModal } from '../components/BackAwareModal.js'
 import { DirectBuildNotice } from './DirectBuildNotice.js'
-
-const NOTICE_SEEN_KEY = 'persistent-play-migration-notice-seen'
+import { PLAY_MIGRATION_NOTICE_SEEN_KEY } from '../lib/deviceStorage.js'
 
 export function DirectBuildMigrationNotice() {
   useTranslation()
   const [open, setOpen] = useState(() => {
     if (!hasNativeUpdater()) return false
     try {
-      return localStorage.getItem(NOTICE_SEEN_KEY) !== '1'
+      return localStorage.getItem(PLAY_MIGRATION_NOTICE_SEEN_KEY) !== '1'
     } catch {
       return true
     }
@@ -27,7 +26,7 @@ export function DirectBuildMigrationNotice() {
   const dismiss = () => {
     setOpen(false)
     try {
-      localStorage.setItem(NOTICE_SEEN_KEY, '1')
+      localStorage.setItem(PLAY_MIGRATION_NOTICE_SEEN_KEY, '1')
     } catch {
       // Storage may be unavailable; dismiss for this session without blocking the app.
     }

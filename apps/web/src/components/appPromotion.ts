@@ -8,9 +8,8 @@ export const LINUX_DOWNLOADS_URL = `${LINUX_RELEASES_URL}?q=Linux&expanded=true`
 export const WINDOWS_STORE_URL =
   'https://apps.microsoft.com/detail/9PCX2XGQ7CJS'
 
-// This key is deliberately unversioned: dismissal means never show this promo
-// again on this installation, including after app and service-worker updates.
-export const APP_PROMO_DISMISSED_KEY = 'persistent-hide-native-apps-banner'
+// The dismissal key is declared with every other browser key in lib/deviceStorage.ts.
+export { APP_PROMO_DISMISSED_KEY } from '../lib/deviceStorage.js'
 
 export type NativeAppsPromoHost = 'android' | 'windows' | 'linux' | 'web'
 
