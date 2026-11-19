@@ -24,7 +24,7 @@
 # months max), and an expired one fails the publish step with an auth error.
 #
 # Setting AZURE_AD_APPLICATION_SECRET also prompts for its expiry date and records
-# it as the STORE_SECRET_EXPIRES repository VARIABLE, which store-secret-expiry.yml
+# it as the STORE_SECRET_EXPIRES repository VARIABLE, which credential-expiry.yml
 # checks weekly and warns on 60 days out. Nothing can be asked for that date later
 # (reading an app registration's own credentials needs Graph permissions this one
 # does not have), so capturing it at rotation time is the only way the reminder
@@ -186,7 +186,7 @@ for i in "${!NAMES[@]}"; do
   # last 24 months at most and nothing can be asked for the date later - reading
   # an app registration's own passwordCredentials needs Graph permissions this
   # credential does not have. Recording it here is what stops
-  # store-secret-expiry.yml drifting from reality: you cannot rotate the secret
+  # credential-expiry.yml drifting from reality: you cannot rotate the secret
   # without being asked when the new one dies.
   #
   # A repository variable, not a secret. An expiry date is not sensitive, and the

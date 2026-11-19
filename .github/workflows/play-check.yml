@@ -1,4 +1,4 @@
-name: play-check
+name: Play Check
 
 # Answers "can CI publish to Play right now?" without cutting a release.
 #

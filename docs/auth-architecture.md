@@ -392,9 +392,8 @@ are not a full audit of repeated escalations or delivery confirmation. Sharing
 and assignment user counts refer to creators. Refresh reads a consistent database
 snapshot; the dashboard does not subscribe to every user's live events.
 
-The opt-in PostgreSQL/HTTP regression is
-`scripts/dev/admin-stats.integration.test.ts`. Run it with
-`ADMIN_TEST_DATABASE_URL` pointing to a migrated disposable database whose name
-ends in `_admin_test`, using `node --import tsx --test scripts/dev/admin-stats.integration.test.ts`.
-It replaces that test database's users and email codes. The normal validation
-suite skips it; unit tests still run without a database.
+The PostgreSQL/HTTP regression is `scripts/dev/admin-stats.integration.test.ts`,
+run by `npm run test:integration` with `DATABASE_URL` pointing at a migrated
+disposable database whose name ends in `_test`; it fails, never skips, without one.
+It replaces that test database's users and email codes. CI runs it against a
+Postgres service; the normal `validate` leaves it out and needs no database.

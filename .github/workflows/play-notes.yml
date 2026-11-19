@@ -1,4 +1,4 @@
-name: play-notes
+name: Play Notes
 
 # Rewrite the "what's new" of a release already on Google Play.
 #
@@ -38,7 +38,23 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # CI-4: play-notes publishes store text, which the code gate says nothing about, so the gate is
+  # the offline checks of that text and the code that sends it.
+  gate:
+    name: Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run check:release-notes
+
   notes:
+    needs: gate
     runs-on: ubuntu-latest
     timeout-minutes: 10 # about 3x the slowest recent run
     steps:

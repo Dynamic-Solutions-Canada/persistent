@@ -1,0 +1,134 @@
+name: CI
+
+# The gate (CI-1): the same scripts a developer runs, on every push to main and every pull request,
+# with no path filter. Publishing workflows call it as their first job (CI-4) through
+# workflow_call. The toolchain suites run as their own jobs: `validate` stays toolchain-free so it
+# runs anywhere with Node (docs/development.md).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+    inputs:
+      ref:
+        description: The ref the caller builds (a release dispatched for a tag builds that tag)
+        type: string
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+# The caller's name is part of the group, so a gate run inside a publishing workflow never
+# cancels, or is cancelled by, the CI run for the same ref.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # Inside a caller, github.workflow is the caller's name: only a direct CI run cancels.
+  cancel-in-progress: ${{ github.workflow == 'CI' }}
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20 # a cold install plus lint, tests and typecheck take about 5
+    steps:
+      # The web build imports the promo catalog from the submodule.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          submodules: true
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run validate
+
+  integration:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-bookworm
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: persistent_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      # test:integration refuses any database whose name does not end in _test (TEST-7).
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/persistent_test?schema=public
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          submodules: true
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run db:migrate:deploy
+      - run: npm run test:integration
+
+  desktop-tests:
+    name: Windows harness tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          submodules: true
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: apps/desktop/global.json
+
+      - run: npm run test:desktop
+
+  android-tests:
+    name: Android unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30 # generating the Capacitor project and a cold Gradle run take about 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          submodules: true
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+
+      - run: npm ci
+
+      - name: Install mobile deps
+        working-directory: apps/mobile
+        run: npm ci
+
+      # Builds the web bundle, generates the Capacitor project and applies the native overlay.
+      - run: npm run android:prepare
+      - run: npm run test:android

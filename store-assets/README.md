@@ -64,7 +64,7 @@ temporary input keepalive, never by changing display or lock settings.
 Keep the Store app and its personal account intact. Use the separate direct-debug
 package, `ca.persistent.app`, with the protected demo account. In the existing Node
 development container, build with `PERSISTENT_ANDROID_DEV_URL=http://localhost:5173
-npm run android:build`, then install only the direct-debug APK. Forward the device's
+npm run build:android`, then install only the direct-debug APK. Forward the device's
 port 5173 to the local web port with `adb -s <serial> reverse tcp:5173 tcp:<web-port>`.
 Confirm the synthetic account in the app before proceeding. Enable notifications
 and display-over-other-apps only for this demo package through the ordinary Android

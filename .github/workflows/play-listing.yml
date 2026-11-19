@@ -1,4 +1,4 @@
-name: play-listing
+name: Play Listing
 
 # Text-only localized titles and descriptions from apps/mobile/store/listings.json.
 # A check discards its edit. Publication preserves screenshots, videos, app details
@@ -25,7 +25,23 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # CI-4: play-listing publishes store text, which the code gate says nothing about, so the gate is
+  # the offline checks of that text and the code that sends it.
+  gate:
+    name: Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run check:listing
+
   listing:
+    needs: gate
     runs-on: ubuntu-latest
     timeout-minutes: 10 # about 3x the slowest recent run
     steps:

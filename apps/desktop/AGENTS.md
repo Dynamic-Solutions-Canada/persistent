@@ -11,7 +11,7 @@ This app follows the Windows stack index of the shared standards, https://github
 
 **This is C#, so `npm run validate` does not cover it.** From the WSL
 repository root, `npm run verify:desktop` runs a full Debug compile with Windows
-tools, including XAML. `npm run build:desktop` makes a signed dev MSIX;
+tools, including XAML. `npm run package:desktop:dev` makes a signed dev MSIX;
 `npm run install:desktop` builds, updates in place and launches on Windows.
 Use `-- --skip-build` to reuse the last successful dev package. All staging is
 under the Windows user's C: TEMP and is cleaned after use; there is no D: checkout.

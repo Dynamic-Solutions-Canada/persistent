@@ -1,4 +1,4 @@
-name: Image check
+name: Image Check
 
 # Builds the production API/web image the way the server does, so a change that
 # breaks `docker build` (a dependency the build stage cannot fetch, a missing

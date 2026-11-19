@@ -1,4 +1,4 @@
-name: store-publish
+name: Publish to Microsoft Store
 
 # Build the Store packages (x64 + ARM64, unsigned, real Partner Center identity)
 # and submit them to the Microsoft Store for product 9PCX2XGQ7CJS.
@@ -15,7 +15,7 @@ name: store-publish
 #
 # Every release after that is this workflow.
 #
-# Deliberately separate from `build-desktop-msix`, and manual-dispatch only, for
+# Deliberately separate from `build-msix`, and manual-dispatch only, for
 # the same reason the Play workflows are separate from `release`: cutting a
 # desktop tag should not also push a submission that a human has not looked at.
 #
@@ -51,7 +51,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # CI-4: publishing starts only once the gate passes for the same commit.
+  gate:
+    name: Gate
+    uses: ./.github/workflows/ci.yml
+
   store-publish:
+    needs: gate
     runs-on: windows-2025
     timeout-minutes: 30 # about 3x the slowest recent run
     defaults:
@@ -85,7 +91,7 @@ jobs:
 
           # A warning, never a failure: an expiring credential still authenticates,
           # and blocking a release over a date would be worse than the problem.
-          # store-secret-expiry.yml is what actually chases this weekly; this only
+          # credential-expiry.yml is what actually chases this weekly; this only
           # catches the case where you are already here and about to ship.
           $expires = $env:STORE_SECRET_EXPIRES
           if ([string]::IsNullOrEmpty($expires)) {
@@ -128,7 +134,7 @@ jobs:
           echo "VERSION=$ver" >> $env:GITHUB_OUTPUT
           Write-Host "Submitting version: $ver"
 
-      # Same ordering reason as build-desktop-msix.yml: the icons are gitignored
+      # Same ordering reason as build-msix.yml: the icons are gitignored
       # build output, and the csproj only picks up ApplicationIcon when the .ico
       # already exists.
       - name: Generate images

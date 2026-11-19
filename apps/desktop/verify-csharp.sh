@@ -3,7 +3,7 @@
 # Compile-check the desktop app's non-XAML C# in the Linux development container.
 #
 # WinUI 3 cannot be fully built here — the Windows App SDK's XamlCompiler.exe and
-# MakePri.exe are Windows-only — so `.github/workflows/build-desktop-msix.yml` on
+# MakePri.exe are Windows-only — so `.github/workflows/build-msix.yml` on
 # windows-2025 remains the only complete check. What this DOES catch, without a CI
 # round-trip, is a misremembered WinRT API or a broken reference in the code that
 # has no XAML behind it (see tools/csharp-check/CSharpCheck.csproj for the list).

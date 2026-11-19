@@ -27,7 +27,7 @@ app targets API 36; `setup-android.mjs` pins the compileSdk/targetSdk, AGP and G
 versions together, since AGP caps the compileSdk it will build), so
 verify them by compiling: from here, `npm run verify:android` (re-syncs
 `android-plugin/` into the generated project, then compiles the Kotlin **and**
-Java tasks for **both product flavors**). All four tasks matter: the plugin is
+Java tasks for **both product flavors**), then `npm run test:android` for the JVM unit tests in `android-tests/`. All four compile tasks matter: the plugin is
 Kotlin but `MainActivity.java` is Java, and the Kotlin task alone compiles right
 past a broken `MainActivity`. Run `npm run prepare:android` once first if the
 generated `android/` project doesn't exist yet. The scripted Gradle commands

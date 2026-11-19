@@ -1,4 +1,4 @@
-name: play-promote
+name: Play Promote
 
 # Recover an already-uploaded version onto production without rebuilding.
 # Retire phone testing releases in the same edit. Normal tagged releases publish
@@ -27,7 +27,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # CI-4: publishing starts only once the gate passes for the same commit.
+  gate:
+    name: Gate
+    uses: ./.github/workflows/ci.yml
+
   promote:
+    needs: gate
     runs-on: ubuntu-latest
     timeout-minutes: 10 # about 3x the slowest recent run
     steps:

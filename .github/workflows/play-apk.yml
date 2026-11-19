@@ -1,4 +1,4 @@
-name: replace-github-apk
+name: Replace GitHub APK
 
 # Re-export an already uploaded Play version. Never rebuild or upload a bundle,
 # and preserve the release notes approved for the existing GitHub release.
@@ -26,7 +26,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # CI-4: publishing starts only once the gate passes for the same commit.
+  gate:
+    name: Gate
+    uses: ./.github/workflows/ci.yml
+
   replace:
+    needs: gate
     permissions:
       contents: write
     runs-on: ubuntu-latest
