@@ -17,6 +17,10 @@ The deploy target comes from your local `.env` (`DEPLOY_SSH_HOST`, `DEPLOY_REPO_
 
 The `Image check` workflow builds the production image on every change that affects it and fails if it runs as root, so a broken build shows up before a deploy.
 
+Each deploy labels the image with the commit and release it was built from (`org.opencontainers.image.revision` and `.version`): the deploy script exports `DEPLOY_REVISION` and `DEPLOY_VERSION` (the root `package.json` version, which the `release` skill keeps equal to the web app's), and `compose.server.yml` passes them to the build. `docker inspect persistent-api` shows what is running.
+
+The nginx site file is the tracked `nginx.server.conf`, installed as `conf.d/persistent.conf` in the shared nginx container. It matches the live file as of 2026-11-18. Until the generated deploy installs it, a change is copied in by hand and applied with `nginx -t` and a reload, as the file's header shows.
+
 ## How production config reaches the container
 
 The server's `.env` is **not** copied into the image; `.dockerignore` excludes it at any depth. `lib/env.ts` does `import 'dotenv/config'`, so a baked-in copy would both embed secrets (the database password, the Cloudflare token) in a distributable layer and hide the container's real configuration from `docker inspect`.
@@ -34,7 +38,19 @@ The API container runs as the image's unprivileged `node` user (uid 1000), so a 
 All service data is in PostgreSQL, in the `persistent-data` Docker volume on the server. The maintainer is responsible for backups, which work in two layers (CTR-12 in the shared standards):
 
 - **Whole-server backup:** the server is backed up whole at the hypervisor (Proxmox) level, which covers this product's volumes along with everything else on the host. This is in place today.
-- **Pre-deploy dumps:** not yet in place. The deploy will dump and verify the database before each migration and keep the newest ten (CTR-11), once Persistent adopts the deploy that devkit 0.19.0 generates. This section will then say where the dumps are kept and how to restore one into a fresh database, and that restore will be tried once on a disposable database with synthetic data, with the date recorded here.
+- **Pre-deploy dumps:** not yet in place. The deploy will dump and verify the database before each migration and keep the newest ten in the server checkout's `.backups/` (CTR-11), once Persistent moves to devkit's generated deploy. That waits on devkit running `git submodule update` during a deploy, which this repo's build needs for the promo catalog.
+
+#### Restoring a dump
+
+A dump is a gzipped plain `pg_dump` of the `persistent` database, verified when it is taken by `gzip -t` and by its closing "PostgreSQL database dump complete" line. To restore one, load it into an empty database of the same PostgreSQL major version (16), then point the API at it:
+
+```bash
+gzip -dc <dump>.sql.gz | docker compose -f compose.server.yml exec -T db psql -U "$POSTGRES_USER" -d <empty database> -v ON_ERROR_STOP=1
+```
+
+Restore into a fresh database rather than over the live one, check it (`npx prisma migrate status` against it should report the schema up to date), and only then switch to it.
+
+**Tried on 2026-11-18** (CTR-12) on disposable `postgres:16-bookworm` containers: a database migrated to all 28 migrations and filled with `npm run db:seed` synthetic data was dumped exactly as the deploy will dump it, verified, and restored into a second empty database. Row counts matched, Prisma reported the schema up to date, and a dump of the restored database was identical to the original apart from its timestamps.
 
 A backup holds the same personal data and secrets as the live database and needs the same protection.
 

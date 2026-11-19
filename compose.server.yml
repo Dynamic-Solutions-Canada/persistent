@@ -33,6 +33,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      # OCI revision and version labels (CTR-1), exported by the deploy script.
+      args:
+        REVISION: ${DEPLOY_REVISION:-unknown}
+        VERSION: ${DEPLOY_VERSION:-unknown}
       # Use host networking during the build: the default build bridge resolves
       # registry.npmjs.org to IPv6-only and `npm ci` then can't connect.
       network: host

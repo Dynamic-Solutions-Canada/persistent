@@ -51,4 +51,9 @@ COPY --from=build --chown=node:node /app .
 
 USER node
 EXPOSE 4000
+# Which commit and release this image is (CTR-1); the deploy passes both as build args. Declared
+# last so a new revision does not invalidate the cached layers above.
+ARG REVISION=unknown
+ARG VERSION=unknown
+LABEL org.opencontainers.image.revision=$REVISION org.opencontainers.image.version=$VERSION
 CMD ["npm", "run", "start:prod"]
