@@ -16,6 +16,8 @@
     "bundle:play": "cd android && ./gradlew bundlePlayRelease",
     "prepare:android": "npm run build:web && npm run add:android && npm run setup:android && npm run sync",
     "verify:android": "npm run setup:android && cd android && ./gradlew --no-daemon --max-workers=${ANDROID_GRADLE_WORKERS:-2} --console=plain :app:compilePlayDebugKotlin :app:compilePlayDebugJavaWithJavac :app:compileDirectDebugKotlin :app:compileDirectDebugJavaWithJavac",
+    "lint:android": "npm run setup:android && cd android && ./gradlew --no-daemon --max-workers=${ANDROID_GRADLE_WORKERS:-2} --console=plain :app:lintPlayDebug :app:lintDirectDebug",
+    "check:android-notices": "npm run setup:android && cd android && ./gradlew --no-daemon --max-workers=${ANDROID_GRADLE_WORKERS:-2} --console=plain :app:renderPlayDebugThirdPartyNotices :app:renderPlayReleaseThirdPartyNotices :app:renderDirectDebugThirdPartyNotices :app:renderDirectReleaseThirdPartyNotices",
     "test:android": "npm run setup:android && cd android && ./gradlew --no-daemon --max-workers=${ANDROID_GRADLE_WORKERS:-2} --console=plain :app:testPlayDebugUnitTest :app:testDirectDebugUnitTest"
   },
   "dependencies": {

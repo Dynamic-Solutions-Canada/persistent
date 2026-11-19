@@ -1,5 +1,6 @@
 package ca.persistent.app.alarm
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
@@ -169,6 +170,9 @@ class SnoozePickerActivity : Activity() {
     }
 
     @Deprecated("Back steps out of the custom view to the list before leaving the surface.")
+    // Lint's GestureBackNavigation does not see BackInterception, which handles API 33+;
+    // this override is the API 22 to 32 path only.
+    @SuppressLint("GestureBackNavigation")
     override fun onBackPressed() {
         // API 22 to 32 only; on API 33+ the registered callback handles it instead
         // and this is never called. `handleLegacyBack` returns false at the presets,

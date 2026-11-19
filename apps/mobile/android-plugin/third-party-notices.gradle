@@ -1,0 +1,118 @@
+// Third-party notices for the Android shell (HYG-3), applied to the generated app module by
+// scripts/setup-android.mjs. AboutLibraries collects every dependency's licence from its POM
+// chain; the task below renders that list to assets/third_party_notices.txt for each variant,
+// so the APK carries its own notices, which the app shows through AlarmPlugin.readNotices.
+//
+// The build fails when:
+// - a dependency's licence is not one of ALLOWED_LICENSES (AboutLibraries strict mode), or it
+//   names no licence at all;
+// - the list does not cover every external module on the variant's runtime classpath, so the
+//   file cannot silently drift from what the APK ships.
+
+import groovy.json.JsonSlurper
+
+/**
+ * Licences the shell may ship, as AboutLibraries identifies them. Add one only after reading
+ * it. ASDKL, the Android Software Development Kit License, covers Google Play services and the
+ * Firebase interop modules that push delivery and Google sign-in need; it is not open source,
+ * but it allows shipping them in an app and they are listed like the others.
+ */
+def ALLOWED_LICENSES = ['Apache-2.0', 'MIT', 'BSD-2-Clause', 'BSD-3-Clause', 'ASDKL']
+
+// Script plugins cannot import classes from the root buildscript classpath, so the enum is
+// loaded through the plugin's own class loader.
+def strictModeType = extensions.getByName('aboutLibraries').getClass().classLoader
+    .loadClass('com.mikepenz.aboutlibraries.plugin.StrictMode')
+
+// The configuration blocks are Kotlin Actions. Groovy would route a bare `collect { }` to its
+// own collection method, so each block is passed as an explicit Action that gets the config.
+def aboutLibrariesExtension = extensions.getByName('aboutLibraries')
+// Licence text comes from the POMs and AboutLibraries' bundled SPDX texts; the build never
+// fetches anything from GitHub.
+aboutLibrariesExtension.collect({ config ->
+    config.fetchRemoteLicense.set(false)
+    config.fetchRemoteFunding.set(false)
+} as Action)
+aboutLibrariesExtension.license({ config ->
+    config.strictMode.set(Enum.valueOf(strictModeType, 'FAIL'))
+    config.allowedLicenses.addAll(ALLOWED_LICENSES)
+} as Action)
+
+/**
+ * Renders one variant's AboutLibraries JSON as plain text, sorted by module, with each
+ * licence's full text once at the end, and checks it against the runtime classpath.
+ */
+abstract class RenderThirdPartyNotices extends DefaultTask {
+    @InputFiles abstract ConfigurableFileCollection getDefinitions()
+    @Input abstract SetProperty<String> getRuntimeModules()
+    @OutputDirectory abstract DirectoryProperty getOutputDir()
+
+    @TaskAction
+    void render() {
+        def file = definitions.asFileTree.matching { include '**/*.json' }.singleFile
+        def json = new JsonSlurper().parse(file)
+        def libraries = (json.libraries ?: []).sort { it.uniqueId }
+        def licenses = json.licenses ?: [:]
+
+        def unlicensed = libraries.findAll { !it.licenses }
+        if (unlicensed) {
+            throw new GradleException("No licence for: ${unlicensed*.uniqueId.join(', ')}")
+        }
+        def listed = libraries*.uniqueId as Set
+        // Kotlin multiplatform libraries resolve to a platform artifact (`-jvm`, `-android`)
+        // that AboutLibraries lists under the library's root module.
+        def covered = { String id ->
+            listed.contains(id) || listed.contains(id.replaceFirst(/-(jvm|android)$/, ''))
+        }
+        def missing = runtimeModules.get().findAll { !covered(it) }.sort()
+        if (missing) {
+            throw new GradleException("Runtime modules missing from the notices: ${missing.join(', ')}")
+        }
+
+        def out = new StringBuilder()
+        out << 'THIRD-PARTY SOFTWARE NOTICES: Persistent for Android\n\n'
+        out << 'This app includes the open-source libraries listed below. Each remains under\n'
+        out << 'its own licence, whose full text follows the list.\n\n'
+        out << "Total libraries: ${libraries.size()}\n\n"
+        libraries.each { library ->
+            out << "${library.uniqueId}:${library.artifactVersion}\n"
+            out << "License: ${library.licenses.collect { licenses[it]?.spdxId ?: it }.join(', ')}\n"
+            if (library.website) out << "Website: ${library.website}\n"
+            out << '\n'
+        }
+        licenses.keySet().sort().each { key ->
+            def license = licenses[key]
+            out << "----- ${license.spdxId ?: license.name} -----\n"
+            out << "${(license.content ?: license.url ?: '').trim()}\n\n"
+        }
+
+        def dir = outputDir.get().asFile
+        dir.mkdirs()
+        new File(dir, 'third_party_notices.txt').text = out.toString()
+    }
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        def suffix = variant.name.capitalize()
+        // One export file per variant; by default every variant writes the same file.
+        aboutLibrariesExtension.exports({ exports ->
+            exports.register(variant.name) { export ->
+                export.variant.set(variant.name)
+                export.outputFile.set(layout.buildDirectory.file(
+                    "generated/aboutLibraries/${variant.name}/aboutlibraries.json"))
+            }
+        } as Action)
+        def render = tasks.register("render${suffix}ThirdPartyNotices", RenderThirdPartyNotices) {
+            definitions.from(tasks.named("exportLibraryDefinitions${suffix}"))
+            runtimeModules.set(project.provider {
+                variant.runtimeConfiguration.incoming.resolutionResult.allComponents
+                    .collect { it.id }
+                    .findAll { it instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier }
+                    .collect { "${it.group}:${it.module}".toString() } as Set
+            })
+            outputDir.set(layout.buildDirectory.dir("generated/thirdPartyNotices/${variant.name}"))
+        }
+        variant.sources.assets?.addGeneratedSourceDirectory(render) { it.outputDir }
+    }
+}

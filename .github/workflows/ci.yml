@@ -134,3 +134,7 @@ jobs:
       # Builds the web bundle, generates the Capacitor project and applies the native overlay.
       - run: npm run android:prepare
       - run: npm run test:android
+      # Android lint fails on errors only; its warnings are a separate cleanup.
+      - run: npm run lint:android
+      # Every variant's notices: strict licences and full runtime-classpath coverage (HYG-3).
+      - run: npm run check:android-notices

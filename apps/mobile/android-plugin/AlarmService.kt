@@ -1,5 +1,6 @@
 package ca.persistent.app.alarm
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -418,6 +419,9 @@ class AlarmService : Service() {
      * the foreground contract and must never be left behind on its own.
      * Returns whether the service is now in the foreground with this notification.
      */
+    // The service declares foregroundServiceType="specialUse" in AndroidManifest.additions.xml,
+    // which both flavors' merged manifests carry; lint's ForegroundServiceType misses it on direct.
+    @SuppressLint("ForegroundServiceType")
     private fun startForegroundOrPost(id: Int, notification: Notification, postIfRefused: Boolean = true): Boolean {
         try {
             startForeground(id, notification)

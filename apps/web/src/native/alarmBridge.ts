@@ -130,6 +130,11 @@ export interface AlarmPluginPlugin {
     grant: AlarmGrant
   }): Promise<{ opened: boolean }>
   /**
+   * The shell's own third-party notices, bundled in the APK. Missing from older
+   * hosts, which reject with `UNIMPLEMENTED`; a build without the asset rejects too.
+   */
+  readNotices(): Promise<{ text: string }>
+  /**
    * Set the device default shade prominence (for reminders set to INHERIT) and
    * re-post any live notifications so the change applies immediately.
    */

@@ -716,6 +716,43 @@ if (existsSync(iconOverlay)) {
   }
 }
 
+// --- 4h. Third-party notices (HYG-3) ----------------------------------------
+// AboutLibraries collects each dependency's licence and android-plugin/
+// third-party-notices.gradle renders it into every variant's assets; see that
+// file for what fails the build. Pinned exactly: the notices must not change
+// with an unreviewed plugin release.
+const ABOUT_LIBRARIES_VERSION = '15.3.0'
+{
+  let root = readFileSync(rootGradlePath, 'utf8')
+  if (!root.includes('aboutlibraries-plugin')) {
+    root = root
+      .replace(
+        /(buildscript\s*\{\s*repositories\s*\{[^}]*?mavenCentral\(\))/,
+        '$1\n        gradlePluginPortal()',
+      )
+      .replace(
+        /(classpath 'com\.android\.tools\.build:gradle:[^']+')/,
+        `$1\n        classpath 'com.mikepenz.aboutlibraries.plugin:aboutlibraries-plugin:${ABOUT_LIBRARIES_VERSION}'`,
+      )
+    writeFileSync(rootGradlePath, root)
+    console.log('[setup-android] added the AboutLibraries plugin classpath')
+  }
+
+  copyFileSync(
+    join(mobileRoot, 'android-plugin', 'third-party-notices.gradle'),
+    join(mobileRoot, 'android', 'app', 'third-party-notices.gradle'),
+  )
+  let g = readFileSync(appGradlePath, 'utf8')
+  if (!g.includes("apply plugin: 'com.mikepenz.aboutlibraries.plugin'")) {
+    g = g.replace(
+      /(apply plugin: 'kotlin-android'\n)/,
+      `$1apply plugin: 'com.mikepenz.aboutlibraries.plugin'\napply from: 'third-party-notices.gradle'\n`,
+    )
+    writeFileSync(appGradlePath, g)
+    console.log('[setup-android] applied third-party notices generation')
+  }
+}
+
 // --- 5. Release signing (when a keystore is provided via env) ---------------
 // Local builds set ANDROID_KEYSTORE_* in .env; CI decodes the keystore secret to
 // a file and sets the same vars. Passwords are read by Gradle from the env at

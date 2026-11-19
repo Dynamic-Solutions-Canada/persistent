@@ -45,6 +45,8 @@
     "test:integration": "devkit-test --integration",
     "test:desktop": "scripts/dev/test-desktop.sh",
     "test:android": "npm --prefix apps/mobile run test:android",
+    "lint:android": "npm --prefix apps/mobile run lint:android",
+    "check:android-notices": "npm --prefix apps/mobile run check:android-notices",
     "typecheck": "npm run typecheck --workspace @persistent/shared && npm run build --workspace @persistent/shared && npm run typecheck --workspace @persistent/api && npm run typecheck --workspace @persistent/web",
     "validate": "npm run build --workspace @persistent/shared && npm run format:check && npm run lint && npm run test && npm run typecheck && npm run prisma:validate --workspace @persistent/api && npm run check:devkit && npm run check:icons && npm run check:notices && npm run check:notes && npm run shots:check",
     "check:devkit": "devkit-init --check",

@@ -263,6 +263,23 @@ class AlarmPlugin : Plugin() {
         call.resolve(JSObject().put("opened", AlarmPermissions.openSettings(context, grant)))
     }
 
+    /**
+     * The shell's own third-party notices (HYG-3), generated into each variant's assets by
+     * third-party-notices.gradle, for the web app's notices page to show beside its own.
+     * Resolves `{ text }`, or rejects when the asset is missing (a build without it).
+     */
+    @PluginMethod
+    fun readNotices(call: PluginCall) {
+        val text = runCatching {
+            context.assets.open("third_party_notices.txt").bufferedReader().use { it.readText() }
+        }.getOrNull()
+        if (text == null) {
+            call.reject("notices unavailable")
+            return
+        }
+        call.resolve(JSObject().put("text", text))
+    }
+
     /** Older web bundles' entry point; new ones call [openPermissionSettings] after explaining. */
     @PluginMethod
     fun requestOverlayPermission(call: PluginCall) {
