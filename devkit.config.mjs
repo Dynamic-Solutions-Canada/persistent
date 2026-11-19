@@ -37,6 +37,12 @@ export default {
     output: 'node_modules'
   },
 
+  /**
+   * devkit-test skips the generated Capacitor native projects, which hold no node tests and are
+   * large enough to slow the walk.
+   */
+  test: { ignore: ['apps/mobile/android', 'apps/mobile/ios'] },
+
   /** Probe API readiness before opening the proxied UI when --open is requested. */
   browser: { path: '/', healthPath: '/api/health' },
 

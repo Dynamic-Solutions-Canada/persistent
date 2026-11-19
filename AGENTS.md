@@ -65,7 +65,7 @@ The devkit-managed Compose stack is the complete development environment. Use th
 | `npm run verify:desktop` | Full Windows Debug compile, including XAML | That the app starts |
 | `npm run install:desktop` | Installs a dev-signed build on Windows: the only check that sees packaging and startup | Store certification |
 
-`npm test` discovers `*.test.ts` under `apps/`, `packages/` and `scripts/`; the last holds repo-hygiene checks that belong to no single workspace. Kotlin and Java changes have their own compile check (`apps/mobile/AGENTS.md`), and the Windows app has its own plus a CI job (`apps/desktop/AGENTS.md`); neither is optional before finishing. Windows builds go through the shared build bridge from WSL: use the `desktop` skill.
+`npm test` is `devkit-test`, which finds every `*.test.ts` and `*.test.tsx` in the repo except database tests (`*.integration.test.ts`, run by `npm run test:integration`) and submodules under `external/`; `scripts/` holds repo-hygiene checks that belong to no single workspace. Kotlin and Java changes have their own compile check (`apps/mobile/AGENTS.md`), and the Windows app has its own plus a CI job (`apps/desktop/AGENTS.md`); neither is optional before finishing. Windows builds go through the shared build bridge from WSL: use the `desktop` skill.
 
 ## Release
 
