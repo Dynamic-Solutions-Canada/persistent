@@ -1008,7 +1008,7 @@ class AlarmService : Service() {
         val summary = NotificationCompat.Builder(this, CHANNEL_NORMAL)
             .setContentTitle(NativeText.text(this, "Reminders"))
             .setContentText(NativeText.text(this, "{{count}} active reminders", mapOf("count" to grouped)))
-            .setSmallIcon(R.drawable.ic_stat_bell)
+            .setSmallIcon(R.drawable.ic_stat)
             .setColor(AlarmAppearance.palette(this).accent)
             .setGroup(GROUP_KEY)
             .setGroupSummary(true)
@@ -1037,7 +1037,7 @@ class AlarmService : Service() {
         ensureChannels()
         return NotificationCompat.Builder(this, CHANNEL_ALARM)
             .setContentTitle(NativeText.text(this, "Reminder"))
-            .setSmallIcon(R.drawable.ic_stat_bell)
+            .setSmallIcon(R.drawable.ic_stat)
             .setColor(AlarmAppearance.palette(this).accent)
             .build()
     }
@@ -1160,7 +1160,7 @@ class AlarmService : Service() {
         val builder = NotificationCompat.Builder(this, channel)
             .setContentTitle(spec.title)
             .setContentText(if (awaitingConfirm) NativeText.text(this, "Tap \"Confirm done\" to mark complete") else NativeText.body(this, spec))
-            .setSmallIcon(R.drawable.ic_stat_bell)
+            .setSmallIcon(R.drawable.ic_stat)
             .setColor(AlarmAppearance.palette(this).accent)
             .setCategory(if (spec.alarm) NotificationCompat.CATEGORY_ALARM else NotificationCompat.CATEGORY_REMINDER)
             .setPriority(

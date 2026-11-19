@@ -1,8 +1,8 @@
 # Process and mobile-tooling image for Persistent. It includes a JDK and Android
 # command-line tools so the Capacitor Android client
 # (apps/mobile) can be built from inside the container later. librsvg2-bin
-# (rsvg-convert) rasterizes the app-icon SVGs into launcher PNGs via
-# `npm run gen:icons` in apps/mobile.
+# (rsvg-convert) renders the Play feature graphic (store-assets/play/listings.md);
+# the app icons come from `npm run icons` (devkit-icons, using resvg).
 FROM node:22.23.4-trixie
 
 ARG DEBIAN_FRONTEND=noninteractive

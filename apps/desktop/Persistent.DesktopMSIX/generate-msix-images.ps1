@@ -1,8 +1,8 @@
 # Renders the Persistent mark once and downscales it into every asset the app and
 # the Store need: the multi-size .ico, an in-app PNG, and the MSIX tile/logo set.
 #
-# The mark is the same bell-on-dark-tile glyph as the web favicon
-# (apps/web/public/favicon.svg and components/BrandMark.tsx). Keep the three in
+# The mark is the same bell-on-dark-tile glyph as the icon master
+# (assets/brand/icon.svg and components/BrandMark.tsx). Keep the three in
 # step -- the tray icon, the PWA tab and the Play listing should be one mark.
 #
 # ASCII ONLY. Windows PowerShell 5.1 reads a BOM-less .ps1 as ANSI, so a UTF-8

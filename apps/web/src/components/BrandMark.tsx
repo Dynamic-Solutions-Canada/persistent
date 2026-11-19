@@ -1,7 +1,7 @@
 /**
  * BrandMark — the app's bell icon (the favicon glyph) rendered inline as an SVG
  * for in-app branding (top bar, sign-in). Square; size is in px. Keep the glyph
- * in sync with apps/web/public/favicon.svg and apps/mobile/assets/*.svg.
+ * in sync with the icon master, assets/brand/icon.svg.
  */
 
 export function BrandMark({

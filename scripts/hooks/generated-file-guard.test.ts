@@ -153,6 +153,9 @@ test('the header check can be turned off, and a missing config means defaults', 
   })
 })
 
-test("this repo's config protects the Capacitor Android project", () => {
-  assert.deepEqual(loadConfig().generatedDirectories, ['apps/mobile/android'])
+test("this repo's config protects the Capacitor Android project and the icon exports", () => {
+  assert.deepEqual(loadConfig().generatedDirectories, [
+    'apps/mobile/android',
+    'assets/generated',
+  ])
 })

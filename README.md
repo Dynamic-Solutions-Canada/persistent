@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="store-assets/play/graphics/play-icon.png" alt="Persistent" width="128">
+  <img src="assets/generated/icon-256.png" alt="Persistent" width="128">
 </p>
 
 <h1 align="center">Persistent</h1>

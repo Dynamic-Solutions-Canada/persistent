@@ -41,7 +41,7 @@ object CarNotificationProjection {
 
         val extender = CarAppExtender.Builder()
             .setContentTitle(spec.title)
-            .setSmallIcon(R.drawable.ic_stat_bell)
+            .setSmallIcon(R.drawable.ic_stat)
             .setImportance(NotificationManager.IMPORTANCE_HIGH)
             .addAction(R.drawable.ic_action_done, NativeText.text(context, "Done"), donePending)
             .addAction(R.drawable.ic_action_snooze, NativeText.text(context, "Snooze {{minutes}} min", mapOf("minutes" to defaultSnoozeMinutes)), snoozePending)
