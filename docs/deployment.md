@@ -15,7 +15,7 @@ npm run deploy:prod -- --dry-run
 
 The deploy script is devkit's generated `scripts/deploy/deploy-over-ssh.mjs`; its settings are the `deploy` block in `devkit.config.mjs`, and what it does is in [devkit's README](https://github.com/Dynamic-Solutions-Canada/devkit#deploying). It refuses unless the tree is clean and `HEAD` is a freshly fetched `origin/main`, runs `npm run validate`, then on the server: refuses a checkout with tracked changes; dumps and verifies the database into `.backups/` in the checkout, keeping the newest ten; fast-forwards `main` and the submodules (the web build imports the promo catalog, so publish a promo commit before pushing a Persistent commit that references it); runs `docker compose up --build --wait` and stops with the logs if a service is not healthy; installs `nginx.server.conf` as `conf.d/persistent.conf` if it changed, keeping the old file and rolling back if `nginx -t` fails; and prunes dangling images.
 
-The target comes from your local `.env`: `DEPLOY_SSH_HOST`, `DEPLOY_REPO_PATH`, and `DEPLOY_SSH_PORT` when your ssh config does not set it.
+The target comes from your local `.env`: `DEPLOY_SSH_HOST`, `DEPLOY_REPO_PATH`, `DEPLOY_NGINX_SITES_DIR` (the nginx sites folder on the server; required, with no default, so the deploy stops before contacting the server without it), and `DEPLOY_SSH_PORT` when your ssh config does not set it.
 
 The `Image Check` workflow builds the production image on every change that affects it and fails if it runs as root, so a broken build shows up before a deploy.
 

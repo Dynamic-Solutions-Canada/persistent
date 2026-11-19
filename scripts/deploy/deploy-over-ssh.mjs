@@ -15,8 +15,8 @@
  *
  * Run with `npm run deploy:prod`, which loads `.env` when it exists. The target comes from the
  * environment: DEPLOY_SSH_HOST, DEPLOY_SSH_PORT (unset: ssh config decides), DEPLOY_REPO_PATH, DEPLOY_BACKUP_DIR
- * (.backups in the server checkout), DEPLOY_NGINX_SITES_DIR (/home/apps/nginx/conf.d) and
- * DEPLOY_NGINX_CONTAINER (nginx). Options: --skip-validate, --skip-backup (or DEPLOY_BACKUP=0)
+ * (.backups in the server checkout), DEPLOY_NGINX_SITES_DIR (required when a site file is
+ * deployed, for example /srv/nginx/sites) and DEPLOY_NGINX_CONTAINER (nginx). Options: --skip-validate, --skip-backup (or DEPLOY_BACKUP=0)
  * when a dump exists another way, --no-prune (or DEPLOY_PRUNE=0), --dry-run, --help.
  */
 import { spawnSync } from 'node:child_process'
@@ -90,8 +90,29 @@ export function parseOptions(argv, env) {
     port: env.DEPLOY_SSH_PORT?.trim() ?? '',
     repoPath: env.DEPLOY_REPO_PATH?.trim() ?? '',
     backupDir: env.DEPLOY_BACKUP_DIR?.trim() || '.backups',
-    sitesDir: env.DEPLOY_NGINX_SITES_DIR?.trim() || '/home/apps/nginx/conf.d',
+    // No default: it is a server path, which belongs in the untracked .env, never in a repo.
+    sitesDir: env.DEPLOY_NGINX_SITES_DIR?.trim() ?? '',
     nginxContainer: env.DEPLOY_NGINX_CONTAINER?.trim() || 'nginx',
+  }
+}
+
+/**
+ * Requires the nginx sites folder when this deploy installs a site file, before anything reaches
+ * the server. It must be an absolute server path; a product with `deploy.site: null` needs none.
+ * @param {{ sitesDir: string }} options From `parseOptions`.
+ * @param {{ site: object | null }} settings From `deploySettings`.
+ */
+export function requireSitesDir(options, settings) {
+  if (!settings.site) return
+  if (!options.sitesDir) {
+    throw new Error(
+      'Set DEPLOY_NGINX_SITES_DIR to the nginx sites folder on the server, for example /srv/nginx/sites, or set deploy.site to null in devkit.config.mjs.',
+    )
+  }
+  if (!options.sitesDir.startsWith('/')) {
+    throw new Error(
+      `DEPLOY_NGINX_SITES_DIR must be an absolute path on the server; it is ${options.sitesDir}`,
+    )
   }
 }
 
@@ -407,6 +428,7 @@ async function main() {
     ? (await import(pathToFileURL(configPath).href)).default
     : {}
   const settings = deploySettings(repoRoot, config)
+  requireSitesDir(options, settings)
   const sha = requireCleanPushedMain(repoRoot)
   const script = buildRemoteScript(settings, options, sha)
   const sshArgs = sshArguments(options, script)

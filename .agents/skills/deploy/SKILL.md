@@ -50,8 +50,8 @@ dry-run request, or deploy arguments.
 
 ## Production facts
 
-- Target configuration comes from `.env`: `DEPLOY_SSH_HOST` and `DEPLOY_REPO_PATH`
-  (and `DEPLOY_SSH_PORT` if needed). Production settings for the server's own `.env`
+- Target configuration comes from `.env`: `DEPLOY_SSH_HOST`, `DEPLOY_REPO_PATH` and
+  `DEPLOY_NGINX_SITES_DIR` (required; the deploy stops without it), and `DEPLOY_SSH_PORT` if needed. Production settings for the server's own `.env`
   are in `.env.server.example`.
 - The server holds a checkout and filled-in `.env` next to
   `compose.server.yml`; the shared TLS reverse proxy reaches `persistent-api:4000`
