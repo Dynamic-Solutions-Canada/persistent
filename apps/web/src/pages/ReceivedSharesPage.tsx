@@ -11,7 +11,7 @@ import { useReminderDialogs } from '../components/reminderDialogContext.js'
 import { useReceivedShares } from '../data/shares.js'
 import { formatWhen } from '../lib/datetime.js'
 import { useSettings } from '../settings/useSettings.js'
-import { EmptyState } from '../components/EmptyState.js'
+import { EmptyState } from '@dynamic-solutions-canada/web-app-kit'
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded'
 
 export function ReceivedSharesPage() {

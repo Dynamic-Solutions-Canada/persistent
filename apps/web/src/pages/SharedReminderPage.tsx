@@ -25,7 +25,7 @@ import { InlineReminderText } from '../components/InlineReminderText.js'
 import { formatDateTime, formatWhen } from '../lib/datetime.js'
 import { useSettings } from '../settings/useSettings.js'
 import { useAuth } from '../auth/useAuth.js'
-import { EmptyState } from '../components/EmptyState.js'
+import { EmptyState } from '@dynamic-solutions-canada/web-app-kit'
 import LinkOffRoundedIcon from '@mui/icons-material/LinkOffRounded'
 
 export function SharedReminderPage({

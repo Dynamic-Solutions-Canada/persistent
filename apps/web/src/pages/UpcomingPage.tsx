@@ -38,7 +38,7 @@ import {
 import { useAuth } from '../auth/useAuth.js'
 import { PullToRefresh } from '../components/PullToRefresh.js'
 import { useReminderDialogs } from '../components/reminderDialogContext.js'
-import { EmptyState } from '../components/EmptyState.js'
+import { EmptyState } from '@dynamic-solutions-canada/web-app-kit'
 import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded'
 
 export function UpcomingPage() {

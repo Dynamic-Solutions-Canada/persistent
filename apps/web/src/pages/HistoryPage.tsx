@@ -30,7 +30,7 @@ import { useReminderDialogs } from '../components/reminderDialogContext.js'
 import { useReminders } from '../data/reminders.js'
 import { useReceivedShares } from '../data/shares.js'
 import { sharingState } from '../components/sharingState.js'
-import { EmptyState } from '../components/EmptyState.js'
+import { EmptyState } from '@dynamic-solutions-canada/web-app-kit'
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
 
 /**

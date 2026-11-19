@@ -34,7 +34,7 @@ import {
   receivedReminderIds,
   receivedReminders,
 } from '../lib/receivedReminders.js'
-import { EmptyState } from '../components/EmptyState.js'
+import { EmptyState } from '@dynamic-solutions-canada/web-app-kit'
 import StickyNote2RoundedIcon from '@mui/icons-material/StickyNote2Rounded'
 
 export function NotesPage() {

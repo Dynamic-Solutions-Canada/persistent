@@ -35,7 +35,7 @@ import { useAuth } from '../auth/useAuth.js'
 import { useSentAssignments } from '../data/assignments.js'
 import Button from '@mui/joy/Button'
 import { Link as RouterLink } from 'react-router-dom'
-import { EmptyState } from '../components/EmptyState.js'
+import { EmptyState } from '@dynamic-solutions-canada/web-app-kit'
 import DoneAllRoundedIcon from '@mui/icons-material/DoneAllRounded'
 
 export function RemindersPage() {

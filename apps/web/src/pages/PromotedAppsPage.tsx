@@ -16,7 +16,7 @@ import {
   blurbFor,
   CATALOG_BASE_URL,
 } from '../../../desktop/external/promo/catalog.js'
-import { EmptyState } from '../components/EmptyState.js'
+import { EmptyState } from '@dynamic-solutions-canada/web-app-kit'
 import AppsRoundedIcon from '@mui/icons-material/AppsRounded'
 
 // Vite includes these immutable assets in the build and the offline precache.
