@@ -76,6 +76,8 @@ instead of emailing it, even when `.env` has mail credentials or disables demo
 mode. Choose **Use email instead**, enter an address, then enter the displayed
 code. Production Compose forces demo mode off.
 
+Sign-in codes stay rate limited in development: five per address and twelve per IP address in fifteen minutes. Browser and device checks therefore sign in once per session rather than once per run. Keep the Android app installed through a check (it keeps its session), and give Playwright a saved session: `npm run dev:session -- --origin=http://localhost:<web port>` signs `demo@example.test` in, or reuses its saved session while it still works, and writes a Playwright storageState file to `tmp/dev-session/demo.json` (git-ignored) for `browser.newContext({ storageState })`. It accepts only a local origin and the demo account. The app-store review account (`REVIEW_ACCOUNT_*`) stays unset in development; it is a production credential that is live only during a store review.
+
 For the Android app (build, wireless adb, signing), see `apps/mobile/README.md`.
 
 ### Multi-checkout development

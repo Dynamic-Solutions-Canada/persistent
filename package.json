@@ -32,6 +32,7 @@
     "db:migrate": "npm run prisma:migrate:dev --workspace @persistent/api --",
     "db:migrate:deploy": "npm run prisma:migrate:deploy --workspace @persistent/api",
     "db:seed": "tsx scripts/dev/seed-reminders.ts",
+    "dev:session": "node --import tsx scripts/dev/demo-session.ts",
     "db:seed:demo": "tsx scripts/dev/seed-demo-listing.ts",
     "shots": "node --import tsx scripts/dev/store-assets.ts help",
     "shots:prepare": "node --import tsx scripts/dev/store-assets.ts prepare",
