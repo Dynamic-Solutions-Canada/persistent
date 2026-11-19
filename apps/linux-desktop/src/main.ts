@@ -359,11 +359,7 @@ async function start(): Promise<void> {
             recovery.open()
             return
           case 'close':
-            window.hide()
-            return
-          case 'signedOut':
-            client.sessionChanged(true)
-            window.clearPending()
+            window.requestClose()
             return
           case 'locale': {
             const locale = applyNativeLocale(raw.locale)

@@ -21,6 +21,7 @@ import {
   openingPosition,
   panelCornerAnchor,
 } from './window-placement.js'
+import { shouldHonourClose } from './close-settle.js'
 import { isAppUrl, isExternalUrl, isGoogleSignIn } from './security.js'
 import type { SettingsStore } from './settings.js'
 
@@ -39,6 +40,8 @@ export class HostedWindow {
   private background = this.mode === 'dark' ? '#0b0f19' : '#ffffff'
   private delivery: PageDelivery
   private lastHidden = 0
+  /** When the flyout was last shown, for the page-close settle (close-settle.ts). */
+  private shownAt = 0
   private resizeTimer: ReturnType<typeof setTimeout> | null = null
   private status: 'loading' | 'ready' | 'error' = 'loading'
   private signedIn = false
@@ -460,6 +463,7 @@ export class HostedWindow {
   }
 
   show(trayBounds?: Electron.Rectangle): void {
+    this.shownAt = Date.now()
     if (this.window.isMinimized()) this.window.restore()
     if (this.signedIn && !this.window.isVisible() && !this.wayland)
       this.position(trayBounds)
@@ -478,6 +482,15 @@ export class HostedWindow {
     else if (this.window.isVisible()) this.show(trayBounds)
     else if (Date.now() - this.lastHidden > 350) this.show(trayBounds)
     else this.lastHidden = 0
+  }
+
+  /** The page asked to close (Back exhausted); ignored just after opening, see close-settle.ts. */
+  requestClose(): void {
+    if (!shouldHonourClose(this.shownAt, Date.now())) {
+      this.log('Ignored a page close request that arrived as the flyout opened')
+      return
+    }
+    this.hide()
   }
 
   hide(): void {
