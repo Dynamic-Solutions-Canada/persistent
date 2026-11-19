@@ -34,11 +34,6 @@ public sealed partial class SettingsWindow : Window
 
         InitializeComponent();
         instance = this;
-        ContentFrame.Navigated += (_, _) =>
-        {
-            if (ContentFrame.Content is TechnicallyReal.Promo.PromotedAppsPage promo)
-                promo.EnableLocalization();
-        };
 
         SystemBackdrop = new MicaBackdrop();
         ExtendsContentIntoTitleBar = true;

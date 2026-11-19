@@ -12,7 +12,7 @@ import Stack from '@mui/joy/Stack'
 import Typography from '@mui/joy/Typography'
 import { SectionHeading } from '../components/SectionHeading.js'
 import { usePromotedApps } from '../data/promotedApps.js'
-import { CATALOG_BASE_URL } from '../../../desktop/external/promo/catalog.js'
+import { blurbFor, CATALOG_BASE_URL } from '../../../desktop/external/promo/catalog.js'
 
 // Vite includes these immutable assets in the build and the offline precache.
 const icons = import.meta.glob<string>(
@@ -50,7 +50,7 @@ export function PromotedAppsPage() {
               </Stack>
             </Stack>
           </Stack>
-          <Typography level="body-sm">{promotionCopy(locale, app.blurb)}</Typography>
+          <Typography level="body-sm">{blurbFor(app, locale)}</Typography>
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
             {app.links.map((link) => (
               <Button
