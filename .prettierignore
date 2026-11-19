@@ -1,0 +1,12 @@
+# Prettier also skips everything .gitignore ignores (build output, .env, .secrets/, .artifacts/, tmp/).
+# npm writes the lockfile; formatting it would only fight the next install.
+package-lock.json
+# Submodules are other repos, formatted there.
+apps/desktop/external/
+# Prisma migrations are generated SQL history and are never edited.
+apps/api/prisma/migrations/
+# Ignored by store-assets/.gitignore, which Prettier does not read: generated capture output.
+store-assets/render/
+store-assets/fixture.json
+# A deliberately corrupt catalog the desktop localization harness feeds the loader.
+apps/desktop/tools/localization-tests/corrupt-catalog.json

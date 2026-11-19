@@ -38,6 +38,8 @@
     "shots:render": "node --import tsx scripts/dev/render-store-assets.ts",
     "shots:check": "node --import tsx scripts/dev/store-assets.ts check",
     "shots:sync": "node --import tsx scripts/dev/store-assets.ts sync-play",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "eslint .",
     "db:wait": "devkit-wait-for-db",
     "test": "env DATABASE_URL=postgresql://unit:unit@127.0.0.1:9/unit_test CLOUDFLARE_EMAIL_ACCOUNT_ID= CLOUDFLARE_EMAIL_API_TOKEN= FCM_SERVICE_ACCOUNT_FILE= FCM_PROJECT_ID= GOOGLE_WEB_CLIENT_ID= REVIEW_ACCOUNT_EMAIL= REVIEW_ACCOUNT_CODE= devkit-test",
@@ -82,6 +84,7 @@
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
     "lefthook": "^2.2.2",
+    "prettier": "3.10.1",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.29.0",
     "x11": "4.3.1"
