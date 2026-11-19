@@ -37,6 +37,7 @@
     "shots:check": "node --import tsx scripts/dev/store-assets.ts check",
     "shots:sync": "node --import tsx scripts/dev/store-assets.ts sync-play",
     "lint": "eslint .",
+    "db:wait": "devkit-wait-for-db",
     "test": "devkit-test",
     "test:integration": "devkit-test --integration",
     "typecheck": "npm run typecheck --workspace @persistent/shared && npm run build --workspace @persistent/shared && npm run typecheck --workspace @persistent/api && npm run typecheck --workspace @persistent/web",
