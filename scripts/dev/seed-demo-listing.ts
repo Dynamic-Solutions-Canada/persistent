@@ -2,7 +2,7 @@
  * Fill the **store demo account** with the reminders the Play listing
  * screenshots are taken against.
  *
- *   npx tsx scripts/dev/seed-demo-listing.ts --email=ryan.ewen+persistentdemo@gmail.com
+ *   npx tsx scripts/dev/seed-demo-listing.ts --email=demo@example.test
  *
  * Separate from `db:seed` (which covers every type/state for eyeballing the UI)
  * because this one has a different job: produce a small, believable account that

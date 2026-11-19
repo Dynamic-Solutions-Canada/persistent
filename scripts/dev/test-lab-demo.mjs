@@ -231,7 +231,7 @@ async function start() {
       'tsx',
       'scripts/dev/store-assets.ts',
       'prepare',
-      '--email=ryan.ewen+persistentdemo@gmail.com',
+      '--email=demo@example.test',
     ])
     phase = 'verify-synthetic-fixture'
     run(['node', 'scripts/dev/test-lab-fixture.mjs'])
@@ -246,10 +246,7 @@ async function start() {
     )
     if (
       JSON.stringify(emails) !==
-      JSON.stringify([
-        'alex@example.test',
-        'ryan.ewen+persistentdemo@gmail.com',
-      ])
+      JSON.stringify(['alex@example.test', 'demo@example.test'])
     )
       throw new Error('Fresh database isolation check failed.')
     console.log(`Verified synthetic accounts only: ${emails.join(', ')}`)

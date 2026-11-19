@@ -28,6 +28,7 @@ function configureTestDatabase(): void {
 test('administrator aggregates, role revocation and session reporting against PostgreSQL', async () => {
   configureTestDatabase()
   process.env.DEMO_MODE = 'true'
+  process.env.ADMIN_EMAILS = 'admin@example.test'
   const { prisma } = await import('../../apps/api/src/lib/prisma.js')
   const { createApp } = await import('../../apps/api/src/app.js')
   const { createSession } =
@@ -81,13 +82,14 @@ test('administrator aggregates, role revocation and session reporting against Po
       401,
     )
 
-    // Verified creation bootstraps Ryan, then the database can revoke him without a login restoring it.
+    // Verified creation bootstraps the configured administrator, then the database can revoke the
+    // grant without a login restoring it.
     const codeResponse = await request('/api/auth/request-code', undefined, {
-      email: '1136808+RyanEwen@users.noreply.github.com',
+      email: 'admin@example.test',
     })
     const code = (await codeResponse.json()) as { previewCode: string }
     const login = await request('/api/auth/verify-code', undefined, {
-      email: '1136808+RyanEwen@users.noreply.github.com',
+      email: 'admin@example.test',
       code: code.previewCode,
     })
     assert.equal(login.status, 200)
@@ -377,11 +379,11 @@ test('administrator aggregates, role revocation and session reporting against Po
     assert.equal((await request('/api/admin/stats', adminCookie)).status, 403)
     const newCode = (await (
       await request('/api/auth/request-code', undefined, {
-        email: '1136808+RyanEwen@users.noreply.github.com',
+        email: 'admin@example.test',
       })
     ).json()) as { previewCode: string }
     const relogin = await request('/api/auth/verify-code', undefined, {
-      email: '1136808+RyanEwen@users.noreply.github.com',
+      email: 'admin@example.test',
       code: newCode.previewCode,
     })
     assert.equal(((await relogin.json()) as typeof profile).user.isAdmin, false)

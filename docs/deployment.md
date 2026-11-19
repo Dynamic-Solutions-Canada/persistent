@@ -33,6 +33,12 @@ So to add config: the schema in `env.ts`, then `environment:` in `compose.server
 
 The API container runs as the image's unprivileged `node` user (uid 1000), so a file mounted into it, such as the FCM service-account key under `.secrets/`, must be readable by uid 1000 on the host. An unreadable key does not stop the API: it stays healthy and logs `fcm auth failed` on every push. Compose marks the container healthy once `GET /api/health` answers.
 
+## Administrators
+
+`ADMIN_EMAILS` in the server's `.env` lists, comma-separated, the verified addresses whose accounts start with the admin role when they are first created; `compose.server.yml` passes it to the API, and `.env.server.example` shows the format. Grants are stored in the database: sign-in never re-applies them, so removing an address revokes nobody, and an empty value only means no new account becomes an administrator.
+
+The `20261007120000_admin_statistics` migration still names the original administrator's address, in the one-time grant it ran when applied. It is left unchanged on purpose: an edited migration makes `prisma migrate dev` demand a reset of every development database that already applied it, and the address remains in history either way. It is the only place the repo names a personal address.
+
 ## Backup, export and deletion
 
 ### Backup

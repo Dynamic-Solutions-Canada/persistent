@@ -136,7 +136,7 @@ writeFileSync(
         }).trim(),
       ),
       preparedAt: new Date().toISOString(),
-      fixtureEmail: 'ryan.ewen+persistentdemo@gmail.com',
+      fixtureEmail: 'demo@example.test',
     },
     null,
     2,

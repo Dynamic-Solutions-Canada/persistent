@@ -58,7 +58,7 @@ test('release transport omits credentials and refuses an arbitrary redirect befo
   )
   assert.equal(
     trustedUpdateUrl(
-      'https://api.github.com/repos/RyanEwen/persistent/releases',
+      'https://api.github.com/repos/old-owner/persistent/releases',
     ),
     false,
   )

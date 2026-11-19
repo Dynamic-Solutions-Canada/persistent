@@ -1,6 +1,6 @@
 # Native Android capture provenance
 
-Captured October 10, 2026 on Ryan's Pixel 9 Pro using native source `b3c0500` for the shade and alarm. The six app views use
+Captured October 10, 2026 on the maintainer's test phone using native source `b3c0500` for the shade and alarm. The six app views use
 the theme-aware status icon and gesture bar fix committed as `5310573`. The separate direct-debug package is `ca.persistent.app`, with the
 local debug version label 0.21.1. It loads the local development app through an
 ADB reverse connection and is signed in only to the protected synthetic demo
@@ -15,7 +15,7 @@ preserved.
   draft, and the medication editor was not saved.
 - `01-notification-shade.png`: actual Android shade with four distinct demo
   reminders, and the plant reminder's real Done and Snooze controls expanded.
-  Ryan approved retaining the full shade, including the Wi-Fi network name.
+  The maintainer approved retaining the full shade, including the Wi-Fi network name.
 - `02-alarm-dark.png`: actual native escalation of a temporary "Check the oven"
   reminder, created through the ordinary authenticated local API with Persistent
   notifications and a one-minute escalation. It remained unconfirmed and then

@@ -3,7 +3,7 @@
 This is an experimental capture workflow for disposable Android devices. The
 free-only setup is validated, but the complete screenshot path is not yet usable.
 It does not use the personal phone, publish a listing, or change the Store app.
-The existing Firebase project is `persistent-7c99a`. Ryan approved that project
+The existing Firebase project is `persistent-7c99a`. The maintainer approved that project
 and free allowance only.
 
 Firebase Test Lab is deprecated and shuts down on September 30, 2027. Google's
@@ -140,7 +140,7 @@ External prerequisites are Google Cloud sign-in with Test Lab and billing-read
 permissions, and a current isolated HTTPS demo session. The active localhost stack
 and ADB reverse connection cannot be reached from Test Lab. Do not point this
 workflow at production or put session tokens in instrumentation arguments.
-Ryan approved the temporary synthetic-only stack and tunnel described below.
+The maintainer approved the temporary synthetic-only stack and tunnel described below.
 The active development database also contains personal development accounts:
 never tunnel that stack, because preview-code login would expose those accounts.
 Use a fresh disposable Devkit/Compose checkout with only the demo and sample
@@ -285,7 +285,7 @@ workflow against the selected isolated development database. Seed shortly before
 the run so repeating reminders do not accumulate duplicate outstanding firings.
 The runner signs in through the ordinary development email-code endpoints,
 requires the development preview response, and verifies the account is exactly
-`ryan.ewen+persistentdemo@gmail.com` before executing any recipe.
+`demo@example.test` before executing any recipe.
 
 `apps/mobile/test-lab/current-screen.example.json` demonstrates the recipe format:
 

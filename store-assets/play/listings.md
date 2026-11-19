@@ -80,7 +80,7 @@ public. Keep it in the server `.env` and the Play Console form only.
 
 **Set it fresh for each submission and clear both vars once the review concludes.**
 The code never expires, so leaving it set between reviews is a standing credential on
-an account whose address this file names. Unsetting `REVIEW_ACCOUNT_EMAIL` and
+a real production account. Unsetting `REVIEW_ACCOUNT_EMAIL` and
 `REVIEW_ACCOUNT_CODE` in the production env removes the path with no other effect
 (`docs/auth-architecture.md`), and the next submission simply sets it again. Cleared
 after the production approval of 2026-09-05.
@@ -153,7 +153,7 @@ scheduled firing to create duplicate demo cards, refresh the protected fixture
 before capture and synchronize the demo app again:
 
 ```sh
-npm run shots:prepare -- --email=ryan.ewen+persistentdemo@gmail.com
+npm run shots:prepare -- --email=demo@example.test
 npm run shots:render
 npm run shots:check
 npm run shots:sync
@@ -190,7 +190,7 @@ as unlisted and paste the links — the `.mp4`s here are source, not listing ass
 
 ### Reproducing
 
-Sign in as the demo account (`ryan.ewen+persistentdemo@gmail.com`), then note that
+On the local development server only (never production, and not for Play reviewers), sign in as the synthetic demo account (`demo@example.test`), then note that
 a repeating schedule only materializes _forward_ from now — to get already-passed
 firing times, create the reminder as `once` with the past times (the server
 back-fills within `MATERIALIZE_WINDOW_MS`, 48h), let both fire, then edit it to

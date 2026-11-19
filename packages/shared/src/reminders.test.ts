@@ -394,13 +394,13 @@ test('medication is offered for a new reminder', () => {
 test('initial sharing grants normalize email and reject unsupported access', () => {
   assert.deepEqual(
     initialSharesSchema.parse([
-      { email: '  RYAN@Example.com ', permission: 'ACT' },
+      { email: '  ALEX@Example.test ', permission: 'ACT' },
     ]),
-    [{ email: 'ryan@example.com', permission: 'ACT' }],
+    [{ email: 'alex@example.test', permission: 'ACT' }],
   )
   assert.equal(
     initialSharesSchema.safeParse([
-      { email: 'ryan@example.com', permission: 'OWNER' },
+      { email: 'alex@example.test', permission: 'OWNER' },
     ]).success,
     false,
   )

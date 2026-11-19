@@ -253,7 +253,7 @@
     },
     {
       "action": "javascript",
-      "expression": "window.__captureEscalationReady = false; (async () => { const email = 'ryan.ewen+persistentdemo@gmail.com'; const me = await (await fetch('/api/auth/me')).json(); if ((me.user?.email ?? me.email) !== email) return; const startDate = new Intl.DateTimeFormat('en-CA',{timeZone:'America/Toronto',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()); const response = await fetch('/api/reminders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:'Check the oven',details:'Take the tray out, then turn the oven off.',persistence:'PERSISTENT',escalateAfterMinutes:1,schedule:{kind:'none',timesOfDay:[]},startDate})}); if (!response.ok) return; const result = await response.json(); localStorage.setItem('persistent-capture-escalation-id',result.reminder.id); window.__captureEscalationReady = true; })(); true"
+      "expression": "window.__captureEscalationReady = false; (async () => { const email = 'demo@example.test'; const me = await (await fetch('/api/auth/me')).json(); if ((me.user?.email ?? me.email) !== email) return; const startDate = new Intl.DateTimeFormat('en-CA',{timeZone:'America/Toronto',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()); const response = await fetch('/api/reminders',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:'Check the oven',details:'Take the tray out, then turn the oven off.',persistence:'PERSISTENT',escalateAfterMinutes:1,schedule:{kind:'none',timesOfDay:[]},startDate})}); if (!response.ok) return; const result = await response.json(); localStorage.setItem('persistent-capture-escalation-id',result.reminder.id); window.__captureEscalationReady = true; })(); true"
     },
     {
       "action": "wait",
@@ -282,7 +282,7 @@
     },
     {
       "action": "javascript",
-      "expression": "window.__captureCleanup = false; (async () => { const me = await (await fetch('/api/auth/me')).json(); if ((me.user?.email ?? me.email) !== 'ryan.ewen+persistentdemo@gmail.com') return; const id = localStorage.getItem('persistent-capture-escalation-id'); if (!id) return; const response = await fetch('/api/reminders/'+encodeURIComponent(id),{method:'DELETE'}); if (!response.ok) return; localStorage.removeItem('persistent-capture-escalation-id'); window.__captureCleanup = true; })(); true"
+      "expression": "window.__captureCleanup = false; (async () => { const me = await (await fetch('/api/auth/me')).json(); if ((me.user?.email ?? me.email) !== 'demo@example.test') return; const id = localStorage.getItem('persistent-capture-escalation-id'); if (!id) return; const response = await fetch('/api/reminders/'+encodeURIComponent(id),{method:'DELETE'}); if (!response.ok) return; localStorage.removeItem('persistent-capture-escalation-id'); window.__captureCleanup = true; })(); true"
     },
     {
       "action": "wait",

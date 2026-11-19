@@ -64,6 +64,25 @@ const envSchema = z.object({
   // the release key baked into lib/webauthn.ts.
   ANDROID_APP_ORIGIN: blankToUndefined(z.string()),
 
+  // Initial administrators, comma-separated: an account created with one of these
+  // verified addresses starts with the admin role (lib/admin-access.ts). Kept out of
+  // the code so no address lives in the repo. Existing grants are stored in the
+  // database and never re-applied at sign-in, so removing an address here does not
+  // revoke anyone. Empty or unset means no new account becomes an administrator.
+  ADMIN_EMAILS: blankToUndefined(
+    z
+      .string()
+      .transform((value) =>
+        value
+          .split(',')
+          .map((entry) => entry.trim().toLowerCase())
+          .filter(Boolean),
+      )
+      .pipe(
+        z.array(z.string().email('ADMIN_EMAILS must list email addresses')),
+      ),
+  ),
+
   REVIEW_ACCOUNT_EMAIL: blankToUndefined(z.string().email()),
   REVIEW_ACCOUNT_CODE: blankToUndefined(
     z.string().min(12, 'REVIEW_ACCOUNT_CODE must be at least 12 characters'),

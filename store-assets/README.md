@@ -11,7 +11,7 @@ The carousel manifest is `manifest.json`. Play exports use real app captures in 
 Use the existing Devkit development stack. From its Node container, in `/workspace`:
 
 ```sh
-npm run shots:prepare -- --email=ryan.ewen+persistentdemo@gmail.com
+npm run shots:prepare -- --email=demo@example.test
 ```
 
 The command accepts only that account and local development database hosts. It resets the demo reminders, preserves its sign-in methods, and creates a protected synthetic `alex@example.test` recipient with one completed assigned task. `fixture.json` records the generated reminder ids. Seed once per refresh, then keep those ids for the whole capture session. Dates are relative to preparation, with schedule-consistent passed firings, including Friday rather than Saturday for weekday reminders.
@@ -50,7 +50,7 @@ Save each full native capture to the `source` path in the manifest after the RGB
 
 Run `npm run shots:render`. Navigate the Paseo tab to each generated HTML layout through Vite, for example `http://localhost:<web-port>/@fs/workspace/store-assets/render/00-current-light.html`. Set **720 x 1280 CSS pixels**, wait for the captured image to load, then screenshot. On the current Windows Paseo host, DPR 1.5 produces **1080 x 1920**. Check actual dimensions, rather than assuming the host's DPR. If another host differs, adjust the CSS viewport and renderer canvas together to produce the same export dimensions.
 
-The mockups use a small alternating angle and reusable CSS phone frame. The app pixels come exclusively from the raw screenshots. The saved background and generation prompt are in `marketing/`; reuse them for consistency. Google recommends avoiding device imagery and skew, but this carousel deliberately includes those stylized mockups at Ryan's request.
+The mockups use a small alternating angle and reusable CSS phone frame. The app pixels come exclusively from the raw screenshots. The saved background and generation prompt are in `marketing/`; reuse them for consistency. Google recommends avoiding device imagery and skew, but this carousel deliberately includes those stylized mockups at the maintainer's request.
 
 After inspection, run `npm run shots:check`, which validates every export. The curated Play files are the PNGs in `play/`, the only copy: the publisher uploads them from there and the README embeds them. Preserve native permission demonstration videos, which serve a separate purpose.
 

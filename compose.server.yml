@@ -80,6 +80,9 @@ services:
       # Comma-separated apk-key-hash origins, one per signing cert (release key,
       # plus Play's key once enrolled in Play App Signing). See lib/webauthn.ts.
       ANDROID_APP_ORIGIN: ${ANDROID_APP_ORIGIN:-}
+      # Initial administrators: verified accounts created with these addresses start as
+      # admins (comma-separated). Existing grants live in the database.
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
       REVIEW_ACCOUNT_EMAIL: ${REVIEW_ACCOUNT_EMAIL:-}
       REVIEW_ACCOUNT_CODE: ${REVIEW_ACCOUNT_CODE:-}
     # FCM service-account key, mounted read-only from the host's gitignored

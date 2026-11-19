@@ -5,7 +5,7 @@ import { dirname, resolve } from 'node:path'
 import { PrismaClient } from '@prisma/client'
 import { inspectStorePng, validateStoreImage } from './store-image.ts'
 
-const DEMO_EMAIL = 'ryan.ewen+persistentdemo@gmail.com'
+const DEMO_EMAIL = 'demo@example.test'
 const RECIPIENT_EMAIL = 'alex@example.test'
 const RECIPIENT_NAME = 'Persistent screenshot recipient'
 

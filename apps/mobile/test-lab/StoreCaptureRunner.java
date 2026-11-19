@@ -60,7 +60,7 @@ public final class StoreCaptureRunner extends Instrumentation {
             phase = "disposable-native-permission-grants";
             String appPackage = getTargetContext().getPackageName();
             if (!"ca.persistent.app".equals(appPackage)) throw new IllegalStateException("A direct demo build is required.");
-            // These grants affect only the disposable lab install, never Ryan's device or Store app.
+            // These grants affect only the disposable lab install, never the maintainer's device or Store app.
             shell("cmd alarm set-timezone America/Toronto");
             if (android.os.Build.VERSION.SDK_INT >= 33) shell("pm grant " + appPackage + " android.permission.POST_NOTIFICATIONS");
             if (android.os.Build.VERSION.SDK_INT >= 31) shell("appops set " + appPackage + " SCHEDULE_EXACT_ALARM allow");
@@ -89,7 +89,7 @@ public final class StoreCaptureRunner extends Instrumentation {
             evaluate("localStorage.setItem('persistent-play-migration-notice-seen', '1'); true");
             // Ordinary development sign-in provides no secret in instrumentation arguments or logs.
             phase = "synthetic-account-sign-in";
-            evaluate("window.__captureLogin = false; (async () => { try { const email = 'ryan.ewen+persistentdemo@gmail.com'; const r = await fetch('/api/auth/request-code', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})}); const code = (await r.json()).previewCode; if (!code) throw Error('No development preview'); const v = await fetch('/api/auth/verify-code', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,code})}); if (!v.ok) throw Error('Sign-in failed'); const me = await (await fetch('/api/auth/me')).json(); window.__captureLogin = (me.user?.email ?? me.email) === email ? true : 'Wrong account'; } catch (_) { window.__captureLogin = 'Demo sign-in failed'; } })(); true");
+            evaluate("window.__captureLogin = false; (async () => { try { const email = 'demo@example.test'; const r = await fetch('/api/auth/request-code', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})}); const code = (await r.json()).previewCode; if (!code) throw Error('No development preview'); const v = await fetch('/api/auth/verify-code', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,code})}); if (!v.ok) throw Error('Sign-in failed'); const me = await (await fetch('/api/auth/me')).json(); window.__captureLogin = (me.user?.email ?? me.email) === email ? true : 'Wrong account'; } catch (_) { window.__captureLogin = 'Demo sign-in failed'; } })(); true");
             waitFor("window.__captureLogin === true", 30_000);
             phase = "synthetic-account-announcement-onboarding";
             evaluate("window.__captureOnboarded = false; (async () => { try { const r = await fetch('/api/announcements'); if (!r.ok) throw Error('Announcement read failed'); const data = await r.json(); for (const item of data.announcements) { const viewed = await fetch('/api/announcements/' + encodeURIComponent(item.id) + '/viewed', {method:'POST'}); if (!viewed.ok) throw Error('Announcement view failed'); } window.__captureOnboarded = true; } catch (_) {} })(); true");

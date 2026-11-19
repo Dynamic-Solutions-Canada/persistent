@@ -321,11 +321,12 @@ submission just sets it again.
 
 ## Aggregate administration
 
-`User.isAdmin` is false by default. The administrative migration designates the
-existing account `1136808+RyanEwen@users.noreply.github.com`; verified creation of that address also
-bootstraps the grant if the account does not exist yet. Subsequent sign-ins never
-change the grant, so revocation in the database persists. Deleting and recreating
-that bootstrap account grants access again. No public profile or account API can
+`User.isAdmin` is false by default. The administrative migration granted it once to the
+maintainer's existing account. After that, an account created with a verified address listed
+in `ADMIN_EMAILS` (a server setting, comma-separated) starts with the grant. Subsequent
+sign-ins never change the grant, so revocation in the database persists, and removing an
+address from `ADMIN_EMAILS` revokes nobody. Deleting and recreating a listed account grants
+access again. No public profile or account API can
 set this field. Operators can grant or revoke it directly in the database:
 
 ```sql
