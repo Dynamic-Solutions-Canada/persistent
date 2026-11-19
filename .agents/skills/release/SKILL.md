@@ -56,12 +56,7 @@ endpoint returns `null`. Keep legacy passkey origins and asset links authorized.
 Both Android flavors require Android 7.0 (API 24) to retain Play automatic
 protection.
 
-**Device check before tagging (TEST-9).** Native behaviour that only a phone shows is checked on a real device with the release build first (the `test-android-device` skill), and the result goes in the report. Besides the alarm path (rings, Done and Snooze clear it), check what the release changes; for the next release that is:
-
-- Settings > Account > Download my data > Open in browser opens the system browser on Settings, scrolled to that section (`AlarmPlugin.openInBrowser`).
-- Settings > About > Third-party notices shows the Android list after the web list (`AlarmPlugin.readNotices`).
-- After signing out, background sync stops (the mirrored session is cleared by `cancelAll`).
-- A reminder set to escalate after one minute, left unconfirmed with the app open and the phone unlocked, rings when it escalates and opens the full-screen alarm by itself (`AlarmSoundGate`). Check it with the phone locked too.
+**Device check before tagging (TEST-9).** Native behaviour that only a phone shows is checked on a real device with the release build first (the `test-android-device` skill), and the result goes in the report. Besides the alarm path (rings, Done and Snooze clear it), check what the release changes; for the next release that is: nothing yet (0.31.2 checked the previous list on November 19, 2026). List each native change here as it lands.
 
 Remove an item once a release has checked it.
 The manual `replace-github-apk` workflow exports an existing Play versionCode,
