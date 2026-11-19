@@ -179,8 +179,10 @@ export function PrivacyPage() {
             Reminders and their history are kept until their owner deletes them
             or their account. A creator's assignment status record remains after
             an assignee declines and is deleted when the creator deletes their
-            account. Sign-in codes expire within minutes. Sessions expire on
-            their own and can be revoked by signing out.
+            account. Sign-in codes expire within minutes, and the record of each
+            code, with the address it was sent to, is deleted a day after it
+            expires. Sessions expire on their own and can be revoked by signing
+            out.
           </Typography>
         </Section>
 

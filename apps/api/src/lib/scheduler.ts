@@ -9,6 +9,7 @@ import { recipientEmailLocale } from './email-locale.js'
  * - materialize every 5 min: expand active reminders into the next 48h.
  * - tick every 30 s: fire PENDING occurrences whose time has arrived.
  * - sweep every 60 s: revive elapsed snoozes; escalate ignored fires; miss stale ones.
+ * - prune every hour: delete sign-in codes a day after they expire (email-code-retention.ts).
  *
  * Each occurrence is independent: a reminder with several times of day (or one
  * that repeats) fires, nags, and is confirmed one occurrence at a time. The
@@ -40,6 +41,7 @@ import {
   shouldEscalateNow,
 } from './escalation.js'
 import { firingSounds } from './reminder-sounds.js'
+import { pruneExpiredEmailCodes } from './email-code-retention.js'
 import { toOccurrence, toCheckedItemIds } from './serializers.js'
 import { broadcast } from './realtime.js'
 import { broadcastSharedChange, participantIds } from './share-access.js'
@@ -62,6 +64,7 @@ const MATERIALIZE_WINDOW_MS = 48 * 60 * 60 * 1000
 const TICK_INTERVAL_MS = 30_000
 const MATERIALIZE_INTERVAL_MS = 5 * 60_000
 const SWEEP_INTERVAL_MS = 60_000
+const PRUNE_INTERVAL_MS = 60 * 60_000
 
 const timers: NodeJS.Timeout[] = []
 
@@ -73,12 +76,19 @@ export function startScheduler(): void {
     [materializeAll, MATERIALIZE_INTERVAL_MS],
     [tick, TICK_INTERVAL_MS],
     [sweep, SWEEP_INTERVAL_MS],
+    [pruneRetention, PRUNE_INTERVAL_MS],
   ] as const) {
     const timer = setInterval(() => void runSafely(fn.name, fn), interval)
     timer.unref()
     timers.push(timer)
   }
   logger.info('scheduler started')
+}
+
+/** Delete data whose retention has ended; currently, expired sign-in codes. */
+async function pruneRetention(): Promise<void> {
+  const deleted = await pruneExpiredEmailCodes(prisma)
+  if (deleted > 0) logger.info('pruned expired sign-in codes', { deleted })
 }
 
 export function stopScheduler(): void {

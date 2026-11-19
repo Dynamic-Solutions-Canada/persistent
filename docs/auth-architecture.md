@@ -275,7 +275,10 @@ with its recipient address removed.
 **`EmailCode` is the exception**: it is keyed by email address rather than
 `userId` (it has to exist before any user does — it is the sign-up path), so it
 has no cascade and is deleted explicitly in the same transaction. Without that,
-the address would outlive the account it identified.
+the address would outlive the account it identified. Independently of any
+account, the scheduler deletes each code a day after it expires
+(`lib/email-code-retention.ts`), so an address that requested a code but never
+signed in is not kept either.
 
 Google Play requires both an in-app deletion path and a publicly reachable URL
 describing it; the latter is the privacy policy at `/privacy`, which is routed
