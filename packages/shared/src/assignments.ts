@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { reminderInputSchema, occurrenceStatusSchema } from './reminders.js'
 
 export const assignmentCreateSchema = z.object({
-  recipientEmail: z.string().trim().toLowerCase().email().max(254),
+  recipientEmail: z.string().trim().toLowerCase().pipe(z.email().max(254)),
   reminder: reminderInputSchema,
 })
 export type AssignmentCreateInput = z.input<typeof assignmentCreateSchema>
@@ -16,16 +16,16 @@ export const assignmentSchema = z.object({
   recipientEmail: z.string(),
   state: assignmentStateSchema,
   reminderId: z.string().nullable(),
-  createdAt: z.string().datetime(),
-  acceptedAt: z.string().datetime().nullable(),
-  declinedAt: z.string().datetime().nullable(),
-  lastCompletedAt: z.string().datetime().nullable(),
+  createdAt: z.iso.datetime(),
+  acceptedAt: z.iso.datetime().nullable(),
+  declinedAt: z.iso.datetime().nullable(),
+  lastCompletedAt: z.iso.datetime().nullable(),
   recentFirings: z.array(
     z.object({
       id: z.string(),
-      scheduledFor: z.string().datetime(),
+      scheduledFor: z.iso.datetime(),
       status: occurrenceStatusSchema,
-      acknowledgedAt: z.string().datetime().nullable(),
+      acknowledgedAt: z.iso.datetime().nullable(),
     }),
   ),
 })

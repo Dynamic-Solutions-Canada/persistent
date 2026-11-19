@@ -483,7 +483,7 @@ export const reminderSchema = z.object({
   lastOccurrence: z
     .object({
       status: occurrenceStatusSchema,
-      scheduledFor: z.string().datetime(),
+      scheduledFor: z.iso.datetime(),
     })
     .nullable()
     .default(null),
@@ -491,8 +491,8 @@ export const reminderSchema = z.object({
   // and single-reminder mutation responses have no summary until the list refetches.
   shareCount: z.number().int().nonnegative().default(0),
   invitationCount: z.number().int().nonnegative().default(0),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
 })
 export type Reminder = z.infer<typeof reminderSchema>
 
@@ -500,7 +500,7 @@ export type Reminder = z.infer<typeof reminderSchema>
 export const sharePermissionSchema = z.enum(['VIEW', 'ACT', 'EDIT'])
 export type SharePermission = z.infer<typeof sharePermissionSchema>
 export const shareInputSchema = z.object({
-  email: z.string().trim().toLowerCase().email().max(254),
+  email: z.string().trim().toLowerCase().pipe(z.email().max(254)),
   permission: sharePermissionSchema,
 })
 export type ShareInput = z.infer<typeof shareInputSchema>
@@ -542,19 +542,19 @@ export const sharedReminderSchema = z.object({
   active: z.boolean(),
   ownerName: z.string(),
   ownerTimeZone: z.string(),
-  nextScheduledFor: z.string().datetime().nullable(),
+  nextScheduledFor: z.iso.datetime().nullable(),
   permission: sharePermissionSchema,
   activeFirings: z.array(
     z.object({
       id: z.string(),
       status: occurrenceStatusSchema,
-      scheduledFor: z.string().datetime(),
-      snoozedUntil: z.string().datetime().nullable(),
+      scheduledFor: z.iso.datetime(),
+      snoozedUntil: z.iso.datetime().nullable(),
       checkedItemIds: z.array(z.string()),
     }),
   ),
   editableReminder: reminderSchema.nullable(),
-  updatedAt: z.string().datetime(),
+  updatedAt: z.iso.datetime(),
 })
 export type SharedReminder = z.infer<typeof sharedReminderSchema>
 
@@ -596,8 +596,7 @@ export const reminderInputSchema = z
       .string()
       .trim()
       .toLowerCase()
-      .email()
-      .max(254)
+      .pipe(z.email().max(254))
       .nullable()
       .default(null),
     escalateEmailMessage: z.string().trim().max(2000).nullable().default(null),
@@ -671,8 +670,8 @@ export type ReminderInputParsed = z.output<typeof reminderInputSchema>
 /** A definition save carries the server version the editor opened, never a client clock. */
 export const reminderUpdateInputSchema = reminderInputSchema.and(
   z.object({
-    expectedUpdatedAt: z.string().datetime().optional(),
-    clientEditedAt: z.string().datetime().optional(),
+    expectedUpdatedAt: z.iso.datetime().optional(),
+    clientEditedAt: z.iso.datetime().optional(),
   }),
 )
 export type ReminderUpdateInput = z.input<typeof reminderUpdateInputSchema>
@@ -700,26 +699,26 @@ export type ReminderContentInput = z.infer<typeof reminderContentInputSchema>
 export const occurrenceSchema = z.object({
   id: z.string(),
   reminderId: z.string(),
-  scheduledFor: z.string().datetime(),
+  scheduledFor: z.iso.datetime(),
   status: occurrenceStatusSchema,
-  firedAt: z.string().datetime().nullable(),
+  firedAt: z.iso.datetime().nullable(),
   // When the server last put this firing in front of the user — the fire, a snooze
   // revival, an escalation. `firedAt` can't answer that: it is pinned to the FIRST
   // fire so the escalation backstop stays anchored there, so a snooze revived hours
   // later still reads as old. This is what orders the lists (`firingOrder.ts`).
-  lastNotifiedAt: z.string().datetime().nullable(),
-  acknowledgedAt: z.string().datetime().nullable(),
-  snoozedUntil: z.string().datetime().nullable(),
-  escalatedAt: z.string().datetime().nullable(),
+  lastNotifiedAt: z.iso.datetime().nullable(),
+  acknowledgedAt: z.iso.datetime().nullable(),
+  snoozedUntil: z.iso.datetime().nullable(),
+  escalatedAt: z.iso.datetime().nullable(),
   // Legacy: set when a newer firing superseded this one (status SUPERSEDED). No
   // longer produced — occurrences are independent — but kept for old history rows.
-  supersededAt: z.string().datetime().nullable(),
+  supersededAt: z.iso.datetime().nullable(),
   // Instant this occurrence escalates to an alarm if still unacknowledged, or
   // null when no escalation is configured. Computed server-side and populated by
   // /api/sync so native clients can schedule the escalation alarm on-device
   // (server push is otherwise the only escalation path). Optional: only the sync
   // endpoint sets it.
-  escalateAt: z.string().datetime().nullable().optional(),
+  escalateAt: z.iso.datetime().nullable().optional(),
   // TODO reminders: which checklist item ids this firing has ticked off. Held per
   // occurrence, not per reminder, so a repeating checklist starts each firing
   // blank — yesterday's ticks say nothing about today's. Ids of since-deleted
@@ -770,10 +769,8 @@ export const MAX_SNOOZE_MINUTES = 525_600
 
 /** Duration snoozes start when handled; an Until snooze keeps its chosen instant. */
 export const snoozeInputSchema = z.union([
-  z
-    .object({ minutes: z.number().int().min(1).max(MAX_SNOOZE_MINUTES) })
-    .strict(),
-  z.object({ until: z.string().datetime() }).strict(),
+  z.strictObject({ minutes: z.number().int().min(1).max(MAX_SNOOZE_MINUTES) }),
+  z.strictObject({ until: z.iso.datetime() }),
 ])
 export type SnoozeInput = z.infer<typeof snoozeInputSchema>
 
@@ -898,6 +895,6 @@ export type HideCheckedInput = z.infer<typeof hideCheckedInputSchema>
 
 /** Bind an undo to the completion the user actually saw; stale retries cannot undo a later Done. */
 export const undoDoneInputSchema = z.object({
-  acknowledgedAt: z.string().datetime(),
+  acknowledgedAt: z.iso.datetime(),
 })
 export type UndoDoneInput = z.infer<typeof undoDoneInputSchema>

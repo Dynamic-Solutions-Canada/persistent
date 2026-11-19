@@ -18,7 +18,7 @@ const booleanish = z
  * than an absent variable, so a validator like `.email()` would otherwise fail on
  * a deployment that simply hasn't configured that feature.
  */
-function blankToUndefined<T extends z.ZodTypeAny>(schema: T) {
+function blankToUndefined<T extends z.ZodType>(schema: T) {
   return z.preprocess((value) => {
     if (typeof value === 'string' && value.trim() === '') return undefined
     return value
@@ -51,10 +51,10 @@ const envSchema = z.object({
   // Self-hosted, cookieless Umami (lib/analytics.ts). Analytics is on only when both are set;
   // otherwise the web app loads no tracker and the CSP names no analytics host.
   UMAMI_SCRIPT_URL: blankToUndefined(
-    z.string().url('UMAMI_SCRIPT_URL must be the tracker script URL'),
+    z.url('UMAMI_SCRIPT_URL must be the tracker script URL'),
   ),
   UMAMI_WEBSITE_ID: blankToUndefined(
-    z.string().uuid('UMAMI_WEBSITE_ID must be the Umami website id'),
+    z.uuid('UMAMI_WEBSITE_ID must be the Umami website id'),
   ),
 
   // App-store review access: one designated account may sign in with this fixed
@@ -89,12 +89,10 @@ const envSchema = z.object({
           .map((entry) => entry.trim().toLowerCase())
           .filter(Boolean),
       )
-      .pipe(
-        z.array(z.string().email('ADMIN_EMAILS must list email addresses')),
-      ),
+      .pipe(z.array(z.email('ADMIN_EMAILS must list email addresses'))),
   ),
 
-  REVIEW_ACCOUNT_EMAIL: blankToUndefined(z.string().email()),
+  REVIEW_ACCOUNT_EMAIL: blankToUndefined(z.email()),
   REVIEW_ACCOUNT_CODE: blankToUndefined(
     z.string().min(12, 'REVIEW_ACCOUNT_CODE must be at least 12 characters'),
   ),

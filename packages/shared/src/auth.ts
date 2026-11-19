@@ -8,7 +8,11 @@
 import { z } from 'zod'
 import { localeSchema } from './locales.js'
 
-export const emailSchema = z.string().trim().toLowerCase().email().max(254)
+export const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(z.email().max(254))
 
 /** Body for POST /api/auth/request-code. */
 export const requestCodeSchema = z.object({
@@ -21,7 +25,7 @@ export type RequestCodeInput = z.infer<typeof requestCodeSchema>
 /** Response for POST /api/auth/request-code. `previewCode` is non-null only in demo mode. */
 export const requestCodeResponseSchema = z.object({
   ok: z.literal(true),
-  expiresAt: z.string().datetime(),
+  expiresAt: z.iso.datetime(),
   previewCode: z.string().nullable(),
 })
 export type RequestCodeResponse = z.infer<typeof requestCodeResponseSchema>
@@ -49,7 +53,7 @@ export const sessionUserSchema = z.object({
   emailLanguage: localeSchema.optional(),
   // Older clients and saved profiles omit this; omission grants no admin access.
   isAdmin: z.boolean().optional(),
-  createdAt: z.string().datetime(),
+  createdAt: z.iso.datetime(),
 })
 export type SessionUser = z.infer<typeof sessionUserSchema>
 
@@ -81,8 +85,8 @@ export const passkeyInfoSchema = z.object({
   aaguid: z.string().nullable(),
   transports: z.array(z.string()),
   backedUp: z.boolean(),
-  createdAt: z.string().datetime(),
-  lastUsedAt: z.string().datetime().nullable(),
+  createdAt: z.iso.datetime(),
+  lastUsedAt: z.iso.datetime().nullable(),
 })
 export type PasskeyInfo = z.infer<typeof passkeyInfoSchema>
 

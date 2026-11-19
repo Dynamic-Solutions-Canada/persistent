@@ -15,27 +15,24 @@ export const linuxVersionSchema = z
     'Invalid version',
   )
 
-export const linuxUpdateArtifactSchema = z
-  .object({
-    architecture: z.enum(['x64', 'arm64']),
-    kind: z.literal('AppImage'),
-    name: z.string().max(160),
-    size: z
-      .number()
-      .int()
-      .positive()
-      .max(512 * 1024 * 1024),
-    sha512: z.string().regex(/^[A-Za-z0-9+/]{86}==$/),
-  })
-  .strict()
+export const linuxUpdateArtifactSchema = z.strictObject({
+  architecture: z.enum(['x64', 'arm64']),
+  kind: z.literal('AppImage'),
+  name: z.string().max(160),
+  size: z
+    .number()
+    .int()
+    .positive()
+    .max(512 * 1024 * 1024),
+  sha512: z.string().regex(/^[A-Za-z0-9+/]{86}==$/),
+})
 
 export const linuxUpdateManifestSchema = z
-  .object({
+  .strictObject({
     format: z.literal(1),
     version: linuxVersionSchema,
     artifacts: z.array(linuxUpdateArtifactSchema).min(1).max(2),
   })
-  .strict()
   .superRefine((manifest, context) => {
     const seen = new Set<string>()
     for (const [index, asset] of manifest.artifacts.entries()) {

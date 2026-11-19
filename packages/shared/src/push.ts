@@ -56,7 +56,7 @@ export const pushPayloadSchema = z.object({
   locale: localeSchema.optional(),
   alarm: z.boolean().optional(),
   soundIntervalSeconds: z.number().int().nullable().optional(),
-  scheduledFor: z.string().datetime().optional(),
+  scheduledFor: z.iso.datetime().optional(),
   // The reminder's own tone for whichever kind this push is (`soundChoiceSchema`,
   // flattened to two scalars because FCM data values are strings — an object would
   // arrive as "[object Object]"). Omitted when the reminder overrides nothing, so

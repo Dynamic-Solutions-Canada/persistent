@@ -16,7 +16,7 @@
  */
 import { z } from 'zod'
 
-const timestamp = z.string().datetime()
+const timestamp = z.iso.datetime()
 const optionalTimestamp = timestamp.nullable()
 /** A JSON value exported exactly as the database stores it. */
 const stored = z.unknown()

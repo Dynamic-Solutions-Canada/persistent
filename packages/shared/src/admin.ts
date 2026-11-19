@@ -19,14 +19,12 @@ export const clientPlatformSchema = z.enum([
 const versionSchema = z.string().trim().min(1).max(64)
 
 /** Current app reports its identity on opening/foregrounding, scoped to its authenticated session. */
-export const clientUsageSchema = z
-  .object({
-    app: clientAppSchema,
-    platform: clientPlatformSchema,
-    webVersion: versionSchema,
-    nativeVersion: versionSchema.nullable(),
-  })
-  .strict()
+export const clientUsageSchema = z.strictObject({
+  app: clientAppSchema,
+  platform: clientPlatformSchema,
+  webVersion: versionSchema,
+  nativeVersion: versionSchema.nullable(),
+})
 export type ClientUsage = z.infer<typeof clientUsageSchema>
 
 const count = z.number().int().nonnegative()
@@ -48,13 +46,13 @@ export const adminUserGrowthSchema = z.object({
   days: adminGrowthDaysSchema,
   timeZone: z.literal('America/Toronto'),
   points: z
-    .array(z.object({ date: z.string().date(), signups: count, total: count }))
+    .array(z.object({ date: z.iso.date(), signups: count, total: count }))
     .max(365),
 })
 export type AdminUserGrowth = z.infer<typeof adminUserGrowthSchema>
 
 export const adminStatsSchema = z.object({
-  generatedAt: z.string().datetime(),
+  generatedAt: z.iso.datetime(),
   activeDays: z.union([z.literal(7), z.literal(30)]),
   users: z.object({
     total: count,

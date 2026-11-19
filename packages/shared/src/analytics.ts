@@ -7,8 +7,8 @@ import { z } from 'zod'
 
 /** The tracker's settings, as the web app needs them to add its script. */
 export const clientAnalyticsConfigSchema = z.object({
-  scriptUrl: z.string().url(),
-  websiteId: z.string().uuid(),
+  scriptUrl: z.url(),
+  websiteId: z.uuid(),
   /** Hosts tracking may run on (`data-domains`): the public host only. */
   domains: z.array(z.string().min(1)).min(1),
 })
