@@ -44,8 +44,7 @@ Tests in `android-tests/device/` run on Android, not the desktop JVM. This matte
 local development. GitHub APKs are downloaded from Play and verified against
 the registered Play certificate; never substitute a locally signed APK. Two things live in `direct` only, each because Play would object:
 
-- **the in-app updater**: `direct` registers `UpdatePlugin` and declares
-  `REQUEST_INSTALL_PACKAGES`; Play forbids an app it distributes from updating itself.
+- **the updater marker**: `direct` registers an empty `UpdatePlugin`, whose presence makes the page show the move-to-Google-Play notice. The in-app download and install, and `REQUEST_INSTALL_PACKAGES` with it, are retired from both flavors; Play forbids an app it distributes from updating itself, and release.yml still fails a Play bundle carrying that permission.
 - **the whole Android Auto integration**: the car screen (`ReminderCarAppService` +
   its screens) _and_ the notification mirror's `com.google.android.gms.car.application`
   declaration. A templated car app must declare one of Auto's approved categories and a

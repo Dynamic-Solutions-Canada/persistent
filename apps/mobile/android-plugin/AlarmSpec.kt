@@ -1,6 +1,5 @@
 package ca.persistent.app.alarm
 
-import com.getcapacitor.PluginCall
 import org.json.JSONObject
 
 /** One scheduled alarm, mirrored from the JS ScheduledAlarm shape. */
@@ -73,29 +72,6 @@ data class AlarmSpec(
         .put("shadeProminence", shadeProminence)
 
     companion object {
-        fun fromCall(call: PluginCall): AlarmSpec? {
-            val occurrenceId = call.getString("occurrenceId") ?: return null
-            val fireAtMs = call.getLong("fireAtMs") ?: return null
-            return AlarmSpec(
-                occurrenceId = occurrenceId,
-                fireAtMs = fireAtMs,
-                title = call.getString("title") ?: "Reminder",
-                body = call.getString("body") ?: "",
-                bodyTemplate = call.getString("bodyTemplate") ?: "",
-                baseBody = call.getString("baseBody") ?: "",
-                soundIntervalSeconds = call.getInt("soundIntervalSeconds") ?: 0,
-                alarm = call.getBoolean("alarm") ?: false,
-                ongoing = call.getBoolean("ongoing") ?: true,
-                soundUri = call.getString("soundUri") ?: "",
-                soundTitle = call.getString("soundTitle") ?: "",
-                nagSoundUri = call.getString("nagSoundUri") ?: "",
-                nagSoundTitle = call.getString("nagSoundTitle") ?: "",
-                reminderId = call.getString("reminderId") ?: "",
-                canSilence = call.getBoolean("canSilence") ?: false,
-                shadeProminence = call.getString("shadeProminence") ?: "INHERIT"
-            )
-        }
-
         fun fromJson(json: JSONObject?): AlarmSpec? {
             if (json == null) return null
             val occurrenceId = json.optString("occurrenceId").ifEmpty { return null }

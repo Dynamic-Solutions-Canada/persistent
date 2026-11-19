@@ -119,17 +119,6 @@ class AlarmPlugin : Plugin() {
     }
 
     @PluginMethod
-    fun schedule(call: PluginCall) {
-        val alarm = AlarmSpec.fromCall(call) ?: run {
-            call.reject("Invalid alarm payload")
-            return
-        }
-        AlarmStore.put(context, alarm)
-        armAlarm(context, alarm)
-        call.resolve()
-    }
-
-    @PluginMethod
     fun scheduleAll(call: PluginCall) {
         val array: JSONArray = call.getArray("alarms") ?: JSONArray()
         val incoming = mutableListOf<AlarmSpec>()
@@ -236,11 +225,6 @@ class AlarmPlugin : Plugin() {
         val minimized = call.getBoolean("minimized") ?: false
         AlarmService.setDefaultProminence(context, minimized)
         call.resolve()
-    }
-
-    @PluginMethod
-    fun canScheduleExactAlarms(call: PluginCall) {
-        call.resolve(JSObject().put("allowed", AlarmPermissions.canScheduleExactAlarms(context)))
     }
 
     /**

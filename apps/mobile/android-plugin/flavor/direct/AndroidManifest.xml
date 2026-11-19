@@ -5,9 +5,9 @@
   Everything here is something Google Play would take issue with, so it lives in this
   source set and can never leak into the `play` AAB.
 
-  1. REQUEST_INSTALL_PACKAGES lets UpdatePlugin hand a downloaded APK to the system
-     installer. That is the whole point of the direct build and is flatly prohibited
-     for anything distributed through Google Play (Device and Network Abuse policy).
+  1. REQUEST_INSTALL_PACKAGES is no longer declared: the in-app updater it served is
+     retired (UpdatePlugin is now only a presence marker). It stays prohibited for the
+     `play` build, and release.yml still fails a Play bundle that carries it.
 
   2. ReminderCarAppService is the Android Auto car screen. A templated car app must
      declare one of Auto's approved categories, and a reminder app is none of them
@@ -34,8 +34,6 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-
     <application>
         <!-- Car API level 1 is all the list/message templates this app uses need, so it
              stays compatible with the widest set of head units. -->

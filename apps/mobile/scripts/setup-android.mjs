@@ -140,8 +140,8 @@ console.log(
 )
 
 // --- 1b. Flavor source sets (play | direct) ---------------------------------
-// `play`   — the Play Store build: no updater, no REQUEST_INSTALL_PACKAGES.
-// `direct`: legacy/local build, retains the native updater for development.
+// `play`   — the Play Store build: no updater marker, never REQUEST_INSTALL_PACKAGES.
+// `direct`: legacy/local build; registers the empty UpdatePlugin marker only.
 // Both provide ca.persistent.app.FlavorPlugins so the shared MainActivity can
 // call it without naming a class that only exists in one flavor.
 const flavorSrcDir = join(pluginDir, 'flavor')
@@ -525,10 +525,10 @@ const GRADLE_VERSION = '8.13'
 }
 
 // --- 4a2. Product flavors (play | direct) -----------------------------------
-// One artifact cannot serve both channels: Play forbids self-updating, and the
-// sideloaded build needs exactly that. `play` omits UpdatePlugin and
-// REQUEST_INSTALL_PACKAGES; `direct` keeps both. Legacy/local direct installs use
-// a different applicationId and cannot be replaced in place by the Play app.
+// The flavors differ in what Play would reject: `direct` carries the Android Auto
+// declarations and the UpdatePlugin presence marker, `play` neither. The in-app
+// updater and REQUEST_INSTALL_PACKAGES are retired from both. Legacy/local direct
+// installs use a different applicationId and cannot be replaced in place by the Play app.
 {
   let g = readFileSync(appGradlePath, 'utf8')
   // A project generated before the applicationId override already has the flavor

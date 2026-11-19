@@ -325,8 +325,8 @@ Android Auto capabilities that Google Play does not allow in this app:
 
 |                                                       | `direct` (legacy/local builds) | `play` (Play and GitHub)          |
 | ----------------------------------------------------- | ------------------------------ | --------------------------------- |
-| `UpdatePlugin`                                        | compiled in, registered        | absent                            |
-| `REQUEST_INSTALL_PACKAGES`                            | declared                       | **not** declared                  |
+| `UpdatePlugin` (empty presence marker)                | compiled in, registered        | absent                            |
+| `REQUEST_INSTALL_PACKAGES`                            | no longer declared             | **not** declared                  |
 | Updates via                                           | retired; install the new app   | Google Play or manual GitHub APKs |
 | Android Auto **car screen** (`ReminderCarAppService`) | compiled in, declared          | absent                            |
 | Android Auto **notification** mirror                  | yes                            | **no**                            |

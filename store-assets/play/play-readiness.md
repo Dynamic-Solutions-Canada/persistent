@@ -31,8 +31,8 @@ Play build; the direct flavor remains for legacy installs and local development:
 
 |                                                                     | `direct` (legacy/local) | `play` (Play and GitHub) |
 | ------------------------------------------------------------------- | ----------------------- | ------------------------ |
-| `UpdatePlugin`                                                      | yes                     | **no**                   |
-| `REQUEST_INSTALL_PACKAGES`                                          | yes                     | **no**                   |
+| `UpdatePlugin` (empty presence marker since the updater's removal)  | yes                     | **no**                   |
+| `REQUEST_INSTALL_PACKAGES` (removed from `direct` too)              | no                      | **no**                   |
 | `ReminderCarAppService` (Android Auto screen)                       | yes                     | **no** — see #1a         |
 | `com.google.android.gms.car.application` (Auto notification mirror) | yes                     | **no** — see #1b         |
 | `androidx.car.app` dependency and implementation                    | yes                     | **no** (see #1b)         |

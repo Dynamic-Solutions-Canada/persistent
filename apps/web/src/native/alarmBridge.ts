@@ -77,7 +77,6 @@ export interface AlarmPluginPlugin {
   ): Promise<{ remove: () => Promise<void> }>
   /** Persist the app palettes for full-screen alarms, snooze screens, and shade accents. */
   setAppearance(options: { appearance: NativeAppearance }): Promise<void>
-  schedule(options: ScheduledAlarm): Promise<void>
   scheduleAll(options: { alarms: ScheduledAlarm[] }): Promise<void>
   /**
    * Hand over the readable agenda — the wider set the device may *list* (a week of
@@ -93,7 +92,6 @@ export interface AlarmPluginPlugin {
   /** Stop a ringing escalation alarm but leave its notification nagging (no ack). */
   silence(options: { occurrenceId: string }): Promise<void>
   requestBatteryExemption(): Promise<{ granted: boolean }>
-  canScheduleExactAlarms(): Promise<{ allowed: boolean }>
   /** Open the system "display over other apps" screen (see `overlay` below). */
   requestOverlayPermission(): Promise<{ granted: boolean }>
   /**
@@ -213,18 +211,6 @@ export async function pickSound(
     return null
   }
 }
-
-/** State emitted by the native Update plugin while downloading/installing an APK. */
-export interface UpdateState {
-  state: 'downloading' | 'ready' | 'failed'
-}
-
-export interface UpdatePluginPlugin {
-  /** Download the APK at `url` and launch the system installer when it finishes. */
-  downloadAndInstall(options: { url: string }): Promise<void>
-}
-
-export const UpdatePlugin = registerPlugin<UpdatePluginPlugin>('Update')
 
 /** Minimal proxy to @capacitor/app's getInfo — the installed APK's versionName. */
 export const NativeApp = registerPlugin<{
