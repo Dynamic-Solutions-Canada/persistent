@@ -52,7 +52,7 @@ npm run install:linux -- apps/linux-desktop/artifacts/Persistent-Linux-0.2.0-x86
 
 Packaging emits x64 and ARM64 AppImages into
 `apps/linux-desktop/artifacts`. Package on the matching Linux architecture. An
-isolated Node 22.23.4 Bookworm container can build Linux artifacts using existing
+isolated Node 24.22.3 Bookworm container can build Linux artifacts using existing
 checkout dependencies; the real graphical app needs its desktop's user session.
 
 The user installer checks the AppImage CPU, copies it into

@@ -3,10 +3,10 @@
   "version": "0.31.0",
   "private": true,
   "license": "PolyForm-Noncommercial-1.0.0",
-  "packageManager": "npm@10.9.9",
+  "packageManager": "npm@11.19.1",
   "engines": {
-    "node": "22.23.4",
-    "npm": "10.9.9"
+    "node": "24.22.3",
+    "npm": "11.19.1"
   },
   "type": "module",
   "workspaces": [
@@ -21,7 +21,7 @@
     "dev:background": "npm run dev -- --background",
     "dev:down": "npm run dev -- --down",
     "dev:prepare-worktree": "devkit prepare && npm run --if-present dev:postprepare",
-    "dev:postprepare": "npm run db:generate && npm run build --workspace @persistent/shared",
+    "dev:postprepare": "npm run db:generate && npm run build --workspace @persistent/shared && lefthook install",
     "dev:container": "npm run db:wait && npm run db:generate && npm run db:migrate:deploy && npm run build --workspace @persistent/shared && concurrently -n shared,api,web -c magenta,green,blue \"npm run dev --workspace @persistent/shared\" \"npm run dev --workspace @persistent/api\" \"npm run dev --workspace @persistent/web\"",
     "dev:bootstrap": "devkit bootstrap",
     "dev:doctor": "devkit doctor",
@@ -97,5 +97,13 @@
     "typescript": "5.9.3",
     "typescript-eslint": "8.72.2",
     "x11": "4.4.0"
+  },
+  "allowScripts": {
+    "@prisma/engines@6.19.3": true,
+    "prisma@6.19.3": true,
+    "@prisma/client@6.19.3": true,
+    "lefthook": false,
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.1": true
   }
 }

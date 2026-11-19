@@ -9,7 +9,7 @@
  *
  * Auth is a Play Developer service account: PLAY_SERVICE_ACCOUNT_JSON holds the
  * key file's contents verbatim (not base64), matching the GitHub secret. No
- * dependencies — Node 20 has fetch and RS256 signing built in.
+ * dependencies: Node 24 has fetch and RS256 signing built in.
  *
  * Modes:
  *   --listing-json <json> Validate and push all nine localized titles/descriptions

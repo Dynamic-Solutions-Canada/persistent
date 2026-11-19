@@ -69,7 +69,7 @@ jobs:
           node scripts/release/notes.mjs play-json "$LANE" "$NAME" > "$RUNNER_TEMP/play-notes.json"
           echo "VERSION_NAME=$NAME" >> "$GITHUB_ENV"
 
-      # No `npm ci`: play-publish.mjs is dependency-free by design (Node 22 has
+      # No `npm ci`: play-publish.mjs is dependency-free by design (Node 24 has
       # fetch and RS256 signing built in), so this needs nothing from the workspace.
       - name: Write them to production
         working-directory: apps/mobile

@@ -51,7 +51,7 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      # No `npm ci`: the script is dependency-free by design (Node 22 has fetch
+      # No `npm ci`: the script is dependency-free by design (Node 24 has fetch
       # and RS256 signing built in), so this needs nothing from the workspace.
       - name: ${{ inputs.mode == 'publish' && 'Push store listing' || 'Check store listing' }}
         working-directory: apps/mobile

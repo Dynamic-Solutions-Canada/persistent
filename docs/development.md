@@ -6,7 +6,7 @@ Developer setup, running, testing and releases for Persistent. How the parts fit
 
 Initialise the shared promo submodule after cloning with `git submodule update --init --recursive`: the web build imports its public catalog contract, bundled manifest and icons, and the desktop build imports its WinUI page. Commit and publish promo changes first, then update Persistent's submodule pointer before publishing a consuming release.
 
-The editor stays on the host. Devkit runs Node 22, PostgreSQL, and the Android
+The editor stays on the host. Devkit runs Node 24, PostgreSQL, and the Android
 SDK/JDK in a checkout-specific Compose stack and injects `DATABASE_URL` and
 `API_PORT` into the development processes.
 
@@ -280,10 +280,14 @@ The Windows app's notices come from winui-app-kit's generator (the `apps/desktop
 
 Commit metadata and old file contents were rewritten on 2026-11-19 to replace two personal email addresses with the GitHub noreply address. Every clone made before then must re-clone, or fetch and `git reset --hard origin/main`; never push the old history back. The rewrite also changed the applied migration `20261007120000_admin_statistics` (one address in an `UPDATE` that matches no rows on a new database), so a development database that applied it before the rewrite reports drift on `prisma migrate dev`. Fix it without a reset by setting that row's checksum to the file's current SHA-256: `UPDATE "_prisma_migrations" SET checksum = '<sha256sum of migration.sql>' WHERE migration_name = '20261007120000_admin_statistics';`, or recreate the database. Production applies migrations with `migrate deploy`, which does not re-check applied checksums.
 
+## Install scripts (npm 11)
+
+npm 11 runs a dependency's install script only when the root `package.json` approves its exact version in `allowScripts` (PLAT-10); an unapproved one is skipped with a warning. Approved: Prisma's engines, CLI and client, and esbuild. Denied: lefthook (its hook is installed by `dev:postprepare`). `apps/linux-desktop` has its own list. The keys name exact versions, so bumping an approved package re-approves it in the same commit: `npm install-scripts approve <name>` (it pins every installed version of that package).
+
 ## Formatting
 
 Prettier formats the TypeScript, JavaScript, JSON, YAML, CSS, HTML and Markdown with the shared house style (`.prettierrc.json`: single quotes, no semicolons, Markdown prose left unwrapped). `npm run validate` runs `npm run format:check`; when it fails, run `npm run format` and commit the result. `.prettierignore` lists what stays untouched. The Windows app's C# gets `dotnet format` when it moves to winui-app-kit. To have `git blame` skip the one-off reformat, run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once.
 
 ## Git hooks
 
-`lefthook.yml` runs devkit's shared `devkit-precommit` before every commit (HYG-10). It refuses staged signing material and keys, `.env` files other than `*.example`, anything under `.secrets/`, text containing a private key, and files over 5 MB; the one store video above that size is exempt from the size check only. lefthook's npm postinstall installs the hook, so `npm install` or `npm ci` (including worktree preparation) sets it up. `git commit --no-verify` skips it, so treat it as a guard, not a wall. The Claude Code edit guard in [scripts/hooks](../scripts/hooks/README.md) separately keeps agents off generated files.
+`lefthook.yml` runs devkit's shared `devkit-precommit` before every commit (HYG-10). It refuses staged signing material and keys, `.env` files other than `*.example`, anything under `.secrets/`, text containing a private key, and files over 5 MB; the one store video above that size is exempt from the size check only. npm 11 does not run lefthook's own install script (it is denied in `allowScripts`, PLAT-10), so `npm run dev:postprepare`, which worktree preparation runs, installs the hook with `lefthook install`; in an existing checkout run `npx lefthook install` once. `git commit --no-verify` skips it, so treat it as a guard, not a wall. The Claude Code edit guard in [scripts/hooks](../scripts/hooks/README.md) separately keeps agents off generated files.

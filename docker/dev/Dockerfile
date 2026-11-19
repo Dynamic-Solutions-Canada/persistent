@@ -3,7 +3,7 @@
 # (apps/mobile) can be built from inside the container later. librsvg2-bin
 # (rsvg-convert) renders the Play feature graphic (store-assets/play/listings.md);
 # the app icons come from `npm run icons` (devkit-icons, using resvg).
-FROM node:22.23.4-trixie
+FROM node:24.22.3-trixie
 
 ARG DEBIAN_FRONTEND=noninteractive
 
