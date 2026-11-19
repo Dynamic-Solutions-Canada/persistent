@@ -17,6 +17,7 @@
  *   --skip-validate          skip the local `npm run validate` gate
  */
 import { spawnSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 
 function arg(name) {
   const index = process.argv.indexOf(`--${name}`)
@@ -69,12 +70,19 @@ if (!flag('skip-validate') && !dryRun) {
   run('npm', ['run', 'validate'])
 }
 
-// 4. Remote deploy.
+// 4. Remote deploy. DEPLOY_REVISION and DEPLOY_VERSION become the image's OCI labels through
+// compose.server.yml's build args (CTR-1), the same variables devkit's generated deploy exports.
+const version = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version
+if (!/^\d+\.\d+\.\d+$/.test(version ?? '')) {
+  console.error('package.json needs a three-part "version"; it labels the deployed image.')
+  process.exit(1)
+}
 const remoteScript = [
   `cd ${repoPath}`,
   `git fetch origin ${branch}`,
   `git reset --hard origin/${branch}`,
   `git submodule update --init --recursive`,
+  `export DEPLOY_REVISION=${remote} DEPLOY_VERSION=${version}`,
   `docker compose -f compose.server.yml up -d --build`,
   `docker image prune -f`
 ].join(' && ')
