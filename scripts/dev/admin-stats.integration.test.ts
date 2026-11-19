@@ -1,20 +1,24 @@
-/** Opt-in PostgreSQL/HTTP regressions. Use a migrated disposable database ending in _admin_test only. */
+/**
+ * PostgreSQL/HTTP regressions, run by `npm run test:integration` (TEST-7). They need DATABASE_URL to
+ * name a migrated, disposable database whose name ends in `_test`, and they replace its users and
+ * email codes. A missing or wrongly named database fails the run rather than skipping it.
+ */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { once } from 'node:events'
 
-const testUrl = process.env.ADMIN_TEST_DATABASE_URL
+const testUrl = process.env.DATABASE_URL
 
 /** A single connection makes database-session settings deterministic without touching other databases. */
 function configureTestDatabase(): void {
-  assert.ok(testUrl)
+  assert.ok(testUrl, 'Set DATABASE_URL to a migrated disposable database ending in _test.')
   const url = new URL(testUrl)
-  assert.match(url.pathname, /_admin_test$/)
+  assert.match(url.pathname, /_test$/, 'Refusing a database whose name does not end in _test.')
   url.searchParams.set('connection_limit', '1')
   process.env.DATABASE_URL = url.href
 }
 
-test('administrator aggregates, role revocation and session reporting against PostgreSQL', { skip: !testUrl }, async () => {
+test('administrator aggregates, role revocation and session reporting against PostgreSQL', async () => {
   configureTestDatabase()
   process.env.DEMO_MODE = 'true'
   const { prisma } = await import('../../apps/api/src/lib/prisma.js')
@@ -143,7 +147,7 @@ test('administrator aggregates, role revocation and session reporting against Po
   }
 })
 
-test('user growth fills Toronto days, carries the baseline and respects DST, as-of time and deletion', { skip: !testUrl }, async () => {
+test('user growth fills Toronto days, carries the baseline and respects DST, as-of time and deletion', async () => {
   configureTestDatabase()
   const { prisma } = await import('../../apps/api/src/lib/prisma.js')
   const { readAdminStats } = await import('../../apps/api/src/lib/admin-stats.js')

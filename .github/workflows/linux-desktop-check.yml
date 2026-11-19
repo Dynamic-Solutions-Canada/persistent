@@ -1,4 +1,4 @@
-name: Linux desktop check
+name: Linux Desktop Check
 
 on:
   pull_request:

@@ -24,9 +24,13 @@ before it starts the watchers. Schema changes still need a real migration from
 `npm run db:migrate -- <name>`; startup never substitutes `db push` for migration
 history.
 
-`validate` does not cover the native Kotlin. After editing `apps/mobile/android-plugin/`,
-compile-check it with `npm run verify:android` (from `apps/mobile`); see
-`apps/mobile/README.md`.
+`validate` and `test` stay toolchain-free, so they run anywhere with Node. Three suites need a native toolchain and run as their own CI jobs, and in the gate of every publishing workflow, rather than inside `validate`:
+
+- `npm run test:desktop`: the Windows app's portable localization harness, which needs the .NET SDK (in the development container).
+- `npm run test:android`: the Android JVM unit tests in `apps/mobile/android-tests/`, which need the Android SDK and the generated Capacitor project.
+- `npm run test:integration`: the database tests (`*.integration.test.ts`), which need a migrated PostgreSQL database whose name ends in `_test`, and fail rather than skip without one.
+
+The unit run points `DATABASE_URL` at an unreachable placeholder and blanks the third-party keys, so no unit test can reach a real database or service through `.env`. After editing `apps/mobile/android-plugin/`, compile-check it with `npm run verify:android`, then run `npm run test:android`; see `apps/mobile/README.md`.
 
 For a paired physical phone, the root `android:*` npm commands cover wireless
 pairing, rotating-port discovery, direct-debug assembly, installation, launch,
@@ -50,7 +54,7 @@ and regenerate instead.
 
 `validate` does not cover the Windows desktop app either. From WSL,
 `npm run verify:desktop` uses the shared build bridge for a full Windows Debug
-compile, including XAML. `npm run build:desktop` builds a signed dev MSIX and
+compile, including XAML. `npm run package:desktop:dev` builds a signed dev MSIX and
 `npm run install:desktop` updates it in place and launches it in the signed-in
 Windows session. Builds use a disposable C: TEMP copy of the working tree;
 tracked release versions stay unchanged. Read
@@ -234,6 +238,10 @@ Claude Code reads them through the `.claude/skills` symlink.
 ## Patched build runtimes
 
 Use the exact Node and npm versions in the root manifest for production, development and Linux build tooling. Desktop SDK selection lives in `apps/desktop/global.json`: SDK 10.0.403 or a newer stable .NET 10 feature band is eligible. Self-contained builds reject resolved .NET runtime packs older than 10.0.14. These build requirements address CVE-2026-111497; existing deployed images and native packages require separate rebuilds and releases. See [HTTP2Shell review](notes/http2shell-review.md) for evidence and remaining gates.
+
+## CI
+
+`.github/workflows/ci.yml` ("CI") runs on every push to `main` and every pull request, with no path filter: `npm run validate`, `npm run test:integration` against a PostgreSQL service, `npm run test:desktop` and `npm run test:android`, each as its own job. Every publishing workflow (`release`, `release-linux`, `build-msix` on a tag, `store-publish`, `play-apk`, `play-promote`) calls it as its first job and publishes only once it passes, building the same ref. `play-listing` and `play-notes` publish store text, so their gate is `npm run check:listing` or `npm run check:release-notes` instead. `codeql.yml` scans TypeScript, C# and the workflows on push, pull request and weekly. Extra path-filtered workflows (`linux-desktop-check`, `image-check`) build expensive targets beside it, never instead of it.
 
 ## Git hooks
 

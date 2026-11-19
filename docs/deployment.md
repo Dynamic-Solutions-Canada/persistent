@@ -17,7 +17,7 @@ The deploy script is devkit's generated `scripts/deploy/deploy-over-ssh.mjs`; it
 
 The target comes from your local `.env`: `DEPLOY_SSH_HOST`, `DEPLOY_REPO_PATH`, and `DEPLOY_SSH_PORT` when your ssh config does not set it.
 
-The `Image check` workflow builds the production image on every change that affects it and fails if it runs as root, so a broken build shows up before a deploy.
+The `Image Check` workflow builds the production image on every change that affects it and fails if it runs as root, so a broken build shows up before a deploy.
 
 Each deploy labels the image with the commit and release it was built from (`org.opencontainers.image.revision` and `.version`): the deploy script exports `DEPLOY_REVISION` and `DEPLOY_VERSION` (the root `package.json` version, which the `release` skill keeps equal to the web app's), and `compose.server.yml` passes them to the build. `docker inspect persistent-api` shows what is running.
 

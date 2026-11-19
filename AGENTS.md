@@ -61,12 +61,13 @@ The devkit-managed Compose stack is the complete development environment. Use th
 | `npm run dev` | Shared (watch), API and web run together | Anything native |
 | `npm run validate` | Lint, tests, typecheck and Prisma schema validity; needs no database or `DATABASE_URL` | Native Android, Windows or Linux behaviour |
 | `npm run db:migrate` | Creates and applies Prisma migrations | |
-| `npm run db:seed` | Fills a dev account with reminders in every type, schedule kind and state, replacing only that user's reminders (`-- --keep`, `-- --email=...`) | |
+| `npm run db:seed` | Fills a dev account with reminders in every type and state (`-- --keep`, `-- --email=...`) | |
 | `npm run build:linux` | The Linux host builds under the pinned Node runtime | Linux desktop runtime behaviour |
+| `npm run test:desktop`, `test:android`, `test:integration` | Toolchain suites (.NET, Android SDK, a `_test` database), each a CI job | |
 | `npm run verify:desktop` | Full Windows Debug compile, including XAML | That the app starts |
 | `npm run install:desktop` | Installs a dev-signed build on Windows: the only check that sees packaging and startup | Store certification |
 
-`npm test` is `devkit-test`, which finds every `*.test.ts` and `*.test.tsx` in the repo except database tests (`*.integration.test.ts`, run by `npm run test:integration`) and submodules under `external/`; `scripts/` holds repo-hygiene checks that belong to no single workspace. Kotlin and Java changes have their own compile check (`apps/mobile/AGENTS.md`), and the Windows app has its own plus a CI job (`apps/desktop/AGENTS.md`); neither is optional before finishing. Windows builds go through the shared build bridge from WSL: use the `desktop` skill.
+`npm test` is `devkit-test`: every `*.test.ts(x)` except `*.integration.test.ts` and `external/`. Kotlin and Java changes have their own compile check (`apps/mobile/AGENTS.md`), and the Windows app has its own plus a CI job (`apps/desktop/AGENTS.md`); neither is optional before finishing. Windows builds go through the shared build bridge from WSL: use the `desktop` skill. CI (`ci.yml`) runs `validate` and the three toolchain suites, and every publishing workflow calls it as its gate.
 
 ## Release
 

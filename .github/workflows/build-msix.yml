@@ -1,4 +1,4 @@
-name: Build desktop app
+name: Build and Package
 
 # Desktop releases are tagged `desktop-v*` so they never collide with the Android
 # `v*` tags in this same repository (see .github/workflows for those).
@@ -20,11 +20,11 @@ on:
     branches: [main]
     paths:
       - 'apps/desktop/**'
-      - '.github/workflows/build-desktop-msix.yml'
+      - '.github/workflows/build-msix.yml'
   pull_request:
     paths:
       - 'apps/desktop/**'
-      - '.github/workflows/build-desktop-msix.yml'
+      - '.github/workflows/build-msix.yml'
 
 # Least privilege (CI-5): read-only by default. A job that needs more widens it
 # at job level only.
@@ -34,10 +34,16 @@ permissions:
 # A tag publishes a release, so only branch and pull request builds cancel an
 # older run of the same ref.
 concurrency:
-  group: build-desktop-msix-${{ github.ref }}
+  group: build-msix-${{ github.ref }}
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
+  # CI-4: publishing starts only once the gate passes for the same commit.
+  gate:
+    name: Gate
+    if: startsWith(github.ref, 'refs/tags/')
+    uses: ./.github/workflows/ci.yml
+
   build:
     runs-on: windows-2025
     timeout-minutes: 20 # about 3x the slowest recent run
@@ -143,7 +149,7 @@ jobs:
           if-no-files-found: error
 
   release:
-    needs: build
+    needs: [build, gate]
     if: startsWith(github.ref, 'refs/tags/desktop-v')
     runs-on: ubuntu-latest
     timeout-minutes: 10 # about 3x the slowest recent run

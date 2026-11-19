@@ -1,0 +1,49 @@
+name: CodeQL
+
+# Code scanning (CI-8): the TypeScript web, API and Linux host, the Windows app's C# in buildless
+# mode, and the workflows themselves. Kotlin and Java are not scanned: they need a Gradle build of
+# the generated Capacitor project. The promo submodule is checked out so calls resolve, but it is
+# scanned in its own repo.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '23 6 * * 1' # weekly, Monday morning UTC
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30 # buildless analysis of this repo takes a few minutes per language
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, csharp, actions]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          config: |
+            paths-ignore:
+              - apps/desktop/external/**
+
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}

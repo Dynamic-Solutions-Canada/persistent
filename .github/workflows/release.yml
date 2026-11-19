@@ -1,4 +1,4 @@
-name: release
+name: Release
 
 # Tags build the Play AAB and publish to production. GitHub receives only the
 # universal APK generated and signed by Google Play, after identity verification.
@@ -32,7 +32,15 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # CI-4: publishing starts only once the gate passes for the same commit.
+  gate:
+    name: Gate
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ github.event.inputs.version || github.ref }}
+
   android:
+    needs: gate
     permissions:
       contents: write
     runs-on: ubuntu-latest

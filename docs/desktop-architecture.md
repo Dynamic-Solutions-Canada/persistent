@@ -634,11 +634,11 @@ sitting in the Action Center back to this app.
 
 ## Building and releasing
 
-The Linux development container includes the .NET SDK for non-XAML C# checks and runtime-pack resolution, but cannot perform a full WinUI build or run the Windows application. `npm run validate` does not cover C#. The CI workflow `.github/workflows/build-desktop-msix.yml` compiles both platforms on `windows-2025` for every push/PR touching `apps/desktop`; treat a red run there the way you would a failed `npm run validate`.
+The Linux development container includes the .NET SDK for non-XAML C# checks and runtime-pack resolution, but cannot perform a full WinUI build or run the Windows application. `npm run validate` does not cover C#. The CI workflow `.github/workflows/build-msix.yml` compiles both platforms on `windows-2025` for every push/PR touching `apps/desktop`; treat a red run there the way you would a failed `npm run validate`.
 
 `apps/desktop/global.json` selects SDK 10.0.403 or later stable .NET 10 servicing versions. The common `Directory.Build.targets` also enforces the SDK floor when the Windows bridge invokes MSBuild outside that file's directory. Self-contained publication rejects resolved core runtime packs below 10.0.14, while leaving later patches and architecture selection to the SDK. Run `bash apps/desktop/tools/runtime-security/verify.sh` to check both application projects and architectures without executing Windows code. This supplements full Windows compilation, packaging and installed startup checks; it does not replace them.
 
-- Local WSL workflow: `npm run verify:desktop`, `npm run build:desktop` and
+- Local WSL workflow: `npm run verify:desktop`, `npm run package:desktop:dev` and
   `npm run install:desktop`. See [the shared Windows build guide](https://github.com/Dynamic-Solutions-Canada/windows-build-tools#readme).
 - Icons: `.\Persistent.DesktopMSIX\generate-msix-images.ps1` (renders the same
   bell mark as `apps/web/public/favicon.svg`; keep the two in step)
@@ -688,7 +688,7 @@ copy you last opened is the one that starts at sign-in.
   offer it.
 - Package: `.\Persistent.DesktopMSIX\build-msix.ps1` (`-Store` for a Store
   upload, `-Upload` for both architectures at once); a signed sideload build takes
-  `-CertPath` and `-CertPassword`, which `npm run build:desktop` passes. MSIX is
+  `-CertPath` and `-CertPassword`, which `npm run package:desktop:dev` passes. MSIX is
   for shipping, not testing: sideloading it means trusting the dev certificate
   first. It buys
   a real install, a Start menu entry and the `windows.startupTask` registration;
@@ -830,7 +830,7 @@ container. The public promo submodule needs no separate checkout credential.
 reading an app registration's own `passwordCredentials` needs Graph permissions
 the Store credential does not have and should not be given. So `set-ci-secrets.sh`
 prompts for the date when it sets the secret and records it as the
-`STORE_SECRET_EXPIRES` repository *variable*; `store-secret-expiry.yml` checks it
+`STORE_SECRET_EXPIRES` repository *variable*; `credential-expiry.yml` checks it
 weekly and fails the run from 60 days out, and `store-publish.yml` warns on it in
 passing. The two cannot drift, because rotating the secret is what updates the
 date. It is a variable rather than a secret deliberately: an expiry date is not
