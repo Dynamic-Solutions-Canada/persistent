@@ -21,15 +21,15 @@
   },
   "dependencies": {
     "@particle/dbus-next": "0.11.4",
-    "ws": "8.22.0",
-    "x11": "4.3.1"
+    "ws": "8.23.0",
+    "x11": "4.4.0"
   },
   "devDependencies": {
     "@persistent/shared": "file:../../packages/shared",
-    "@types/node": "26.6.5",
+    "@types/node": "26.6.6",
     "@types/ws": "8.18.2",
-    "electron": "44.7.0",
-    "electron-builder": "26.15.3",
+    "electron": "44.11.3",
+    "electron-builder": "26.18.0",
     "esbuild": "0.28.2",
     "typescript": "7.0.2"
   },
