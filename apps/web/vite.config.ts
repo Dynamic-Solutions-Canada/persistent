@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { webBuildIdPlugin } from './webBuildIdPlugin'
 import { navigationCaching } from './serviceWorkerConfig'
+import { devkitViteServer } from '@dynamic-solutions-canada/devkit/vite'
 
 // App version, surfaced to the client (the native update check compares it to the
 // latest GitHub release).
@@ -78,14 +79,8 @@ export default defineConfig(({ mode }) => {
       })
     ],
     server: {
-      // Devkit derives a per-checkout port while the container keeps its fixed internal port.
-      port: Number(env.VITE_DEV_PORT ?? 5173),
-      // Devkit needs an explicit IPv4 bind for its host proxy. The existing all-interface bind
-      // remains the default for Docker/WSL2 forwarding.
-      host: env.VITE_DEV_HOST || true,
-      allowedHosts: env.VITE_DEV_ALLOWED_HOSTS
-        ? env.VITE_DEV_ALLOWED_HOSTS.split(',').map((host) => host.trim()).filter(Boolean)
-        : undefined,
+      // Port, bind address, allowed hostnames and the .worktrees/ watch exclusion come from devkit.
+      ...devkitViteServer(env),
       proxy: {
         '/api': { target: `http://localhost:${apiPort}`, changeOrigin: true },
         '/ws': { target: `ws://localhost:${apiPort}`, ws: true }
