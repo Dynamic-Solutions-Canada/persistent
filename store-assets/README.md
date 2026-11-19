@@ -139,8 +139,8 @@ Run `npm run shots:check` and `npm run validate`. Generate the contact sheet wit
 
 The Microsoft set was captured October 10, 2026 from the development working tree,
 using the sideloaded 0.5.8.2 native app. Play uses eight full-display Pixel 9 Pro captures. The six app views include
-the theme-aware Android status icon and gesture bar fix at `5310573`; the
-notification and escalation captures were taken from source revision `b3c0500`.
+the theme-aware Android status icon and gesture bar fix at `8c9e50e`; the
+notification and escalation captures were taken from source revision `0ed773f`.
 The native capture provenance is recorded in `raw/android/native/README.md`.
 
 ## Publishing an approved refresh

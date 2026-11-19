@@ -1,7 +1,7 @@
 # Native Android capture provenance
 
-Captured October 10, 2026 on the maintainer's test phone using native source `b3c0500` for the shade and alarm. The six app views use
-the theme-aware status icon and gesture bar fix committed as `5310573`. The separate direct-debug package is `ca.persistent.app`, with the
+Captured October 10, 2026 on the maintainer's test phone using native source `0ed773f` for the shade and alarm. The six app views use
+the theme-aware status icon and gesture bar fix committed as `8c9e50e`. The separate direct-debug package is `ca.persistent.app`, with the
 local debug version label 0.21.1. It loads the local development app through an
 ADB reverse connection and is signed in only to the protected synthetic demo
 account. The installed Store package and its signed-in personal account were

@@ -276,6 +276,10 @@ The Android app builds its own notices: AboutLibraries (pinned in `setup-android
 
 The Windows app's notices come from winui-app-kit's generator (the `apps/desktop/external/winui-app-kit` submodule, pinned to a tag) and its NuGet restore graph: `npm run generate:notices:desktop` writes `apps/desktop/Persistent.Desktop/THIRD-PARTY-NOTICES.txt` and `npm run check:notices:desktop` checks it, which CI's Windows harness job runs after a restore. Both need a fresh restore; without a local .NET SDK, restore in a disposable `mcr.microsoft.com/dotnet/sdk` container with the NuGet cache mounted at the same path inside and out, so the script can read the packages' licence files. Regenerate after any package or kit pin change.
 
+## The 2026-11-19 history rewrite
+
+Commit metadata and old file contents were rewritten on 2026-11-19 to replace two personal email addresses with the GitHub noreply address. Every clone made before then must re-clone, or fetch and `git reset --hard origin/main`; never push the old history back. The rewrite also changed the applied migration `20261007120000_admin_statistics` (one address in an `UPDATE` that matches no rows on a new database), so a development database that applied it before the rewrite reports drift on `prisma migrate dev`. Fix it without a reset by setting that row's checksum to the file's current SHA-256: `UPDATE "_prisma_migrations" SET checksum = '<sha256sum of migration.sql>' WHERE migration_name = '20261007120000_admin_statistics';`, or recreate the database. Production applies migrations with `migrate deploy`, which does not re-check applied checksums.
+
 ## Formatting
 
 Prettier formats the TypeScript, JavaScript, JSON, YAML, CSS, HTML and Markdown with the shared house style (`.prettierrc.json`: single quotes, no semicolons, Markdown prose left unwrapped). `npm run validate` runs `npm run format:check`; when it fails, run `npm run format` and commit the result. `.prettierignore` lists what stays untouched. The Windows app's C# gets `dotnet format` when it moves to winui-app-kit. To have `git blame` skip the one-off reformat, run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once.
