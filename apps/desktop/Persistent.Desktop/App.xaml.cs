@@ -59,6 +59,10 @@ public partial class App : Application
             return;
         }
 
+        // The shared promo page follows the app's language choice, not only Windows'.
+        TechnicallyReal.Promo.PromoLocalization.LocaleProvider = () => UiText.Locale;
+        UiText.Changed += TechnicallyReal.Promo.PromoLocalization.Refresh;
+
         AppDomain.CurrentDomain.UnhandledException += (s, a) =>
         {
             var ex = a.ExceptionObject as Exception;

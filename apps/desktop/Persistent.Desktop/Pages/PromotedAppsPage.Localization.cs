@@ -6,14 +6,15 @@ using Persistent.Localization;
 namespace TechnicallyReal.Promo;
 
 /// <summary>
-/// Consuming adapter for the shared page. Its original loader still owns remote
-/// refresh, cached/bundled fallback, ordering, icons and destinations. Only exact
-/// catalogued display copy is substituted; brand names and new remote copy stay literal.
+/// Temporary consuming adapter for the shared page: translates each app's blurb through this
+/// app's catalog. Since apps-promo v2 the page localizes its own title, subtitle and action
+/// labels (through <see cref="PromoLocalization"/>, wired in App.OnLaunched), but it shows
+/// blurbs in English from the manifest. Delete this file at the apps-promo pin that ships
+/// translated blurbs. Only exact catalogued blurbs are substituted; new remote copy stays literal.
 /// </summary>
 public sealed partial class PromotedAppsPage
 {
-    private static readonly string[] PromoCopyKeys = [
-        "Our other apps", "promo.store-subtitle", "promo.website", "promo.view-store",
+    private static readonly string[] PromoBlurbKeys = [
         "promo.printstream", "promo.little-launcher", "promo.immichdrive", "promo.repilot", "promo.persistent"
     ];
     private object? _promoOriginalItems;
@@ -22,7 +23,7 @@ public sealed partial class PromotedAppsPage
     private bool _promoAttached;
     private long _promoSourceCallback;
 
-    /// <summary>Attach once to this page's named ItemsControl and known header labels.</summary>
+    /// <summary>Attach once to this page's named ItemsControl.</summary>
     internal void EnableLocalization()
     {
         Loaded -= PromoLoaded;
@@ -44,25 +45,14 @@ public sealed partial class PromotedAppsPage
         {
             if (_promoApplying) return;
             _promoOriginalItems = AppList.ItemsSource;
-            RefreshPromoCopy();
+            RefreshPromoBlurbs();
         });
-        UiText.Changed += RefreshPromoCopy;
-
-        // These are the two headers in the shared page's local content panel,
-        // not a traversal of arbitrary windows or reminder/user-authored content.
-        if (Content is ScrollViewer viewer && viewer.Content is Panel panel)
-        {
-            foreach (var text in panel.Children.OfType<TextBlock>())
-            {
-                string? key = KnownPromoKey(text.Text);
-                if (key != null) Localize.SetText(text, key);
-            }
-        }
-        RefreshPromoCopy();
+        UiText.Changed += RefreshPromoBlurbs;
+        RefreshPromoBlurbs();
     }
 
     /// <summary>Keep the original English model so language changes never translate a prior translation.</summary>
-    private void RefreshPromoCopy()
+    private void RefreshPromoBlurbs()
     {
         if (_promoOriginalItems is not IEnumerable<PromotedApp> apps) return;
         _promoApplying = true;
@@ -73,20 +63,20 @@ public sealed partial class PromotedAppsPage
                 Name = app.Name,
                 Destination = app.Destination,
                 Icon = app.Icon,
-                Blurb = PromoCopy(app.Blurb),
-                ActionLabel = PromoCopy(app.ActionLabel)
+                Blurb = PromoBlurb(app.Blurb),
+                ActionLabel = app.ActionLabel
             }).ToList();
             AppList.ItemsSource = _promoPresentedItems;
         }
         finally { _promoApplying = false; }
     }
 
-    private static string? KnownPromoKey(string value) => PromoCopyKeys.FirstOrDefault(key => UiText.Source(key) == value);
-    private static string PromoCopy(string value) => KnownPromoKey(value) is string key ? UiText.Get(key) : value;
+    private static string PromoBlurb(string value) =>
+        PromoBlurbKeys.FirstOrDefault(key => UiText.Source(key) == value) is string key ? UiText.Get(key) : value;
 
     private void PromoUnloaded(object sender, RoutedEventArgs args)
     {
-        UiText.Changed -= RefreshPromoCopy;
+        UiText.Changed -= RefreshPromoBlurbs;
         AppList.UnregisterPropertyChangedCallback(ItemsControl.ItemsSourceProperty, _promoSourceCallback);
         _promoAttached = false;
     }

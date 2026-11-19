@@ -3,7 +3,7 @@ import type { Locale } from '../locales.js'
 import { catalogs, message } from './catalogs.js'
 
 export const promotionCopyKeys = [
-  'Our other apps', 'promo.store-subtitle', 'promo.website', 'promo.view-store',
+  'Our other apps', 'promo.website', 'promo.view-store',
   'promo.printstream', 'promo.little-launcher', 'promo.immichdrive', 'promo.repilot', 'promo.persistent'
 ] as const
 

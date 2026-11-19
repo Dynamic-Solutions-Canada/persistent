@@ -29,7 +29,7 @@ export function PromotedAppsPage() {
   return (
     <Stack spacing={1.5}>
       <Button component={RouterLink} to="/settings" variant="plain" sx={{ alignSelf: 'flex-start' }}>{tr("Back to Settings")}</Button>
-      <SectionHeading title={tr("Our other apps")} subtitle={tr("More from Dynamic Solutions Canada.")} />
+      <SectionHeading title={tr("Our other apps")} subtitle={tr("More apps from Dynamic Solutions (CA).")} />
       {apps.map((app) => (
         <Card key={app.appId} variant="outlined">
           <Stack direction="row" spacing={1.5} alignItems="center">

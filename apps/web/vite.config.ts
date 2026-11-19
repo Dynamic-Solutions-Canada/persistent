@@ -45,7 +45,7 @@ export default defineConfig(({ mode }) => {
             {
               // Newly added catalog icons also survive offline visits. Bundled icons
               // use Vite asset imports and are already part of the precache.
-              urlPattern: /^https:\/\/raw\.githubusercontent\.com\/RyanEwen\/technicallyreal-promo\/main\/Assets\/PromotedApps\/[\w-]+\.png$/,
+              urlPattern: /^https:\/\/raw\.githubusercontent\.com\/Dynamic-Solutions-Canada\/apps-promo\/main\/Assets\/PromotedApps\/[\w-]+\.png$/,
               handler: 'CacheFirst',
               options: {
                 cacheName: 'promoted-app-icons',

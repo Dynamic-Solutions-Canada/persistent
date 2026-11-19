@@ -13,6 +13,8 @@ export default tseslint.config(
       'tmp/**',
       // Agent worktrees inside the checkout are other branches, linted there (AI-12).
       '.worktrees/**',
+      // Submodules are other repos, linted and tested there (devkit-test skips them too).
+      '**/external/**',
       'data/**',
       '**/prisma/migrations/**',
       // Capacitor native project: generated/native code, not linted here.
