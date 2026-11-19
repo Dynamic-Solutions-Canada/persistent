@@ -492,9 +492,10 @@ lives in `alarmGrants.ts`, shared by both.
 - **One readiness value.** `useAlarmReadiness` is a shared store: one resume
   listener and one bridge read feed the banner, the onboarding and any open guide,
   so they never disagree and a guide can open on its first render.
-- **The guide closes through `open`, never by unmounting.** `BackAwareModal` pops
-  the history entry it pushed only on an open-to-closed change; an unmounted modal
-  left that entry behind, and the next Back did nothing.
+- **The guide closes through `open`.** `BackAwareModal` (web-app-kit) removes the
+  history entry it pushed whether a dialog closes through `open` or unmounts; the
+  app's own copy once left an unmounted dialog's entry behind, so the next Back did
+  nothing, and the guide still closes through `open`.
 
 - **One at a time, and progress comes only from readiness.** A settings screen is
   a separate activity, so the call that opens it returns before the user has done

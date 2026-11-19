@@ -14,7 +14,7 @@
     "@capacitor/app": "6.0.3",
     "@capacitor/core": "6.2.3",
     "@capacitor/push-notifications": "6.0.5",
-    "@dynamic-solutions-canada/web-app-kit": "github:Dynamic-Solutions-Canada/web-app-kit#v0.2.0",
+    "@dynamic-solutions-canada/web-app-kit": "github:Dynamic-Solutions-Canada/web-app-kit#v0.3.1",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@mui/icons-material": "6.5.0",

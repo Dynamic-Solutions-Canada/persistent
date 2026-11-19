@@ -6,6 +6,7 @@ import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { JSDOM } from 'jsdom'
 import type { Announcement } from '@persistent/shared'
+import { animationFrameGlobals } from '../testing/animationFrame.js'
 
 const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/' })
 const previous = new Map<string, PropertyDescriptor | undefined>()
@@ -15,6 +16,8 @@ const globals = {
   document: dom.window.document,
   HTMLElement: dom.window.HTMLElement,
   DocumentFragment: dom.window.DocumentFragment,
+  // The kit's dialog needs animation frames, which JSDOM lacks.
+  ...animationFrameGlobals(),
   IS_REACT_ACT_ENVIRONMENT: true,
 }
 for (const [name, value] of Object.entries(globals)) {

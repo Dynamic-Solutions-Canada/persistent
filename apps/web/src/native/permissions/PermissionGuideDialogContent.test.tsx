@@ -7,6 +7,7 @@ import { createRoot } from 'react-dom/client'
 import { JSDOM } from 'jsdom'
 import type { AlarmGrant, AlarmReadiness, GrantRoute } from './alarmGrants.js'
 import type { PermissionGuideOutcome } from './PermissionGuideDialogContent.js'
+import { animationFrameGlobals } from '../../testing/animationFrame.js'
 
 const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/' })
 const previous = new Map<string, PropertyDescriptor | undefined>()
@@ -16,6 +17,8 @@ const globals = {
   document: dom.window.document,
   HTMLElement: dom.window.HTMLElement,
   DocumentFragment: dom.window.DocumentFragment,
+  // The kit's dialog needs animation frames, which JSDOM lacks.
+  ...animationFrameGlobals(),
   IS_REACT_ACT_ENVIRONMENT: true,
 }
 for (const [name, value] of Object.entries(globals)) {
@@ -38,6 +41,8 @@ const { StartupDataContext } =
   require('../../components/startupDataContext.ts') as typeof import('../../components/startupDataContext.js')
 const { setToastHandler } =
   require('../../lib/toast.ts') as typeof import('../../lib/toast.js')
+const { hasPendingBackAwareDialog } =
+  require('../../components/backAwareDialogStack.ts') as typeof import('../../components/backAwareDialogStack.js')
 
 const ALL: AlarmGrant[] = [
   'notifications',
@@ -175,22 +180,19 @@ test('nothing is shown or reported as asked when everything is already granted',
   assert.deepEqual(guide.toasts, [])
 })
 
-/** The dialog-stack tokens in the current history entry. */
-function historyDialogStack(): unknown {
-  const state = dom.window.history.state as Record<string, unknown> | null
-  return state?.__persistentDialogStack ?? []
-}
-
 test('finishing pops the history entry the dialog pushed, so the next Back is not swallowed', async (context) => {
   const guide = await mount(context, ['overlay'])
   await guide.render(missing('overlay'))
-  assert.equal((historyDialogStack() as unknown[]).length, 1)
+  await settle()
+  // The open guide holds a history entry (web-app-kit's own answer, which native Back relies on).
+  assert.equal(hasPendingBackAwareDialog(), true)
   await guide.press('Continue')
   await guide.render(missing())
   // The parent unmounts the guide once it reports closing, as the banner and onboarding do.
   await guide.render(missing(), false)
   await settle()
-  assert.deepEqual(historyDialogStack(), [])
+  // Nothing holds history any more, so the next Back navigates instead of being swallowed.
+  assert.equal(hasPendingBackAwareDialog(), false)
 })
 
 test('a screen that opens nothing because the grant is already on finishes instead of blaming the phone', async (context) => {

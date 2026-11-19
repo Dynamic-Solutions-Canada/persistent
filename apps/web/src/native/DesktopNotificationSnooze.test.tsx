@@ -5,6 +5,7 @@ import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createRequire } from 'node:module'
 import { JSDOM } from 'jsdom'
+import { animationFrameGlobals } from '../testing/animationFrame.js'
 const require = createRequire(import.meta.url)
 
 test('Linux notification opens the existing full picker after freshness, keeps the draft, and snoozes only its occurrence', async () => {
@@ -21,6 +22,8 @@ test('Linux notification opens the existing full picker after freshness, keeps t
     HTMLElement: dom.window.HTMLElement,
     Element: dom.window.Element,
     DocumentFragment: dom.window.DocumentFragment,
+    // The kit's dialog needs animation frames, which JSDOM lacks.
+    ...animationFrameGlobals(),
     IS_REACT_ACT_ENVIRONMENT: true,
   }
   for (const [key, value] of Object.entries(values)) {

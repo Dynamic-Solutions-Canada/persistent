@@ -4,6 +4,7 @@ import tseslint from 'typescript-eslint'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import jsxA11y from 'eslint-plugin-jsx-a11y'
+import { backAwareModalLintConfig } from '@dynamic-solutions-canada/web-app-kit/eslint'
 
 export default tseslint.config(
   {
@@ -84,4 +85,8 @@ export default tseslint.config(
       'no-alert': 'error',
     },
   },
+  // Every dialog goes through BackAwareModal (UI conventions): a direct Joy Modal import looks
+  // the same and silently loses Back handling. The app's own wrapper imports the kit's modal,
+  // not Joy's, so it needs no exception.
+  { files: ['apps/web/**/*.{ts,tsx}'], ...backAwareModalLintConfig },
 )

@@ -108,6 +108,6 @@
     "esbuild@0.28.1": true,
     "@prisma/engines@7.10.1": true,
     "prisma@7.10.1": true,
-    "github:Dynamic-Solutions-Canada/web-app-kit#37a3c735e72c344e47f47e903c8de64b9a4820ec": true
+    "github:Dynamic-Solutions-Canada/web-app-kit": true
   }
 }

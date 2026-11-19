@@ -6,6 +6,7 @@ import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { JSDOM } from 'jsdom'
 import type { SnoozeInput } from '@persistent/shared'
+import { animationFrameGlobals } from '../testing/animationFrame.js'
 
 const require = createRequire(import.meta.url)
 
@@ -22,6 +23,8 @@ test('Chinese duration and snooze choices keep stable unit identities and exact 
     DocumentFragment: dom.window.DocumentFragment,
     getComputedStyle: dom.window.getComputedStyle,
     React,
+    // The kit's dialog needs animation frames, which JSDOM lacks.
+    ...animationFrameGlobals(),
     IS_REACT_ACT_ENVIRONMENT: true,
   })) {
     previous.set(key, Object.getOwnPropertyDescriptor(globalThis, key))

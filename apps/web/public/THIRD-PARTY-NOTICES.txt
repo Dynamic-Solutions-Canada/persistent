@@ -433,7 +433,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ------------------------------------------------------------------------------
-@dynamic-solutions-canada/web-app-kit@0.2.0
+@dynamic-solutions-canada/web-app-kit@0.3.1
 License: MIT
 Repository: https://github.com/Dynamic-Solutions-Canada/web-app-kit
 

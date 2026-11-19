@@ -11,6 +11,7 @@ import { queryClient, queryKeys } from '../lib/queryClient.js'
 import { stopWs } from '../lib/wsClient.js'
 import { StartupDataGate } from './StartupDataGate.js'
 import { BackAwareModal } from './BackAwareModal.js'
+import { animationFrameGlobals } from '../testing/animationFrame.js'
 
 const user = {
   id: 'owner',
@@ -52,6 +53,8 @@ async function mount(
     HTMLElement: dom.window.HTMLElement,
     Element: dom.window.Element,
     DocumentFragment: dom.window.DocumentFragment,
+    // The kit's dialog needs animation frames, which JSDOM lacks.
+    ...animationFrameGlobals(),
     IS_REACT_ACT_ENVIRONMENT: true,
   }
   for (const [name, value] of Object.entries(globals)) {

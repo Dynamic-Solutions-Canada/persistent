@@ -1,66 +1,65 @@
 /**
- * "Is a back-aware dialog open?", asked from outside the component tree.
+ * The app's view of the open-dialog stack, for code outside the component tree.
  *
- * The native Back handler (`native/useNativeBack.ts`) has to let a dialog swallow
- * Back before it navigates anywhere, but the open-dialog stack is module state
- * inside `BackAwareModal.tsx` — and exporting a plain function from a component
- * file breaks React Fast Refresh for that file.
- *
- * So the modal registers a probe here instead of this module keeping its own
- * count: a second counter would be a second source of truth, free to drift from
- * the real stack the moment either side changes.
+ * web-app-kit owns the stack itself (`hasOpenBackAwareDialog`, `hasPendingBackAwareDialog`,
+ * `subscribeBackAwareDialogs`). This module adds the one piece of app policy on top: the
+ * automatic-dialog reservation. A dialog that opens by itself (an announcement, the permission
+ * guide) only registers with the kit once its modal mounts, which can be a render after it
+ * decided to open; without a claim, a sibling deciding in between would open too and the two
+ * would stack. So such a dialog reserves the slot as soon as it decides, and the "pending" answer
+ * here counts reservations as well as the kit's own state.
  */
-let probe: () => boolean = () => false
-let pendingProbe: () => boolean = () => false
+import {
+  hasOpenBackAwareDialog,
+  hasPendingBackAwareDialog as kitHasPendingDialog,
+  subscribeBackAwareDialogs as kitSubscribe,
+} from '@dynamic-solutions-canada/web-app-kit'
+
+export { hasOpenBackAwareDialog }
+
+let reservations = 0
 const listeners = new Set<() => void>()
 
-/** Subscribe to dialog-stack changes without polling or duplicating its state. */
-export function subscribeBackAwareDialogs(listener: () => void): () => void {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
-  }
-}
-
-/** Notify subscribers after the authoritative dialog stack changes. */
-export function notifyBackAwareDialogs(): void {
+/** Tell subscribers that the reservation count changed. */
+function notifyReservationChange(): void {
   for (const listener of listeners) listener()
 }
 
-/** Called once by BackAwareModal with a reader over its live dialog stack. */
-export function setBackAwareDialogProbe(
-  fn: () => boolean,
-  pending: () => boolean = fn,
-): void {
-  probe = fn
-  pendingProbe = pending
-}
-
-export function hasOpenBackAwareDialog(): boolean {
-  return probe()
-}
-
-let reservations = 0
-
-/** New automatic dialogs also wait for a previous dialog's history pop, or a reserved slot. */
-export function hasPendingBackAwareDialog(): boolean {
-  return pendingProbe() || reservations > 0
+/**
+ * Calls `listener` whenever the kit's stack or a reservation may have changed.
+ *
+ * @returns A function that stops both subscriptions.
+ */
+export function subscribeBackAwareDialogs(listener: () => void): () => void {
+  listeners.add(listener)
+  const stopKit = kitSubscribe(listener)
+  return () => {
+    listeners.delete(listener)
+    stopKit()
+  }
 }
 
 /**
- * Claim the automatic-dialog slot from the moment a dialog decides to open until
- * it closes. A dialog registers with the stack only once its modal mounts, which
- * can be a render later; without a claim, a sibling deciding in between would
- * open too and the two would stack. Returns a release function (safe to call twice).
+ * Whether a new automatic dialog should wait: a dialog is open, a closed dialog's history entry
+ * is still being removed (the kit's answer), or another automatic dialog has reserved the slot.
+ */
+export function hasPendingBackAwareDialog(): boolean {
+  return kitHasPendingDialog() || reservations > 0
+}
+
+/**
+ * Claim the automatic-dialog slot from the moment a dialog decides to open until it closes.
+ *
+ * @returns A release function; calling it more than once is safe.
  */
 export function reserveBackAwareDialog(): () => void {
   reservations += 1
-  notifyBackAwareDialogs()
+  notifyReservationChange()
   let released = false
   return () => {
     if (released) return
     released = true
     reservations -= 1
-    notifyBackAwareDialogs()
+    notifyReservationChange()
   }
 }
