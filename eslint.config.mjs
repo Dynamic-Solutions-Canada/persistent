@@ -11,6 +11,8 @@ export default tseslint.config(
       '**/.vite/**',
       '**/node_modules/**',
       'tmp/**',
+      // Agent worktrees inside the checkout are other branches, linted there (AI-12).
+      '.worktrees/**',
       'data/**',
       '**/prisma/migrations/**',
       // Capacitor native project: generated/native code, not linted here.

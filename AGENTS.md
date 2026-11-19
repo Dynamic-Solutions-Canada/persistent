@@ -105,6 +105,6 @@ Skills live in `.agents/skills/`; Claude Code reads them through the `.claude/sk
 | Reminder types, schedules or occurrence lifecycle | `.agents/guides/reminder-model.md` |
 | A UI convention | `.agents/guides/ui-conventions.md` |
 | Auth, data flow, alarms, notification guarantee, a desktop host | The matching contract in the guidance map |
-| An environment variable | `.env.example`, `compose.server.yml` (enforced by `apps/api/src/lib/env.test.ts`) |
+| An environment variable | `.env.dev.example` or `.env.server.example`, `compose.server.yml` (enforced by `apps/api/src/lib/env.test.ts`) |
 | A place the product writes data, or what deletion removes | `ARCHITECTURE.md` (Where data lives), `docs/deployment.md` |
 | A generated directory or generator | `scripts/hooks/generated-file-guard.json` and `scripts/hooks/README.md` |

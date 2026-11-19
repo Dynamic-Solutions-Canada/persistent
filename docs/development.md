@@ -57,6 +57,8 @@ tracked release versions stay unchanged. Read
 [the shared Windows build guide](https://github.com/Dynamic-Solutions-Canada/windows-build-tools#readme) for prerequisites,
 container delegation and package reuse. CI still compiles both architectures.
 
+To build for Windows from inside the development container, set two values in your `.env`: `WINDOWS_BUILD_TOOLS` (the host path of your windows-build-tools checkout, which Compose mounts read-only) and `PERSISTENT_WINDOWS_HOST` (the SSH alias of the Windows host). Neither has a default, so no machine path lives in a tracked file; with them unset, Windows builds are unavailable inside the container and still work from WSL.
+
 Compilation does not establish startup, packaging or UI behavior. Before committing
 packaging or desktop runtime changes, install the working tree and check the changed
 behavior. `npm run verify:desktop:csharp` retains the additional Linux non-XAML
@@ -76,6 +78,8 @@ For the Android app (build, wireless adb, signing), see `apps/mobile/README.md`.
 while the editor remains on the host. Each checkout gets a hostname and a private
 Compose stack containing Node and PostgreSQL. Container ports stay fixed; the
 published web port is derived from the checkout path.
+
+Copy `.env.dev.example` to `.env` first; every value in it is optional. Production settings are in `.env.server.example` (see [deployment](deployment.md)).
 
 ```bash
 npm run dev:bootstrap          # once per machine
@@ -199,6 +203,8 @@ AppImages, then publishes a complete draft with the shared checksum
 manifest before making it public. The Linux desktop check packages both architectures
 on their native CI runners before release tagging. Android remains GitHub Latest.
 
+Keep the Linux asset names: installed copies find their update by the exact name `Persistent-Linux-<version>-<cpu>.AppImage` (`apps/linux-desktop/src/release-check.ts`, written by `scripts/release-manifest.ts`). They predate the shared `<Product>-<version>-<platform>-<arch>` pattern (LAYOUT-12), and a rename must attach both names for at least one release.
+
 Deploy the hosted Linux bridge before publishing the Linux release. Root validation
 uses root transport test dependencies; Linux tooling requires
 its standalone install under the same pinned Node runtime. Native tests use isolated profiles and
@@ -226,3 +232,7 @@ Claude Code reads them through the `.claude/skills` symlink.
 ## Patched build runtimes
 
 Use the exact Node and npm versions in the root manifest for production, development and Linux build tooling. Desktop SDK selection lives in `apps/desktop/global.json`: SDK 10.0.403 or a newer stable .NET 10 feature band is eligible. Self-contained builds reject resolved .NET runtime packs older than 10.0.14. These build requirements address CVE-2026-111497; existing deployed images and native packages require separate rebuilds and releases. See [HTTP2Shell review](notes/http2shell-review.md) for evidence and remaining gates.
+
+## Git hooks
+
+The repo has no git hooks yet. The shared rule (HYG-10) puts what must never be committed, such as secrets and oversized files, in a lefthook hook, and that hook script is waiting on a shared version from devkit. Until then, `.gitignore`'s shared block and review catch those, and the Claude Code edit guard in [scripts/hooks](../scripts/hooks/README.md) keeps agents off generated files.

@@ -50,5 +50,5 @@ Deleting the account removes, in one transaction, the user and everything that c
 
 - **Assignments the user received:** the creator keeps the progress record; an active assignment becomes declined, and the recipient's address is replaced by "(deleted account)".
 - **Reminders shared with the user by others:** they stay with their owners; only the user's access is removed.
-- **Operational logs:** the account's internal id stays in the API container's log ("account deleted") until that log is removed. No email address or reminder content is logged.
+- **Operational logs:** the account's internal id stays in the API container's log ("account deleted") until it rotates out; container logs are capped at five 10 MB files. No email address or reminder content is logged.
 - **Backups:** a deleted account remains in server backups, and in pre-deploy dumps once they exist, taken before the deletion, until those expire.

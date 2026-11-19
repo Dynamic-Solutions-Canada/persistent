@@ -1,0 +1,42 @@
+name: Report a problem
+description: Something in Persistent does not work as expected.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please do not report security problems here; use the "Report a vulnerability" button on the Security tab instead.
+
+        Before attaching a log or screenshot, read it through. Logs can contain your email address, reminder titles and notes, server addresses and device names. Remove anything you would not want to be public, because this issue is public.
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: Shown in Settings, under About.
+      placeholder: e.g. 0.30.1
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Where it happens
+      options:
+        - Android
+        - Windows
+        - Linux
+        - Web
+    validations:
+      required: true
+  - type: input
+    id: os-version
+    attributes:
+      label: Operating system version
+      placeholder: e.g. Android 15, Windows 11 24H2, Ubuntu 24.04
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
