@@ -76,6 +76,13 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // React Compiler rules from eslint-plugin-react-hooks 7, all errors here (STYLE-3). State that
+      // follows a prop resets during render (useResetOnChange from web-app-kit), and the latest value
+      // an effect or listener reads comes through React's useEffectEvent. A genuine sync with
+      // something outside React keeps its effect with a one-line waiver that says why.
+      'react-hooks/refs': 'error',
+      'react-hooks/set-state-in-effect': 'error',
+      'react-hooks/purity': 'error',
       // UI-14: icon-only controls need accessible names; dialogs and media stay usable.
       ...jsxA11y.flatConfigs.recommended.rules,
       'react-refresh/only-export-components': [

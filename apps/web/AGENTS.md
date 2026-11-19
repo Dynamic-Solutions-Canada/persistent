@@ -149,5 +149,6 @@ ReminderSoundsField.tsx`). The reminder one is not a device preference wearing a
   put them in `useSettings`, and don't cache them. The cards render nothing until
   the host answers. A newly added field must be optional at the bridge boundary
   so older hosts retain their existing controls and hide only the new one.
+- **Hooks lint (STYLE-3):** eslint-plugin-react-hooks 7, with `refs`, `set-state-in-effect` and `purity` as errors. State that follows a prop resets during render with web-app-kit's `useResetOnChange`; a listener an effect registers reads the latest props and state through React's `useEffectEvent`, never a ref written during render; a component looked up from a map renders with `createElement`. An effect that really syncs with something outside React (the dialog stack, a host message, a network fetch) keeps its `setState` behind a one-line `eslint-disable-next-line` that says why.
 - `verbatimModuleSyntax` is on: use `import type` for type-only imports.
 - Application copy uses the established localization module and canonical shared catalogs. Translate display text and accessibility labels, preserving form values, IDs, routes, medicine content and stable duration-unit keys. Device language/region preferences stay separate from account time zone, explicit clock choice and account email language; see `docs/localization.md` at the root.

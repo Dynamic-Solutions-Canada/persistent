@@ -43,6 +43,7 @@ export function DesktopNotificationSnooze() {
   useEffect(() => {
     if (!ready || !requested || !active.data) return
     if (active.data.some((occurrence) => occurrence.id === requested))
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- answers a Windows toast click, a host message, once the account's data is fresh
       setSnoozeFor(requested)
     else toast(tr('This reminder no longer needs confirmation.'), 'neutral')
     setRequested(null)

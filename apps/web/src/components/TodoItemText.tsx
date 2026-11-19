@@ -15,7 +15,8 @@
  */
 import { useTranslation, Trans } from 'react-i18next'
 import { tr } from '../localization/i18n.js'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
+import { useResetOnChange } from '@dynamic-solutions-canada/web-app-kit'
 import Box from '@mui/joy/Box'
 import Button from '@mui/joy/Button'
 import Input from '@mui/joy/Input'
@@ -51,9 +52,9 @@ export function TodoItemText({
 
   // A rename landing from another device while this row is open would otherwise be
   // overwritten by whatever is half-typed here; closed, the row just follows the store.
-  useEffect(() => {
+  useResetOnChange([text, editing], () => {
     if (!editing) setDraft(text)
-  }, [text, editing])
+  })
 
   async function commit() {
     if (saving.current) return

@@ -12,6 +12,7 @@ import {
   Typography,
 } from '@mui/joy'
 import type { Announcement } from '@persistent/shared'
+import { useResetOnChange } from '@dynamic-solutions-canada/web-app-kit'
 import { BackAwareModal } from './BackAwareModal.js'
 import {
   hasPendingBackAwareDialog,
@@ -59,6 +60,7 @@ export function AnnouncementDialogContent({
     )
     if (!next) return
     releaseSlot.current = reserveBackAwareDialog()
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- opening follows the shared dialog stack, an external store, and claims its slot in the same step
     setActive(next)
   }, [active, ready, enabled, dialogOpen, announcements, dismissed, pathname])
 
@@ -71,7 +73,7 @@ export function AnnouncementDialogContent({
   useEffect(() => () => releaseSlot.current?.(), [])
 
   // A dismissal on another device closes this account's matching dialog too.
-  useEffect(() => {
+  useResetOnChange([active, loaded, announcements], () => {
     if (
       active &&
       loaded &&
@@ -79,7 +81,7 @@ export function AnnouncementDialogContent({
     ) {
       setActive(null)
     }
-  }, [active, loaded, announcements])
+  })
 
   const close = () => {
     if (!active) return

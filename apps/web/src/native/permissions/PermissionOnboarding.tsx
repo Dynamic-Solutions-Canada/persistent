@@ -48,6 +48,7 @@ export function PermissionOnboarding() {
     if (pathname.startsWith('/reminders/') || pathname.startsWith('/shared/'))
       return
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the offer follows native permission state, the shared dialog stack and stored offers, all outside React
     setConsidered(true)
     const offer = grantsToOffer(readiness, readOfferedGrants())
     if (offer.length === 0) return

@@ -27,7 +27,7 @@
  * the shared answer; only what happens when Back runs out differs (Android leaves
  * the app, the flyout closes).
  */
-import { useEffect, useRef } from 'react'
+import { useEffect, useEffectEvent } from 'react'
 import {
   useLocation,
   useNavigate,
@@ -116,13 +116,12 @@ export function performBack(
 export function useNativeBack(): void {
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  // The listener is registered once; routing state is read through a ref so a
-  // navigation doesn't churn the native listener on every screen change.
-  const current = useRef<{ pathname: string; navigate: NavigateFunction }>({
-    pathname,
-    navigate,
+  // The listeners are registered once and read the current route through effect
+  // events, so a navigation doesn't churn the native listener on every screen change.
+  const back = useEffectEvent((): BackResult => performBack(pathname, navigate))
+  const navigateTo = useEffectEvent((path: string) => {
+    if (path !== pathname) navigate(path)
   })
-  current.current = { pathname, navigate }
 
   // Android: Capacitor's hardware/gesture Back.
   useEffect(() => {
@@ -131,8 +130,7 @@ export function useNativeBack(): void {
     let cancelled = false
 
     void App.addListener('backButton', () => {
-      const { pathname: here, navigate: go } = current.current
-      if (performBack(here, go) === 'exhausted') void App.exitApp()
+      if (back() === 'exhausted') void App.exitApp()
     })
       .then((registered) => {
         if (cancelled) void registered.remove()
@@ -165,13 +163,12 @@ export function useNativeBack(): void {
   // every other surface (notification-behavior.md).
   useEffect(() => {
     const unsubscribe = onHostMessage((message) => {
-      const { pathname: here, navigate: go } = current.current
       switch (message.type) {
         case 'navigate':
-          if (message.path !== here) go(message.path)
+          navigateTo(message.path)
           return
         case 'back':
-          if (performBack(here, go) === 'exhausted') requestClose()
+          if (back() === 'exhausted') requestClose()
           return
         default:
           // Anything else (checkForUpdate, hostSettings, and whatever comes next)

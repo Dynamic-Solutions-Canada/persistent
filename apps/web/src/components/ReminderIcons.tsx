@@ -1,3 +1,4 @@
+import { createElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import { tr } from '../localization/i18n.js'
 /**
@@ -12,6 +13,10 @@ import { tr } from '../localization/i18n.js'
  * generic icon rather than resolve to `undefined`: React rejects an undefined
  * element type outright, so one unknown value would take down the whole view
  * rather than one row of it.
+ *
+ * The looked-up icon is rendered with `createElement` rather than assigned to a
+ * capitalised local and used as JSX, which would read as a component declared
+ * during render (`react-hooks/static-components`).
  */
 import Chip from '@mui/joy/Chip'
 import type { ColorPaletteProp } from '@mui/joy/styles'
@@ -52,16 +57,13 @@ export function TypeIcon({
   size?: number
 }) {
   useTranslation()
-  const Icon = lookup(TYPE_ICON, type, NotificationsNoneIcon)
   // aria-label (not titleAccess) so no <title> text leaks into e.g. Select values.
-  return (
-    <Icon
-      fontSize={fontSize}
-      sx={size ? { fontSize: size } : undefined}
-      role="img"
-      aria-label={reminderTypeLabel(type)}
-    />
-  )
+  return createElement(lookup(TYPE_ICON, type, NotificationsNoneIcon), {
+    fontSize,
+    sx: size ? { fontSize: size } : undefined,
+    role: 'img',
+    'aria-label': reminderTypeLabel(type),
+  })
 }
 
 const STATUS_ICON: Record<OccurrenceStatus, SvgIconComponent> = {
@@ -92,14 +94,11 @@ export function StatusIcon({
   fontSize?: IconSize
 }) {
   useTranslation()
-  const Icon = lookup(STATUS_ICON, status, NotificationsActiveIcon)
-  return (
-    <Icon
-      fontSize={fontSize}
-      role="img"
-      aria-label={tr(lookup(STATUS_TITLE, status, status))}
-    />
-  )
+  return createElement(lookup(STATUS_ICON, status, NotificationsActiveIcon), {
+    fontSize,
+    role: 'img',
+    'aria-label': tr(lookup(STATUS_TITLE, status, status)),
+  })
 }
 
 const STATUS_COLOR: Record<OccurrenceStatus, ColorPaletteProp> = {
@@ -115,13 +114,16 @@ const STATUS_COLOR: Record<OccurrenceStatus, ColorPaletteProp> = {
 /** A colored, labeled status chip (e.g. green "Done", red "Missed") for list rows. */
 export function StatusChip({ status }: { status: OccurrenceStatus }) {
   useTranslation()
-  const Icon = lookup(STATUS_ICON, status, NotificationsActiveIcon)
+  const icon = createElement(
+    lookup(STATUS_ICON, status, NotificationsActiveIcon),
+    { sx: { fontSize: 16 } },
+  )
   return (
     <Chip
       size="sm"
       variant="soft"
       color={lookup(STATUS_COLOR, status, 'neutral')}
-      startDecorator={<Icon sx={{ fontSize: 16 }} />}
+      startDecorator={icon}
     >
       {tr(lookup(STATUS_TITLE, status, status))}
     </Chip>

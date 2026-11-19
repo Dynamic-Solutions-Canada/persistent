@@ -1,7 +1,8 @@
 /** Text in the reading dialog that becomes a small editor only when selected. */
 import { useTranslation, Trans } from 'react-i18next'
 import { tr } from '../localization/i18n.js'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
+import { useResetOnChange } from '@dynamic-solutions-canada/web-app-kit'
 import Box from '@mui/joy/Box'
 import Button from '@mui/joy/Button'
 import Input from '@mui/joy/Input'
@@ -28,9 +29,10 @@ export function InlineReminderText({
   const finished = useRef(false)
   const label = tr(kind === 'title' ? 'Edit reminder title' : 'Edit note body')
 
-  useEffect(() => {
+  // While closed, the draft follows the saved text, reset during render so it never shows stale.
+  useResetOnChange([text, editing], () => {
     if (!editing) setDraft(text)
-  }, [text, editing])
+  })
 
   async function commit() {
     if (saving.current) return

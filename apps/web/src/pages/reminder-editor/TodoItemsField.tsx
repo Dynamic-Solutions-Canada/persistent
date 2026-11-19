@@ -34,7 +34,7 @@
  */
 import { useTranslation } from 'react-i18next'
 import { tr } from '../../localization/i18n.js'
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import Stack from '@mui/joy/Stack'
 import Box from '@mui/joy/Box'
 import FormLabel from '@mui/joy/FormLabel'
@@ -81,10 +81,11 @@ export function TodoItemsField({
   onRemove: (index: number) => void
 }) {
   useTranslation()
-  // Keyed by item id, not index: reordering moves rows around, and an
-  // index-keyed ref would focus whichever row happens to sit there afterwards.
-  const inputs = useRef(new Map<string, HTMLInputElement | null>())
-  const [focusId, setFocusId] = useState<string | null>(null)
+  // The row just inserted, focused by its own input's ref callback as it mounts.
+  // Matched by item id, not index: reordering moves rows around, and an index
+  // would focus whichever row happens to sit there afterwards. A ref, not state:
+  // nothing renders from it, and the focus lands at commit.
+  const pendingFocusId = useRef<string | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
   const { draggingIndex, dragOffset, listProps, handleProps } = useDragReorder(
     listRef,
@@ -92,18 +93,10 @@ export function TodoItemsField({
     onMove,
   )
 
-  // Ref callbacks run before effects, so by the time this fires the freshly
-  // inserted input has registered itself and can be focused.
-  useEffect(() => {
-    if (!focusId) return
-    inputs.current.get(focusId)?.focus()
-    setFocusId(null)
-  }, [focusId])
-
   function insertAt(index: number) {
     const row = emptyTodo()
+    pendingFocusId.current = row.id
     onInsert(index, row)
-    setFocusId(row.id)
   }
 
   const multiple = todos.length > 1
@@ -201,8 +194,10 @@ export function TodoItemsField({
               slotProps={{
                 input: {
                   ref: (el: HTMLInputElement | null) => {
-                    if (el) inputs.current.set(item.id, el)
-                    else inputs.current.delete(item.id)
+                    if (el && pendingFocusId.current === item.id) {
+                      pendingFocusId.current = null
+                      el.focus()
+                    }
                   },
                 },
               }}

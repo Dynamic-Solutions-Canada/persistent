@@ -1,14 +1,7 @@
 /** Hide stale pages during first load and foreground refresh without discarding open dialogs or drafts. */
 import { useTranslation } from 'react-i18next'
 import { tr } from '../localization/i18n.js'
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { App as CapacitorApp } from '@capacitor/app'
 import type { PluginListenerHandle } from '@capacitor/core'
 import { isCancelledError, useQueryClient } from '@tanstack/react-query'
@@ -16,6 +9,7 @@ import { Alert, Button, Stack, Typography } from '@mui/joy'
 import { useAuth } from '../auth/useAuth.js'
 import { isNative } from '../native/alarmBridge.js'
 import { onHostMessage } from '../native/desktopBridge.js'
+import { useResetOnChange } from '@dynamic-solutions-canada/web-app-kit'
 import { AppLoading } from './AppLoading.js'
 import { StartupDataContext } from './startupDataContext.js'
 
@@ -75,13 +69,15 @@ export function StartupDataGate({ children }: { children: ReactNode }) {
     [queryClient, offline, refreshSession],
   )
 
-  // Connection changes must cover cached content before the next paint. Query
-  // refresh itself waits for child observers to mount in the passive effect.
-  useLayoutEffect(() => {
+  // Connection changes must cover cached content before the next paint, so the
+  // reset happens during render. Query refresh itself waits for child observers to
+  // mount in the passive effect below.
+  useResetOnChange([refresh], () => {
     setLoading(true)
-  }, [refresh])
+  })
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- starts the startup data fetch, a network sync; its loading and error flags are its own
     void refresh(false)
     const requests = generation
     return () => {

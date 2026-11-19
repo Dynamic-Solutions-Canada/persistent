@@ -6,7 +6,8 @@
  */
 import { useTranslation } from 'react-i18next'
 import { tr } from '../localization/i18n.js'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useResetOnChange } from '@dynamic-solutions-canada/web-app-kit'
 import ModalDialog from '@mui/joy/ModalDialog'
 import DialogTitle from '@mui/joy/DialogTitle'
 import Stack from '@mui/joy/Stack'
@@ -48,9 +49,9 @@ export function SnoozeDialog({
 
   // This dialog stays mounted between openings. Do not show an old Until time
   // that may have passed while another reminder was being handled.
-  useEffect(() => {
+  useResetOnChange([open], () => {
     if (open) setMode('none')
-  }, [open])
+  })
 
   const openMode = (m: 'custom' | 'until') => {
     // Default the "until" picker to an hour out, refreshed each time it opens so
