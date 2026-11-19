@@ -47,6 +47,14 @@ object AlarmStore {
             .apply()
     }
 
+    /**
+     * Forget the mirrored session and its origin, on sign-out or an account change (gap #11).
+     * SyncClient sends nothing without a cookie, so a signed-out device stops polling.
+     */
+    fun clearSession(context: Context) {
+        prefs(context).edit().remove(KEY_AUTH_COOKIE).remove(KEY_API_BASE_URL).apply()
+    }
+
     /** API origin the app was last loaded from, or "" if the WebView never mirrored it. */
     fun apiBaseUrl(context: Context): String = prefs(context).getString(KEY_API_BASE_URL, "") ?: ""
 

@@ -92,7 +92,11 @@ contract, so Persistent does not support them. We split responsibilities:
   sound URIs) into native storage on each foreground sync
   (`AlarmPlugin.setSyncConfig` → `AlarmStore`); `SyncClient` presents that stored
   cookie. (Reading `CookieManager` directly from the worker was the original bug —
-  the pull silently 401'd every time, so a closed device never saw web edits.) A full
+  the pull silently 401'd every time, so a closed device never saw web edits.)
+  An empty cookie read keeps the stored cookie only for the same API origin
+  (`SessionMirror`), and `cancelAll`, which the page calls on sign-out or an account
+  change, clears the mirrored cookie and origin, so a signed-out device stops polling
+  and never presents a revoked session. A full
   resync also **reconciles the posted notifications** against the server's set:
   `scheduleAll` drops any live notification whose occurrence is no longer returned
   (`AlarmService.cancelMissing`), and `ensureNags` re-posts (silently) any nag that's

@@ -167,9 +167,14 @@ class AlarmPlugin : Plugin() {
         val cm = android.webkit.CookieManager.getInstance()
         runCatching { cm.flush() }
         val fresh = if (apiBaseUrl.isNotEmpty()) cm.getCookie(apiBaseUrl) else null
-        // Keep the previously-captured cookie if this read came back empty, so we never
-        // clobber a working cookie with nothing.
-        val cookie = if (fresh != null && fresh.contains("persistent_auth=")) fresh else AlarmStore.authCookie(context)
+        // An empty read keeps the stored cookie only for the same origin, and never after a
+        // sign-out cleared it; see SessionMirror.
+        val cookie = SessionMirror.cookieToKeep(
+            fresh,
+            stored = AlarmStore.authCookie(context),
+            storedOrigin = AlarmStore.apiBaseUrl(context),
+            origin = apiBaseUrl,
+        )
         AlarmStore.setSyncConfig(
             context,
             apiBaseUrl = apiBaseUrl,
@@ -218,6 +223,10 @@ class AlarmPlugin : Plugin() {
         for (existing in AlarmStore.all(context)) cancelAlarm(context, existing.occurrenceId)
         AlarmStore.replaceAll(context, emptyList())
         AlarmService.stopAll(context)
+        // The page calls this only on sign-out or an account change, so the mirrored session
+        // goes with the alarms: the worker must not keep presenting a revoked secret. The next
+        // signed-in sync mirrors the new account's cookie.
+        AlarmStore.clearSession(context)
         call.resolve()
     }
 
