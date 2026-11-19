@@ -27,7 +27,7 @@
     "dev:doctor": "devkit doctor",
     "dev:host": "devkit",
     "start:prod": "npm run prisma:migrate:deploy --workspace @persistent/api && node apps/api/dist/server.js",
-    "deploy:prod": "node --env-file=.env scripts/deploy/deploy-over-ssh.mjs",
+    "deploy:prod": "node --env-file-if-exists=.env scripts/deploy/deploy-over-ssh.mjs",
     "db:generate": "npm run prisma:generate --workspace @persistent/api",
     "db:migrate": "npm run prisma:migrate:dev --workspace @persistent/api --",
     "db:migrate:deploy": "npm run prisma:migrate:deploy --workspace @persistent/api",
@@ -69,7 +69,7 @@
     "install:linux": "npm run build:linux && node apps/linux-desktop/dist/install.cjs"
   },
   "devDependencies": {
-    "@dynamic-solutions-canada/devkit": "github:Dynamic-Solutions-Canada/devkit#v0.20.0",
+    "@dynamic-solutions-canada/devkit": "github:Dynamic-Solutions-Canada/devkit#v0.20.2",
     "@eslint/js": "^9.24.0",
     "@particle/dbus-next": "0.11.4",
     "concurrently": "^9.1.2",

@@ -1,5 +1,5 @@
 # Production compose: Postgres + the single API/web container.
-# Deployed by scripts/deploy/deploy-over-ssh.mjs (`npm run deploy:prod`).
+# Deployed by devkit's generated scripts/deploy/deploy-over-ssh.mjs (`npm run deploy:prod`).
 # Reads secrets/config from .env on the host (auto-loaded by compose; see .env.server.example).
 #
 #   docker compose -f compose.server.yml up -d --build

@@ -13,11 +13,19 @@ export const DEV_PORTS = Object.freeze({
 
 export default {
   /**
-   * devkit-init owns the dev runner, lifecycle scripts, paseo.json and the edit guard. The deploy
-   * script stays this repo's own until the generated one is adopted with its nginx and backup
-   * checks.
+   * The generated deploy (`npm run deploy:prod`): dump and verify the database, fast-forward the
+   * server checkout and its submodules (the web build imports the promo catalog), wait for both
+   * services to be healthy, and install nginx.server.conf as conf.d/persistent.conf. The image's
+   * version label comes from the root package.json, which the release skill keeps equal to
+   * apps/web's.
    */
-  generated: { deploy: false },
+  deploy: {
+    databaseService: 'db',
+    composeFiles: ['compose.server.yml'],
+    backupsKept: 10,
+    site: { source: 'nginx.server.conf', name: 'persistent.conf' },
+    submodules: true
+  },
 
   // Private worktree volumes removed by archive; shared caches remain.
   cleanup: { volumes: ["{project}_android-home"] },
