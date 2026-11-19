@@ -83,6 +83,8 @@ jobs:
       - run: npm ci
       - run: npm run db:generate
       - run: npm run db:migrate:deploy
+      # The tests import @persistent/shared from its build output.
+      - run: npm run build --workspace @persistent/shared
       - run: npm run test:integration
 
   desktop-tests:

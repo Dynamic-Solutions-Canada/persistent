@@ -45,7 +45,7 @@
     "test:desktop": "scripts/dev/test-desktop.sh",
     "test:android": "npm --prefix apps/mobile run test:android",
     "typecheck": "npm run typecheck --workspace @persistent/shared && npm run build --workspace @persistent/shared && npm run typecheck --workspace @persistent/api && npm run typecheck --workspace @persistent/web",
-    "validate": "npm run lint && npm run test && npm run typecheck && npm run prisma:validate --workspace @persistent/api && npm run check:devkit",
+    "validate": "npm run build --workspace @persistent/shared && npm run lint && npm run test && npm run typecheck && npm run prisma:validate --workspace @persistent/api && npm run check:devkit",
     "check:devkit": "devkit-init --check",
     "check:listing": "devkit-test apps/mobile/scripts/play-metadata.test.ts apps/mobile/scripts/play-publish.test.ts",
     "check:release-notes": "devkit-test apps/mobile/scripts/release-notes.test.ts",
