@@ -34,7 +34,7 @@ import {
 } from '../lib/scheduler.js'
 import { broadcast } from '../lib/realtime.js'
 import { dispatchToUser, nudgeNativeSync } from '../lib/delivery/index.js'
-import { logger } from '../lib/logger.js'
+import { describeError, logger } from '../lib/logger.js'
 import {
   lockSharingReminder,
   withSharingReminder,
@@ -148,7 +148,7 @@ remindersRouter.post('/', async (request, response) => {
     } catch (error) {
       failedInvitations.push(invitation.email)
       logger.warn('share invitation email failed', {
-        error: String(error),
+        error: describeError(error),
         reminderId: reminder.id,
       })
     }
@@ -166,7 +166,7 @@ remindersRouter.post('/', async (request, response) => {
   broadcast(userId, { type: 'reminder.changed', reminderId: reminder.id })
   await broadcastSharedChange(reminder.id, userId)
   void nudgeNativeSync(userId).catch((error) =>
-    logger.warn('sync nudge failed', { error: String(error) }),
+    logger.warn('sync nudge failed', { error: describeError(error) }),
   )
   response
     .status(201)
@@ -293,7 +293,7 @@ remindersRouter.put('/:id', async (request, response) => {
             occurrenceId: occurrence.id,
           }).catch((error) =>
             logger.warn('retire dismiss dispatch failed', {
-              error: String(error),
+              error: describeError(error),
               occurrenceId: occurrence.id,
             }),
           )
@@ -311,7 +311,7 @@ remindersRouter.put('/:id', async (request, response) => {
   broadcast(ownerId, { type: 'reminder.changed', reminderId: reminder.id })
   await broadcastSharedChange(reminder.id, ownerId)
   void nudgeNativeSync(ownerId).catch((error) =>
-    logger.warn('sync nudge failed', { error: String(error) }),
+    logger.warn('sync nudge failed', { error: describeError(error) }),
   )
   response.json({
     reminder: toReminder(
@@ -391,7 +391,7 @@ remindersRouter.patch('/:id/content', async (request, response) => {
   if ((updated.schedule as { kind?: string }).kind !== 'never') {
     void nudgeNativeSync(updated.userId).catch((error) =>
       logger.warn('reminder text sync nudge failed', {
-        error: String(error),
+        error: describeError(error),
         reminderId: updated.id,
       }),
     )
@@ -511,7 +511,7 @@ remindersRouter.post('/:id/items', async (request, response) => {
   if ((updated.schedule as unknown as { kind?: string }).kind !== 'never') {
     void nudgeNativeSync(ownerId).catch((error) =>
       logger.warn('checklist add sync nudge failed', {
-        error: String(error),
+        error: describeError(error),
         reminderId: updated.id,
       }),
     )
@@ -600,7 +600,7 @@ remindersRouter.post('/:id/items/order', async (request, response) => {
   if ((updated.schedule as unknown as { kind?: string }).kind !== 'never') {
     void nudgeNativeSync(ownerId).catch((error) =>
       logger.warn('checklist reorder sync nudge failed', {
-        error: String(error),
+        error: describeError(error),
         reminderId: updated.id,
       }),
     )
@@ -715,7 +715,7 @@ remindersRouter.post('/:id/items/:itemId', async (request, response, next) => {
   if ((updated.schedule as unknown as { kind?: string }).kind !== 'never') {
     void nudgeNativeSync(ownerId).catch((error) =>
       logger.warn('checklist rename sync nudge failed', {
-        error: String(error),
+        error: describeError(error),
         reminderId: updated.id,
       }),
     )
@@ -783,7 +783,7 @@ remindersRouter.delete('/:id/items/:itemId', async (request, response) => {
     if ((updated.schedule as unknown as { kind?: string }).kind !== 'never') {
       void nudgeNativeSync(updated.userId).catch((error) =>
         logger.warn('checklist delete sync nudge failed', {
-          error: String(error),
+          error: describeError(error),
           reminderId: updated.id,
         }),
       )
@@ -953,7 +953,7 @@ remindersRouter.delete('/:id', async (request, response) => {
         occurrenceId: occurrence.id,
       }).catch((error) =>
         logger.warn('delete dismiss dispatch failed', {
-          error: String(error),
+          error: describeError(error),
           occurrenceId: occurrence.id,
         }),
       )
@@ -962,7 +962,7 @@ remindersRouter.delete('/:id', async (request, response) => {
   // Nudge native devices to drop the deleted reminder's future on-device alarms.
   for (const memberId of memberIds) {
     void nudgeNativeSync(memberId).catch((error) =>
-      logger.warn('sync nudge failed', { error: String(error) }),
+      logger.warn('sync nudge failed', { error: describeError(error) }),
     )
   }
   response.json({ ok: true })

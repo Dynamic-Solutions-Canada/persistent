@@ -10,7 +10,7 @@ import type { Server } from 'node:http'
 import { WebSocketServer, WebSocket } from 'ws'
 import type { WsEvent } from '@persistent/shared'
 import { resolveUserId } from './auth-session.js'
-import { logger } from './logger.js'
+import { describeError, logger } from './logger.js'
 
 interface TaggedSocket extends WebSocket {
   userId?: string
@@ -48,7 +48,8 @@ export function attachWsHub(server: Server): WsHub {
         })
       })
       .catch((error) => {
-        logger.warn('ws upgrade auth failed', { error: String(error) })
+        // The session lookup is a Prisma call, whose error text can repeat its arguments.
+        logger.warn('ws upgrade auth failed', { error: describeError(error) })
         socket.destroy()
       })
   })

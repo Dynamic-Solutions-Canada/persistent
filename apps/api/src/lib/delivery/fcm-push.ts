@@ -64,6 +64,7 @@ async function mintAccessToken(): Promise<string | null> {
     const { token } = await client.getAccessToken()
     return token ?? null
   } catch (error) {
+    // Safe to log whole: a service-account token error names the auth failure, no user data.
     logger.warn('fcm auth failed', { error: String(error) })
     return null
   }
@@ -97,6 +98,7 @@ async function sendOne(
       providerCode: fcmFailureCode(body),
     }
   } catch (error) {
+    // Safe to log whole: only network failures land here; the provider's body is reduced above.
     logger.warn('fcm delivery error', { error: String(error) })
     return { endpoint, status: 0 }
   }

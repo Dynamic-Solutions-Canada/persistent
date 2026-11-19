@@ -17,7 +17,7 @@ import helmet from 'helmet'
 import { clientOrigins, env } from './lib/env.js'
 import { attachUser } from './lib/auth-middleware.js'
 import { HttpError } from './lib/http-error.js'
-import { logger } from './lib/logger.js'
+import { describeError, logger } from './lib/logger.js'
 import { authRouter } from './routes/auth.js'
 import { remindersRouter } from './routes/reminders.js'
 import { sharesRouter } from './routes/shares.js'
@@ -148,7 +148,8 @@ export function createApp() {
           .json(localizedError(error.message, requestLocale(request)))
         return
       }
-      logger.error('unhandled error', { error: String(error) })
+      // Never the message: it can repeat the data the error was raised with.
+      logger.error('unhandled error', describeError(error))
       response
         .status(500)
         .json(localizedError('Internal server error.', requestLocale(request)))

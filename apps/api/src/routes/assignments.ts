@@ -20,7 +20,7 @@ import {
   sendCloudflareEmail,
 } from '../lib/cloudflare-email.js'
 import { rateLimit } from '../lib/rate-limit.js'
-import { logger } from '../lib/logger.js'
+import { describeError, logger } from '../lib/logger.js'
 import { broadcast } from '../lib/realtime.js'
 
 export const assignmentsRouter = Router()
@@ -190,7 +190,7 @@ assignmentsRouter.post('/', async (request, response) => {
     } catch (error) {
       invitationFailed = true
       logger.warn('assignment invitation failed', {
-        error: String(error),
+        error: describeError(error),
         assignmentId: result.assignment.id,
       })
     }

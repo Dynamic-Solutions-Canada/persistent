@@ -4,7 +4,7 @@ import { broadcast } from './realtime.js'
 import type { ReminderOccurrence } from '../generated/prisma/client.js'
 import { occurrenceForActor } from './recipient-alert-state.js'
 import { nudgeNativeSync } from './delivery/index.js'
-import { logger } from './logger.js'
+import { describeError, logger } from './logger.js'
 import { broadcastAssignmentProgress } from './assignment-progress.js'
 
 /** Find a firing the actor owns or may act on through a reminder share. */
@@ -84,7 +84,7 @@ export async function broadcastSharedChange(
     broadcast(share.recipientId, { type: 'reminder.changed', reminderId })
     void nudgeNativeSync(share.recipientId).catch((error) =>
       logger.warn('shared reminder sync nudge failed', {
-        error: String(error),
+        error: describeError(error),
         reminderId,
       }),
     )

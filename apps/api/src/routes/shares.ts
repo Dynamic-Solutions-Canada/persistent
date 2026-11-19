@@ -16,7 +16,7 @@ import { broadcast } from '../lib/realtime.js'
 import { sendShareInvitationFor } from '../lib/share-invitations.js'
 import { occurrenceForActor } from '../lib/recipient-alert-state.js'
 import { nudgeNativeSync } from '../lib/delivery/index.js'
-import { logger } from '../lib/logger.js'
+import { describeError, logger } from '../lib/logger.js'
 import { toCheckedItemIds, toReminder } from '../lib/serializers.js'
 import { expandSchedule } from '../lib/schedule-expand.js'
 import type { Prisma } from '../generated/prisma/client.js'
@@ -176,7 +176,7 @@ sharesRouter.delete('/received/:reminderId', async (request, response) => {
   broadcast(recipientId, { type: 'reminder.changed', reminderId: reminder.id })
   void nudgeNativeSync(recipientId).catch((error) =>
     logger.warn('leave shared reminder sync failed', {
-      error: String(error),
+      error: describeError(error),
       reminderId: reminder.id,
     }),
   )
@@ -396,7 +396,7 @@ sharesRouter.put('/:reminderId', async (request, response) => {
     })
     void nudgeNativeSync(result.share.recipientId).catch((error) =>
       logger.warn('new share sync failed', {
-        error: String(error),
+        error: describeError(error),
         reminderId: result.reminder.id,
       }),
     )
@@ -491,7 +491,7 @@ sharesRouter.delete('/:reminderId/:recipientId', async (request, response) => {
   })
   void nudgeNativeSync(request.params.recipientId).catch((error) =>
     logger.warn('removed share sync failed', {
-      error: String(error),
+      error: describeError(error),
       reminderId: reminder.id,
     }),
   )
@@ -510,7 +510,7 @@ async function deliverInvitation(
     logger.warn('share invitation delivery failed', {
       actorId,
       reminderId,
-      error: String(error),
+      error: describeError(error),
     })
     throw error
   }

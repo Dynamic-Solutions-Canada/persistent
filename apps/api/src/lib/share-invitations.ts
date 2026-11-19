@@ -9,7 +9,7 @@ import { rateLimit } from './rate-limit.js'
 import { buildShareInvitationEmail } from './share-invitation-email.js'
 import { nudgeNativeSync } from './delivery/index.js'
 import { broadcastSharingChange } from './sharing-access.js'
-import { logger } from './logger.js'
+import { describeError, logger } from './logger.js'
 
 /** Invite an unregistered recipient without exposing reminder details in email. */
 export async function sendShareInvitation(input: {
@@ -129,7 +129,7 @@ export async function claimShareInvitations(user: {
     }
     void nudgeNativeSync(user.id).catch((error) =>
       logger.warn('claimed invitation sync failed', {
-        error: String(error),
+        error: describeError(error),
         userId: user.id,
       }),
     )

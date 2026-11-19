@@ -25,7 +25,7 @@ import type {
 import type { PushPayload, Schedule } from '@persistent/shared'
 import { isTimeless } from '@persistent/shared'
 import { prisma } from './prisma.js'
-import { logger } from './logger.js'
+import { describeError, logger } from './logger.js'
 import { expandSchedule } from './schedule-expand.js'
 import {
   notificationTitle,
@@ -93,7 +93,7 @@ async function runSafely(
   try {
     await fn()
   } catch (error) {
-    logger.error(`scheduler ${label} failed`, { error: String(error) })
+    logger.error(`scheduler ${label} failed`, { error: describeError(error) })
   }
 }
 
@@ -363,7 +363,7 @@ async function sweep(): Promise<void> {
         buildPayload('escalate', personal, true),
       ).catch((error) =>
         logger.warn('shared escalation dispatch failed', {
-          error: String(error),
+          error: describeError(error),
           occurrenceId: occurrence.id,
         }),
       )
@@ -442,7 +442,7 @@ async function sweep(): Promise<void> {
       toCheckedItemIds(occurrence.checkedItems),
     ).catch((error) =>
       logger.warn('escalate email failed', {
-        error: String(error),
+        error: describeError(error),
         reminderId: r.id,
       }),
     )
@@ -635,7 +635,8 @@ function fireNotificationFor(
   alarm: boolean,
 ): void {
   void dispatchToUser(userId, buildPayload('fire', occurrence, alarm)).catch(
-    (error) => logger.warn('fire dispatch failed', { error: String(error) }),
+    (error) =>
+      logger.warn('fire dispatch failed', { error: describeError(error) }),
   )
 }
 
@@ -645,7 +646,7 @@ async function escalate(occurrence: OccurrenceForNotification): Promise<void> {
     occurrence.userId,
     buildPayload('escalate', occurrence, true),
   ).catch((error) =>
-    logger.warn('escalate dispatch failed', { error: String(error) }),
+    logger.warn('escalate dispatch failed', { error: describeError(error) }),
   )
 }
 

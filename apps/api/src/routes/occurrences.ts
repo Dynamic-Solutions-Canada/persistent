@@ -30,7 +30,7 @@ import {
   notificationBody,
 } from '../lib/notification-format.js'
 import { ackDecision } from '../lib/occurrence-ack.js'
-import { logger } from '../lib/logger.js'
+import { describeError, logger } from '../lib/logger.js'
 import {
   actionableOccurrence,
   broadcastSharedChange,
@@ -299,7 +299,7 @@ occurrencesRouter.post('/:id/undo-done', async (request, response) => {
   await broadcastSharedChange(updated.reminderId, updated.userId)
   void nudgeNativeSync(updated.userId).catch((error) =>
     logger.warn('undo completion sync nudge failed', {
-      error: String(error),
+      error: describeError(error),
       occurrenceId: updated.id,
     }),
   )
@@ -482,7 +482,7 @@ occurrencesRouter.post('/:id/check', async (request, response) => {
   await broadcastSharedChange(existing.reminderId, existing.userId)
   void nudgeNativeSync(existing.userId).catch((error) =>
     logger.warn('checklist sync nudge failed', {
-      error: String(error),
+      error: describeError(error),
       occurrenceId: updated.id,
     }),
   )

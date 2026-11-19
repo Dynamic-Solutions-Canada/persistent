@@ -10,7 +10,7 @@ import {
 } from './scheduler.js'
 import { broadcast } from './realtime.js'
 import { nudgeNativeSync } from './delivery/index.js'
-import { logger } from './logger.js'
+import { describeError, logger } from './logger.js'
 
 /** Create the assignee's first firing and refresh their signed-in clients. */
 export async function activateAssignment(
@@ -34,7 +34,7 @@ export async function activateAssignment(
   broadcast(recipientId, { type: 'reminder.changed', reminderId })
   void nudgeNativeSync(recipientId).catch((error) =>
     logger.warn('assignment native sync failed', {
-      error: String(error),
+      error: describeError(error),
       reminderId,
     }),
   )
