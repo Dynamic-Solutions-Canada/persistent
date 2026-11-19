@@ -9,7 +9,7 @@ Cut a new app release.
 
 When asked to release the Linux desktop host, use its independent `linux-vX.Y.Z`
 tag and `apps/linux-desktop/package.json` version, independently of Android and Windows.
-Do not invoke the Android lane for Linux-only work. Keep its standalone lockfile in
+Do not invoke the Android lane for Linux-only work. Before tagging, write `release-notes/linux-X.Y.Z.md` (en-US, user-facing), run `npm run check:notes`, and stop for approval of the text; the workflow refuses a tag without it. Keep its standalone lockfile in
 step, validate and package both architectures, review native evidence, commit/merge
 and push main, and deploy the hosted bridge before publishing the tag. Require a
 clean tree and HEAD equal to origin/main. `release-linux.yml` builds x64 and ARM64 AppImages plus the shared checksum
@@ -22,19 +22,19 @@ be disabled. No portable tar release is offered. Report the release URL and limi
 Invocation input (optional): the user-provided bump level, pause request, or dry-run request.
 
 The release pipeline is `.github/workflows/release.yml`: pushing a `vX.Y.Z` tag
-builds the web bundle, builds the signed Play AAB, generates
-changelog notes from the commits since the previous tag (filtered to
-end-user-facing changes only: internal/docs/tooling commits are excluded; see the
-`EXCLUDE` list in `apps/mobile/scripts/release-notes.mjs`), and publishes one Play identity through both channels:
+builds the web bundle and the signed Play AAB, reads that version's approved notes from
+`release-notes/` (see `release-notes/README.md`), and publishes one Play identity through
+both channels. It stops before building when any wording of the notes is missing or over
+500 characters; it never generates or truncates notes.
 
-- `play` -> **AAB** released to Google Play **production**, reusing the notes
-  truncated to Play's 500-character limit unless `apps/mobile/store/releases/<version>.json` supplies curated nine-locale notes. Curated notes must match the version and fit 500 characters per language; validation rejects rather than truncates them. `PLAY_SERVICE_ACCOUNT_JSON` is required.
+- `play` -> **AAB** released to Google Play **production**, with every wording of the notes as
+  its per-locale "What's new". `PLAY_SERVICE_ACCOUNT_JSON` is required.
   Tags and manual releases have no tester-track destination. Active phone testing
   releases are retired in the same edit using `--production-only`.
 - Google Play's **signed universal APK** -> GitHub Release, named
   `persistent-X.Y.Z-play.apk`, after verifying package, version and the registered
-  Google certificate. No direct APK fallback is allowed. Append the required
-  italicized AI disclosure to GitHub notes after deriving Play's notes.
+  Google certificate. No direct APK fallback is allowed. Its body is the en-US notes, and
+  the workflow appends the AI-disclosure line.
 
 Legacy direct installs have a different package and certificate and cannot update
 in place. The hosted UI explains the separate installation and offers both manual
@@ -42,9 +42,7 @@ GitHub downloads and Google Play; using the Store is optional. The compatibility
 endpoint returns `null`. Keep legacy passkey origins and asset links authorized.
 
 Both Android flavors require Android 7.0 (API 24) to retain Play automatic
-protection. Release notes use the preceding published Android release, excluding
-failed tags, drafts, and desktop releases so an unsuccessful upload does not
-consume the next release's feature notes.
+protection.
 The manual `replace-github-apk` workflow exports an existing Play versionCode,
 preserves approved notes, and replaces the direct asset without uploading an AAB.
 
@@ -118,12 +116,18 @@ Recommended steps:
 3. Compute the next `vX.Y.Z`. Summarize: last version, new version, the bump
    level, and the notable commits driving it.
 4. If `confirm first` / `dry run`: print the summary and stop.
-5. Otherwise bump the root `package.json` and `apps/web/package.json` to the new version, run
+5. Draft the notes from the user-facing changes since the last published Android release
+   (not failed tags, drafts or desktop releases): `release-notes/X.Y.Z.md` in en-US, then
+   translate it into `X.Y.Z.<identity>.md` for es-ES, fr-FR, de-DE, zh-CN, pt-BR and ja-JP.
+   Run `npm run check:notes`. **Stop and show every wording, not only en-US**, and wait for
+   the maintainer (or their delegated release approver) to approve the text; record who
+   approved. The translations reach the stores only through this approval.
+6. Then bump the root `package.json` and `apps/web/package.json` to the new version, run
    `npm install --package-lock-only` so the lockfile follows, and commit both
-   (`Bump version to X.Y.Z`).
+   (`Bump version to X.Y.Z`), together with the approved notes files.
    Run `npm run validate` first; fix failures before continuing.
-6. `git push`, then `git tag vX.Y.Z && git push origin vX.Y.Z`.
-7. Watch the workflow: `gh run watch <id> --exit-status` (find it via
+7. `git push`, then `git tag vX.Y.Z && git push origin vX.Y.Z`.
+8. Watch the workflow: `gh run watch <id> --exit-status` (find it via
    `gh run list --workflow=release.yml --limit 1`). Confirm the release published
    with only the verified `-play.apk` asset (`gh release view vX.Y.Z`), then check the "Release to Google
    Play" step logged the versionCode against `production`, then run `play-check`
@@ -131,7 +135,7 @@ Recommended steps:
    in the earlier "Pre-flight Play release" step means the versionCode collides
    with one Play already has: the step's output names the
    `PLAY_VERSION_CODE_OFFSET` value to set, after which re-run the workflow.
-8. Report the new version, the bump reasoning, and the release URL.
+9. Report the new version, the bump reasoning, who approved the notes, and the release URL.
 
 Notes:
 

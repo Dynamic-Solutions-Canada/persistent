@@ -1,0 +1,4 @@
+Choisissez parmi neuf options de langue et de région dans les paramètres. Langue, format régional des dates, affichage 12/24 heures et langue des e-mails ont des préférences distinctes. Vos textes et noms de médicaments ne changent pas.
+Les commandes Windows, notifications et textes du widget suivent votre langue. Les descriptions système et le sélecteur de widgets utilisent la langue de Windows. Changer de langue actualise les notifications visibles et peut relancer une alarme sonore ou réinitialiser un menu d’actions ouvert.
+Modifiez et terminez des rappels partagés, suivez les tâches attribuées, rétablissez un déclenchement en annulant sa validation et recevez un avertissement en cas de conflit de modifications simultanées.
+Les alertes Windows restent facultatives et nécessitent une session connectée, l’application active et le PC éveillé. Utilisez Android pour des alarmes exactes déjà programmées pouvant sonner hors connexion avec l’application fermée.

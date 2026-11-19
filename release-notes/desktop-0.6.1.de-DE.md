@@ -1,0 +1,4 @@
+Wähle in den Einstellungen aus neun Sprachregionen. Sprache, regionales Datumsformat, 12/24-Stunden-Anzeige und E-Mail-Sprache haben getrennte Einstellungen. Deine eigenen Texte und Medikamentennamen bleiben unverändert.
+Windows-Steuerung, Benachrichtigungen und Widget folgen deiner Sprachwahl. Systembeschreibungen und Widget-Auswahl nutzen die Windows-Sprache. Ein Sprachwechsel aktualisiert sichtbare Benachrichtigungen und kann einen klingelnden Alarm neu starten oder ein offenes Aktionsmenü zurücksetzen.
+Bearbeite und erledige geteilte Erinnerungen, verfolge zugewiesene Aufgaben, stelle eine gewählte Auslösung mit Rückgängig wieder her und erhalte Warnungen bei gleichzeitigen Änderungskonflikten.
+Windows-Hinweise bleiben optional und brauchen eine angemeldete Sitzung, den laufenden App-Prozess und einen wachen PC. Nutze Android für bereits geplante genaue Alarme, die offline bei geschlossener App auslösen können.

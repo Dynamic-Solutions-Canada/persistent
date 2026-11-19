@@ -52,7 +52,6 @@ jobs:
           # branch the run was dispatched from, otherwise the artifact carries
           # the tag's version name but the branch's code.
           ref: ${{ github.event.inputs.version || github.ref }}
-          fetch-depth: 0 # full history + tags so we can build a changelog
           submodules: true # web build bundles the shared promo catalog and icons
 
       - name: Resolve version
@@ -60,7 +59,13 @@ jobs:
         env:
           TAG: ${{ github.event.inputs.version || github.ref_name }}
         run: |
-          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit 1
+          # android-vX.Y.Z is the Android lane (REL-3); older releases were tagged vX.Y.Z and
+          # their notes are the product lane's.
+          [[ "$TAG" =~ ^(android-)?v[0-9]+\.[0-9]+\.[0-9]+$ ]] || exit 1
+          NAME="${TAG#android-}"
+          NAME="${NAME#v}"
+          LANE=product
+          [[ "$TAG" == android-v* ]] && LANE=android
           # versionCode must strictly increase and never repeat across everything
           # ever published, on Play or as a sideload APK. The run number does that
           # on its own; PLAY_VERSION_CODE_OFFSET is the escape hatch for when a
@@ -69,30 +74,27 @@ jobs:
           OFFSET="${{ vars.PLAY_VERSION_CODE_OFFSET || 0 }}"
           {
             echo "tag=${TAG}"
-            echo "name=${TAG#v}"
+            echo "name=${NAME}"
+            echo "lane=${LANE}"
             echo "code=$(( ${{ github.run_number }} + OFFSET ))"
             echo "tracks=production"
             echo "status=${{ github.event.inputs.play_status || 'completed' }}"
           } >> "$GITHUB_OUTPUT"
 
-      # The filter itself lives in apps/mobile/scripts/release-notes.mjs, with
-      # tests, because play-notes.yml has to produce the identical answer when a
-      # published release's notes turn out to be wrong. Two copies would drift, and
-      # the drift would only be visible after it shipped to users.
-      - name: Generate release notes
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          node apps/mobile/scripts/release-notes.mjs \
-            --tag "${{ steps.ver.outputs.tag }}" \
-            --published-only \
-            --repo "${{ github.repository }}" > RELEASE_NOTES.md
-          cat RELEASE_NOTES.md
-
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
+
+      # The approved notes for this version, committed before the tag (REL-6), in every wording.
+      # A missing or over-long file stops the release here, before anything is built; nothing
+      # is generated from commits or truncated.
+      - name: Release notes for ${{ steps.ver.outputs.lane }} ${{ steps.ver.outputs.name }}
+        run: |
+          node scripts/release/notes.mjs require "${{ steps.ver.outputs.lane }}" "${{ steps.ver.outputs.name }}"
+          node scripts/release/notes.mjs play-json "${{ steps.ver.outputs.lane }}" "${{ steps.ver.outputs.name }}" > "$RUNNER_TEMP/play-notes.json"
+          node scripts/release/notes.mjs text "${{ steps.ver.outputs.lane }}" "${{ steps.ver.outputs.name }}" > RELEASE_NOTES.md
+          cat RELEASE_NOTES.md
 
       - name: Require Play publishing config
         env:
@@ -228,25 +230,19 @@ jobs:
           path: persistent-*-play.aab
           if-no-files-found: error
 
-      # Curated version-bound localized notes take precedence when present.
-      # Other versions retain generated English notes and the existing 500-char cap.
+      # Every wording of the approved notes goes to Play's "What's new" (LIST-10).
       # Upload and testing-track retirement still share one production edit.
       - name: Release to Google Play
         working-directory: apps/mobile
         env:
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
-          NOTES_ARGS=(--notes "$GITHUB_WORKSPACE/RELEASE_NOTES.md")
-          LOCALIZED_NOTES="store/releases/${{ steps.ver.outputs.name }}.json"
-          if [ -f "$LOCALIZED_NOTES" ]; then
-            NOTES_ARGS=(--localized-notes "$LOCALIZED_NOTES")
-          fi
           node scripts/play-publish.mjs \
             --aab "$GITHUB_WORKSPACE/persistent-${{ steps.ver.outputs.name }}-play.aab" \
             --tracks production --production-only \
             --version-name "${{ steps.ver.outputs.name }}" \
             --status "${{ steps.ver.outputs.status }}" \
-            "${NOTES_ARGS[@]}"
+            --localized-notes "$RUNNER_TEMP/play-notes.json"
 
       - name: Locate APK inspection tools
         run: |

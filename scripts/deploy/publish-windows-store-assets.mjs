@@ -11,6 +11,7 @@ import {
   mergeStoreListing,
   assertReleasePackage,
 } from './windows-store-listing.mjs'
+import { listingTexts } from '../release/notes.mjs'
 
 const root = fileURLToPath(new URL('../../', import.meta.url))
 const assetsRoot = path.join(root, 'store-assets')
@@ -22,10 +23,15 @@ async function loadAssets() {
   const manifest = JSON.parse(
     await readFile(path.join(assetsRoot, 'manifest.json'), 'utf8'),
   )
-  const notes = await readFile(
-    path.join(assetsRoot, 'microsoft/release-notes.txt'),
+  // The approved notes for the version being submitted, in every listing locale (LIST-10).
+  const props = await readFile(
+    path.join(root, 'apps/desktop/Directory.Build.props'),
     'utf8',
   )
+  const version = /<Version>(\d+\.\d+\.\d+)<\/Version>/.exec(props)?.[1]
+  if (!version)
+    throw new Error('Could not read <Version> from Directory.Build.props.')
+  const notes = listingTexts('desktop', version)
   for (const shot of manifest.microsoft) {
     if (!/^microsoft\/[a-z0-9-]+\.png$/.test(shot.file))
       throw new Error('Unexpected desktop screenshot path.')
@@ -45,7 +51,14 @@ async function loadAssets() {
   }
   // Exercise metadata validation without needing a live draft in local check mode.
   mergeStoreListing(
-    { listings: { 'en-us': { baseListing: { images: [] } } } },
+    {
+      listings: Object.fromEntries(
+        Object.keys(notes).map((locale) => [
+          locale.toLowerCase(),
+          { baseListing: { images: [] } },
+        ]),
+      ),
+    },
     manifest.microsoft,
     notes,
   )

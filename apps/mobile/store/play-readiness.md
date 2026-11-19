@@ -1,6 +1,6 @@
 # Play Store readiness and release checks
 
-Current 0.29.0 preparation and the coordinator's 21 October 2026 Console audit are recorded in [the release audit](release-0.29.0.md). Historical completion marks below refer to earlier releases; they do not certify the current Health/Data safety/reviewer forms, native runtime or review/publication state.
+Current 0.29.0 preparation and the coordinator's 21 October 2026 Console audit are recorded in [the release audit](../../../docs/notes/android-release-0.29.0.md). Historical completion marks below refer to earlier releases; they do not certify the current Health/Data safety/reviewer forms, native runtime or review/publication state.
 
 **Package names differ by flavor.** Play requires `ca.dynamicsolutions.persistent`,
 so that is the `play` flavor's `applicationId` used by both Play and current

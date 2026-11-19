@@ -33,13 +33,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20 # a cold install plus lint, tests and typecheck take about 5
     steps:
-      # The web build imports the promo catalog from the submodule. Full history and tags:
-      # the release-notes tests read real commits between release tags.
+      # The web build imports the promo catalog from the submodule.
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.ref }}
           submodules: true
-          fetch-depth: 0
 
       - uses: actions/setup-node@v7
         with:

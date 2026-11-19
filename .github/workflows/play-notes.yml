@@ -1,17 +1,9 @@
 name: Play Notes
 
-# Rewrite the "what's new" of a release already on Google Play.
-#
-# The notes are generated from commit subjects, so a filter that is too permissive
-# ships prose no user can act on, and it is only visible once it is public: v0.22.0
-# reached testers led by "Explain Play's bare precondition failed on a track write".
-# Fixing that in the Console leaves no record of what changed or why, and no way to
-# tell whether it matches what the release workflow would produce today.
-#
-# Version-bound curated translations take precedence when present. Otherwise this
-# regenerates notes with the same script `release.yml` uses, against the
-# same tag, and writes them to the tracks that carry that build. Nothing else about
-# the release is touched, including a staged rollout's fraction.
+# Rewrite the "what's new" of a release already on Google Play, from the approved notes files
+# in release-notes/ (REL-6), for example after a translation fix was committed. It writes every
+# wording to the tracks that carry that build and touches nothing else, including a staged
+# rollout's fraction. The notes are never generated from commits.
 #
 # Run `play-check` first if you need to know which versionCode is on which track.
 
@@ -19,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag whose notes to regenerate, e.g. v0.22.0'
+        description: 'Release tag whose notes to republish, e.g. android-v0.31.0 (or v0.30.1 for releases before the Android lane)'
         required: true
         type: string
       version_code:
@@ -39,22 +31,19 @@ concurrency:
 
 jobs:
   # CI-4: play-notes publishes store text, which the code gate says nothing about, so the gate is
-  # the offline checks of that text and the code that sends it.
+  # the check of the notes files it sends.
   gate:
     name: Gate
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      # Full history and tags: the release-notes tests read real commits between release tags.
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm run check:release-notes
+      - run: npm run check:notes
 
   notes:
     needs: gate
@@ -62,40 +51,33 @@ jobs:
     timeout-minutes: 10 # about 3x the slowest recent run
     steps:
       - uses: actions/checkout@v7
-        with:
-          # Full history + tags: the notes come from the commit range ending at the
-          # tag, which a shallow clone cannot see.
-          fetch-depth: 0
 
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
 
-      - name: Regenerate the notes for ${{ inputs.tag }}
+      # android-vX.Y.Z is the Android lane; releases tagged vX.Y.Z before it are the product lane.
+      - name: Notes for ${{ inputs.tag }}
         env:
-          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
         run: |
-          node apps/mobile/scripts/release-notes.mjs \
-            --tag "${{ inputs.tag }}" \
-            --published-only \
-            --repo "${{ github.repository }}" > RELEASE_NOTES.md
-          cat RELEASE_NOTES.md
+          [[ "$TAG" =~ ^(android-)?v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::$TAG is not a release tag"; exit 1; }
+          NAME="${TAG#android-}"
+          NAME="${NAME#v}"
+          LANE=product
+          [[ "$TAG" == android-v* ]] && LANE=android
+          node scripts/release/notes.mjs play-json "$LANE" "$NAME" > "$RUNNER_TEMP/play-notes.json"
+          echo "VERSION_NAME=$NAME" >> "$GITHUB_ENV"
 
       # No `npm ci`: play-publish.mjs is dependency-free by design (Node 22 has
       # fetch and RS256 signing built in), so this needs nothing from the workspace.
       - name: Write them to production
         working-directory: apps/mobile
         env:
-          RELEASE_TAG: ${{ inputs.tag }}
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
-          VERSION_NAME="${RELEASE_TAG#v}"
-          NOTES_ARGS=(--notes ../../RELEASE_NOTES.md)
-          if [ -f "store/releases/$VERSION_NAME.json" ]; then
-            NOTES_ARGS=(--localized-notes "store/releases/$VERSION_NAME.json")
-          fi
           node scripts/play-publish.mjs --set-notes \
             --version-code '${{ inputs.version_code }}' \
             --tracks production \
             --version-name "$VERSION_NAME" \
-            "${NOTES_ARGS[@]}"
+            --localized-notes "$RUNNER_TEMP/play-notes.json"

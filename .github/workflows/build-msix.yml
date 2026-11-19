@@ -159,6 +159,16 @@ jobs:
       - name: Checkout approved release notes
         uses: actions/checkout@v7
 
+      # The approved en-US notes for this version (REL-6), plus the GitHub-only disclosure line.
+      # A missing or over-long notes file stops the release before anything is published.
+      - name: Release notes for ${{ github.ref_name }}
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          node scripts/release/notes.mjs require desktop "${TAG#desktop-v}"
+          node scripts/release/notes.mjs text desktop "${TAG#desktop-v}" > "$RUNNER_TEMP/RELEASE_NOTES.md"
+          printf '\n*AI disclosure: these release notes and the related code were written with the assistance of AI.*\n' >> "$RUNNER_TEMP/RELEASE_NOTES.md"
+
       - name: Download release assets
         uses: actions/download-artifact@v8
         with:
@@ -187,7 +197,7 @@ jobs:
           # publishes - which is exactly how desktop-v0.2.0 first went out with zero
           # assets while the job reported success.
           fail_on_unmatched_files: true
-          body_path: store-assets/microsoft/github-release-notes.md
+          body_path: ${{ runner.temp }}/RELEASE_NOTES.md
           # Both architectures land on one release; the tag already names the app,
           # which matters because Android releases share this repo's release list.
           name: Persistent for Windows ${{ github.ref_name }}

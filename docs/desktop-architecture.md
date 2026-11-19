@@ -693,8 +693,10 @@ install:desktop` exercises that path constantly during development instead.
   a real install, a Start menu entry and the `windows.startupTask` registration;
   unpackaged, "start at sign-in" falls back to the per-user `Run` key
   (`Classes/StartupManager.cs`), so that feature works either way.
-- Release: bump `<Version>` in `apps/desktop/Directory.Build.props`, tag
-  `desktop-vX.Y.Z`. The tag prefix keeps desktop releases from colliding with the
+- Release: write and approve `release-notes/desktop-X.Y.Z.md` and its six translations
+  (`npm run check:notes`; see `release-notes/README.md`), commit them with the bump of
+  `<Version>` in `apps/desktop/Directory.Build.props`, then tag `desktop-vX.Y.Z`. The
+  release job and `store-publish` both refuse a version without them. The tag prefix keeps desktop releases from colliding with the
   Android `vX.Y.Z` tags in this same repo — which is also why `UpdateService`
   reads the release _list_ and filters by prefix instead of calling
   `releases/latest`.
@@ -875,7 +877,7 @@ that cannot resolve.
 workflow in `store-assets/README.md` uses synthetic data in the actual default-size
 flyout with wallpaper and taskbar visible. `store-publish` first uploads a package
 draft, then `scripts/deploy/publish-windows-store-assets.mjs` attaches the approved
-screenshots and `store-assets/microsoft/release-notes.txt` before committing in
+screenshots and the version's `release-notes/desktop-<version>` notes, in every listing locale, before committing in
 publish mode. The combined upload uses the exact `.msixupload` package name
 registered by the CLI. Other listing fields, logos, languages, pricing, and package policy
 are preserved. Draft mode does not submit for certification. The local `--check`

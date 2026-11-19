@@ -30,14 +30,30 @@ function setMember(object, name, value) {
   object[key] = value
 }
 
-/** Replace only desktop screenshots in English; preserve logos, other languages, packages and policy. */
+/**
+ * Replace the desktop screenshots in English and set every listing's release notes; preserve
+ * logos, other copy, packages and policy.
+ * @param notes listing locale (any case) to that locale's approved text, from release-notes/
+ *   (LIST-10). Every listing in the draft must have one: a listing left with last release's
+ *   notes would be wrong, so a gap fails before anything is uploaded.
+ */
 export function mergeStoreListing(draft, shots, notes) {
   if (shots.length < 4 || shots.length > 10)
     throw new Error('Expected 4 to 10 approved desktop screenshots.')
-  if (!notes.trim() || notes.length > 1500)
-    throw new Error('Store release notes must contain 1 to 1500 characters.')
+  const notesFor = (locale) =>
+    Object.entries(notes).find(
+      ([key]) => key.toLowerCase() === locale.toLowerCase(),
+    )?.[1]
   const updated = structuredClone(draft)
   const listings = member(updated, 'listings')
+  for (const [locale, entry] of Object.entries(listings ?? {})) {
+    const text = notesFor(locale)?.trim()
+    if (!text) throw new Error(`No release notes for the ${locale} listing.`)
+    if (text.length > 1500)
+      throw new Error(`The ${locale} release notes are over 1500 characters.`)
+    const base = member(entry, 'baseListing')
+    if (base) setMember(base, 'releaseNotes', text)
+  }
   const language = Object.keys(listings ?? {}).find(
     (key) => key.toLowerCase() === 'en-us',
   )
@@ -71,6 +87,5 @@ export function mergeStoreListing(draft, shots, notes) {
       description: asset.description.slice(0, 200),
     })),
   ])
-  setMember(listing, 'releaseNotes', notes.trim())
   return { submission: updated, assets }
 }

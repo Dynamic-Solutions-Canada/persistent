@@ -25,6 +25,21 @@ import {
   withReleaseNotes,
   // @ts-expect-error - plain .mjs script, no type declarations
 } from './play-publish.mjs'
+import { mkdtempSync as makeTempDir, writeFileSync as writeFile } from 'node:fs'
+import { tmpdir as osTempDir } from 'node:os'
+import { join as joinPath } from 'node:path'
+// @ts-expect-error - plain .mjs script, no type declarations
+import { playJson } from '../../../scripts/release/notes.mjs'
+
+/** The 0.29.0 notes as release.yml hands them to the publisher, built from release-notes/. */
+function localizedNotesFile(): string {
+  const path = joinPath(
+    makeTempDir(joinPath(osTempDir(), 'play-notes-')),
+    '0.29.0.json',
+  )
+  writeFile(path, JSON.stringify(playJson('product', '0.29.0')))
+  return path
+}
 
 /** Minimal valid PNG header: signature + IHDR with the given size/colour type. */
 function fakePng(width: number, height: number, colorType = 2): Buffer {
@@ -1316,8 +1331,7 @@ describe('publish request sequence', () => {
   })
 
   it('--localized-notes reaches production upload and existing-release rewrite with nine languages', async () => {
-    const path = new URL('../store/releases/0.29.0.json', import.meta.url)
-      .pathname
+    const path = localizedNotesFile()
     for (const mode of ['upload', 'rewrite']) {
       const args =
         mode === 'upload'
@@ -1372,8 +1386,7 @@ describe('publish request sequence', () => {
   })
 
   it('mismatched localized release notes fail before OAuth or any Play request', async () => {
-    const path = new URL('../store/releases/0.29.0.json', import.meta.url)
-      .pathname
+    const path = localizedNotesFile()
     const { calls, code, stderr } = await runPublish([
       '--aab',
       '{aab}',

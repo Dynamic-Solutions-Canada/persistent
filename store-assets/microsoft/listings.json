@@ -20,7 +20,6 @@
         "Sync with the web and Android using a free account; email code, Google or passkey sign-in.",
         "No ads, tracking or third-party analytics SDK; internal aggregate usage statistics only."
       ],
-      "releaseNotes": "Choose among nine locale options in Settings. Language, regional date formatting, 12/24-hour display and account email language have separate preferences. Your own reminder and medicine text stays unchanged.\nWindows tray controls, notifications and widget text now follow your language choice. Shell descriptions and widget-picker text use Windows language preferences. Changing language updates visible Windows notifications and may restart a ringing alarm or reset an open action menu.\nEdit and complete shared reminders, track assigned tasks, restore a selected firing with Undo done and receive a warning when concurrent edits conflict.\nWindows alerts remain optional and require a signed-in session, the tray process running and an awake PC. Use Android for previously scheduled exact alarms that can sound offline with the app closed.",
       "keywords": [
         "reminders",
         "checklists",
@@ -59,7 +58,6 @@
         "Sincroniza con la web y Android mediante una cuenta gratuita; accede con código por correo, Google o clave de acceso.",
         "Sin anuncios, seguimiento ni SDK de análisis de terceros; solo estadísticas internas agregadas de uso."
       ],
-      "releaseNotes": "Elige entre nueve opciones de idioma y región en Ajustes. El idioma, el formato regional de fecha, el reloj de 12/24 horas y el idioma del correo tienen preferencias independientes. Tus textos y nombres de medicamentos no cambian.\nLos controles de bandeja, las notificaciones y el widget siguen el idioma elegido. Las descripciones del sistema y el selector de widgets usan las preferencias de idioma de Windows. Cambiar el idioma actualiza las notificaciones visibles y puede reiniciar una alarma que esté sonando o restablecer un menú de acciones abierto.\nEdita y completa recordatorios compartidos, sigue tareas asignadas, restaura un aviso con Deshacer finalización y recibe advertencias ante conflictos de edición simultánea.\nLos avisos de Windows siguen siendo opcionales y requieren sesión iniciada, proceso de bandeja en ejecución y PC despierto. Usa Android para alarmas exactas ya programadas que puedan sonar sin conexión con la aplicación cerrada.",
       "keywords": [
         "recordatorios",
         "listas",
@@ -95,7 +93,6 @@
         "Synchronisez avec le Web et Android via un compte gratuit ; connexion par code e-mail, Google ou clé d’accès.",
         "Sans publicité, suivi ni SDK d’analyse tiers ; uniquement des statistiques internes agrégées d’utilisation."
       ],
-      "releaseNotes": "Choisissez parmi neuf options de langue et de région dans les paramètres. Langue, format régional des dates, affichage 12/24 heures et langue des e-mails ont des préférences distinctes. Vos textes et noms de médicaments ne changent pas.\nLes commandes Windows, notifications et textes du widget suivent votre langue. Les descriptions système et le sélecteur de widgets utilisent la langue de Windows. Changer de langue actualise les notifications visibles et peut relancer une alarme sonore ou réinitialiser un menu d’actions ouvert.\nModifiez et terminez des rappels partagés, suivez les tâches attribuées, rétablissez un déclenchement en annulant sa validation et recevez un avertissement en cas de conflit de modifications simultanées.\nLes alertes Windows restent facultatives et nécessitent une session connectée, l’application active et le PC éveillé. Utilisez Android pour des alarmes exactes déjà programmées pouvant sonner hors connexion avec l’application fermée.",
       "keywords": [
         "rappels",
         "listes",
@@ -134,7 +131,6 @@
         "Mit kostenlosem Konto mit Web und Android synchronisieren; Anmeldung per E-Mail-Code, Google oder Passkey.",
         "Keine Werbung, kein Tracking, kein Analyse-SDK von Dritten; nur interne, aggregierte Nutzungsstatistiken."
       ],
-      "releaseNotes": "Wähle in den Einstellungen aus neun Sprachregionen. Sprache, regionales Datumsformat, 12/24-Stunden-Anzeige und E-Mail-Sprache haben getrennte Einstellungen. Deine eigenen Texte und Medikamentennamen bleiben unverändert.\nWindows-Steuerung, Benachrichtigungen und Widget folgen deiner Sprachwahl. Systembeschreibungen und Widget-Auswahl nutzen die Windows-Sprache. Ein Sprachwechsel aktualisiert sichtbare Benachrichtigungen und kann einen klingelnden Alarm neu starten oder ein offenes Aktionsmenü zurücksetzen.\nBearbeite und erledige geteilte Erinnerungen, verfolge zugewiesene Aufgaben, stelle eine gewählte Auslösung mit Rückgängig wieder her und erhalte Warnungen bei gleichzeitigen Änderungskonflikten.\nWindows-Hinweise bleiben optional und brauchen eine angemeldete Sitzung, den laufenden App-Prozess und einen wachen PC. Nutze Android für bereits geplante genaue Alarme, die offline bei geschlossener App auslösen können.",
       "keywords": [
         "Erinnerungen",
         "Checklisten",
@@ -170,7 +166,6 @@
         "使用免费账号与网页版和 Android 同步；支持邮件验证码、Google 或通行密钥登录。",
         "无广告、无跟踪、无第三方分析 SDK；仅使用内部汇总的使用统计。"
       ],
-      "releaseNotes": "在设置中选择九种语言/地区选项。语言、地区日期格式、12/24 小时制和账号邮件语言均可独立设置。你输入的提醒内容和药品名称保持不变。\nWindows 托盘控件、通知和小组件文字会跟随你的语言选择。系统说明和小组件选择器文字使用 Windows 语言偏好。切换语言会立即更新可见通知，可能重新开始播放正在响铃的闹钟，或重置已打开的操作菜单。\n共同编辑和完成共享提醒，查看指派任务进度，撤销完成以恢复选中的那次提醒，并在同时编辑产生冲突时收到提示。\nWindows 通知仍是可选功能，需要已登录的会话、正在运行的托盘进程和处于唤醒状态的电脑。如需已安排、可在离线及应用关闭时响起的精确闹钟，请使用 Android。",
       "keywords": [
         "提醒",
         "清单",
@@ -206,7 +201,6 @@
         "Sincronize com a web e Android usando uma conta gratuita; entre com código por e-mail, Google ou chave de acesso.",
         "Sem anúncios, rastreamento ou SDK de análise de terceiros; apenas estatísticas internas agregadas de uso."
       ],
-      "releaseNotes": "Escolha entre nove opções de idioma/região nas Configurações. Idioma, formato regional de data, relógio de 12/24 horas e idioma dos e-mails têm preferências independentes. Seus textos e nomes de medicamentos não mudam.\nOs controles do Windows, as notificações e o widget seguem seu idioma. As descrições do sistema e o seletor de widgets usam as preferências de idioma do Windows. Mudar o idioma atualiza notificações visíveis e pode reiniciar um alarme que esteja tocando ou redefinir um menu de ações aberto.\nEdite e conclua lembretes compartilhados, acompanhe tarefas atribuídas, restaure um disparo com Desfazer conclusão e receba avisos quando edições simultâneas entrarem em conflito.\nOs alertas do Windows continuam opcionais e exigem sessão conectada, processo da bandeja em execução e PC acordado. Use o Android para alarmes exatos já agendados que possam tocar offline com o aplicativo fechado.",
       "keywords": [
         "lembretes",
         "listas",
@@ -242,7 +236,6 @@
         "無料アカウントで Web や Android と同期。メールのコード、Google、パスキーでサインイン。",
         "広告、トラッキング、第三者の分析 SDK は不使用。内部の集計利用統計のみ使用します。"
       ],
-      "releaseNotes": "設定で9つの言語・地域オプションから選べます。言語、地域の日付形式、12/24時間表示、アカウントのメール言語は別々に設定できます。入力した文章や薬の名前は変わりません。\nWindows のトレイ操作、通知、ウィジェットの文章が選択した言語に対応。システムの説明やウィジェット選択画面には Windows の言語設定を使います。言語を変更すると表示中の通知が更新され、鳴っているアラームが最初から鳴り直したり、開いている操作メニューがリセットされたりする場合があります。\n共有リマインダーの編集と完了、割り当てたタスクの進捗確認、完了の取り消しによる選択した回の復元に対応。同時編集の競合もお知らせします。\nWindows の通知は引き続き任意の機能で、サインイン中、トレイのプロセスが動作中、PC がスリープしていないことが条件です。予約済みの正確なアラームを、オフラインでアプリを閉じても鳴らしたい場合は Android をご利用ください。",
       "keywords": [
         "リマインダー",
         "チェックリスト",
