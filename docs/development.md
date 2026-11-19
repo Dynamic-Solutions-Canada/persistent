@@ -237,4 +237,4 @@ Use the exact Node and npm versions in the root manifest for production, develop
 
 ## Git hooks
 
-The repo has no git hooks yet. The shared rule (HYG-10) puts what must never be committed, such as secrets and oversized files, in a lefthook hook, and that hook script is waiting on a shared version from devkit. Until then, `.gitignore`'s shared block and review catch those, and the Claude Code edit guard in [scripts/hooks](../scripts/hooks/README.md) keeps agents off generated files.
+`lefthook.yml` runs devkit's shared `devkit-precommit` before every commit (HYG-10). It refuses staged signing material and keys, `.env` files other than `*.example`, anything under `.secrets/`, text containing a private key, and files over 5 MB; the one store video above that size is exempt from the size check only. lefthook's npm postinstall installs the hook, so `npm install` or `npm ci` (including worktree preparation) sets it up. `git commit --no-verify` skips it, so treat it as a guard, not a wall. The Claude Code edit guard in [scripts/hooks](../scripts/hooks/README.md) separately keeps agents off generated files.

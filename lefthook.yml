@@ -1,0 +1,9 @@
+# Git hooks (HYG-10): what must never be committed. Installed by lefthook's npm
+# postinstall, so `npm install` or `npm ci` sets them up in every checkout.
+pre-commit:
+  commands:
+    forbidden-files:
+      # devkit's shared check: signing material and keys, .env files other than
+      # *.example, anything under .secrets/, pasted private keys, and files over
+      # 5 MB. The one store video above the limit is exempt from the size check.
+      run: npx devkit-precommit --max-size 5MB --allow-large apps/mobile/store/graphics/video/permission-foreground-service.mp4
