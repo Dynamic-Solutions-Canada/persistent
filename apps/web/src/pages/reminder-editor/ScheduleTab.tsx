@@ -20,6 +20,8 @@ import {
 } from '@persistent/shared'
 import { MonthlyDaysField } from './MonthlyDaysField.js'
 import type { FormState } from './formState.js'
+import { useSettings } from '../../settings/useSettings.js'
+import { formatTimeOfDay } from '../../lib/datetime.js'
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -53,6 +55,7 @@ export function ScheduleTab({
   isEditing: boolean
 }) {
   useTranslation()
+  const { timeFormat } = useSettings()
   const isOnce = form.kind === 'once'
   const needsDays = form.kind === 'weekly' || form.kind === 'custom'
   const needsMonthDays = form.kind === 'monthly'
@@ -160,6 +163,9 @@ export function ScheduleTab({
                       <IconButton
                         variant="outlined"
                         color="danger"
+                        aria-label={tr('Remove {{v0}}', {
+                          v0: formatTimeOfDay(time, timeFormat),
+                        })}
                         onClick={() =>
                           set(
                             'timesOfDay',

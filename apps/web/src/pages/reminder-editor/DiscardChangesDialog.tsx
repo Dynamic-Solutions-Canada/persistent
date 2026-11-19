@@ -38,6 +38,7 @@ export function DiscardChangesDialog({
             variant="solid"
             onClick={onKeepEditing}
             sx={{ flex: 1 }}
+            // eslint-disable-next-line jsx-a11y/no-autofocus -- the dialog the user opened starts on its safe choice
             autoFocus
           >
             {tr('Keep editing')}

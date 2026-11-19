@@ -72,6 +72,7 @@ export function TodoAddItem({
     <Stack spacing={0.5} sx={{ width: '100%' }}>
       {open && (
         <Input
+          // eslint-disable-next-line jsx-a11y/no-autofocus -- the field opens because the user chose to add an item
           autoFocus
           size="sm"
           value={text}

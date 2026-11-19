@@ -132,6 +132,7 @@ export function TodoItemText({
     <Box sx={{ flex: 1, minWidth: 0 }}>
       <Input
         disabled={pending}
+        // eslint-disable-next-line jsx-a11y/no-autofocus -- the field opens because the user chose to rename this item
         autoFocus
         size="sm"
         value={draft}

@@ -185,6 +185,7 @@ export function SignInPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={tr('you@example.com')}
                     required
+                    // eslint-disable-next-line jsx-a11y/no-autofocus -- each sign-in step has one field, reached by the user’s own submit
                     autoFocus
                   />
                 </FormControl>
@@ -216,6 +217,7 @@ export function SignInPage() {
                 onChange={(e) => setCode(e.target.value)}
                 placeholder="123456"
                 required
+                // eslint-disable-next-line jsx-a11y/no-autofocus -- each sign-in step has one field, reached by the user’s own submit
                 autoFocus
                 slotProps={{
                   input: {

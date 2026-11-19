@@ -79,6 +79,7 @@ export function InlineReminderText({
         {kind === 'title' ? (
           <Input
             disabled={pending}
+            // eslint-disable-next-line jsx-a11y/no-autofocus -- the field opens because the user chose to edit this text
             autoFocus
             value={draft}
             onChange={(event) => {
@@ -104,6 +105,7 @@ export function InlineReminderText({
         ) : (
           <Textarea
             disabled={pending}
+            // eslint-disable-next-line jsx-a11y/no-autofocus -- the field opens because the user chose to edit this text
             autoFocus
             minRows={3}
             value={draft}

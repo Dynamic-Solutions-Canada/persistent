@@ -52,6 +52,9 @@ export function MedicationFields({
                 <IconButton
                   variant="outlined"
                   color="danger"
+                  aria-label={tr('Remove {{v0}}', {
+                    v0: tr('Medication {{v0}}', { v0: index + 1 }),
+                  })}
                   onClick={() => onRemove(index)}
                 >
                   ✕

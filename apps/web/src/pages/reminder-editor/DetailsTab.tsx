@@ -87,6 +87,7 @@ export function DetailsTab({
           }}
           value={form.title}
           onChange={(e) => set('title', e.target.value)}
+          // eslint-disable-next-line jsx-a11y/no-autofocus -- only for a new reminder, opened by the user to type its title
           autoFocus={autoFocusTitle}
         />
       </FormControl>
