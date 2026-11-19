@@ -883,10 +883,15 @@ no local alarm for it (web-only, never synced, or a cross-device nudge). As a
 belt-and-suspenders backstop for any trigger the `handledLocally` check can't see
 (a process killed between the local alarm and the push, a resync re-arm across
 death, etc.), `AlarmService` also **debounces the sound per occurrence**: it won't
-re-play the same occurrence's tone within a few minutes (`SOUND_DEBOUNCE_MS`,
-persisted in `AlarmStore` so it survives a restart, reset on ack/snooze). The
-notification still (re)posts; only the near-simultaneous _second sound_ is dropped.
-The intentional `soundIntervalSeconds` re-notify loop plays directly and is exempt.
+re-play the same occurrence's tone within four minutes (`AlarmSoundGate`, with the
+last sound and its kind persisted in `AlarmStore` so it survives a restart, reset on
+ack/snooze). Only a same-kind repeat is dropped: an escalation upgrades the
+occurrence from a nag to the ringing alarm under the same id, so an alarm start after
+a nag always rings, however soon it follows (a nag after the alarm, as after
+De-escalate, stays quiet). An audible alarm start always presents the alarm surface,
+even when its tone is debounced, fails or is muted. The notification still
+(re)posts; only the near-simultaneous _second sound_ is dropped. The intentional
+`soundIntervalSeconds` re-notify loop plays directly and is exempt.
 
 **Native snooze is ordered inside the service.** A snooze (notification action,
 full-screen alarm, or snooze picker) sends one `ACTION_SNOOZE_LOCAL` intent;

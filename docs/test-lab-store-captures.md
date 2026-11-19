@@ -49,8 +49,9 @@ escalation logged `alarm=true debounced=true`. `AlarmService.startAlarm` updates
 its notification then returns before the tone and alarm activity when the previous
 base firing falls within the four-minute `SOUND_DEBOUNCE_MS`. The final video frame
 shows the Oven marked Escalated in the app, confirming server scheduling worked.
-Alarm debounce product code was not changed, and the one-minute fixture was not lengthened to
-conceal this defect. Resolve the native transition before another full submission.
+Alarm debounce product code was not changed then, and the one-minute fixture was not lengthened to
+conceal this defect. It is now fixed: `AlarmSoundGate` treats an alarm start after a nag as an
+escalation rather than a duplicate, so it rings and presents the alarm surface.
 
 The earlier virtual PNGs showed the gesture bar overlapping bottom navigation labels.
 The latest carousel's log explicitly records `WebViewFactory: Loading

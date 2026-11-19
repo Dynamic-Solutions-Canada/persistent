@@ -61,6 +61,7 @@ protection.
 - Settings > Account > Download my data > Open in browser opens the system browser on Settings, scrolled to that section (`AlarmPlugin.openInBrowser`).
 - Settings > About > Third-party notices shows the Android list after the web list (`AlarmPlugin.readNotices`).
 - After signing out, background sync stops (the mirrored session is cleared by `cancelAll`).
+- A reminder set to escalate after one minute, left unconfirmed with the app open and the phone unlocked, rings when it escalates and opens the full-screen alarm by itself (`AlarmSoundGate`). Check it with the phone locked too.
 
 Remove an item once a release has checked it.
 The manual `replace-github-apk` workflow exports an existing Play versionCode,

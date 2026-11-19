@@ -588,36 +588,37 @@ class AlarmService : Service() {
             nm.notify(notifId(spec.occurrenceId), notif)
         }
 
-        // A silent re-assert (ensureNags) only maintains the visible surface — it must
+        // A silent re-assert (ensureNags) only maintains the visible surface: it must
         // never ring, sound, or pop the full-screen alarm; the fire already happened.
-        // De-dup the SOUND too: now that FCM delivers, an occurrence can be triggered
-        // by both its on-device alarm and a redundant server fire/escalate push (which
-        // falls back to the default tone) within a minute or two — don't re-play the
-        // same occurrence's sound inside SOUND_DEBOUNCE_MS. The notification above still
-        // (re)posts, and the intentional re-notify loop calls playNotificationSound
-        // directly, so neither is affected.
+        // De-dup the SOUND too: an occurrence can be triggered by both its on-device
+        // alarm and a redundant server fire/escalate push within a minute or two, so the
+        // gate skips a same-kind sound inside its window. An escalation (alarm after a
+        // nag) is never a duplicate. The notification above still (re)posts, and the
+        // intentional re-notify loop calls playNotificationSound directly.
         val now = System.currentTimeMillis()
-        val debounced = now - AlarmStore.lastSoundedAt(this, spec.occurrenceId) < SOUND_DEBOUNCE_MS
+        val decision = AlarmSoundGate.decide(
+            last = AlarmStore.lastSounded(this, spec.occurrenceId),
+            nowMs = now,
+            alarm = spec.alarm,
+            silent = silent,
+            deferred = deferred,
+        )
         android.util.Log.i(
             "PersistAlarm",
-            "startAlarm occ=${spec.occurrenceId} silent=$silent debounced=$debounced alarm=${spec.alarm} soundEmpty=${spec.soundUri.isEmpty()}"
+            "startAlarm occ=${spec.occurrenceId} silent=$silent sound=${decision.sound} surface=${decision.presentSurface} alarm=${spec.alarm} soundEmpty=${spec.soundUri.isEmpty()}"
         )
-        if (silent || debounced || deferred) {
-            updateGroupSummary()
-            CarListRefresh.notifyChanged(this)
-            return
+        if (decision.sound) {
+            AlarmStore.markSoundedNow(this, spec.occurrenceId, now, alarm = spec.alarm)
+            if (spec.alarm) ringTone(spec) else playNotificationSound(spec.soundUri, spec.soundTitle)
         }
-        AlarmStore.markSoundedNow(this, spec.occurrenceId, now)
-        if (spec.alarm) {
-            ringTone(spec)
+        if (decision.presentSurface) {
             // If the shade notification can't be shown (POST_NOTIFICATIONS denied),
             // the full-screen surface is the ONLY thing that identifies the ringing
-            // alarm and lets the user stop it — so force it up regardless of lock /
+            // alarm and lets the user stop it, so force it up regardless of lock /
             // interactive state (AlarmActivity shows over the lock screen). Never let
-            // sound play with no visible, stoppable surface.
+            // an alarm ring with no visible, stoppable surface, even when its tone is
+            // debounced, failed or muted.
             presentAlarmSurface(spec, force = !notificationsVisible())
-        } else {
-            playNotificationSound(spec.soundUri, spec.soundTitle)
         }
         updateGroupSummary()
         CarListRefresh.notifyChanged(this)
@@ -1603,7 +1604,6 @@ class AlarmService : Service() {
         // on-device alarm and a redundant server push landing near-simultaneously.
         // Longer than the local-alarm-vs-push gap (~1-2 min), shorter than the ~15-min
         // background resync and the 10-min default snooze.
-        private const val SOUND_DEBOUNCE_MS = 4 * 60_000L
         // Alarms/escalations keep the legacy channel id so existing installs retain
         // its DND-bypass grant; the two non-alarm channels split by prominence.
         private const val CHANNEL_CALL_DEFERRED = "reminders_call_deferred"

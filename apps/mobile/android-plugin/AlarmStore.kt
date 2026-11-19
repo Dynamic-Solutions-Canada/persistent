@@ -118,33 +118,49 @@ object AlarmStore {
     // two triggers. Pruned to keep it small.
     private const val KEY_SOUNDED_AT = "sounded_at"
 
-    fun lastSoundedAt(context: Context, occurrenceId: String): Long {
+    /**
+     * What an occurrence last sounded, or null when it has not. Each entry is `{at, alarm}`; a
+     * bare timestamp from before the kind was recorded reads as a nag ([SoundStamp.legacy]).
+     */
+    fun lastSounded(context: Context, occurrenceId: String): SoundStamp? {
         val raw = prefs(context).getString(KEY_SOUNDED_AT, "{}") ?: "{}"
         return try {
-            JSONObject(raw).optLong(occurrenceId, 0L)
+            readStamp(JSONObject(raw), occurrenceId)
         } catch (_: Exception) {
-            0L
+            null
         }
     }
 
-    fun markSoundedNow(context: Context, occurrenceId: String, nowMs: Long) {
+    /** Record that an occurrence just sounded, and whether that sound was the ringing alarm. */
+    fun markSoundedNow(context: Context, occurrenceId: String, nowMs: Long, alarm: Boolean) {
         val raw = prefs(context).getString(KEY_SOUNDED_AT, "{}") ?: "{}"
         val obj = try {
             JSONObject(raw)
         } catch (_: Exception) {
             JSONObject()
         }
-        obj.put(occurrenceId, nowMs)
+        obj.put(occurrenceId, JSONObject().put("at", nowMs).put("alarm", alarm))
         // Prune entries older than an hour so the map can't grow unbounded.
         val cutoff = nowMs - 3_600_000L
         val stale = mutableListOf<String>()
         val keys = obj.keys()
         while (keys.hasNext()) {
             val k = keys.next()
-            if (obj.optLong(k) < cutoff) stale.add(k)
+            val stamp = readStamp(obj, k)
+            if (stamp == null || stamp.atMs < cutoff) stale.add(k)
         }
         for (k in stale) obj.remove(k)
         prefs(context).edit().putString(KEY_SOUNDED_AT, obj.toString()).apply()
+    }
+
+    /** One `sounded_at` entry, in either the `{at, alarm}` form or the legacy bare timestamp. */
+    private fun readStamp(obj: JSONObject, occurrenceId: String): SoundStamp? {
+        val entry = obj.opt(occurrenceId) ?: return null
+        return when (entry) {
+            is JSONObject -> SoundStamp(entry.optLong("at", 0L), entry.optBoolean("alarm", false))
+            is Number -> SoundStamp.legacy(entry.toLong())
+            else -> null
+        }
     }
 
     /** Forget an occurrence's last-sounded time so its next fire (or snooze re-fire) sounds. */
