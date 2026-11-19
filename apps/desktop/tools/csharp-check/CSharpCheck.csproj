@@ -44,12 +44,12 @@
 
   <ItemGroup>
     <!-- Same versions as the app. A drift here would check the wrong API surface. -->
-    <PackageReference Include="Microsoft.WindowsAppSDK.Foundation" Version="1.8.260222000" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.Foundation" Version="2.7.0" />
     <!-- Reference assemblies only, so the XAML-derived types here can be checked.
          This project has no .xaml of its own, so no XAML tooling runs. -->
-    <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="1.8.260204000" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="NLog" Version="6.1.1" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.7.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="NLog" Version="6.2.2" />
   </ItemGroup>
 
   <ItemGroup>
