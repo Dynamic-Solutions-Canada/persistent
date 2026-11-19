@@ -7,7 +7,7 @@ so that is the `play` flavor's `applicationId` used by both Play and current
 GitHub APKs. Legacy/local direct builds keep `ca.persistent.app`. Both are independent of the Kotlin/Java namespace, which stays
 `ca.persistent.app` throughout. Consequences that bit us once already: Firebase
 needs an Android app per package (else `processPlayReleaseGoogleServices` fails),
-and `assetlinks.json` + `ANDROID_APP_ORIGIN` need an entry per package _and_ per
+and `assetlinks.json` + `ANDROID_APP_ORIGINS` need an entry per package _and_ per
 signing certificate or passkeys break on that build.
 
 **Android 7.0 (API 24) is the minimum for both flavors.** Play automatic
@@ -469,12 +469,12 @@ is issued to `O=Google Inc., OU=Android, CN=Android`, which an upload key never 
 | Release keystore (`direct` flavor)    | `4D:EA:AB:62:…:61:C6:A5:FD` (see `assetlinks.json`)                                               | in the keystore                                               |
 
 The consequence for passkeys is handled: `assetlinks.json` now carries an entry per
-flavor and `ANDROID_APP_ORIGIN` an origin per certificate. **It was not handled for
+flavor and `ANDROID_APP_ORIGINS` an origin per certificate. **It was not handled for
 the whole internal/alpha period**, and the cert was only half the reason. The file is
 keyed by package name too, and the `play` flavor's `applicationId` differs, so the
 Play build failed the Credential Manager check on-device no matter what the server
 accepted. Anything that changes a package name or a signing key has to change both
-that file and `ANDROID_APP_ORIGIN` with it. See `docs/auth-architecture.md`.
+that file and `ANDROID_APP_ORIGINS` with it. See `docs/auth-architecture.md`.
 
 The same package + SHA-1 pairing governs native Google sign-in, which needs its own
 Android OAuth client. That one is Cloud-console-side and cannot be checked from this

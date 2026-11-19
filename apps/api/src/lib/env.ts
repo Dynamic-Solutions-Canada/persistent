@@ -61,7 +61,10 @@ const envSchema = z.object({
   // comma-separated. One per signing certificate: the upload/release key, plus
   // Play's own key once enrolled in Play App Signing (Play re-signs, so the Play
   // build reports a different origin than the sideloaded one). Unset falls back to
-  // the release key baked into lib/webauthn.ts.
+  // the release key baked into lib/webauthn.ts. Read it through `androidAppOriginsSetting`.
+  ANDROID_APP_ORIGINS: blankToUndefined(z.string()),
+  // Deprecated singular name for ANDROID_APP_ORIGINS, still read for one release so a
+  // server whose .env predates the rename keeps its passkeys. Remove it in the release after the one that renamed it.
   ANDROID_APP_ORIGIN: blankToUndefined(z.string()),
 
   // Initial administrators, comma-separated: an account created with one of these
@@ -107,6 +110,32 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data
+
+/**
+ * A renamed setting's value: the new name wins, and the old one is read only when the new
+ * one is unset (the one-release fallback for a variable deployed servers already set).
+ *
+ * @returns the value, and the old name when that is where it came from, so the caller can
+ *   warn the operator to rename it.
+ */
+export function renamedSetting(
+  current: string | undefined,
+  previous: { name: string; value: string | undefined },
+): { value: string | undefined; deprecatedName: string | null } {
+  if (current !== undefined) return { value: current, deprecatedName: null }
+  if (previous.value !== undefined)
+    return { value: previous.value, deprecatedName: previous.name }
+  return { value: undefined, deprecatedName: null }
+}
+
+/** ANDROID_APP_ORIGINS, falling back to its old name ANDROID_APP_ORIGIN for one release. */
+export const androidAppOriginsSetting = renamedSetting(
+  env.ANDROID_APP_ORIGINS,
+  {
+    name: 'ANDROID_APP_ORIGIN',
+    value: env.ANDROID_APP_ORIGIN,
+  },
+)
 
 /** Allowed browser origins, parsed from the comma-separated CLIENT_ORIGIN. */
 export const clientOrigins = env.CLIENT_ORIGIN.split(',')

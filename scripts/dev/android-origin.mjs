@@ -3,7 +3,7 @@
  * Convert an Android signing-certificate SHA-256 fingerprint into the two forms
  * passkeys need:
  *
- *   - the `android:apk-key-hash:<base64url>` origin for ANDROID_APP_ORIGIN
+ *   - the `android:apk-key-hash:<base64url>` origin for ANDROID_APP_ORIGINS
  *   - the colon-separated hex for assetlinks.json's sha256_cert_fingerprints
  *
  * You need this whenever the app gains a signing certificate — most importantly
@@ -44,7 +44,7 @@ const base64url = bytes
 const colonHex = (hex.match(/../g) ?? []).join(':').toUpperCase()
 
 console.log(`
-apk-key-hash origin  (apps/api/src/lib/webauthn.ts / ANDROID_APP_ORIGIN):
+apk-key-hash origin  (apps/api/src/lib/webauthn.ts / ANDROID_APP_ORIGINS):
   android:apk-key-hash:${base64url}
 
 assetlinks fingerprint  (apps/web/public/.well-known/assetlinks.json):

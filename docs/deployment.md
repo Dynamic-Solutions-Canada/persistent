@@ -31,6 +31,12 @@ Instead, compose uses the host `.env` for substitution, and `compose.server.yml`
 
 So to add config: the schema in `env.ts`, then `environment:` in `compose.server.yml`, then the value in the server's `.env`, then redeploy.
 
+To rename a variable a deployed server already sets, keep reading the old name for one release: `renamedSetting` in `env.ts` prefers the new name, falls back to the old one, and the API logs `deprecated setting` at startup while the old one is in use. Rename the line in the server's `.env` after that deploy, and remove the fallback in the following release.
+
+| Renamed setting       | Formerly             | Old name read until                       |
+| --------------------- | -------------------- | ----------------------------------------- |
+| `ANDROID_APP_ORIGINS` | `ANDROID_APP_ORIGIN` | the release after the one that renamed it |
+
 The API container runs as the image's unprivileged `node` user (uid 1000), so a file mounted into it, such as the FCM service-account key under `.secrets/`, must be readable by uid 1000 on the host. An unreadable key does not stop the API: it stays healthy and logs `fcm auth failed` on every push. Compose marks the container healthy once `GET /api/health` answers.
 
 ## Administrators

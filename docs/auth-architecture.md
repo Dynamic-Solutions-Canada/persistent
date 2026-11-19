@@ -38,7 +38,7 @@ required`), so `authenticate/options` → `startAuthentication` →
   (`persistent_pk_challenge`), validated on verify.
 - **Relying party**: RP ID + allowed origins derive from `CLIENT_ORIGIN`
   (hostname = RP ID). The native app's origin is `android:apk-key-hash:<…>` (not
-  the https URL), so that origin is also accepted (`ANDROID_APP_ORIGIN` in
+  the https URL), so that origin is also accepted (`ANDROID_APP_ORIGINS` in
   `webauthn.ts`, kept in sync with the cert in `assetlinks.json`). The login UI
   offers passkey first, with email as fallback.
 
@@ -74,7 +74,7 @@ passkey origin while those installations remain supported.
 
 The app is enrolled in Play App Signing, so Play re-signs the bundle and the Play
 build's certificate is Google's, not the upload key's. Both entries must be present
-here and both origins in `ANDROID_APP_ORIGIN`; `npm run android:origin -- <SHA-256>`
+here and both origins in `ANDROID_APP_ORIGINS`; `npm run android:origin -- <SHA-256>`
 converts a fingerprint to the origin form.
 
 When auditing a Play install, verify the certificate actually used by the device,

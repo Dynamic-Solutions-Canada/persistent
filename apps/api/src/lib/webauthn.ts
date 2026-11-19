@@ -4,7 +4,8 @@
  * httpOnly cookie (prefixed with the flow kind) and verified on finish.
  */
 import type { Request, Response } from 'express'
-import { clientOrigins, env } from './env.js'
+import { androidAppOriginsSetting, clientOrigins } from './env.js'
+import { logger } from './logger.js'
 import { badRequest } from './http-error.js'
 import { readCookie, writeCookie } from './auth-session.js'
 
@@ -19,7 +20,7 @@ const CHALLENGE_MAX_AGE_SECONDS = 60 * 10
 // There are two. The app is enrolled in Play App Signing, so Play re-signs the
 // `play` flavor with Google's key: a Play install reports a different origin than
 // the sideloaded `direct` build signed with the release keystore, and both must be
-// accepted or passkeys break on whichever was left out. Set ANDROID_APP_ORIGIN to a
+// accepted or passkeys break on whichever was left out. Set ANDROID_APP_ORIGINS to a
 // comma-separated list covering both; the default below is the release key alone,
 // which is right for dev and wrong for production.
 //
@@ -38,7 +39,17 @@ const CHALLENGE_MAX_AGE_SECONDS = 60 * 10
 const DEFAULT_ANDROID_APP_ORIGIN =
   'android:apk-key-hash:TeqrYvSE9JO8zCVuXNwiUkDQKT7CsnFR1ss1TWHGpf0'
 
-const androidAppOrigins = (env.ANDROID_APP_ORIGIN ?? DEFAULT_ANDROID_APP_ORIGIN)
+if (androidAppOriginsSetting.deprecatedName) {
+  // Still honoured for one release; say so once at startup, so the server's .env is renamed.
+  logger.warn('deprecated setting', {
+    setting: androidAppOriginsSetting.deprecatedName,
+    renamedTo: 'ANDROID_APP_ORIGINS',
+  })
+}
+
+const androidAppOrigins = (
+  androidAppOriginsSetting.value ?? DEFAULT_ANDROID_APP_ORIGIN
+)
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean)

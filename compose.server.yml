@@ -79,6 +79,8 @@ services:
       # the fixed-code sign-in path does not exist.
       # Comma-separated apk-key-hash origins, one per signing cert (release key,
       # plus Play's key once enrolled in Play App Signing). See lib/webauthn.ts.
+      ANDROID_APP_ORIGINS: ${ANDROID_APP_ORIGINS:-}
+      # Old name of ANDROID_APP_ORIGINS, read for one release only.
       ANDROID_APP_ORIGIN: ${ANDROID_APP_ORIGIN:-}
       # Initial administrators: verified accounts created with these addresses start as
       # admins (comma-separated). Existing grants live in the database.
