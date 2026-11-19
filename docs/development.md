@@ -243,6 +243,10 @@ Use the exact Node and npm versions in the root manifest for production, develop
 
 `.github/workflows/ci.yml` ("CI") runs on every push to `main` and every pull request, with no path filter: `npm run validate`, `npm run test:integration` against a PostgreSQL service, `npm run test:desktop` and `npm run test:android`, each as its own job. Every publishing workflow (`release`, `release-linux`, `build-msix` on a tag, `store-publish`, `play-apk`, `play-promote`) calls it as its first job and publishes only once it passes, building the same ref. `play-listing` and `play-notes` publish store text, so their gate is `npm run check:listing` or `npm run check:release-notes` instead. `codeql.yml` scans TypeScript, C# and the workflows on push, pull request and weekly. Extra path-filtered workflows (`linux-desktop-check`, `image-check`) build expensive targets beside it, never instead of it.
 
+## Formatting
+
+Prettier formats the TypeScript, JavaScript, JSON, YAML, CSS, HTML and Markdown with the shared house style (`.prettierrc.json`: single quotes, no semicolons, Markdown prose left unwrapped). `npm run validate` runs `npm run format:check`; when it fails, run `npm run format` and commit the result. `.prettierignore` lists what stays untouched. The Windows app's C# gets `dotnet format` when it moves to winui-app-kit. To have `git blame` skip the one-off reformat, run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once.
+
 ## Git hooks
 
 `lefthook.yml` runs devkit's shared `devkit-precommit` before every commit (HYG-10). It refuses staged signing material and keys, `.env` files other than `*.example`, anything under `.secrets/`, text containing a private key, and files over 5 MB; the one store video above that size is exempt from the size check only. lefthook's npm postinstall installs the hook, so `npm install` or `npm ci` (including worktree preparation) sets it up. `git commit --no-verify` skips it, so treat it as a guard, not a wall. The Claude Code edit guard in [scripts/hooks](../scripts/hooks/README.md) separately keeps agents off generated files.
