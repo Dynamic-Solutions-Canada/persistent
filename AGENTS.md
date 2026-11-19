@@ -16,7 +16,7 @@ This repo follows the shared standards at https://github.com/Dynamic-Solutions-C
 - `packages/shared` is the single source of truth for request and response shapes; never duplicate them elsewhere.
 - `apps/mobile`, `apps/desktop` and `apps/linux-desktop` sit outside the npm workspaces graph.
 
-Nested `AGENTS.md` files hold area rules. List them with `git ls-files '*AGENTS.md'` and read the ones for the folders you touch.
+The overview, subsystem documents and the list of where data lives are in `ARCHITECTURE.md`. Nested `AGENTS.md` files hold area rules. List them with `git ls-files '*AGENTS.md'` and read the ones for the folders you touch.
 
 ## Behaviour
 
@@ -36,7 +36,6 @@ Nested `AGENTS.md` files hold area rules. List them with `git ls-files '*AGENTS.
 - Initialise `apps/desktop/external/promo` with `git submodule update --init --recursive` in a fresh checkout before validating or building: the web app and the desktop app both import its catalog.
 - Never point `prisma migrate diff --shadow-database-url` at `DATABASE_URL`: Prisma resets the shadow database, which wipes the dev data. `prisma migrate status` answers "is the schema in step?" without touching anything.
 - When the schema changes, regenerate the client (`npm run db:generate`) and update the shared contracts.
-- A version bump does not regenerate the lockfile. `scripts/dev/workspace-versions.test.ts` catches the mismatch; fix it with `npm install --package-lock-only`.
 - Tests import `@persistent/shared` from its built `dist/`, which `validate` does not rebuild. After changing shared code, run `npm run build --workspace @persistent/shared` or a test can fail against the stale build.
 - Generated files are not edited by hand: a Claude Code hook (`scripts/hooks/README.md`) rejects edits under `apps/mobile/android/` and to files whose header says they are generated.
 
@@ -70,7 +69,7 @@ The devkit-managed Compose stack is the complete development environment. Use th
 
 ## Release
 
-Android and web releases use the `release` skill (a `vX.Y.Z` tag builds the Play AAB and the GitHub APK); server deploys use the `deploy` skill. Windows releases are `desktop-v*` tags plus the `store-publish` workflow, and Linux releases are `linux-v*` tags. Details are in `docs/development.md`.
+Android and web releases use the `release` skill and server deploys the `deploy` skill; Windows (`desktop-v*`) and Linux (`linux-v*`) releases are tag-driven. Details are in `docs/development.md` and `docs/deployment.md`.
 
 ## Guidance map
 
@@ -85,7 +84,9 @@ Android and web releases use the `release` skill (a `vX.Y.Z` tag builds the Play
 | `docs/desktop-architecture.md` | Changing the Windows tray app | `apps/desktop/**` |
 | `docs/linux-desktop-architecture.md` | Changing the Linux tray host | `apps/linux-desktop/**` |
 | `docs/localization.md` | Changing copy, catalogs or locale handling | `packages/shared/src/messages/**`, all UIs |
-| `docs/development.md` | Running, deploying or releasing | repo-wide |
+| `ARCHITECTURE.md` | Orienting, or changing where the product stores data | repo-wide |
+| `docs/development.md` | Running, testing or releasing | repo-wide |
+| `docs/deployment.md` | Deploying, server config, backup, export or account deletion | `Dockerfile`, `compose.server.yml`, `nginx.server.conf` |
 | `scripts/hooks/README.md` | A Claude Code hook blocked an edit | `scripts/hooks/**`, `.claude/settings.json` |
 | `commit` skill | Committing here | repo-wide |
 | `deploy`, `release` skills | Deploying the server, releasing Android and web | `compose.server.yml`, `.github/workflows/release.yml` |
@@ -105,5 +106,5 @@ Skills live in `.agents/skills/`; Claude Code reads them through the `.claude/sk
 | A UI convention | `.agents/guides/ui-conventions.md` |
 | Auth, data flow, alarms, notification guarantee, a desktop host | The matching contract in the guidance map |
 | An environment variable | `.env.example`, `compose.server.yml` (enforced by `apps/api/src/lib/env.test.ts`) |
+| A place the product writes data, or what deletion removes | `ARCHITECTURE.md` (Where data lives), `docs/deployment.md` |
 | A generated directory or generator | `scripts/hooks/generated-file-guard.json` and `scripts/hooks/README.md` |
-| A skill | The guidance map above and `docs/development.md`'s skill list |

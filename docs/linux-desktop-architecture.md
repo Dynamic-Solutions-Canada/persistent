@@ -201,7 +201,7 @@ still required. Windows Store identity and release lanes remain separate. Ship t
 ## Verification record
 
 The worktree's native smoke-test record is
-[`linux-desktop-verification.md`](linux-desktop-verification.md). Treat package builds,
+[`notes/linux-desktop-verification.md`](notes/linux-desktop-verification.md). Treat package builds,
 protocol observations, actual renderer/audio state, and visible desktop observations
 as separate evidence. KDE, real authenticator/Google login and actual sleeping-machine
 behavior require their own checks. There is no Linux equivalent of the Windows 11
