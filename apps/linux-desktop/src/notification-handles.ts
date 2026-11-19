@@ -1,6 +1,11 @@
 /** Application handles never reuse a daemon ID after that daemon changes ownership. */
-export interface NotificationOwner { CloseNotification(id: number): Promise<void> }
-export interface Publication { owner: NotificationOwner; nativeId: number }
+export interface NotificationOwner {
+  CloseNotification(id: number): Promise<void>
+}
+export interface Publication {
+  owner: NotificationOwner
+  nativeId: number
+}
 
 export class NotificationHandles {
   private next = 1
@@ -8,7 +13,8 @@ export class NotificationHandles {
 
   /** Replacements reuse a handle only within one pinned daemon connection. */
   register(owner: NotificationOwner, nativeId: number): number {
-    if (!Number.isInteger(nativeId) || nativeId <= 0 || nativeId > 0xffffffff) throw new Error('Invalid notification service ID')
+    if (!Number.isInteger(nativeId) || nativeId <= 0 || nativeId > 0xffffffff)
+      throw new Error('Invalid notification service ID')
     const existing = this.find(owner, nativeId)
     if (existing) return existing
     const handle = this.next++

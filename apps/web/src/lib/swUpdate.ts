@@ -51,7 +51,7 @@ export function startServiceWorker(): void {
     },
     onRegisterError() {
       void checkForWebUpdate()
-    }
+    },
   })
 
   document.addEventListener('visibilitychange', () => {

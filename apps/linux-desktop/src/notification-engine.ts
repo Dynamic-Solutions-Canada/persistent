@@ -3,7 +3,12 @@ import { nativeText } from './localization.js'
 import type { PresentedAlarm } from './projection.js'
 
 export interface NotificationSurface {
-  show(alarm: PresentedAlarm, replaceId: number, confirming: boolean, audible: boolean): Promise<number>
+  show(
+    alarm: PresentedAlarm,
+    replaceId: number,
+    confirming: boolean,
+    audible: boolean,
+  ): Promise<number>
   close(id: number): Promise<void>
   audio(active: boolean): void
   open(reminderId: string, snoozeOccurrenceId?: string): void
@@ -24,15 +29,27 @@ export class NotificationEngine {
   private queue: Promise<void> = Promise.resolve()
   private cleanup: Promise<void> = Promise.resolve()
 
-  constructor(private surface: NotificationSurface, private now: () => number = Date.now) {}
+  constructor(
+    private surface: NotificationSurface,
+    private now: () => number = Date.now,
+  ) {}
 
   /** Serialize native writes so replace IDs and confirmation state cannot race. */
   private enqueue(operation: () => Promise<void>): Promise<void> {
     const epoch = this.epoch
-    this.queue = this.queue.then(async () => {
-      if (epoch === this.epoch) await operation()
-    }).catch(() => { this.updateAudio()
-      this.surface.error(nativeText('Linux notification delivery failed. Check the app log and notification service.'), 'delivery') })
+    this.queue = this.queue
+      .then(async () => {
+        if (epoch === this.epoch) await operation()
+      })
+      .catch(() => {
+        this.updateAudio()
+        this.surface.error(
+          nativeText(
+            'Linux notification delivery failed. Check the app log and notification service.',
+          ),
+          'delivery',
+        )
+      })
     return this.queue
   }
 
@@ -42,7 +59,9 @@ export class NotificationEngine {
     const previous = [...this.entries.values()]
     this.entries.clear()
     this.surface.audio(false)
-    const closing = Promise.all(previous.map((entry) => this.surface.close(entry.notificationId)))
+    const closing = Promise.all(
+      previous.map((entry) => this.surface.close(entry.notificationId)),
+    )
     this.cleanup = Promise.all([this.cleanup, closing]).then(() => {})
     return this.cleanup
   }
@@ -61,7 +80,13 @@ export class NotificationEngine {
         if (epoch !== this.epoch) return
         let entry = this.entries.get(id)
         if (!entry) {
-          entry = { alarm, notificationId: 0, confirming: false, lastSoundAt: 0, restoreAt: null }
+          entry = {
+            alarm,
+            notificationId: 0,
+            confirming: false,
+            lastSoundAt: 0,
+            restoreAt: null,
+          }
           this.entries.set(id, entry)
           await this.present(entry, true)
         } else if (JSON.stringify(entry.alarm) !== JSON.stringify(alarm)) {
@@ -100,9 +125,17 @@ export class NotificationEngine {
       const now = this.now()
       for (const entry of this.entries.values()) {
         const restore = entry.restoreAt !== null && now >= entry.restoreAt
-        const nag = !entry.confirming && !entry.alarm.alarm && entry.alarm.soundIntervalSeconds > 0
-          && now - entry.lastSoundAt >= entry.alarm.soundIntervalSeconds * 1000
-        if (restore || nag || entry.notificationId === 0 && entry.restoreAt === null) await this.present(entry, nag)
+        const nag =
+          !entry.confirming &&
+          !entry.alarm.alarm &&
+          entry.alarm.soundIntervalSeconds > 0 &&
+          now - entry.lastSoundAt >= entry.alarm.soundIntervalSeconds * 1000
+        if (
+          restore ||
+          nag ||
+          (entry.notificationId === 0 && entry.restoreAt === null)
+        )
+          await this.present(entry, nag)
       }
       this.updateAudio()
     })
@@ -111,10 +144,15 @@ export class NotificationEngine {
   /** Map only the current daemon ID to an occurrence; stale actions after logout are ignored. */
   action(notificationId: number, action: string): Promise<void> {
     return this.enqueue(async () => {
-      const entry = [...this.entries.values()].find((candidate) => candidate.notificationId === notificationId)
+      const entry = [...this.entries.values()].find(
+        (candidate) => candidate.notificationId === notificationId,
+      )
       if (!entry) return
       if (action === 'default' || action === 'snooze') {
-        this.surface.open(entry.alarm.reminderId, action === 'snooze' ? entry.alarm.occurrenceId : undefined)
+        this.surface.open(
+          entry.alarm.reminderId,
+          action === 'snooze' ? entry.alarm.occurrenceId : undefined,
+        )
         return
       }
       if (action === 'done' || action === 'cancel') {
@@ -122,8 +160,12 @@ export class NotificationEngine {
         await this.present(entry, false)
         return
       }
-      const write = action === 'confirm' && entry.confirming ? 'ack'
-        : action === 'silence' && entry.alarm.canSilence && !entry.confirming ? 'silence' : null
+      const write =
+        action === 'confirm' && entry.confirming
+          ? 'ack'
+          : action === 'silence' && entry.alarm.canSilence && !entry.confirming
+            ? 'silence'
+            : null
       if (!write) return
       const epoch = this.epoch
       const accepted = await this.surface.write(entry.alarm.occurrenceId, write)
@@ -133,7 +175,12 @@ export class NotificationEngine {
         this.updateAudio()
         await this.surface.close(entry.notificationId)
       } else if (!accepted) {
-        this.surface.error(nativeText('The reminder action could not be confirmed. Open Persistent to check its current state.'), 'action')
+        this.surface.error(
+          nativeText(
+            'The reminder action could not be confirmed. Open Persistent to check its current state.',
+          ),
+          'action',
+        )
         await this.present(entry, false)
       }
       // Silence is refreshed from the server, never locally inferred into a soft reminder.
@@ -150,7 +197,12 @@ export class NotificationEngine {
 
   private async present(entry: Tracked, audible: boolean): Promise<void> {
     const epoch = this.epoch
-    const id = await this.surface.show(entry.alarm, entry.notificationId, entry.confirming, audible)
+    const id = await this.surface.show(
+      entry.alarm,
+      entry.notificationId,
+      entry.confirming,
+      audible,
+    )
     if (epoch !== this.epoch || !this.entries.has(entry.alarm.occurrenceId)) {
       await this.surface.close(id)
       return
@@ -163,11 +215,14 @@ export class NotificationEngine {
   /** Reword actions in place without changing confirmation state or alerting again. */
   refreshPresentation(): Promise<void> {
     return this.enqueue(async () => {
-      for (const entry of this.entries.values()) await this.present(entry, false)
+      for (const entry of this.entries.values())
+        await this.present(entry, false)
     })
   }
 
   private updateAudio(): void {
-    this.surface.audio([...this.entries.values()].some((entry) => entry.alarm.alarm))
+    this.surface.audio(
+      [...this.entries.values()].some((entry) => entry.alarm.alarm),
+    )
   }
 }

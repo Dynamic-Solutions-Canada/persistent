@@ -15,13 +15,13 @@ export const nativePaletteSchema = z.object({
   kicker: color,
   done: color,
   donePressed: color,
-  onDone: color
+  onDone: color,
 })
 export const nativeAppearanceSchema = z.object({
   version: z.literal(1),
   mode: z.enum(['system', 'light', 'dark']),
   light: nativePaletteSchema,
-  dark: nativePaletteSchema
+  dark: nativePaletteSchema,
 })
 export type NativePalette = z.infer<typeof nativePaletteSchema>
 export type NativeAppearance = z.infer<typeof nativeAppearanceSchema>

@@ -1,6 +1,21 @@
-import { applyNativeLocale, initializeNativeText, nativeLocale, nativeText, onNativeLocaleChanged } from './localization.js'
+import {
+  applyNativeLocale,
+  initializeNativeText,
+  nativeLocale,
+  nativeText,
+  onNativeLocaleChanged,
+} from './localization.js'
 /** Linux resident host. Native delivery consumes shared server projections; the hosted app owns management. */
-import { app, dialog, ipcMain, Menu, net, powerMonitor, session, shell } from 'electron'
+import {
+  app,
+  dialog,
+  ipcMain,
+  Menu,
+  net,
+  powerMonitor,
+  session,
+  shell,
+} from 'electron'
 import { createHostLog } from './host-log.js'
 import { join, resolve } from 'node:path'
 import { homedir } from 'node:os'
@@ -35,16 +50,24 @@ let hosted: HostedWindow | null = null
 let shutdown: (() => Promise<void>) | null = null
 let quitting = false
 if (process.platform !== 'linux') {
-  console.error('This application is the Linux host. Use apps/desktop for Windows.')
+  console.error(
+    'This application is the Linux host. Use apps/desktop for Windows.',
+  )
   app.exit(1)
 } else if (!app.requestSingleInstanceLock()) {
-  if (process.argv.includes('--install')) dialog.showErrorBox(nativeText("Persistent is running"), nativeText("Quit Persistent before running the AppImage installer."))
+  if (process.argv.includes('--install'))
+    dialog.showErrorBox(
+      nativeText('Persistent is running'),
+      nativeText('Quit Persistent before running the AppImage installer.'),
+    )
   app.exit(0)
 } else {
   process.on('SIGTERM', () => app.quit())
   process.on('SIGINT', () => app.quit())
   app.on('second-instance', () => hosted?.show())
-  app.on('window-all-closed', () => { /* Closing management windows keeps the tray process resident. */ })
+  app.on('window-all-closed', () => {
+    /* Closing management windows keeps the tray process resident. */
+  })
   app.on('before-quit', (event) => {
     if (quitting) return
     event.preventDefault()
@@ -52,95 +75,190 @@ if (process.platform !== 'linux') {
     void shutdown?.().finally(() => app.quit())
     if (!shutdown) app.quit()
   })
-  void app.whenReady().then(start).catch((error: unknown) => {
-    log('Linux host startup failed', error)
-    dialog.showErrorBox(nativeText("Persistent could not start"), nativeText("The Linux host could not initialize. Check its log folder under persistent-linux in your user configuration directory."))
-    quitting = true
-    app.quit()
-  })
+  void app
+    .whenReady()
+    .then(start)
+    .catch((error: unknown) => {
+      log('Linux host startup failed', error)
+      dialog.showErrorBox(
+        nativeText('Persistent could not start'),
+        nativeText(
+          'The Linux host could not initialize. Check its log folder under persistent-linux in your user configuration directory.',
+        ),
+      )
+      quitting = true
+      app.quit()
+    })
 }
 
 /** Wire authenticated profile access, windows, native notifications, settings and process cleanup. */
 async function start(): Promise<void> {
   if (process.argv.includes('--install')) {
-    if (!app.isPackaged || !process.env.APPIMAGE) throw new Error('Run the AppImage with --install to install it for this user.')
-    const destination = await installImage(process.env.APPIMAGE, process.env.XDG_DATA_HOME || join(homedir(), '.local/share'), process.arch, join(process.resourcesPath, 'icon.png'))
-    app.relaunch({ execPath: destination, args: process.argv.slice(1).filter((argument) => argument !== '--install') })
+    if (!app.isPackaged || !process.env.APPIMAGE)
+      throw new Error(
+        'Run the AppImage with --install to install it for this user.',
+      )
+    const destination = await installImage(
+      process.env.APPIMAGE,
+      process.env.XDG_DATA_HOME || join(homedir(), '.local/share'),
+      process.arch,
+      join(process.resourcesPath, 'icon.png'),
+    )
+    app.relaunch({
+      execPath: destination,
+      args: process.argv
+        .slice(1)
+        .filter((argument) => argument !== '--install'),
+    })
     app.quit()
     return
   }
   const store = new SettingsStore(app.getPath('userData'), log)
   initializeNativeText(store.current.locale, app.getPreferredSystemLanguages())
   const profile = session.fromPartition('persist:persistent')
-  const authentication = new ProfileSession(profile.cookies, () => store.current.server, log)
+  const authentication = new ProfileSession(
+    profile.cookies,
+    () => store.current.server,
+    log,
+  )
   // The PWA deliberately has no notification channel. No remote page receives OS permissions through this host.
-  profile.setPermissionRequestHandler((_contents, _permission, callback) => callback(false))
+  profile.setPermissionRequestHandler((_contents, _permission, callback) =>
+    callback(false),
+  )
   profile.setPermissionCheckHandler(() => false)
   const ozone = app.commandLine.getSwitchValue('ozone-platform')
-  const wayland = ozone === 'wayland' || ozone !== 'x11' && Boolean(process.env.WAYLAND_DISPLAY)
-  const kwin = wayland && /kde/i.test(process.env.XDG_CURRENT_DESKTOP ?? '')
-    ? new KwinFlyoutPlacement(app.getPath('userData'), log) : undefined
-  const startup = new Autostart(process.env.XDG_CONFIG_HOME || join(homedir(), '.config'), process.env.APPIMAGE || process.execPath, app.isPackaged ? [] : [app.getAppPath()])
-  hosted = new HostedWindow(profile, store, root, wayland, log, () => settings.send(), (action) => {
-    if (action === 'pin') void settings.apply({ pinFlyout: !store.current.pinFlyout })
-    else recovery.open()
-  }, (title, bounds) => {
-    const current = store.current
-    kwin?.place({ title, placement: current.placement, anchor: bounds ? activationAnchor(bounds) : undefined,
-      saved: current.x !== undefined && current.y !== undefined ? { x: current.x, y: current.y } : undefined })
-  })
+  const wayland =
+    ozone === 'wayland' ||
+    (ozone !== 'x11' && Boolean(process.env.WAYLAND_DISPLAY))
+  const kwin =
+    wayland && /kde/i.test(process.env.XDG_CURRENT_DESKTOP ?? '')
+      ? new KwinFlyoutPlacement(app.getPath('userData'), log)
+      : undefined
+  const startup = new Autostart(
+    process.env.XDG_CONFIG_HOME || join(homedir(), '.config'),
+    process.env.APPIMAGE || process.execPath,
+    app.isPackaged ? [] : [app.getAppPath()],
+  )
+  hosted = new HostedWindow(
+    profile,
+    store,
+    root,
+    wayland,
+    log,
+    () => settings.send(),
+    (action) => {
+      if (action === 'pin')
+        void settings.apply({ pinFlyout: !store.current.pinFlyout })
+      else recovery.open()
+    },
+    (title, bounds) => {
+      const current = store.current
+      kwin?.place({
+        title,
+        placement: current.placement,
+        anchor: bounds ? activationAnchor(bounds) : undefined,
+        saved:
+          current.x !== undefined && current.y !== undefined
+            ? { x: current.x, y: current.y }
+            : undefined,
+      })
+    },
+  )
   const window = hosted
   let clearingProfile = false
   const canInstall = app.isPackaged && Boolean(process.env.APPIMAGE)
-  const publicFetch = (input: string, init?: RequestInit) => net.fetch(input, init)
+  const publicFetch = (input: string, init?: RequestInit) =>
+    net.fetch(input, init)
   const updater = new UpdateController({
     automatic: store.current.checkUpdatesAutomatically,
     find: () => findLinuxUpdate(app.getVersion(), process.arch, publicFetch),
     confirm: async (action, version) => {
-      if (!canInstall) throw new Error('Install and run an AppImage to use in-app updates.')
+      if (!canInstall)
+        throw new Error('Install and run an AppImage to use in-app updates.')
       return recovery.confirmUpdate(action, version)
     },
-    download: (update, signal, progress) => downloadUpdate(update, join(app.getPath('userData'), 'updates'), publicFetch, signal, progress),
+    download: (update, signal, progress) =>
+      downloadUpdate(
+        update,
+        join(app.getPath('userData'), 'updates'),
+        publicFetch,
+        signal,
+        progress,
+      ),
     install: async (file, update) => {
       await installUpdate(file, update, process.arch, process.env.APPIMAGE)
       if (!quitting) {
-        app.relaunch({ args: process.argv.slice(1), ...(process.env.APPIMAGE ? { execPath: process.env.APPIMAGE } : {}) })
+        app.relaunch({
+          args: process.argv.slice(1),
+          ...(process.env.APPIMAGE ? { execPath: process.env.APPIMAGE } : {}),
+        })
         app.quit()
       }
     },
-    changed: () => recovery.syncUpdate(), log
+    changed: () => recovery.syncUpdate(),
+    log,
   })
   const recovery = new RecoveryWindows({
     updater,
     wayland,
-    root, version: app.getVersion(), logDirectory, store, openAppSettings: () => window.navigate('/settings'), log,
+    root,
+    version: app.getVersion(),
+    logDirectory,
+    store,
+    openAppSettings: () => window.navigate('/settings'),
+    log,
     changeServer: async (server) => {
       await clearSignIn()
       store.save({ ...store.current, server })
       await window.load()
     },
-    clearSignIn: async () => { await clearSignIn(); await window.load() }
+    clearSignIn: async () => {
+      await clearSignIn()
+      await window.load()
+    },
   })
   // The notification daemon cannot read Electron ASAR paths; give it a physical bundled icon.
-  const icon = app.isPackaged ? join(process.resourcesPath, 'icon.png') : join(root, 'resources/icon.png')
+  const icon = app.isPackaged
+    ? join(process.resourcesPath, 'icon.png')
+    : join(root, 'resources/icon.png')
   const notifications = new LinuxNotifications(icon, log)
   const engine = new NotificationEngine({
-    show: (alarm, id, confirming, audible) => notifications.show(alarm, id, confirming, audible),
-    close: (id) => notifications.close(id), audio: (active) => recovery.setAudio(active),
-    open: (reminderId, occurrenceId) => window.openReminder(reminderId, occurrenceId),
+    show: (alarm, id, confirming, audible) =>
+      notifications.show(alarm, id, confirming, audible),
+    close: (id) => notifications.close(id),
+    audio: (active) => recovery.setAudio(active),
+    open: (reminderId, occurrenceId) =>
+      window.openReminder(reminderId, occurrenceId),
     write: (id, action) => client.write(id, action),
     error: (message, kind) => {
       log(message)
-      if (kind === 'action') void dialog.showMessageBox(window.window, { type: 'warning', title: nativeText("Check reminder action"), message })
-    }
+      if (kind === 'action')
+        void dialog.showMessageBox(window.window, {
+          type: 'warning',
+          title: nativeText('Check reminder action'),
+          message,
+        })
+    },
   })
-  const client = new BackgroundClient({
-    origin: () => store.current.server,
-    cookie: () => authentication.cookieHeader(),
-    request: (path, init) => profile.fetch(new URL(path, store.current.server).href, { ...init, headers: { ...init.headers, 'X-Persistent-Locale': nativeLocale() }, credentials: 'include', redirect: 'error', cache: 'no-store' }),
-    log
-  }, engine)
-  notifications.onAction = (id, action) => { void engine.action(id, action) }
+  const client = new BackgroundClient(
+    {
+      origin: () => store.current.server,
+      cookie: () => authentication.cookieHeader(),
+      request: (path, init) =>
+        profile.fetch(new URL(path, store.current.server).href, {
+          ...init,
+          headers: { ...init.headers, 'X-Persistent-Locale': nativeLocale() },
+          credentials: 'include',
+          redirect: 'error',
+          cache: 'no-store',
+        }),
+      log,
+    },
+    engine,
+  )
+  notifications.onAction = (id, action) => {
+    void engine.action(id, action)
+  }
   notifications.onClosed = (id, reason) => engine.closed(id, reason)
   notifications.onRestart = () => engine.daemonRestarted()
 
@@ -163,7 +281,10 @@ async function start(): Promise<void> {
 
   /** Native registration failure corrects the toggle instead of leaving an enabled but inert surface. */
   async function enableNotifications(enabled: boolean): Promise<boolean> {
-    if (!enabled) { client.stop(); return false }
+    if (!enabled) {
+      client.stop()
+      return false
+    }
     try {
       await notifications.connect()
       client.start()
@@ -171,16 +292,38 @@ async function start(): Promise<void> {
     } catch (error) {
       client.stop()
       log('Linux notification registration failed', error)
-      dialog.showErrorBox(nativeText("Linux notifications unavailable"), nativeText("Persistent needs a working desktop notification service with action support. Notifications remain off. Check your desktop session and app log, then try again."))
+      dialog.showErrorBox(
+        nativeText('Linux notifications unavailable'),
+        nativeText(
+          'Persistent needs a working desktop notification service with action support. Notifications remain off. Check your desktop session and app log, then try again.',
+        ),
+      )
       return false
     }
   }
-  const settings = new HostSettings(store, startup, window, enableNotifications, log)
+  const settings = new HostSettings(
+    store,
+    startup,
+    window,
+    enableNotifications,
+    log,
+  )
   let bridgeQueue = Promise.resolve()
   ipcMain.on('persistent:host', (event, message: unknown) => {
-    if (event.sender !== window.webContents || event.senderFrame !== event.sender.mainFrame || !window.trusted(event.senderFrame?.url ?? '')) return
+    if (
+      event.sender !== window.webContents ||
+      event.senderFrame !== event.sender.mainFrame ||
+      !window.trusted(event.senderFrame?.url ?? '')
+    )
+      return
     if (typeof message !== 'object' || message === null) return
-    const raw = message as { type?: string; settings?: unknown; locale?: unknown; mode?: string; background?: string }
+    const raw = message as {
+      type?: string
+      settings?: unknown
+      locale?: unknown
+      mode?: string
+      background?: string
+    }
     if (raw.type === 'signedOut') {
       window.setSignedIn(false)
       client.sessionChanged(true)
@@ -193,27 +336,52 @@ async function start(): Promise<void> {
       return
     }
     // Serialize settings changes so slow native registration cannot overwrite a later toggle.
-    bridgeQueue = bridgeQueue.then(async () => {
-      switch (raw.type) {
-        case 'pageReady': window.ready(); settings.send(); return
-        case 'notificationActionsReady': window.ready(true); return
-        case 'notificationActionsGone': window.actionsGone(); return
-        case 'getHostSettings': settings.send(); return
-        case 'setHostSettings': await settings.apply(raw.settings); return
-        case 'openHostSettings': recovery.open(); return
-        case 'close': window.hide(); return
-        case 'signedOut': client.sessionChanged(true); window.clearPending(); return
-        case 'locale': {
-          const locale = applyNativeLocale(raw.locale)
-          if (locale) store.save({ ...store.current, locale })
-          return
+    bridgeQueue = bridgeQueue
+      .then(async () => {
+        switch (raw.type) {
+          case 'pageReady':
+            window.ready()
+            settings.send()
+            return
+          case 'notificationActionsReady':
+            window.ready(true)
+            return
+          case 'notificationActionsGone':
+            window.actionsGone()
+            return
+          case 'getHostSettings':
+            settings.send()
+            return
+          case 'setHostSettings':
+            await settings.apply(raw.settings)
+            return
+          case 'openHostSettings':
+            recovery.open()
+            return
+          case 'close':
+            window.hide()
+            return
+          case 'signedOut':
+            client.sessionChanged(true)
+            window.clearPending()
+            return
+          case 'locale': {
+            const locale = applyNativeLocale(raw.locale)
+            if (locale) store.save({ ...store.current, locale })
+            return
+          }
+          case 'appearance':
+            if (
+              typeof raw.background === 'string' &&
+              typeof raw.mode === 'string'
+            )
+              window.appearance(raw.mode, raw.background)
+            return
+          default:
+            return
         }
-        case 'appearance':
-          if (typeof raw.background === 'string' && typeof raw.mode === 'string') window.appearance(raw.mode, raw.background)
-          return
-        default: return
-      }
-    }).catch((error: unknown) => log('Hosted bridge request failed', error))
+      })
+      .catch((error: unknown) => log('Hosted bridge request failed', error))
   })
   await authentication.watch((paused) => {
     if (!clearingProfile) {
@@ -222,17 +390,41 @@ async function start(): Promise<void> {
       client.sessionChanged(paused)
     }
   })
-  powerMonitor.on('resume', () => { client.resume(); window.send({ type: 'checkForUpdate' }) })
-  const buildMenu = () => Menu.buildFromTemplate([
-    { label: nativeText('Open Persistent'), click: () => window.show(tray.getBounds()) },
-    { label: nativeText('Open in browser'), click: () => { void shell.openExternal(store.current.server).catch((error: unknown) => log('Browser could not open', error)) } },
-    { type: 'separator' },
-    { label: nativeText('Reload'), click: () => { void window.load() } },
-    { label: nativeText('Settings'), click: () => recovery.open() },
-    { type: 'separator' },
-    { label: nativeText('Exit'), click: () => app.quit() }
-  ])
-  const tray = new ResidentTray(icon, buildMenu(), (bounds) => window.toggle(bounds), log)
+  powerMonitor.on('resume', () => {
+    client.resume()
+    window.send({ type: 'checkForUpdate' })
+  })
+  const buildMenu = () =>
+    Menu.buildFromTemplate([
+      {
+        label: nativeText('Open Persistent'),
+        click: () => window.show(tray.getBounds()),
+      },
+      {
+        label: nativeText('Open in browser'),
+        click: () => {
+          void shell
+            .openExternal(store.current.server)
+            .catch((error: unknown) => log('Browser could not open', error))
+        },
+      },
+      { type: 'separator' },
+      {
+        label: nativeText('Reload'),
+        click: () => {
+          void window.load()
+        },
+      },
+      { label: nativeText('Settings'), click: () => recovery.open() },
+      { type: 'separator' },
+      { label: nativeText('Exit'), click: () => app.quit() },
+    ])
+  const tray = new ResidentTray(
+    icon,
+    buildMenu(),
+    (bounds) => window.toggle(bounds),
+    log,
+  )
   onNativeLocaleChanged(() => {
     tray.setMenu(buildMenu())
     window.syncChrome()
@@ -252,13 +444,21 @@ async function start(): Promise<void> {
     window.dispose()
     await kwin?.dispose()
   }
-  if (store.current.notifications) store.save({ ...store.current, notifications: await enableNotifications(true) })
+  if (store.current.notifications)
+    store.save({
+      ...store.current,
+      notifications: await enableNotifications(true),
+    })
   settings.send()
   if (canInstall) updater.start()
   // Delivery and updates must not wait for a slow or failed hosted document.
   void window.load()
   // Always retain a launcher-accessible window. The first run is visible even without a tray extension.
   // Explicit autostart may hide only after a nonempty tray geometry is available; Wayland often supplies none.
-  if (!process.argv.includes('--background') || !await statusNotifierAvailable()) window.show(tray.getBounds())
+  if (
+    !process.argv.includes('--background') ||
+    !(await statusNotifierAvailable())
+  )
+    window.show(tray.getBounds())
   log(`Linux host ready (${wayland ? 'Wayland' : 'X11'} window policy)`)
 }

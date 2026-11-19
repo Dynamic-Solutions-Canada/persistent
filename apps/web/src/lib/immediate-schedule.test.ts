@@ -1,6 +1,10 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { immediateSchedule, localCalendarDate, localTimeOfDay } from './immediate-schedule.js'
+import {
+  immediateSchedule,
+  localCalendarDate,
+  localTimeOfDay,
+} from './immediate-schedule.js'
 import { firesRightAway } from './schedule-preview.js'
 
 const NOW = new Date(2026, 6, 1, 12, 0, 30) // Jul 1 2026, 12:00:30 local
@@ -29,10 +33,19 @@ test('an unscheduled reminder has no wall-clock fire to back-fill', () => {
   const { schedule, startDate } = immediateSchedule(NOW)
   assert.equal(
     firesRightAway(
-      { ...schedule, daysOfWeek: [], daysOfMonth: [], lastDayOfMonth: false, everyNDays: 1, skipWeekends: false, startDate, endDate: '' },
-      NOW
+      {
+        ...schedule,
+        daysOfWeek: [],
+        daysOfMonth: [],
+        lastDayOfMonth: false,
+        everyNDays: 1,
+        skipWeekends: false,
+        startDate,
+        endDate: '',
+      },
+      NOW,
     ),
-    false
+    false,
   )
 })
 
@@ -48,10 +61,10 @@ test('a genuine one-shot whose minute just passed still fires right away', () =>
         everyNDays: 1,
         skipWeekends: false,
         startDate: '2026-07-01',
-        endDate: ''
+        endDate: '',
       },
-      NOW
+      NOW,
     ),
-    true
+    true,
   )
 })

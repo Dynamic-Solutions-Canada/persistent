@@ -12,7 +12,7 @@ import { extractErrorMessage } from '../localization/errorMessage.js'
 export function InlineReminderText({
   text,
   kind,
-  onSave
+  onSave,
 }: {
   text: string
   kind: 'title' | 'body'
@@ -81,8 +81,13 @@ export function InlineReminderText({
             disabled={pending}
             autoFocus
             value={draft}
-            onChange={(event) => { setDraft(event.target.value); setSaveError(null) }}
-            onBlur={() => { if (!saveError) void commit() }}
+            onChange={(event) => {
+              setDraft(event.target.value)
+              setSaveError(null)
+            }}
+            onBlur={() => {
+              if (!saveError) void commit()
+            }}
             onKeyDown={(event) => {
               if (event.key === 'Escape') {
                 event.stopPropagation()
@@ -102,8 +107,13 @@ export function InlineReminderText({
             autoFocus
             minRows={3}
             value={draft}
-            onChange={(event) => { setDraft(event.target.value); setSaveError(null) }}
-            onBlur={() => { if (!saveError) void commit() }}
+            onChange={(event) => {
+              setDraft(event.target.value)
+              setSaveError(null)
+            }}
+            onBlur={() => {
+              if (!saveError) void commit()
+            }}
             onKeyDown={(event) => {
               if (event.key === 'Escape') {
                 event.stopPropagation()
@@ -118,13 +128,27 @@ export function InlineReminderText({
             sx={{ width: '100%' }}
           />
         )}
-        {saveError && <Box>
-          <Typography level="body-xs" color="danger" role="alert"><Trans i18nKey={"<v0/> Your draft is kept above."} components={{ v0: <>{saveError}</> }} /></Typography>
-          <Button size="sm" variant="plain" color="neutral" onClick={() => {
-            setDraft(text)
-            setEditing(false)
-          }}>{tr("Cancel edit and show latest")}</Button>
-        </Box>}
+        {saveError && (
+          <Box>
+            <Typography level="body-xs" color="danger" role="alert">
+              <Trans
+                i18nKey={'<v0/> Your draft is kept above.'}
+                components={{ v0: <>{saveError}</> }}
+              />
+            </Typography>
+            <Button
+              size="sm"
+              variant="plain"
+              color="neutral"
+              onClick={() => {
+                setDraft(text)
+                setEditing(false)
+              }}
+            >
+              {tr('Cancel edit and show latest')}
+            </Button>
+          </Box>
+        )}
       </Box>
     )
   }
@@ -146,14 +170,20 @@ export function InlineReminderText({
         minWidth: 0,
         borderRadius: 'sm',
         cursor: 'text',
-        '&:hover, &:focus-visible': { bgcolor: 'background.level1', outline: 'none' }
+        '&:hover, &:focus-visible': {
+          bgcolor: 'background.level1',
+          outline: 'none',
+        },
       }}
     >
       <Typography
         level={kind === 'title' ? 'title-lg' : 'body-sm'}
-        sx={{ whiteSpace: 'pre-wrap', color: kind === 'body' && !text ? 'text.tertiary' : undefined }}
+        sx={{
+          whiteSpace: 'pre-wrap',
+          color: kind === 'body' && !text ? 'text.tertiary' : undefined,
+        }}
       >
-        {text || tr("Add note")}
+        {text || tr('Add note')}
       </Typography>
     </Box>
   )

@@ -4,7 +4,13 @@
  * body formatter with the web client via @persistent/shared.
  */
 import type { Reminder } from '@prisma/client'
-import { message, type Locale, reminderBodyText, type TypeData, type ReminderType } from '@persistent/shared'
+import {
+  message,
+  type Locale,
+  reminderBodyText,
+  type TypeData,
+  type ReminderType,
+} from '@persistent/shared'
 
 export function notificationTitle(reminder: Pick<Reminder, 'title'>): string {
   return reminder.title
@@ -18,15 +24,15 @@ export function notificationTitle(reminder: Pick<Reminder, 'title'>): string {
  */
 export function notificationBody(
   reminder: Pick<Reminder, 'details' | 'type' | 'typeData'>,
-  checkedItemIds: readonly string[] = []
+  checkedItemIds: readonly string[] = [],
 ): string {
   return reminderBodyText(
     {
       type: reminder.type as ReminderType,
       typeData: (reminder.typeData ?? {}) as TypeData,
-      details: reminder.details
+      details: reminder.details,
     },
-    checkedItemIds
+    checkedItemIds,
   )
 }
 
@@ -39,12 +45,20 @@ export function notificationBody(
  * would be chasing rather than work already done.
  */
 export function escalationEmailText(
-  reminder: Pick<Reminder, 'title' | 'details' | 'type' | 'typeData' | 'escalateEmailMessage'>,
+  reminder: Pick<
+    Reminder,
+    'title' | 'details' | 'type' | 'typeData' | 'escalateEmailMessage'
+  >,
   checkedItemIds: readonly string[] = [],
-  locale: Locale = 'en-US'
+  locale: Locale = 'en-US',
 ): string {
   const covering =
-    reminder.escalateEmailMessage?.trim() || message(locale, "The reminder \"{{title}}\" is overdue and hasn't been confirmed.", { title: reminder.title })
+    reminder.escalateEmailMessage?.trim() ||
+    message(
+      locale,
+      'The reminder "{{title}}" is overdue and hasn\'t been confirmed.',
+      { title: reminder.title },
+    )
   const body = notificationBody(reminder, checkedItemIds)
   return body ? `${covering}\n\n${body}` : covering
 }

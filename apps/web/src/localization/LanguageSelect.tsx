@@ -14,11 +14,18 @@ export function LanguageSelect() {
   return (
     <FormControl>
       <FormLabel>{tr('Interface language')}</FormLabel>
-      <Select<Locale | 'device'> value={languageOverride ?? 'device'} onChange={(_event, value) => {
-        if (value) setLanguageOverride(value === 'device' ? null : value)
-      }}>
+      <Select<Locale | 'device'>
+        value={languageOverride ?? 'device'}
+        onChange={(_event, value) => {
+          if (value) setLanguageOverride(value === 'device' ? null : value)
+        }}
+      >
         <Option value="device">{tr('Match device')}</Option>
-        {supportedLocales.map((locale) => <Option key={locale} value={locale}>{localeNames[locale]}</Option>)}
+        {supportedLocales.map((locale) => (
+          <Option key={locale} value={locale}>
+            {localeNames[locale]}
+          </Option>
+        ))}
       </Select>
     </FormControl>
   )

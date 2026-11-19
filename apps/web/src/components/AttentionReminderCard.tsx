@@ -10,7 +10,13 @@ import { useReminderDialogs } from './reminderDialogContext.js'
 import { ReminderPreviewCard } from './ReminderPreviewCard.js'
 import { sharingState } from './sharingState.js'
 
-export function AttentionReminderCard({ reminder, occurrence, timeFormat, timeZone, received }: {
+export function AttentionReminderCard({
+  reminder,
+  occurrence,
+  timeFormat,
+  timeZone,
+  received,
+}: {
   reminder: Reminder
   occurrence: Occurrence
   timeFormat: TimeFormat
@@ -30,9 +36,26 @@ export function AttentionReminderCard({ reminder, occurrence, timeFormat, timeZo
       sharing={received ? 'shared' : sharingState(reminder)}
       checkedItemIds={occurrence.checkedItemIds}
       when={formatWhen(occurrence.scheduledFor, timeFormat, timeZone)}
-      afterWhen={occurrence.status === 'SNOOZED' && occurrence.snoozedUntil ? (
-        <Typography level="body-xs" color="primary" startDecorator={<SnoozeIcon sx={{ fontSize: 14 }} />}><Trans i18nKey={"Snoozed until <v0/>"} components={{ v0: <>{formatWhen(occurrence.snoozedUntil, timeFormat, timeZone)}</> }} /></Typography>
-      ) : undefined}
+      afterWhen={
+        occurrence.status === 'SNOOZED' && occurrence.snoozedUntil ? (
+          <Typography
+            level="body-xs"
+            color="primary"
+            startDecorator={<SnoozeIcon sx={{ fontSize: 14 }} />}
+          >
+            <Trans
+              i18nKey={'Snoozed until <v0/>'}
+              components={{
+                v0: (
+                  <>
+                    {formatWhen(occurrence.snoozedUntil, timeFormat, timeZone)}
+                  </>
+                ),
+              }}
+            />
+          </Typography>
+        ) : undefined
+      }
     />
   )
 }

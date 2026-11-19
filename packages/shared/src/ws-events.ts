@@ -10,11 +10,20 @@ import { occurrenceSchema } from './reminders.js'
 
 export const wsEventSchema = z.discriminatedUnion('type', [
   // An occurrence became due and was fired by the scheduler.
-  z.object({ type: z.literal('occurrence.fired'), occurrence: occurrenceSchema }),
+  z.object({
+    type: z.literal('occurrence.fired'),
+    occurrence: occurrenceSchema,
+  }),
   // An occurrence changed status (acknowledged, snoozed, escalated, missed).
-  z.object({ type: z.literal('occurrence.changed'), occurrence: occurrenceSchema }),
+  z.object({
+    type: z.literal('occurrence.changed'),
+    occurrence: occurrenceSchema,
+  }),
   // A reminder definition was created/updated/deleted — refetch the list.
-  z.object({ type: z.literal('reminder.changed'), reminderId: z.string().nullable() }),
+  z.object({
+    type: z.literal('reminder.changed'),
+    reminderId: z.string().nullable(),
+  }),
   // One of this user's received shares was granted, changed, or revoked.
   z.object({ type: z.literal('share.changed') }),
   // A creator's assigned-reminder progress or invitation status changed.
@@ -27,6 +36,6 @@ export const wsEventSchema = z.discriminatedUnion('type', [
   // occurrence nagging (distinct from `dismiss`, which clears it entirely).
   z.object({ type: z.literal('silence'), occurrenceId: z.string() }),
   // Heartbeat to keep proxies from closing idle sockets.
-  z.object({ type: z.literal('ping') })
+  z.object({ type: z.literal('ping') }),
 ])
 export type WsEvent = z.infer<typeof wsEventSchema>

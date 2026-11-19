@@ -20,7 +20,7 @@ import {
   DURATION_UNITS,
   customToMinutes,
   snoozeUntilInput,
-  toDateTimeLocalValue
+  toDateTimeLocalValue,
 } from '../lib/durations.js'
 import { BackAwareModal } from './BackAwareModal.js'
 
@@ -29,7 +29,7 @@ export function SnoozeDialog({
   onClose,
   onSnooze,
   busy,
-  reminderTitle
+  reminderTitle,
 }: {
   open: boolean
   onClose: () => void
@@ -66,8 +66,18 @@ export function SnoozeDialog({
   return (
     <BackAwareModal open={open} onClose={onClose}>
       <ModalDialog sx={{ maxWidth: 360 }}>
-        <DialogTitle>{reminderTitle ? tr("Snooze {{v0}}", { v0: reminderTitle }) : tr("Snooze for…")}</DialogTitle>
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
+        <DialogTitle>
+          {reminderTitle
+            ? tr('Snooze {{v0}}', { v0: reminderTitle })
+            : tr('Snooze for…')}
+        </DialogTitle>
+        <Stack
+          direction="row"
+          spacing={1}
+          flexWrap="wrap"
+          useFlexGap
+          sx={{ mt: 1 }}
+        >
           {SNOOZE_PRESETS.map((p) => (
             <Button
               key={p.minutes}
@@ -79,11 +89,28 @@ export function SnoozeDialog({
               {tr(p.label)}
             </Button>
           ))}
-          <Button size="sm" variant={mode === 'custom' ? 'solid' : 'outlined'} onClick={() => openMode('custom')}>{tr("Custom")}</Button>
-          <Button size="sm" variant={mode === 'until' ? 'solid' : 'outlined'} onClick={() => openMode('until')}>{tr("Until…")}</Button>
+          <Button
+            size="sm"
+            variant={mode === 'custom' ? 'solid' : 'outlined'}
+            onClick={() => openMode('custom')}
+          >
+            {tr('Custom')}
+          </Button>
+          <Button
+            size="sm"
+            variant={mode === 'until' ? 'solid' : 'outlined'}
+            onClick={() => openMode('until')}
+          >
+            {tr('Until…')}
+          </Button>
         </Stack>
         {mode === 'custom' && (
-          <Stack direction="row" spacing={1} sx={{ mt: 1.5 }} alignItems="center">
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ mt: 1.5 }}
+            alignItems="center"
+          >
             <Input
               type="number"
               value={value}
@@ -100,14 +127,26 @@ export function SnoozeDialog({
             </Select>
             <Button
               disabled={busy}
-              onClick={() => onSnooze({
-                minutes: Math.min(MAX_SNOOZE_MINUTES, customToMinutes(Number(value) || 1, unit))
-              })}
-            >{tr("Snooze")}</Button>
+              onClick={() =>
+                onSnooze({
+                  minutes: Math.min(
+                    MAX_SNOOZE_MINUTES,
+                    customToMinutes(Number(value) || 1, unit),
+                  ),
+                })
+              }
+            >
+              {tr('Snooze')}
+            </Button>
           </Stack>
         )}
         {mode === 'until' && (
-          <Stack direction="row" spacing={1} sx={{ mt: 1.5 }} alignItems="center">
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ mt: 1.5 }}
+            alignItems="center"
+          >
             <Input
               type="datetime-local"
               value={until}
@@ -120,7 +159,9 @@ export function SnoozeDialog({
                 const input = snoozeUntilInput(until)
                 if (input) onSnooze(input)
               }}
-            >{tr("Snooze")}</Button>
+            >
+              {tr('Snooze')}
+            </Button>
           </Stack>
         )}
       </ModalDialog>

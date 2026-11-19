@@ -25,16 +25,33 @@ import { tr } from '../localization/i18n.js'
 import Chip from '@mui/joy/Chip'
 import HistoryIcon from '@mui/icons-material/History'
 import type { Occurrence, Reminder } from '@persistent/shared'
-import { isOutsideReminderWindow, isUnscheduledFiring } from '../lib/occurrenceSchedule.js'
+import {
+  isOutsideReminderWindow,
+  isUnscheduledFiring,
+} from '../lib/occurrenceSchedule.js'
 import { StatusChip } from './ReminderIcons.js'
 
-export function FiringStatusChip({ reminder, occurrence }: { reminder: Reminder; occurrence: Occurrence }) {
+export function FiringStatusChip({
+  reminder,
+  occurrence,
+}: {
+  reminder: Reminder
+  occurrence: Occurrence
+}) {
   useTranslation()
   if (isOutsideReminderWindow(reminder, occurrence)) {
     return (
-      <Chip size="sm" variant="soft" color="neutral" startDecorator={<HistoryIcon sx={{ fontSize: 14 }} />}>{tr("Unconfirmed")}</Chip>
+      <Chip
+        size="sm"
+        variant="soft"
+        color="neutral"
+        startDecorator={<HistoryIcon sx={{ fontSize: 14 }} />}
+      >
+        {tr('Unconfirmed')}
+      </Chip>
     )
   }
-  if (isUnscheduledFiring(reminder) && occurrence.status === 'FIRED') return null
+  if (isUnscheduledFiring(reminder) && occurrence.status === 'FIRED')
+    return null
   return <StatusChip status={occurrence.status} />
 }

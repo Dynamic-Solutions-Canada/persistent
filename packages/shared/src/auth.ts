@@ -14,7 +14,7 @@ export const emailSchema = z.string().trim().toLowerCase().email().max(254)
 export const requestCodeSchema = z.object({
   email: emailSchema,
   /** Device language for this verification message only; never changes an existing account preference. */
-  locale: localeSchema.optional()
+  locale: localeSchema.optional(),
 })
 export type RequestCodeInput = z.infer<typeof requestCodeSchema>
 
@@ -22,7 +22,7 @@ export type RequestCodeInput = z.infer<typeof requestCodeSchema>
 export const requestCodeResponseSchema = z.object({
   ok: z.literal(true),
   expiresAt: z.string().datetime(),
-  previewCode: z.string().nullable()
+  previewCode: z.string().nullable(),
 })
 export type RequestCodeResponse = z.infer<typeof requestCodeResponseSchema>
 
@@ -35,7 +35,7 @@ export const verifyCodeSchema = z.object({
   code: z.string().trim().min(4).max(64),
   // Captured at verify time so schedules render in the user's local zone.
   timeZone: z.string().max(64).optional(),
-  displayName: z.string().trim().max(120).optional()
+  displayName: z.string().trim().max(120).optional(),
 })
 export type VerifyCodeInput = z.infer<typeof verifyCodeSchema>
 
@@ -49,26 +49,26 @@ export const sessionUserSchema = z.object({
   emailLanguage: localeSchema.optional(),
   // Older clients and saved profiles omit this; omission grants no admin access.
   isAdmin: z.boolean().optional(),
-  createdAt: z.string().datetime()
+  createdAt: z.string().datetime(),
 })
 export type SessionUser = z.infer<typeof sessionUserSchema>
 
 /** Response for /api/auth/me and successful verify-code. */
 export const authStateSchema = z.object({
-  user: sessionUserSchema.nullable()
+  user: sessionUserSchema.nullable(),
 })
 export type AuthState = z.infer<typeof authStateSchema>
 
 /** Public auth config the client reads to decide which methods to offer. */
 export const authConfigSchema = z.object({
-  googleClientId: z.string().nullable()
+  googleClientId: z.string().nullable(),
 })
 export type AuthConfig = z.infer<typeof authConfigSchema>
 
 /** Body for POST /api/auth/google — a Google ID token (JWT credential). */
 export const googleLoginSchema = z.object({
   credential: z.string().min(1),
-  timeZone: z.string().max(64).optional()
+  timeZone: z.string().max(64).optional(),
 })
 export type GoogleLoginInput = z.infer<typeof googleLoginSchema>
 
@@ -82,17 +82,19 @@ export const passkeyInfoSchema = z.object({
   transports: z.array(z.string()),
   backedUp: z.boolean(),
   createdAt: z.string().datetime(),
-  lastUsedAt: z.string().datetime().nullable()
+  lastUsedAt: z.string().datetime().nullable(),
 })
 export type PasskeyInfo = z.infer<typeof passkeyInfoSchema>
 
-export const passkeyListResponseSchema = z.object({ passkeys: z.array(passkeyInfoSchema) })
+export const passkeyListResponseSchema = z.object({
+  passkeys: z.array(passkeyInfoSchema),
+})
 export type PasskeyListResponse = z.infer<typeof passkeyListResponseSchema>
 
 /** Optional nickname when finishing a passkey registration. */
 export const passkeyRegisterFinishSchema = z.object({
   response: z.unknown(),
-  name: z.string().trim().max(60).optional()
+  name: z.string().trim().max(60).optional(),
 })
 
 /**
@@ -104,6 +106,6 @@ export const passkeyRegisterFinishSchema = z.object({
  * it. Required by Google Play's data-deletion policy.
  */
 export const deleteAccountSchema = z.object({
-  confirmEmail: emailSchema
+  confirmEmail: emailSchema,
 })
 export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>

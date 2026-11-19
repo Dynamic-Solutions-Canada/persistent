@@ -29,12 +29,18 @@ if (!input) {
 
 const hex = input.replace(/[^0-9a-fA-F]/g, '').toLowerCase()
 if (hex.length !== 64) {
-  console.error(`Expected a SHA-256 fingerprint (64 hex chars); got ${hex.length} after stripping separators.`)
+  console.error(
+    `Expected a SHA-256 fingerprint (64 hex chars); got ${hex.length} after stripping separators.`,
+  )
   process.exit(1)
 }
 
 const bytes = Buffer.from(hex, 'hex')
-const base64url = bytes.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+const base64url = bytes
+  .toString('base64')
+  .replace(/\+/g, '-')
+  .replace(/\//g, '_')
+  .replace(/=+$/, '')
 const colonHex = (hex.match(/../g) ?? []).join(':').toUpperCase()
 
 console.log(`

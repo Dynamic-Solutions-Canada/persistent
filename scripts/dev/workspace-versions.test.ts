@@ -16,37 +16,65 @@ import { fileURLToPath } from 'node:url'
  * test is what makes forgetting it visible.
  */
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
-const readJson = (path: string) => JSON.parse(readFileSync(join(repoRoot, path), 'utf8'))
+const readJson = (path: string) =>
+  JSON.parse(readFileSync(join(repoRoot, path), 'utf8'))
 
 test('package-lock records the same version as each workspace package.json', () => {
   const root = readJson('package.json') as { workspaces: string[] }
-  const lock = readJson('package-lock.json') as { packages: Record<string, { version?: string }> }
+  const lock = readJson('package-lock.json') as {
+    packages: Record<string, { version?: string }>
+  }
 
   const drifted = root.workspaces.flatMap((workspace) => {
-    const declared = (readJson(`${workspace}/package.json`) as { version?: string }).version
+    const declared = (
+      readJson(`${workspace}/package.json`) as { version?: string }
+    ).version
     const locked = lock.packages[workspace]?.version
-    return declared === locked ? [] : [`${workspace}: package.json ${declared} vs lockfile ${locked ?? '(absent)'}`]
+    return declared === locked
+      ? []
+      : [
+          `${workspace}: package.json ${declared} vs lockfile ${locked ?? '(absent)'}`,
+        ]
   })
 
   assert.deepEqual(
     drifted,
     [],
-    `Lockfile is out of sync:\n  ${drifted.join('\n  ')}\nRun \`npm install --package-lock-only\` and commit the result.`
+    `Lockfile is out of sync:\n  ${drifted.join('\n  ')}\nRun \`npm install --package-lock-only\` and commit the result.`,
   )
 })
 
 test('the root version follows the web app, since it labels the deployed image', () => {
   const root = readJson('package.json') as { version?: string }
   const web = readJson('apps/web/package.json') as { version?: string }
-  const lock = readJson('package-lock.json') as { version?: string; packages: Record<string, { version?: string }> }
-  assert.equal(root.version, web.version, 'Bump the root package.json version with apps/web (the release skill does both).')
-  assert.equal(lock.packages['']?.version, root.version, 'Run `npm install --package-lock-only` after the bump.')
+  const lock = readJson('package-lock.json') as {
+    version?: string
+    packages: Record<string, { version?: string }>
+  }
+  assert.equal(
+    root.version,
+    web.version,
+    'Bump the root package.json version with apps/web (the release skill does both).',
+  )
+  assert.equal(
+    lock.packages['']?.version,
+    root.version,
+    'Run `npm install --package-lock-only` after the bump.',
+  )
 })
 
 test('root transport test dependencies match the standalone Linux runtime', () => {
-  const root = readJson('package.json') as { devDependencies: Record<string, string> }
-  const linux = readJson('apps/linux-desktop/package.json') as { dependencies: Record<string, string> }
+  const root = readJson('package.json') as {
+    devDependencies: Record<string, string>
+  }
+  const linux = readJson('apps/linux-desktop/package.json') as {
+    dependencies: Record<string, string>
+  }
   for (const name of ['@particle/dbus-next', 'x11']) {
-    assert.equal(root.devDependencies[name], linux.dependencies[name], `Keep the ${name} test and runtime pins in step.`)
+    assert.equal(
+      root.devDependencies[name],
+      linux.dependencies[name],
+      `Keep the ${name} test and runtime pins in step.`,
+    )
   }
 })

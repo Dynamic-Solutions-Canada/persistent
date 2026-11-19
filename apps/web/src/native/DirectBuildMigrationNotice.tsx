@@ -37,14 +37,16 @@ export function DirectBuildMigrationNotice() {
   return (
     <BackAwareModal open onClose={dismiss}>
       <ModalDialog>
-        <DialogTitle>{tr("A change to Android downloads")}</DialogTitle>
+        <DialogTitle>{tr('A change to Android downloads')}</DialogTitle>
         <DialogContent>
           <Stack spacing={1.5}>
             <DirectBuildNotice />
           </Stack>
         </DialogContent>
         <Stack direction="row" justifyContent="flex-end" sx={{ mt: 1 }}>
-          <Button variant="plain" color="neutral" onClick={dismiss}>{tr("Later")}</Button>
+          <Button variant="plain" color="neutral" onClick={dismiss}>
+            {tr('Later')}
+          </Button>
         </Stack>
       </ModalDialog>
     </BackAwareModal>

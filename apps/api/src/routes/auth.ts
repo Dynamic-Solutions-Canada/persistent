@@ -12,9 +12,13 @@ import {
   generateAuthenticationOptions,
   generateRegistrationOptions,
   verifyAuthenticationResponse,
-  verifyRegistrationResponse
+  verifyRegistrationResponse,
 } from '@simplewebauthn/server'
-import type { AuthenticationResponseJSON, AuthenticatorTransportFuture, RegistrationResponseJSON } from '@simplewebauthn/server'
+import type {
+  AuthenticationResponseJSON,
+  AuthenticatorTransportFuture,
+  RegistrationResponseJSON,
+} from '@simplewebauthn/server'
 import { OAuth2Client } from 'google-auth-library'
 import {
   accountLanguageInputSchema,
@@ -23,15 +27,31 @@ import {
   passkeyListResponseSchema,
   passkeyRegisterFinishSchema,
   requestCodeSchema,
-  verifyCodeSchema
+  verifyCodeSchema,
 } from '@persistent/shared'
 import { prisma } from '../lib/prisma.js'
 import { env } from '../lib/env.js'
-import { badRequest, notFound, tooManyRequests, unauthorized } from '../lib/http-error.js'
+import {
+  badRequest,
+  notFound,
+  tooManyRequests,
+  unauthorized,
+} from '../lib/http-error.js'
 import { issueEmailCode, verifyEmailCode } from '../lib/email-code.js'
-import { createSession, revokeSession, setSessionCookie, clearSessionCookie } from '../lib/auth-session.js'
+import {
+  createSession,
+  revokeSession,
+  setSessionCookie,
+  clearSessionCookie,
+} from '../lib/auth-session.js'
 import { requireUserId } from '../lib/auth-middleware.js'
-import { RP_NAME, relyingParty, setChallengeCookie, clearChallengeCookie, requireChallenge } from '../lib/webauthn.js'
+import {
+  RP_NAME,
+  relyingParty,
+  setChallengeCookie,
+  clearChallengeCookie,
+  requireChallenge,
+} from '../lib/webauthn.js'
 import { rateLimit } from '../lib/rate-limit.js'
 import { isReviewAccount, isReviewLogin } from '../lib/review-access.js'
 import { logger } from '../lib/logger.js'
@@ -58,7 +78,7 @@ authRouter.post('/request-code', async (request, response) => {
     response.json({
       ok: true as const,
       expiresAt: new Date(Date.now() + 10 * 60_000).toISOString(),
-      previewCode: null
+      previewCode: null,
     })
     return
   }
@@ -67,7 +87,7 @@ authRouter.post('/request-code', async (request, response) => {
   response.json({
     ok: true as const,
     expiresAt: result.expiresAt.toISOString(),
-    previewCode: result.previewCode
+    previewCode: result.previewCode,
   })
 })
 
@@ -92,14 +112,14 @@ authRouter.post('/verify-code', async (request, response) => {
     where: { email },
     update: {
       ...(timeZone ? { timeZone } : {}),
-      ...(displayName ? { displayName } : {})
+      ...(displayName ? { displayName } : {}),
     },
     create: {
       email,
       isAdmin: initialAdminGrant(email),
       timeZone: timeZone ?? 'UTC',
-      displayName: displayName ?? null
-    }
+      displayName: displayName ?? null,
+    },
   })
 
   await claimShareInvitations(user)
@@ -119,7 +139,8 @@ const googleClient = new OAuth2Client()
 
 // Sign in with Google: verify the ID token, upsert the user by email, start a session.
 authRouter.post('/google', async (request, response) => {
-  if (!env.GOOGLE_WEB_CLIENT_ID) throw badRequest('Google sign-in is not configured.')
+  if (!env.GOOGLE_WEB_CLIENT_ID)
+    throw badRequest('Google sign-in is not configured.')
   const parsed = googleLoginSchema.safeParse(request.body)
   if (!parsed.success) throw badRequest('Invalid Google credential.')
 
@@ -127,26 +148,27 @@ authRouter.post('/google', async (request, response) => {
   try {
     const ticket = await googleClient.verifyIdToken({
       idToken: parsed.data.credential,
-      audience: env.GOOGLE_WEB_CLIENT_ID
+      audience: env.GOOGLE_WEB_CLIENT_ID,
     })
     payload = ticket.getPayload()
   } catch {
     throw unauthorized('Could not verify the Google sign-in.')
   }
-  if (!payload?.email || !payload.email_verified) throw unauthorized('Google account email is not verified.')
+  if (!payload?.email || !payload.email_verified)
+    throw unauthorized('Google account email is not verified.')
 
   const user = await prisma.user.upsert({
     where: { email: payload.email },
     update: {
       ...(parsed.data.timeZone ? { timeZone: parsed.data.timeZone } : {}),
-      ...(payload.name ? { displayName: payload.name } : {})
+      ...(payload.name ? { displayName: payload.name } : {}),
     },
     create: {
       email: payload.email,
       isAdmin: initialAdminGrant(payload.email),
       timeZone: parsed.data.timeZone ?? 'UTC',
-      displayName: payload.name ?? null
-    }
+      displayName: payload.name ?? null,
+    },
   })
 
   await claimShareInvitations(user)
@@ -177,7 +199,10 @@ authRouter.patch('/preferences', async (request, response) => {
   const userId = requireUserId(request)
   const parsed = accountLanguageInputSchema.safeParse(request.body)
   if (!parsed.success) throw badRequest('Choose a supported email language.')
-  const user = await prisma.user.update({ where: { id: userId }, data: parsed.data })
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: parsed.data,
+  })
   response.json({ user: toSessionUser(user) })
 })
 
@@ -192,7 +217,8 @@ authRouter.patch('/preferences', async (request, response) => {
 authRouter.delete('/me', async (request, response) => {
   const userId = requireUserId(request)
   const parsed = deleteAccountSchema.safeParse(request.body)
-  if (!parsed.success) throw badRequest('Confirm your email address to delete your account.')
+  if (!parsed.success)
+    throw badRequest('Confirm your email address to delete your account.')
 
   const user = await prisma.user.findUnique({ where: { id: userId } })
   if (!user) throw notFound('Account not found.')
@@ -203,7 +229,7 @@ authRouter.delete('/me', async (request, response) => {
 
   const affectedAssignments = await prisma.reminderAssignment.findMany({
     where: { recipientId: userId },
-    select: { creatorId: true }
+    select: { creatorId: true },
   })
 
   // EmailCode is keyed by email address, not userId, so it has no cascade —
@@ -212,14 +238,16 @@ authRouter.delete('/me', async (request, response) => {
     prisma.emailCode.deleteMany({ where: { email: user.email } }),
     prisma.reminderAssignment.updateMany({
       where: { recipientId: userId, state: 'ACTIVE' },
-      data: { state: 'DECLINED', declinedAt: new Date() }
+      data: { state: 'DECLINED', declinedAt: new Date() },
     }),
     prisma.reminderAssignment.updateMany({
       where: { recipientId: userId },
-      data: { recipientEmail: '(deleted account)' }
+      data: { recipientEmail: '(deleted account)' },
     }),
-    prisma.shareRecipient.deleteMany({ where: { email: user.email.toLowerCase() } }),
-    prisma.user.delete({ where: { id: userId } })
+    prisma.shareRecipient.deleteMany({
+      where: { email: user.email.toLowerCase() },
+    }),
+    prisma.user.delete({ where: { id: userId } }),
   ])
   for (const assignment of affectedAssignments) {
     broadcast(assignment.creatorId, { type: 'assignment.changed' })
@@ -233,13 +261,20 @@ authRouter.delete('/me', async (request, response) => {
 
 // --- Passkeys (WebAuthn) ----------------------------------------------------
 
-function csvToTransports(csv: string | null): AuthenticatorTransportFuture[] | undefined {
+function csvToTransports(
+  csv: string | null,
+): AuthenticatorTransportFuture[] | undefined {
   if (!csv) return undefined
-  const list = csv.split(',').map((s) => s.trim()).filter(Boolean)
+  const list = csv
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
   return list.length ? (list as AuthenticatorTransportFuture[]) : undefined
 }
 
-function transportsToCsv(transports?: AuthenticatorTransportFuture[]): string | null {
+function transportsToCsv(
+  transports?: AuthenticatorTransportFuture[],
+): string | null {
   return transports && transports.length ? transports.join(',') : null
 }
 
@@ -248,7 +283,7 @@ authRouter.post('/passkey/register/options', async (request, response) => {
   const userId = requireUserId(request)
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: userId },
-    include: { passkeys: { select: { credentialId: true, transports: true } } }
+    include: { passkeys: { select: { credentialId: true, transports: true } } },
   })
   const rp = relyingParty()
   const options = await generateRegistrationOptions({
@@ -258,8 +293,14 @@ authRouter.post('/passkey/register/options', async (request, response) => {
     userDisplayName: user.displayName ?? user.email,
     userID: new TextEncoder().encode(user.id),
     attestationType: 'none',
-    authenticatorSelection: { residentKey: 'required', userVerification: 'preferred' },
-    excludeCredentials: user.passkeys.map((p) => ({ id: p.credentialId, transports: csvToTransports(p.transports) }))
+    authenticatorSelection: {
+      residentKey: 'required',
+      userVerification: 'preferred',
+    },
+    excludeCredentials: user.passkeys.map((p) => ({
+      id: p.credentialId,
+      transports: csvToTransports(p.transports),
+    })),
   })
   setChallengeCookie(response, 'registration', options.challenge)
   response.json({ options })
@@ -277,9 +318,10 @@ authRouter.post('/passkey/register/verify', async (request, response) => {
     expectedChallenge: requireChallenge(request, 'registration'),
     expectedOrigin: rp.origins,
     expectedRPID: rp.id,
-    requireUserVerification: false
+    requireUserVerification: false,
   })
-  if (!verification.verified || !verification.registrationInfo) throw badRequest('Passkey could not be verified.')
+  if (!verification.verified || !verification.registrationInfo)
+    throw badRequest('Passkey could not be verified.')
 
   const { credential, credentialBackedUp } = verification.registrationInfo
   await prisma.passkey.create({
@@ -291,8 +333,8 @@ authRouter.post('/passkey/register/verify', async (request, response) => {
       transports: transportsToCsv(credential.transports),
       aaguid: verification.registrationInfo.aaguid,
       backedUp: credentialBackedUp,
-      name: parsed.data.name ?? null
-    }
+      name: parsed.data.name ?? null,
+    },
   })
   clearChallengeCookie(response)
   response.status(201).json({ ok: true })
@@ -301,17 +343,24 @@ authRouter.post('/passkey/register/verify', async (request, response) => {
 // Begin a passwordless sign-in with a discoverable passkey.
 authRouter.post('/passkey/authenticate/options', async (_request, response) => {
   const rp = relyingParty()
-  const options = await generateAuthenticationOptions({ rpID: rp.id, userVerification: 'preferred' })
+  const options = await generateAuthenticationOptions({
+    rpID: rp.id,
+    userVerification: 'preferred',
+  })
   setChallengeCookie(response, 'authentication', options.challenge)
   response.json({ options })
 })
 
 // Finish sign-in: verify the assertion against the stored credential, start a session.
 authRouter.post('/passkey/authenticate/verify', async (request, response) => {
-  const assertion = (request.body as { response?: unknown })?.response as AuthenticationResponseJSON | undefined
+  const assertion = (request.body as { response?: unknown })?.response as
+    AuthenticationResponseJSON | undefined
   if (!assertion?.id) throw badRequest('Invalid passkey authentication.')
 
-  const stored = await prisma.passkey.findUnique({ where: { credentialId: assertion.id }, include: { user: true } })
+  const stored = await prisma.passkey.findUnique({
+    where: { credentialId: assertion.id },
+    include: { user: true },
+  })
   if (!stored) throw unauthorized('Passkey not recognized.')
 
   const rp = relyingParty()
@@ -324,15 +373,18 @@ authRouter.post('/passkey/authenticate/verify', async (request, response) => {
       id: stored.credentialId,
       publicKey: new Uint8Array(stored.publicKey),
       counter: stored.counter,
-      transports: csvToTransports(stored.transports)
+      transports: csvToTransports(stored.transports),
     },
-    requireUserVerification: false
+    requireUserVerification: false,
   })
   if (!verification.verified) throw unauthorized('Passkey verification failed.')
 
   await prisma.passkey.update({
     where: { id: stored.id },
-    data: { counter: verification.authenticationInfo.newCounter, lastUsedAt: new Date() }
+    data: {
+      counter: verification.authenticationInfo.newCounter,
+      lastUsedAt: new Date(),
+    },
   })
 
   const session = await createSession(stored.userId, request)
@@ -346,14 +398,18 @@ authRouter.get('/passkeys', async (request, response) => {
   const userId = requireUserId(request)
   const passkeys = await prisma.passkey.findMany({
     where: { userId },
-    orderBy: [{ lastUsedAt: 'desc' }, { createdAt: 'desc' }]
+    orderBy: [{ lastUsedAt: 'desc' }, { createdAt: 'desc' }],
   })
-  response.json(passkeyListResponseSchema.parse({ passkeys: passkeys.map(toPasskey) }))
+  response.json(
+    passkeyListResponseSchema.parse({ passkeys: passkeys.map(toPasskey) }),
+  )
 })
 
 authRouter.delete('/passkeys/:id', async (request, response) => {
   const userId = requireUserId(request)
-  const existing = await prisma.passkey.findFirst({ where: { id: request.params.id, userId } })
+  const existing = await prisma.passkey.findFirst({
+    where: { id: request.params.id, userId },
+  })
   if (!existing) throw notFound('Passkey not found.')
   await prisma.passkey.delete({ where: { id: existing.id } })
   response.json({ ok: true })

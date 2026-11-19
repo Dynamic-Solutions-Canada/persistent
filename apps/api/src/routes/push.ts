@@ -3,7 +3,11 @@
  * their unique value so re-registering never duplicates rows.
  */
 import { Router } from 'express'
-import { pushConfigSchema, registerSubscriptionSchema, unregisterSubscriptionSchema } from '@persistent/shared'
+import {
+  pushConfigSchema,
+  registerSubscriptionSchema,
+  unregisterSubscriptionSchema,
+} from '@persistent/shared'
 import { prisma } from '../lib/prisma.js'
 import { requireUser, requireUserId } from '../lib/auth-middleware.js'
 import { badRequest } from '../lib/http-error.js'
@@ -26,17 +30,24 @@ pushRouter.post('/subscriptions', async (request, response) => {
 
   await prisma.pushSubscription.upsert({
     where: { endpoint },
-    update: { userId, ...(parsed.data.locale ? { locale: parsed.data.locale } : {}), kind: 'FCM', userAgent: readUserAgent(request) },
+    update: {
+      userId,
+      ...(parsed.data.locale ? { locale: parsed.data.locale } : {}),
+      kind: 'FCM',
+      userAgent: readUserAgent(request),
+    },
     create: {
       userId,
       kind: 'FCM',
       endpoint,
       ...(parsed.data.locale ? { locale: parsed.data.locale } : {}),
-      userAgent: readUserAgent(request)
-    }
+      userAgent: readUserAgent(request),
+    },
   })
 
-  const subscriptions = await prisma.pushSubscription.count({ where: { userId } })
+  const subscriptions = await prisma.pushSubscription.count({
+    where: { userId },
+  })
   response.status(201).json({ subscriptions })
 })
 
@@ -46,12 +57,16 @@ pushRouter.delete('/subscriptions', async (request, response) => {
   if (!parsed.success) throw badRequest('Invalid unsubscribe payload.')
 
   const result = await prisma.pushSubscription.deleteMany({
-    where: { userId, endpoint: parsed.data.endpointOrToken }
+    where: { userId, endpoint: parsed.data.endpointOrToken },
   })
   response.json({ removed: result.count > 0 })
 })
 
-function readUserAgent(request: { headers: Record<string, unknown> }): string | undefined {
+function readUserAgent(request: {
+  headers: Record<string, unknown>
+}): string | undefined {
   const value = request.headers['user-agent']
-  return typeof value === 'string' && value.length > 0 ? value.slice(0, 256) : undefined
+  return typeof value === 'string' && value.length > 0
+    ? value.slice(0, 256)
+    : undefined
 }

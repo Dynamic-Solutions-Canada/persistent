@@ -4,60 +4,153 @@ import os from 'node:os'
 import path from 'node:path'
 import { test } from 'node:test'
 
-import { evaluateEdit, isInGeneratedDirectory, loadConfig } from './generated-file-guard.mjs'
+import {
+  evaluateEdit,
+  isInGeneratedDirectory,
+  loadConfig,
+} from './generated-file-guard.mjs'
 
-const config = { generatedDirectories: ['apps/mobile/android'], checkHeaders: true }
+const config = {
+  generatedDirectories: ['apps/mobile/android'],
+  checkHeaders: true,
+}
 
 /** A PreToolUse event for one edit tool and target. */
 function editEvent(cwd: string, toolName: string, target: string) {
   const field = toolName === 'NotebookEdit' ? 'notebook_path' : 'file_path'
-  return { hook_event_name: 'PreToolUse', tool_name: toolName, cwd, tool_input: { [field]: target } }
+  return {
+    hook_event_name: 'PreToolUse',
+    tool_name: toolName,
+    cwd,
+    tool_input: { [field]: target },
+  }
 }
 
 test('files with a generated header are denied while ordinary source stays editable', () => {
   const root = mkdtempSync(path.join(os.tmpdir(), 'generated-file-guard-'))
-  writeFileSync(path.join(root, 'generated.ts'), '/** GENERATED FILE - DO NOT EDIT. */\nexport const value = 1\n')
+  writeFileSync(
+    path.join(root, 'generated.ts'),
+    '/** GENERATED FILE - DO NOT EDIT. */\nexport const value = 1\n',
+  )
   writeFileSync(path.join(root, 'source.ts'), 'export const value = 1\n')
 
-  const denied = evaluateEdit(editEvent(root, 'Edit', 'generated.ts'), config, root)
+  const denied = evaluateEdit(
+    editEvent(root, 'Edit', 'generated.ts'),
+    config,
+    root,
+  )
   assert.equal(denied?.hookSpecificOutput.permissionDecision, 'deny')
-  assert.match(denied?.hookSpecificOutput.permissionDecisionReason ?? '', /generated\.ts/)
+  assert.match(
+    denied?.hookSpecificOutput.permissionDecisionReason ?? '',
+    /generated\.ts/,
+  )
 
-  assert.equal(evaluateEdit(editEvent(root, 'Edit', 'source.ts'), config, root), null)
+  assert.equal(
+    evaluateEdit(editEvent(root, 'Edit', 'source.ts'), config, root),
+    null,
+  )
 })
 
 test('every configured generated directory is denied, header or not, for each edit tool', () => {
   const root = mkdtempSync(path.join(os.tmpdir(), 'generated-file-guard-'))
-  mkdirSync(path.join(root, 'apps', 'mobile', 'android', 'app'), { recursive: true })
-  const target = path.join(root, 'apps', 'mobile', 'android', 'app', 'MainActivity.java')
+  mkdirSync(path.join(root, 'apps', 'mobile', 'android', 'app'), {
+    recursive: true,
+  })
+  const target = path.join(
+    root,
+    'apps',
+    'mobile',
+    'android',
+    'app',
+    'MainActivity.java',
+  )
 
   for (const tool of ['Edit', 'MultiEdit', 'Write', 'NotebookEdit']) {
     const denied = evaluateEdit(editEvent(root, tool, target), config, root)
     assert.equal(denied?.hookSpecificOutput.permissionDecision, 'deny', tool)
-    assert.match(denied?.hookSpecificOutput.permissionDecisionReason ?? '', /apps\/mobile\/android/)
+    assert.match(
+      denied?.hookSpecificOutput.permissionDecisionReason ?? '',
+      /apps\/mobile\/android/,
+    )
   }
 })
 
 test('a sibling whose name only starts like a generated directory is not matched', () => {
   const root = '/repo'
-  assert.equal(isInGeneratedDirectory('/repo/apps/mobile/android/app/A.java', ['apps/mobile/android'], root), true)
-  assert.equal(isInGeneratedDirectory('/repo/apps/mobile/android-plugin/A.java', ['apps/mobile/android'], root), false)
-  assert.equal(isInGeneratedDirectory('/repo/apps/mobile/android-plugin/A.java', ['apps/mobile/android/'], root), false)
+  assert.equal(
+    isInGeneratedDirectory(
+      '/repo/apps/mobile/android/app/A.java',
+      ['apps/mobile/android'],
+      root,
+    ),
+    true,
+  )
+  assert.equal(
+    isInGeneratedDirectory(
+      '/repo/apps/mobile/android-plugin/A.java',
+      ['apps/mobile/android'],
+      root,
+    ),
+    false,
+  )
+  assert.equal(
+    isInGeneratedDirectory(
+      '/repo/apps/mobile/android-plugin/A.java',
+      ['apps/mobile/android/'],
+      root,
+    ),
+    false,
+  )
 })
 
 test('non-edit tools, other events and new files are left alone', () => {
   const root = mkdtempSync(path.join(os.tmpdir(), 'generated-file-guard-'))
-  assert.equal(evaluateEdit({ hook_event_name: 'PreToolUse', tool_name: 'Bash', cwd: root, tool_input: { command: 'ls' } }, config, root), null)
-  assert.equal(evaluateEdit({ ...editEvent(root, 'Edit', 'x.ts'), hook_event_name: 'PostToolUse' }, config, root), null)
-  assert.equal(evaluateEdit(editEvent(root, 'Write', 'new-file.ts'), config, root), null)
+  assert.equal(
+    evaluateEdit(
+      {
+        hook_event_name: 'PreToolUse',
+        tool_name: 'Bash',
+        cwd: root,
+        tool_input: { command: 'ls' },
+      },
+      config,
+      root,
+    ),
+    null,
+  )
+  assert.equal(
+    evaluateEdit(
+      { ...editEvent(root, 'Edit', 'x.ts'), hook_event_name: 'PostToolUse' },
+      config,
+      root,
+    ),
+    null,
+  )
+  assert.equal(
+    evaluateEdit(editEvent(root, 'Write', 'new-file.ts'), config, root),
+    null,
+  )
 })
 
 test('the header check can be turned off, and a missing config means defaults', () => {
   const root = mkdtempSync(path.join(os.tmpdir(), 'generated-file-guard-'))
-  writeFileSync(path.join(root, 'generated.ts'), '// generated by tool, do not edit\n')
-  assert.equal(evaluateEdit(editEvent(root, 'Edit', 'generated.ts'), { generatedDirectories: [], checkHeaders: false }, root), null)
+  writeFileSync(
+    path.join(root, 'generated.ts'),
+    '// generated by tool, do not edit\n',
+  )
+  assert.equal(
+    evaluateEdit(
+      editEvent(root, 'Edit', 'generated.ts'),
+      { generatedDirectories: [], checkHeaders: false },
+      root,
+    ),
+    null,
+  )
 
-  assert.deepEqual(loadConfig(path.join(root, 'missing.json')), { generatedDirectories: [], checkHeaders: true })
+  assert.deepEqual(loadConfig(path.join(root, 'missing.json')), {
+    generatedDirectories: [],
+    checkHeaders: true,
+  })
 })
 
 test("this repo's config protects the Capacitor Android project", () => {

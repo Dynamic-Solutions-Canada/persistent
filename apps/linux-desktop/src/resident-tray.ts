@@ -10,14 +10,23 @@ export class ResidentTray {
   private checking = false
   private monitor: ReturnType<typeof setInterval>
 
-  constructor(private icon: string, private menu: Menu, private activate: (bounds?: Rectangle) => void, private log: (message: string, error?: unknown) => void) {
+  constructor(
+    private icon: string,
+    private menu: Menu,
+    private activate: (bounds?: Rectangle) => void,
+    private log: (message: string, error?: unknown) => void,
+  ) {
     this.tray = this.create()
-    this.monitor = setInterval(() => { void this.check() }, 10_000)
+    this.monitor = setInterval(() => {
+      void this.check()
+    }, 10_000)
     void this.check()
   }
 
   private create(): Tray {
-    const tray = new Tray(nativeImage.createFromPath(this.icon).resize({ width: 32, height: 32 }))
+    const tray = new Tray(
+      nativeImage.createFromPath(this.icon).resize({ width: 32, height: 32 }),
+    )
     tray.setToolTip('Persistent')
     tray.setContextMenu(this.menu)
     tray.on('click', (_event, bounds, position) => {
@@ -47,9 +56,14 @@ export class ResidentTray {
   }
 
   /** Replace only menu wording; tray identity, activation and positioning stay intact. */
-  setMenu(menu: Menu): void { this.menu = menu; this.tray.setContextMenu(menu) }
+  setMenu(menu: Menu): void {
+    this.menu = menu
+    this.tray.setContextMenu(menu)
+  }
 
-  getBounds(): Rectangle { return this.tray.getBounds() }
+  getBounds(): Rectangle {
+    return this.tray.getBounds()
+  }
 
   destroy(): void {
     this.disposed = true

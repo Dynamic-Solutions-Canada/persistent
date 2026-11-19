@@ -23,6 +23,6 @@ export function firingSounds(sounds: unknown, alarm: boolean): FiringSounds {
   const chosen = toReminderSounds(sounds)
   return {
     sound: alarm ? chosen.alarm : chosen.notification,
-    nagSound: alarm ? null : chosen.nag
+    nagSound: alarm ? null : chosen.nag,
   }
 }

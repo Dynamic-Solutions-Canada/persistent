@@ -17,7 +17,7 @@ import { BackAwareModal } from '../../components/BackAwareModal.js'
 export function DiscardChangesDialog({
   open,
   onKeepEditing,
-  onDiscard
+  onDiscard,
 }: {
   open: boolean
   onKeepEditing: () => void
@@ -27,13 +27,24 @@ export function DiscardChangesDialog({
   return (
     <BackAwareModal open={open} onClose={onKeepEditing}>
       <ModalDialog variant="outlined">
-        <DialogTitle>{tr("Discard changes?")}</DialogTitle>
-        <DialogContent>{tr("Your edits to this reminder haven't been saved.")}</DialogContent>
+        <DialogTitle>{tr('Discard changes?')}</DialogTitle>
+        <DialogContent>
+          {tr("Your edits to this reminder haven't been saved.")}
+        </DialogContent>
         <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
           {/* Keep editing leads, and is the plain-Enter default: discarding is the
               destructive one, so it should take a deliberate tap. */}
-          <Button variant="solid" onClick={onKeepEditing} sx={{ flex: 1 }} autoFocus>{tr("Keep editing")}</Button>
-          <Button variant="plain" color="danger" onClick={onDiscard}>{tr("Discard")}</Button>
+          <Button
+            variant="solid"
+            onClick={onKeepEditing}
+            sx={{ flex: 1 }}
+            autoFocus
+          >
+            {tr('Keep editing')}
+          </Button>
+          <Button variant="plain" color="danger" onClick={onDiscard}>
+            {tr('Discard')}
+          </Button>
         </Stack>
       </ModalDialog>
     </BackAwareModal>

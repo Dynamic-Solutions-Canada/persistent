@@ -15,6 +15,7 @@
  * working on a plain-http origin rather than minting colliding ids.
  */
 export function newTodoItemId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+    return crypto.randomUUID()
   return `i${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`
 }

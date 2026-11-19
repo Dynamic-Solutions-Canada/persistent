@@ -14,27 +14,38 @@ export async function actionableOccurrence(id: string, actorId: string) {
       id,
       OR: [
         { userId: actorId },
-        { reminder: { shares: { some: { recipientId: actorId } } } }
-      ]
+        { reminder: { shares: { some: { recipientId: actorId } } } },
+      ],
     },
-    include: { reminder: true }
+    include: { reminder: true },
   })
 }
 
 /** Apply the actor's own snooze and escalation state after access was checked. */
-export async function personalOccurrence<T extends ReminderOccurrence>(occurrence: T, actorId: string): Promise<T> {
+export async function personalOccurrence<T extends ReminderOccurrence>(
+  occurrence: T,
+  actorId: string,
+): Promise<T> {
   if (occurrence.userId === actorId) return occurrence
   const state = await prisma.recipientAlertState.findUnique({
-    where: { occurrenceId_recipientId: { occurrenceId: occurrence.id, recipientId: actorId } }
+    where: {
+      occurrenceId_recipientId: {
+        occurrenceId: occurrence.id,
+        recipientId: actorId,
+      },
+    },
   })
   return occurrenceForActor(occurrence, actorId, state)
 }
 
 /** Owner and current recipients who must receive a shared Done or definition change. */
-export async function participantIds(reminderId: string, ownerId: string): Promise<string[]> {
+export async function participantIds(
+  reminderId: string,
+  ownerId: string,
+): Promise<string[]> {
   const shares = await prisma.reminderShare.findMany({
     where: { reminderId, reminder: { userId: ownerId } },
-    select: { recipientId: true }
+    select: { recipientId: true },
   })
   return [ownerId, ...shares.map((share) => share.recipientId)]
 }
@@ -44,11 +55,8 @@ export async function editableReminder(id: string, actorId: string) {
   return prisma.reminder.findFirst({
     where: {
       id,
-      OR: [
-        { userId: actorId },
-        { shares: { some: { recipientId: actorId } } }
-      ]
-    }
+      OR: [{ userId: actorId }, { shares: { some: { recipientId: actorId } } }],
+    },
   })
 }
 
@@ -57,25 +65,28 @@ export async function actionableReminder(id: string, actorId: string) {
   return prisma.reminder.findFirst({
     where: {
       id,
-      OR: [
-        { userId: actorId },
-        { shares: { some: { recipientId: actorId } } }
-      ]
-    }
+      OR: [{ userId: actorId }, { shares: { some: { recipientId: actorId } } }],
+    },
   })
 }
 
 /** Refresh recipient web views and native alarms after a shared definition or firing changes. */
-export async function broadcastSharedChange(reminderId: string, ownerId: string) {
+export async function broadcastSharedChange(
+  reminderId: string,
+  ownerId: string,
+) {
   await broadcastAssignmentProgress(reminderId)
   const shares = await prisma.reminderShare.findMany({
     where: { reminderId, reminder: { userId: ownerId } },
-    select: { recipientId: true }
+    select: { recipientId: true },
   })
   for (const share of shares) {
     broadcast(share.recipientId, { type: 'reminder.changed', reminderId })
     void nudgeNativeSync(share.recipientId).catch((error) =>
-      logger.warn('shared reminder sync nudge failed', { error: String(error), reminderId })
+      logger.warn('shared reminder sync nudge failed', {
+        error: String(error),
+        reminderId,
+      }),
     )
   }
 }

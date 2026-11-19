@@ -2,7 +2,8 @@ import { tr } from '../localization/i18n.js'
 /** Curated doodle ink colors, restricted to pale or dark shades by the active theme. */
 import type { AppTheme } from './themes.js'
 
-export type DoodleColorId = 'theme' | 'gray' | 'blue' | 'green' | 'pink' | 'purple' | 'amber'
+export type DoodleColorId =
+  'theme' | 'gray' | 'blue' | 'green' | 'pink' | 'purple' | 'amber'
 
 interface DoodleColor {
   id: DoodleColorId
@@ -19,7 +20,7 @@ const DOODLE_COLORS: DoodleColor[] = [
   { id: 'green', name: 'green', light: '#bdd5c4', dark: '#31513e' },
   { id: 'pink', name: 'pink', light: '#e2c1cf', dark: '#593848' },
   { id: 'purple', name: 'purple', light: '#cfc4e5', dark: '#4a3c60' },
-  { id: 'amber', name: 'amber', light: '#e1cfad', dark: '#57492f' }
+  { id: 'amber', name: 'amber', light: '#e1cfad', dark: '#57492f' },
 ]
 
 /** Validate persisted values; unknown or malformed values use the theme's own ink. */
@@ -28,18 +29,23 @@ export function readDoodleColor(value: unknown): DoodleColorId {
 }
 
 /** Offer only the shades appropriate to the theme; ids keep the hue across mode changes. */
-export function doodleColorOptions(theme: AppTheme): Array<{ id: DoodleColorId; name: string; color: string }> {
+export function doodleColorOptions(
+  theme: AppTheme,
+): Array<{ id: DoodleColorId; name: string; color: string }> {
   return [
     { id: 'theme', name: 'Match theme', color: theme.doodleColor },
     ...DOODLE_COLORS.map((color) => ({
       id: color.id,
       name: tr(`doodle.${theme.mode}.${color.id}`),
-      color: color[theme.mode]
-    }))
+      color: color[theme.mode],
+    })),
   ]
 }
 
 /** Resolve the selected hue using the active theme's permitted shade. */
 export function doodleStroke(theme: AppTheme, id: DoodleColorId): string {
-  return DOODLE_COLORS.find((color) => color.id === id)?.[theme.mode] ?? theme.doodleColor
+  return (
+    DOODLE_COLORS.find((color) => color.id === id)?.[theme.mode] ??
+    theme.doodleColor
+  )
 }

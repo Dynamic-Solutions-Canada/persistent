@@ -101,17 +101,17 @@
   `FcmService` acts on pushes when the bridge is dead (see `docs/alarm-architecture.md`).
 - **Client display prefs** (time format, theme, chosen sounds, and the
   device-default notification-shade prominence) live in `settings/useSettings.tsx`
-  (localStorage-backed, per-device: not server-synced). They describe a *device*,
+  (localStorage-backed, per-device: not server-synced). They describe a _device_,
   which is what makes local right for them. The one display state that is **not**
   local is whether a checklist's ticked items are collapsed
   (`Reminder.hideCheckedItems`, `data/reminders.ts` `useSetHideCheckedItems`): it
-  describes one *list*, and the whole point is that a list stays as you left it on
+  describes one _list_, and the whole point is that a list stays as you left it on
   your other device. Don't move a per-list view state into `useSettings`, and
   don't put a device-shaped preference on the reminder. **Sounds sit on both sides
   of that line, and the two are not the same setting**: `useSettings` holds the
-  tones *this device* plays, while `Reminder.sounds` holds the tones *one reminder*
+  tones _this device_ plays, while `Reminder.sounds` holds the tones _one reminder_
   overrides them with (shared `reminderSoundsSchema`, `pages/reminder-editor/
-  ReminderSoundsField.tsx`). The reminder one is not a device preference wearing a
+ReminderSoundsField.tsx`). The reminder one is not a device preference wearing a
   disguise: "this reminder sounds like this" is a property of the reminder and
   belongs on every device. This does mean a reminder can carry a tone URI that
   this device cannot resolve, which is why the pair travels as `{ uri, title }` and
@@ -142,7 +142,7 @@
   must do nothing.
 - **The Windows tray app's own settings render on this Settings page**
   (`native/desktop-settings/`), so there is one Settings screen per product
-  rather than one per host. They are a *third* storage category, distinct from both
+  rather than one per host. They are a _third_ storage category, distinct from both
   above: the host owns them, per machine, and this page holds no copy. It renders
   what the host sends and posts back changes (`native/useHostSettings.ts`). Don't
   put them in `useSettings`, and don't cache them. The cards render nothing until

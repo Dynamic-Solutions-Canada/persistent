@@ -17,7 +17,10 @@ import { GoogleAuthNative, isNative } from '../native/alarmBridge.js'
 interface GoogleIdentityServices {
   accounts: {
     id: {
-      initialize: (config: { client_id: string; callback: (r: { credential: string }) => void }) => void
+      initialize: (config: {
+        client_id: string
+        callback: (r: { credential: string }) => void
+      }) => void
       renderButton: (el: HTMLElement, options: Record<string, unknown>) => void
     }
   }
@@ -57,23 +60,33 @@ function loadGis(language: string): Promise<GoogleIdentityServices> {
 /** Google's localized button API requires the SDK's language parameter as well as renderButton.locale. */
 function loadGisScript(language: string): Promise<GoogleIdentityServices> {
   return new Promise((resolve, reject) => {
-    document.querySelectorAll('script[data-persistent-gis]').forEach((script) => script.remove())
+    document
+      .querySelectorAll('script[data-persistent-gis]')
+      .forEach((script) => script.remove())
     const script = document.createElement('script')
     script.dataset.persistentGis = 'true'
     script.src = `${GIS_SRC}?hl=${encodeURIComponent(language)}`
     script.async = true
     script.defer = true
     script.onload = () => {
-      const google = (window as unknown as { google?: GoogleIdentityServices }).google
+      const google = (window as unknown as { google?: GoogleIdentityServices })
+        .google
       if (google?.accounts?.id) resolve(google)
       else reject(new Error(tr('Google sign-in failed to load.')))
     }
-    script.onerror = () => reject(new Error(tr('Google sign-in failed to load.')))
+    script.onerror = () =>
+      reject(new Error(tr('Google sign-in failed to load.')))
     document.head.appendChild(script)
   })
 }
 
-export function GoogleSignInButton({ clientId, onError }: { clientId: string; onError: (message: string) => void }) {
+export function GoogleSignInButton({
+  clientId,
+  onError,
+}: {
+  clientId: string
+  onError: (message: string) => void
+}) {
   useTranslation()
   const { loginWithGoogle } = useAuth()
   const { locale } = useSettings()
@@ -91,10 +104,17 @@ export function GoogleSignInButton({ clientId, onError }: { clientId: string; on
         gis.accounts.id.initialize({
           client_id: clientId,
           callback: ({ credential }) => {
-            void loginWithGoogle(credential).catch((error) => onError(extractErrorMessage(error, tr("Couldn't sign in with Google."))))
-          }
+            void loginWithGoogle(credential).catch((error) =>
+              onError(
+                extractErrorMessage(error, tr("Couldn't sign in with Google.")),
+              ),
+            )
+          },
         })
-        const width = Math.min(400, Math.max(200, Math.floor(webButtonRef.current.clientWidth) || 320))
+        const width = Math.min(
+          400,
+          Math.max(200, Math.floor(webButtonRef.current.clientWidth) || 320),
+        )
         gis.accounts.id.renderButton(webButtonRef.current, {
           locale: language,
           type: 'standard',
@@ -103,10 +123,13 @@ export function GoogleSignInButton({ clientId, onError }: { clientId: string; on
           shape: 'rectangular',
           text: 'continue_with',
           logo_alignment: 'left',
-          width
+          width,
         })
       } catch (error) {
-        if (!cancelled) onError(extractErrorMessage(error, tr("Couldn't load Google sign-in.")))
+        if (!cancelled)
+          onError(
+            extractErrorMessage(error, tr("Couldn't load Google sign-in.")),
+          )
       }
     })()
 
@@ -124,16 +147,27 @@ export function GoogleSignInButton({ clientId, onError }: { clientId: string; on
         startDecorator={<GoogleIcon />}
         onClick={async () => {
           try {
-            const { idToken } = await GoogleAuthNative.signIn({ serverClientId: clientId })
+            const { idToken } = await GoogleAuthNative.signIn({
+              serverClientId: clientId,
+            })
             await loginWithGoogle(idToken)
           } catch (err) {
-            onError(extractErrorMessage(err, tr("Couldn't sign in with Google.")))
+            onError(
+              extractErrorMessage(err, tr("Couldn't sign in with Google.")),
+            )
           }
         }}
-      >{tr("Continue with Google")}</Button>
+      >
+        {tr('Continue with Google')}
+      </Button>
     )
   }
 
   // Web: GIS renders its own button into this full-width element.
-  return <div ref={webButtonRef} style={{ width: '100%', display: 'flex', justifyContent: 'center' }} />
+  return (
+    <div
+      ref={webButtonRef}
+      style={{ width: '100%', display: 'flex', justifyContent: 'center' }}
+    />
+  )
 }

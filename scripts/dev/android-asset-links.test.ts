@@ -16,15 +16,20 @@ interface AssetLinkStatement {
   }
 }
 
-const statements = JSON.parse(readFileSync(
-  new URL('../../apps/web/public/.well-known/assetlinks.json', import.meta.url),
-  'utf8'
-)) as AssetLinkStatement[]
+const statements = JSON.parse(
+  readFileSync(
+    new URL(
+      '../../apps/web/public/.well-known/assetlinks.json',
+      import.meta.url,
+    ),
+    'utf8',
+  ),
+) as AssetLinkStatement[]
 
 test('both Android distributions have explicit signed app associations', () => {
   assert.deepEqual(statements.map(({ target }) => target.package_name).sort(), [
     'ca.dynamicsolutions.persistent',
-    'ca.persistent.app'
+    'ca.persistent.app',
   ])
   for (const { target } of statements) {
     assert.equal(target.namespace, 'android_app')
@@ -37,7 +42,13 @@ test('both Android distributions have explicit signed app associations', () => {
 
 test('every distribution supports Bitwarden and credential-sharing association checks', () => {
   for (const { relation, target } of statements) {
-    assert.ok(relation.includes('delegate_permission/common.get_login_creds'), target.package_name)
-    assert.ok(relation.includes('delegate_permission/common.handle_all_urls'), target.package_name)
+    assert.ok(
+      relation.includes('delegate_permission/common.get_login_creds'),
+      target.package_name,
+    )
+    assert.ok(
+      relation.includes('delegate_permission/common.handle_all_urls'),
+      target.package_name,
+    )
   }
 })

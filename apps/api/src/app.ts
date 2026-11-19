@@ -7,7 +7,11 @@ import { localizedError } from './lib/localized-error.js'
 import { requestLocale } from './lib/request-locale.js'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
-import express, { type NextFunction, type Request, type Response } from 'express'
+import express, {
+  type NextFunction,
+  type Request,
+  type Response,
+} from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import { clientOrigins, env } from './lib/env.js'
@@ -40,20 +44,20 @@ export function createApp() {
           'script-src': ["'self'", 'https://accounts.google.com/gsi/client'],
           'connect-src': ["'self'", 'https://accounts.google.com/gsi/'],
           'frame-src': ["'self'", 'https://accounts.google.com/gsi/'],
-          'img-src': ["'self'", 'data:', 'https://*.googleusercontent.com']
-        }
+          'img-src': ["'self'", 'data:', 'https://*.googleusercontent.com'],
+        },
       },
       // Google Identity Services signs in via a popup that must postMessage the
       // credential back to us; the default COOP 'same-origin' severs that link
       // (leaving a blank accounts.google.com/gsi/transform popup).
-      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' }
-    })
+      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+    }),
   )
   app.use(
     cors({
       origin: clientOrigins.length > 0 ? clientOrigins : true,
-      credentials: true
-    })
+      credentials: true,
+    }),
   )
   app.use(express.json({ limit: '256kb' }))
 
@@ -78,7 +82,9 @@ export function createApp() {
 
   // 404 for unknown API routes.
   app.use('/api', (request, response) => {
-    response.status(404).json(localizedError('Not found.', requestLocale(request)))
+    response
+      .status(404)
+      .json(localizedError('Not found.', requestLocale(request)))
   })
 
   // In production, serve the built web app from the same origin (no CORS, cookies
@@ -103,20 +109,32 @@ export function createApp() {
     // SPA fallback. Express 5 (path-to-regexp v8) rejects the bare '*' string
     // route, so match with a RegExp and skip API/WS paths.
     app.get(/.*/, (request, response, next) => {
-      if (request.path.startsWith('/api') || request.path === '/ws') return next()
+      if (request.path.startsWith('/api') || request.path === '/ws')
+        return next()
       response.sendFile(path.join(webDir, 'index.html'))
     })
   }
 
   // Centralized JSON error handler.
-  app.use((error: unknown, request: Request, response: Response, _next: NextFunction) => {
-    if (error instanceof HttpError) {
-      response.status(error.statusCode).json(localizedError(error.message, requestLocale(request)))
-      return
-    }
-    logger.error('unhandled error', { error: String(error) })
-    response.status(500).json(localizedError('Internal server error.', requestLocale(request)))
-  })
+  app.use(
+    (
+      error: unknown,
+      request: Request,
+      response: Response,
+      _next: NextFunction,
+    ) => {
+      if (error instanceof HttpError) {
+        response
+          .status(error.statusCode)
+          .json(localizedError(error.message, requestLocale(request)))
+        return
+      }
+      logger.error('unhandled error', { error: String(error) })
+      response
+        .status(500)
+        .json(localizedError('Internal server error.', requestLocale(request)))
+    },
+  )
 
   return app
 }

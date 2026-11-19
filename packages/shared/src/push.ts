@@ -13,19 +13,23 @@ export type PushKind = (typeof pushKinds)[number]
 export const registerSubscriptionSchema = z.object({
   kind: z.literal('FCM'),
   token: z.string().min(1).max(4096),
-  locale: localeSchema.optional()
+  locale: localeSchema.optional(),
 })
-export type RegisterSubscriptionInput = z.infer<typeof registerSubscriptionSchema>
+export type RegisterSubscriptionInput = z.infer<
+  typeof registerSubscriptionSchema
+>
 
 /** Body for DELETE /api/push/subscriptions. */
 export const unregisterSubscriptionSchema = z.object({
-  endpointOrToken: z.string().min(1)
+  endpointOrToken: z.string().min(1),
 })
-export type UnregisterSubscriptionInput = z.infer<typeof unregisterSubscriptionSchema>
+export type UnregisterSubscriptionInput = z.infer<
+  typeof unregisterSubscriptionSchema
+>
 
 /** Response for GET /api/push/config. */
 export const pushConfigSchema = z.object({
-  fcmEnabled: z.boolean()
+  fcmEnabled: z.boolean(),
 })
 export type PushConfig = z.infer<typeof pushConfigSchema>
 
@@ -45,7 +49,10 @@ export const pushPayloadSchema = z.object({
   /** Internal/transitional literal body. FCM strips this duplicate and emits bodyRange instead. */
   baseBody: z.string().optional(),
   /** FCM only: UTF-16 start:length of the literal base body within localized legacy body. */
-  bodyRange: z.string().regex(/^\d+:\d+$/).optional(),
+  bodyRange: z
+    .string()
+    .regex(/^\d+:\d+$/)
+    .optional(),
   locale: localeSchema.optional(),
   alarm: z.boolean().optional(),
   soundIntervalSeconds: z.number().int().nullable().optional(),
@@ -62,6 +69,6 @@ export const pushPayloadSchema = z.object({
   soundUri: z.string().optional(),
   soundTitle: z.string().optional(),
   nagSoundUri: z.string().optional(),
-  nagSoundTitle: z.string().optional()
+  nagSoundTitle: z.string().optional(),
 })
 export type PushPayload = z.infer<typeof pushPayloadSchema>

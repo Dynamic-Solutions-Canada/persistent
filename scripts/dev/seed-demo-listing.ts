@@ -86,21 +86,28 @@ function lastPassed(hhmm: string): Date {
  * did not: seeded on a Wednesday, a Monday reminder produced a Wednesday firing.
  */
 function lastPassedOn(weekday: number, hhmm: string): Date {
-  let candidate = now.minus({ days: (now.weekday - weekday + 7) % 7 }).startOf('day')
-  if (at(candidate, hhmm).getTime() > now.toMillis()) candidate = candidate.minus({ weeks: 1 })
+  let candidate = now
+    .minus({ days: (now.weekday - weekday + 7) % 7 })
+    .startOf('day')
+  if (at(candidate, hhmm).getTime() > now.toMillis())
+    candidate = candidate.minus({ weeks: 1 })
   return at(candidate, hhmm)
 }
 
 function nextOn(weekday: number, hhmm: string): Date {
-  let candidate = now.plus({ days: (weekday - now.weekday + 7) % 7 }).startOf('day')
-  if (at(candidate, hhmm).getTime() <= now.toMillis()) candidate = candidate.plus({ weeks: 1 })
+  let candidate = now
+    .plus({ days: (weekday - now.weekday + 7) % 7 })
+    .startOf('day')
+  if (at(candidate, hhmm).getTime() <= now.toMillis())
+    candidate = candidate.plus({ weeks: 1 })
   return at(candidate, hhmm)
 }
 
 /** The same idea for a monthly reminder: the last day-of-month `dom` at `hhmm`. */
 function lastPassedOnDay(dom: number, hhmm: string): Date {
   let candidate = now.set({ day: dom }).startOf('day')
-  if (at(candidate, hhmm).getTime() > now.toMillis()) candidate = candidate.minus({ months: 1 })
+  if (at(candidate, hhmm).getTime() > now.toMillis())
+    candidate = candidate.minus({ months: 1 })
   return at(candidate, hhmm)
 }
 
@@ -113,9 +120,10 @@ const puppyDone = lastPassed('18:00')
 const plantsDue = lastPassed('09:00')
 // School-day routines must not show a weekend firing in the store screenshots.
 const outTheDoorDay = DateTime.fromJSDate(lastPassed('08:15')).setZone(ZONE)
-const outTheDoorDue = outTheDoorDay.weekday > 5
-  ? outTheDoorDay.minus({ days: outTheDoorDay.weekday - 5 }).toJSDate()
-  : outTheDoorDay.toJSDate()
+const outTheDoorDue =
+  outTheDoorDay.weekday > 5
+    ? outTheDoorDay.minus({ days: outTheDoorDay.weekday - 5 }).toJSDate()
+    : outTheDoorDay.toJSDate()
 const binsDue = lastPassedOn(1, '18:30')
 const timesheetNext = nextOn(5, '16:00')
 const timesheetDone = lastPassedOn(5, '16:00')
@@ -139,18 +147,18 @@ const groceries = [
   { id: 'gr-1', text: 'Dog food' },
   { id: 'gr-2', text: 'Coffee' },
   { id: 'gr-3', text: 'Bread' },
-  { id: 'gr-4', text: 'Dish soap' }
+  { id: 'gr-4', text: 'Dish soap' },
 ]
 const trip = [
   { id: 'tr-1', text: 'Passports' },
   { id: 'tr-2', text: 'Chargers' },
-  { id: 'tr-3', text: 'Hold the mail' }
+  { id: 'tr-3', text: 'Hold the mail' },
 ]
 const outTheDoor = [
   { id: 'go-1', text: 'Lunches packed' },
   { id: 'go-2', text: 'Water bottles filled' },
   { id: 'go-3', text: 'Homework in bags' },
-  { id: 'go-4', text: 'Bus passes' }
+  { id: 'go-4', text: 'Bus passes' },
 ]
 
 const seeds: Seed[] = [
@@ -160,11 +168,15 @@ const seeds: Seed[] = [
       title: 'Feed the puppy',
       details: 'Half a cup of kibble, and fresh water.',
       type: 'NONE',
-      schedule: { kind: 'daily', timesOfDay: ['08:00', '18:00'], skipWeekends: false },
+      schedule: {
+        kind: 'daily',
+        timesOfDay: ['08:00', '18:00'],
+        skipWeekends: false,
+      },
       persistence: 'PERSISTENT',
       // No escalation on anything with a live firing: the sweep would flip it to
       // ESCALATED within a minute and the card would read "Escalated", not "Due".
-      startDate: isoDay(-6)
+      startDate: isoDay(-6),
     },
     occurrences: [
       { scheduledFor: puppyDue, status: 'FIRED', firedAt: puppyDue },
@@ -172,9 +184,9 @@ const seeds: Seed[] = [
         scheduledFor: puppyDone,
         status: 'ACKNOWLEDGED',
         firedAt: puppyDone,
-        acknowledgedAt: new Date(puppyDone.getTime() + 6 * MINUTE)
-      }
-    ]
+        acknowledgedAt: new Date(puppyDone.getTime() + 6 * MINUTE),
+      },
+    ],
   },
   {
     note: 'due — second distinct card on Current',
@@ -182,11 +194,18 @@ const seeds: Seed[] = [
       title: 'Water the plants',
       details: 'Back bed first, then the tomatoes.',
       type: 'NONE',
-      schedule: { kind: 'interval', timesOfDay: ['09:00'], everyNDays: 3, skipWeekends: false },
+      schedule: {
+        kind: 'interval',
+        timesOfDay: ['09:00'],
+        everyNDays: 3,
+        skipWeekends: false,
+      },
       persistence: 'PERSISTENT',
-      startDate: isoDay(-6)
+      startDate: isoDay(-6),
     },
-    occurrences: [{ scheduledFor: plantsDue, status: 'FIRED', firedAt: plantsDue }]
+    occurrences: [
+      { scheduledFor: plantsDue, status: 'FIRED', firedAt: plantsDue },
+    ],
   },
   {
     // The one live checklist. `checkedItems` sits on the occurrence, not the
@@ -200,11 +219,16 @@ const seeds: Seed[] = [
       typeData: { items: outTheDoor },
       schedule: { kind: 'daily', timesOfDay: ['08:15'], skipWeekends: true },
       persistence: 'PERSISTENT',
-      startDate: isoDay(-14)
+      startDate: isoDay(-14),
     },
     occurrences: [
-      { scheduledFor: outTheDoorDue, status: 'FIRED', firedAt: outTheDoorDue, checkedItems: ['go-1', 'go-2'] }
-    ]
+      {
+        scheduledFor: outTheDoorDue,
+        status: 'FIRED',
+        firedAt: outTheDoorDue,
+        checkedItems: ['go-1', 'go-2'],
+      },
+    ],
   },
   {
     note: 'due — third distinct card, and the reminder the alarm shot uses',
@@ -216,9 +240,9 @@ const seeds: Seed[] = [
       // PERSISTENT on purpose: seeded as ALARM it would ring the moment the phone
       // syncs. The full-screen alarm shot flips this reminder over deliberately.
       persistence: 'PERSISTENT',
-      startDate: isoDay(-21)
+      startDate: isoDay(-21),
     },
-    occurrences: [{ scheduledFor: binsDue, status: 'FIRED', firedAt: binsDue }]
+    occurrences: [{ scheduledFor: binsDue, status: 'FIRED', firedAt: binsDue }],
   },
   {
     note: 'escalation configured, nothing live — the Escalation tab shot opens this',
@@ -229,7 +253,7 @@ const seeds: Seed[] = [
       schedule: { kind: 'weekly', timesOfDay: ['16:00'], daysOfWeek: [5] },
       persistence: 'PERSISTENT',
       escalateAfterMinutes: 30,
-      startDate: isoDay(-28)
+      startDate: isoDay(-28),
     },
     occurrences: [
       { scheduledFor: timesheetNext, status: 'PENDING' },
@@ -237,9 +261,9 @@ const seeds: Seed[] = [
         scheduledFor: timesheetDone,
         status: 'ACKNOWLEDGED',
         firedAt: timesheetDone,
-        acknowledgedAt: new Date(timesheetDone.getTime() + 21 * MINUTE)
-      }
-    ]
+        acknowledgedAt: new Date(timesheetDone.getTime() + 21 * MINUTE),
+      },
+    ],
   },
   {
     note: 'checklist, not yet due — shows the Checklist type the copy still sells',
@@ -248,20 +272,22 @@ const seeds: Seed[] = [
       type: 'TODO',
       typeData: { items: groceries },
       schedule: { kind: 'once', timesOfDay: ['17:30'] },
-      startDate: isoDay(1)
+      startDate: isoDay(1),
     },
-    occurrences: [{ scheduledFor: at(day(1), '17:30'), status: 'PENDING' }]
+    occurrences: [{ scheduledFor: at(day(1), '17:30'), status: 'PENDING' }],
   },
   {
     note: 'synthetic medication, scheduled for tomorrow so the editor shows the dose without a live alarm',
     reminder: {
       title: 'Take vitamin D',
       type: 'MEDICATION',
-      typeData: { medications: [{ name: 'Vitamin D', quantity: 1000, unit: 'IU' }] },
+      typeData: {
+        medications: [{ name: 'Vitamin D', quantity: 1000, unit: 'IU' }],
+      },
       schedule: { kind: 'once', timesOfDay: ['09:00'] },
-      startDate: isoDay(1)
+      startDate: isoDay(1),
     },
-    occurrences: [{ scheduledFor: at(day(1), '09:00'), status: 'PENDING' }]
+    occurrences: [{ scheduledFor: at(day(1), '09:00'), status: 'PENDING' }],
   },
   {
     note: 'a note — sits under Notes on Current, never fires',
@@ -271,8 +297,8 @@ const seeds: Seed[] = [
       typeData: { items: trip },
       schedule: { kind: 'never', timesOfDay: [] },
       checkedItems: ['tr-1'],
-      startDate: isoDay()
-    }
+      startDate: isoDay(),
+    },
   },
   {
     note: 'monthly — a distinct History row and a distant Upcoming entry',
@@ -280,26 +306,31 @@ const seeds: Seed[] = [
       title: 'Change the furnace filter',
       details: 'Sizes are on the shelf above the washer.',
       type: 'NONE',
-      schedule: { kind: 'monthly', timesOfDay: ['10:00'], daysOfMonth: [1], lastDayOfMonth: false },
+      schedule: {
+        kind: 'monthly',
+        timesOfDay: ['10:00'],
+        daysOfMonth: [1],
+        lastDayOfMonth: false,
+      },
       persistence: 'PERSISTENT',
-      startDate: isoDay(-40)
+      startDate: isoDay(-40),
     },
     occurrences: [
       {
         scheduledFor: filterDone,
         status: 'ACKNOWLEDGED',
         firedAt: filterDone,
-        acknowledgedAt: new Date(filterDone.getTime() + 2 * HOUR)
-      }
-    ]
-  }
+        acknowledgedAt: new Date(filterDone.getTime() + 2 * HOUR),
+      },
+    ],
+  },
 ]
 
 async function main(): Promise<void> {
   if (!emailArg) {
     throw new Error(
       'Pass --email=<demo account>. There is no default: this script is pointed at\n' +
-        'production to set up the store demo account, and it replaces that user\'s reminders.'
+        "production to set up the store demo account, and it replaces that user's reminders.",
     )
   }
   const user = await prisma.user.findUnique({ where: { email: emailArg } })
@@ -308,31 +339,49 @@ async function main(): Promise<void> {
   console.log(`Target: ${user.email} (${user.id})`)
 
   if (dryRun) {
-    const fmt = (d: Date) => DateTime.fromJSDate(d).setZone(ZONE).toFormat('ccc d LLL yyyy, h:mm a')
-    console.log(`Dry run: nothing written. Zone ${user.timeZone}${user.timeZone === ZONE ? '' : ` -> ${ZONE}`}.`)
+    const fmt = (d: Date) =>
+      DateTime.fromJSDate(d).setZone(ZONE).toFormat('ccc d LLL yyyy, h:mm a')
+    console.log(
+      `Dry run: nothing written. Zone ${user.timeZone}${user.timeZone === ZONE ? '' : ` -> ${ZONE}`}.`,
+    )
     const existing = await prisma.reminder.count({ where: { userId: user.id } })
-    console.log(`Would remove ${keep ? 0 : existing} reminder(s), then write ${seeds.length}:`)
+    console.log(
+      `Would remove ${keep ? 0 : existing} reminder(s), then write ${seeds.length}:`,
+    )
     for (const seed of seeds) {
       console.log(`  ${String(seed.reminder.title).padEnd(26)} ${seed.note}`)
       for (const occurrence of seed.occurrences ?? []) {
-        console.log(`      ${occurrence.status.padEnd(13)} ${fmt(occurrence.scheduledFor)}`)
+        console.log(
+          `      ${occurrence.status.padEnd(13)} ${fmt(occurrence.scheduledFor)}`,
+        )
       }
     }
     return
   }
 
   if (user.timeZone !== ZONE) {
-    await prisma.user.update({ where: { id: user.id }, data: { timeZone: ZONE } })
-    console.log(`Time zone: ${user.timeZone} -> ${ZONE} (must match the phone, or the times render shifted)`)
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { timeZone: ZONE },
+    })
+    console.log(
+      `Time zone: ${user.timeZone} -> ${ZONE} (must match the phone, or the times render shifted)`,
+    )
   }
 
   if (!keep) {
-    const { count } = await prisma.reminder.deleteMany({ where: { userId: user.id } })
-    console.log(`Removed ${count} existing reminder(s). Account, passkeys and sessions untouched.`)
+    const { count } = await prisma.reminder.deleteMany({
+      where: { userId: user.id },
+    })
+    console.log(
+      `Removed ${count} existing reminder(s). Account, passkeys and sessions untouched.`,
+    )
   }
 
   for (const seed of seeds) {
-    const reminder = await prisma.reminder.create({ data: { ...(seed.reminder as never), userId: user.id } })
+    const reminder = await prisma.reminder.create({
+      data: { ...(seed.reminder as never), userId: user.id },
+    })
     for (const occurrence of seed.occurrences ?? []) {
       await prisma.reminderOccurrence.create({
         data: {
@@ -343,8 +392,8 @@ async function main(): Promise<void> {
           firedAt: occurrence.firedAt ?? null,
           lastNotifiedAt: occurrence.firedAt ?? null,
           acknowledgedAt: occurrence.acknowledgedAt ?? null,
-          checkedItems: occurrence.checkedItems ?? []
-        }
+          checkedItems: occurrence.checkedItems ?? [],
+        },
       })
     }
     console.log(`  + ${reminder.title.padEnd(26)} ${seed.note}`)
@@ -356,9 +405,11 @@ async function main(): Promise<void> {
     ['Feed the puppy', puppyDue],
     ['Get out the door', outTheDoorDue],
     ['Water the plants', plantsDue],
-    ['Take the bins out', binsDue]
+    ['Take the bins out', binsDue],
   ] as const) {
-    console.log(`  ${label.padEnd(20)} ${DateTime.fromJSDate(when).setZone(ZONE).toFormat('ccc d LLL, h:mm a')}`)
+    console.log(
+      `  ${label.padEnd(20)} ${DateTime.fromJSDate(when).setZone(ZONE).toFormat('ccc d LLL, h:mm a')}`,
+    )
   }
 }
 

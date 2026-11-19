@@ -5,7 +5,8 @@ import { NotificationHandles } from './notification-handles.js'
 
 test('daemon ID reuse cannot collide with an application handle or delayed cleanup', () => {
   const handles = new NotificationHandles()
-  const old = { CloseNotification: async () => {} }; const current = { CloseNotification: async () => {} }
+  const old = { CloseNotification: async () => {} }
+  const current = { CloseNotification: async () => {} }
   const retired = handles.register(old, 7)
   assert.equal(handles.register(old, 7), retired)
   assert.equal(handles.replacement(retired, current), 0)

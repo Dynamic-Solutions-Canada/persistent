@@ -23,7 +23,7 @@ export function LanguageSettingsCard() {
     timeFormat,
     timeFormatChosen,
     setTimeFormat,
-    resetTimeFormat
+    resetTimeFormat,
   } = useSettings()
   const options = [...new Set<string>([...supportedLocales, formattingLocale])]
   return (
@@ -32,26 +32,48 @@ export function LanguageSettingsCard() {
       <LanguageSelect />
       <FormControl>
         <FormLabel>{tr('Regional formatting')}</FormLabel>
-        <Select value={formattingLocaleOverride ?? 'device'} onChange={(_event, value) => {
-          if (value) setFormattingLocaleOverride(value === 'device' ? null : value)
-        }}>
+        <Select
+          value={formattingLocaleOverride ?? 'device'}
+          onChange={(_event, value) => {
+            if (value)
+              setFormattingLocaleOverride(value === 'device' ? null : value)
+          }}
+        >
           <Option value="device">{tr('Match device')}</Option>
-          {options.map((locale) => <Option key={locale} value={locale}>{localeNames[locale as Locale] ?? locale}</Option>)}
+          {options.map((locale) => (
+            <Option key={locale} value={locale}>
+              {localeNames[locale as Locale] ?? locale}
+            </Option>
+          ))}
         </Select>
       </FormControl>
       <FormControl>
-        <FormLabel>{tr("Time format")}</FormLabel>
-        <Select value={timeFormatChosen ? timeFormat : 'device'} onChange={(_e, value) => {
-          if (value === 'device') resetTimeFormat()
-          else if (value === '12h' || value === '24h') setTimeFormat(value)
-        }}>
-          <Option value="device">{tr("Match device")}</Option>
-          <Option value="12h">{tr("12-hour (1:30 PM)")}</Option>
-          <Option value="24h">{tr("24-hour (13:30)")}</Option>
+        <FormLabel>{tr('Time format')}</FormLabel>
+        <Select
+          value={timeFormatChosen ? timeFormat : 'device'}
+          onChange={(_e, value) => {
+            if (value === 'device') resetTimeFormat()
+            else if (value === '12h' || value === '24h') setTimeFormat(value)
+          }}
+        >
+          <Option value="device">{tr('Match device')}</Option>
+          <Option value="12h">{tr('12-hour (1:30 PM)')}</Option>
+          <Option value="24h">{tr('24-hour (13:30)')}</Option>
         </Select>
       </FormControl>
-      <Typography level="body-xs"><Trans i18nKey={"Example: <v0/>"} components={{ v0: <>{formatDateTime(new Date(), timeFormat, user?.timeZone)}</> }} /></Typography>
-      <Typography level="body-xs">{tr('These choices apply to this device. Regional formatting, time format, and your account time zone are separate.')}</Typography>
+      <Typography level="body-xs">
+        <Trans
+          i18nKey={'Example: <v0/>'}
+          components={{
+            v0: <>{formatDateTime(new Date(), timeFormat, user?.timeZone)}</>,
+          }}
+        />
+      </Typography>
+      <Typography level="body-xs">
+        {tr(
+          'These choices apply to this device. Regional formatting, time format, and your account time zone are separate.',
+        )}
+      </Typography>
     </Card>
   )
 }

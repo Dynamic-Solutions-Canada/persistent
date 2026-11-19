@@ -38,7 +38,10 @@ import { sharingState } from '../components/sharingState.js'
  */
 function checklistProgress(occurrence: Occurrence): string | undefined {
   if (occurrence.reminder.type !== 'TODO') return undefined
-  const { done, total } = todoProgress(todoItems(occurrence.reminder.typeData), occurrence.checkedItemIds)
+  const { done, total } = todoProgress(
+    todoItems(occurrence.reminder.typeData),
+    occurrence.checkedItemIds,
+  )
   return total > 0 ? `${done} of ${total} checked` : undefined
 }
 
@@ -57,49 +60,75 @@ export function HistoryPage() {
   // all, and reading straight through it takes the whole view down rather than
   // one row (see the note in lib/persistQuery.ts). The version bump is the real
   // fix; this is what stops it being fatal if one ever slips through again.
-  const occurrences = (past.data?.pages ?? []).flatMap((page) => page.occurrences ?? [])
-  const ownedById = new Map((reminders.data ?? []).map((reminder) => [reminder.id, reminder]))
-  const receivedIds = new Set((received.data ?? []).map((reminder) => reminder.id))
+  const occurrences = (past.data?.pages ?? []).flatMap(
+    (page) => page.occurrences ?? [],
+  )
+  const ownedById = new Map(
+    (reminders.data ?? []).map((reminder) => [reminder.id, reminder]),
+  )
+  const receivedIds = new Set(
+    (received.data ?? []).map((reminder) => reminder.id),
+  )
 
   return (
     <PullToRefresh onRefresh={() => past.refetch()}>
-    <Stack spacing={3}>
-      <Stack spacing={1.5}>
-        <SectionHeading title={tr("History")} subtitle={tr("Already dealt with, most recent first.")} />
-
-        {past.isLoading && <Typography level="body-sm">{tr("Loading…")}</Typography>}
-        {past.data && occurrences.length === 0 && (
-          <Typography level="body-sm">{tr("Nothing here yet. Done and missed reminders show up here.")}</Typography>
-        )}
-
+      <Stack spacing={3}>
         <Stack spacing={1.5}>
-          {occurrences.map((occurrence) => (
-            <ReminderPreviewCard
-              key={occurrence.id}
-              reminder={occurrence.reminder}
-              sharing={receivedIds.has(occurrence.reminderId)
-                ? 'shared'
-                : sharingState(ownedById.get(occurrence.reminderId) ?? { shareCount: 0, invitationCount: 0 })}
-              onOpen={() => dialogs.view(occurrence.reminderId, occurrence)}
-              status={<StatusChip status={occurrence.status} />}
-              checkedItemIds={occurrence.checkedItemIds}
-              when={formatWhen(occurrence.scheduledFor, timeFormat, user?.timeZone)}
-              secondary={checklistProgress(occurrence)}
-            />
-          ))}
-          {past.hasNextPage && (
-            <Button
-              variant="outlined"
-              color="neutral"
-              loading={past.isFetchingNextPage}
-              onClick={() => void past.fetchNextPage()}
-            >{tr("Show more")}</Button>
-          )}
-        </Stack>
-      </Stack>
+          <SectionHeading
+            title={tr('History')}
+            subtitle={tr('Already dealt with, most recent first.')}
+          />
 
-      <NewReminderFab />
-    </Stack>
+          {past.isLoading && (
+            <Typography level="body-sm">{tr('Loading…')}</Typography>
+          )}
+          {past.data && occurrences.length === 0 && (
+            <Typography level="body-sm">
+              {tr('Nothing here yet. Done and missed reminders show up here.')}
+            </Typography>
+          )}
+
+          <Stack spacing={1.5}>
+            {occurrences.map((occurrence) => (
+              <ReminderPreviewCard
+                key={occurrence.id}
+                reminder={occurrence.reminder}
+                sharing={
+                  receivedIds.has(occurrence.reminderId)
+                    ? 'shared'
+                    : sharingState(
+                        ownedById.get(occurrence.reminderId) ?? {
+                          shareCount: 0,
+                          invitationCount: 0,
+                        },
+                      )
+                }
+                onOpen={() => dialogs.view(occurrence.reminderId, occurrence)}
+                status={<StatusChip status={occurrence.status} />}
+                checkedItemIds={occurrence.checkedItemIds}
+                when={formatWhen(
+                  occurrence.scheduledFor,
+                  timeFormat,
+                  user?.timeZone,
+                )}
+                secondary={checklistProgress(occurrence)}
+              />
+            ))}
+            {past.hasNextPage && (
+              <Button
+                variant="outlined"
+                color="neutral"
+                loading={past.isFetchingNextPage}
+                onClick={() => void past.fetchNextPage()}
+              >
+                {tr('Show more')}
+              </Button>
+            )}
+          </Stack>
+        </Stack>
+
+        <NewReminderFab />
+      </Stack>
     </PullToRefresh>
   )
 }

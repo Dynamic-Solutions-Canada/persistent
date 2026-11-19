@@ -6,7 +6,8 @@ import { nativeAppearanceSchema } from '@persistent/shared'
 import { APP_THEMES } from '../settings/themes.js'
 
 const require = createRequire(import.meta.url)
-const { nativeAppearance } = require('./appearance.ts') as typeof import('./appearance.js')
+const { nativeAppearance } =
+  require('./appearance.ts') as typeof import('./appearance.js')
 
 /** WCAG contrast for opaque native text and backgrounds. */
 function contrast(text: string, background: string): number {
@@ -28,16 +29,24 @@ test('every app palette exports concrete colors with readable text and actions',
     assert.equal(appearance.mode, theme.mode)
     const palette = appearance[theme.mode]
     assert.equal(palette.background, theme.background)
-    assert.deepEqual(appearance.light, appearance.dark, 'A fixed theme must not follow the OS')
-    for (const value of Object.values(palette)) assert.match(value, /^#[0-9a-fA-F]{6}$/)
+    assert.deepEqual(
+      appearance.light,
+      appearance.dark,
+      'A fixed theme must not follow the OS',
+    )
+    for (const value of Object.values(palette))
+      assert.match(value, /^#[0-9a-fA-F]{6}$/)
     for (const [text, background] of [
       [palette.text, palette.background],
       [palette.secondary, palette.background],
       [palette.text, palette.surface],
       [palette.onAccent, palette.accent],
-      [palette.onDone, palette.done]
+      [palette.onDone, palette.done],
     ]) {
-      assert.ok(contrast(text!, background!) >= 4.5, `${theme.name}: ${text} against ${background} must remain readable`)
+      assert.ok(
+        contrast(text!, background!) >= 4.5,
+        `${theme.name}: ${text} against ${background} must remain readable`,
+      )
     }
   }
 })
@@ -49,11 +58,24 @@ test('Match system provides both palettes for offline native resolution', () => 
   assert.equal(appearance.dark.background, '#191a1d')
   assert.equal(appearance.light.surface, '#ffffff')
   assert.equal(appearance.dark.surface, '#242529')
-  assert.equal(appearance.dark.secondary, '#c4c5bd', 'Export Enjoy secondary text for native alarms')
+  assert.equal(
+    appearance.dark.secondary,
+    '#c4c5bd',
+    'Export Enjoy secondary text for native alarms',
+  )
 })
 
 test('invalid versions and non-color native input are rejected', () => {
   const appearance = nativeAppearance('system')
-  assert.equal(nativeAppearanceSchema.safeParse({ ...appearance, version: 2 }).success, false)
-  assert.equal(nativeAppearanceSchema.safeParse({ ...appearance, light: { ...appearance.light, background: 'url(example)' } }).success, false)
+  assert.equal(
+    nativeAppearanceSchema.safeParse({ ...appearance, version: 2 }).success,
+    false,
+  )
+  assert.equal(
+    nativeAppearanceSchema.safeParse({
+      ...appearance,
+      light: { ...appearance.light, background: 'url(example)' },
+    }).success,
+    false,
+  )
 })

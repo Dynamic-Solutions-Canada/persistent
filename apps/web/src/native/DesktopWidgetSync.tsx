@@ -16,7 +16,7 @@ import {
   desktopPlatform,
   onHostMessage,
   publishWidgetSnapshot,
-  type WidgetSnapshot
+  type WidgetSnapshot,
 } from './desktopBridge.js'
 
 const WidgetItemLimit = 4
@@ -24,14 +24,14 @@ const WidgetItemLimit = 4
 const TypeLabels: Record<ReminderType, string> = {
   NONE: 'REMINDER',
   TODO: 'TO-DO',
-  MEDICATION: 'MEDICATION'
+  MEDICATION: 'MEDICATION',
 }
 
 /** Convert full reminder DTOs into the only strings the native widget needs. */
 function makeSnapshot(
   reminders: NonNullable<ReturnType<typeof useReminders>['data']>,
   active: NonNullable<ReturnType<typeof useActiveOccurrences>['data']>,
-  timeFormat: ReturnType<typeof useSettings>['timeFormat']
+  timeFormat: ReturnType<typeof useSettings>['timeFormat'],
 ): WidgetSnapshot {
   const items = selectUpcomingReminders(reminders, active)
     .slice(0, WidgetItemLimit)
@@ -40,14 +40,14 @@ function makeSnapshot(
       title: reminder.title,
       description: reminderBodyText(reminder),
       when: next ? formatWhen(next, timeFormat) : tr('Paused'),
-      paused: !reminder.active
+      paused: !reminder.active,
     }))
 
   return {
     version: 1,
     signedIn: true,
     generatedAt: new Date().toISOString(),
-    items
+    items,
   }
 }
 
@@ -63,24 +63,39 @@ export function DesktopWidgetSync() {
   const refetchActive = active.refetch
 
   useEffect(() => {
-    if (!dataReady || desktopPlatform() !== 'windows' || !reminderData || !activeData) return
+    if (
+      !dataReady ||
+      desktopPlatform() !== 'windows' ||
+      !reminderData ||
+      !activeData
+    )
+      return
     publishWidgetSnapshot(makeSnapshot(reminderData, activeData, timeFormat))
-  }, [activeData, reminderData, timeFormat, dataReady, locale, formattingLocale])
+  }, [
+    activeData,
+    reminderData,
+    timeFormat,
+    dataReady,
+    locale,
+    formattingLocale,
+  ])
 
-  useEffect(
-    () => {
-      if (desktopPlatform() !== 'windows') return
-      return onHostMessage((message) => {
-        if (message.type !== 'refreshWidgetSnapshot') return
-        void (async () => {
-          const [freshReminders, freshActive] = await Promise.all([refetchReminders(), refetchActive()])
-          if (!freshReminders.data || !freshActive.data) return
-          publishWidgetSnapshot(makeSnapshot(freshReminders.data, freshActive.data, timeFormat))
-        })()
-      })
-    },
-    [refetchActive, refetchReminders, timeFormat, locale, formattingLocale]
-  )
+  useEffect(() => {
+    if (desktopPlatform() !== 'windows') return
+    return onHostMessage((message) => {
+      if (message.type !== 'refreshWidgetSnapshot') return
+      void (async () => {
+        const [freshReminders, freshActive] = await Promise.all([
+          refetchReminders(),
+          refetchActive(),
+        ])
+        if (!freshReminders.data || !freshActive.data) return
+        publishWidgetSnapshot(
+          makeSnapshot(freshReminders.data, freshActive.data, timeFormat),
+        )
+      })()
+    })
+  }, [refetchActive, refetchReminders, timeFormat, locale, formattingLocale])
 
   return null
 }

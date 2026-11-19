@@ -8,8 +8,8 @@ but does not send notifications.
 
 Background model lives in [`alarm-architecture.md`](alarm-architecture.md)
 (device-scheduled + server backup) and the state machine in
-[`data-event-contract.md`](data-event-contract.md). This doc is the *user-facing
-guarantee* those mechanisms exist to deliver.
+[`data-event-contract.md`](data-event-contract.md). This doc is the _user-facing
+guarantee_ those mechanisms exist to deliver.
 
 ## Language and formatting
 
@@ -21,7 +21,7 @@ Language changes reword application labels and the designated escalation marker,
   with three times of day, or a repeating schedule, produces many occurrences.
 - **Fire** — the moment an occurrence comes due and first appears. Each occurrence
   fires exactly once.
-- **Nag** — the *follow-up*, not the first appearance: everything that keeps a
+- **Nag** — the _follow-up_, not the first appearance: everything that keeps a
   fired-but-unconfirmed occurrence in front of the user afterwards (re-appearing
   when swiped away, the `PERSISTENT` nag interval, the escalation). User-facing
   copy must keep these apart — "it nags as soon as you create it" describes a first
@@ -43,7 +43,7 @@ Language changes reword application labels and the designated escalation marker,
   `PERSISTENT` reminder **escalated** (after N minutes, or at a wall-clock time)
   from notification to alarm.
 - **Confirm / Done / acknowledge** — the user explicitly marks the occurrence
-  complete. This is the *only* thing that ends a nag for good.
+  complete. This is the _only_ thing that ends a nag for good.
 
 **"Fire" is the model's word, not the user's.** It is the right word here, in the
 schema (`firedAt`) and in the code (`fireOccurrence`, `firingOrder`), because it
@@ -59,7 +59,7 @@ Two things hold on every surface regardless of which action the user takes:
 
 - **Tapping the notification body opens the reminder.** A soft nag's body tap
   brings the app forward in the same reading dialog as an in-app reminder tap
-  (an *alarm's* body tap is
+  (an _alarm's_ body tap is
   the exception — it opens the full-screen control surface, so Done/Snooze stay one
   tap away once the heads-up collapses). On Android this must be a direct activity
   start; see the trampoline note in [`alarm-architecture.md`](alarm-architecture.md).
@@ -100,12 +100,12 @@ sibling escalation alarm is cancelled, on every one of the user's devices.
 - Native: clears the notification and cancels both the main and `::esc`
   (escalation) on-device alarms; closes the full-screen alarm activity.
 
-**Done is always a two-tap confirm** on every *tap* surface — the notification, the
+**Done is always a two-tap confirm** on every _tap_ surface — the notification, the
 full-screen alarm, and the reading dialog opened from the app or a notification.
 The first tap arms the action (swapping
-the controls to *Confirm done* / *Not yet*, with the alarm still ringing); only
+the controls to _Confirm done_ / _Not yet_, with the alarm still ringing); only
 the confirm tap acknowledges. This guards a persistence-grade reminder against a
-stray pocket tap or misclick clearing it by accident. *Not yet* restores the
+stray pocket tap or misclick clearing it by accident. _Not yet_ restores the
 normal controls and changes nothing. (**Android Auto is the exception**: see §5:
 a dashboard is not a pocket, so a car Done acknowledges directly.)
 
@@ -139,7 +139,7 @@ repeating checklist starts blank each time; see `data-event-contract.md`).
 
 Ticking every item **does not acknowledge the occurrence.** Done remains the only
 thing that clears a firing, for the same reason it is a two-tap confirm: a
-checklist is ticked *while working through it*, so auto-confirming on the last tick
+checklist is ticked _while working through it_, so auto-confirming on the last tick
 would let a mid-task tap end the nag. A fully-ticked list says so and points at
 Done rather than acting for the user. The reverse also holds — Done works at any
 point, whether or not every item is ticked; the ticks are a working aid, not a
@@ -151,7 +151,7 @@ not keep repeating work already done. The server rebuilds the body from the
 firing's ticks on every surface that carries it (fire and escalate pushes, the
 downgraded nag after a Silence, the on-device alarm list at
 `/api/sync/occurrences`), and a tick nudges native devices to re-pull and re-post
-the notification silently, so the shown text keeps up. Ticking the *last* item
+the notification silently, so the shown text keeps up. Ticking the _last_ item
 leaves the reminder's title with no body — which is correct: the firing is still
 unconfirmed, and only Done confirms it. A tick left behind by a since-deleted item
 hides nothing.
@@ -162,7 +162,7 @@ it was sent, since an email cannot be revised afterwards.
 **Items can be added from the reading dialog, and what they join is the definition.** Every
 editable checklist in that dialog carries an add row (`POST /api/reminders/:id/items`), so
 extending a list does not mean opening the editor — the thing a list needs most
-often was the thing that cost the most taps. What it adds is an *item*, and items
+often was the thing that cost the most taps. What it adds is an _item_, and items
 belong to the reminder: every later firing carries it too, and every card drawing
 that checklist gains the row at once. It arrives **unticked**, so it also joins the
 body of whatever is nagging right now, exactly as an item added in the editor would
@@ -186,7 +186,7 @@ line says, never which line it is.
 handles appear on hover or keyboard focus on desktop and stay visible on touch
 screens (`POST /api/reminders/:id/items/order`), so
 a list can be re-ordered where it is being worked through rather than only in the
-editor. It moves *items*, so the new order is the one every later firing shows and the
+editor. It moves _items_, so the new order is the one every later firing shows and the
 order the notification body lists them in — which is why it nudges devices to re-post,
 exactly as adding one does. Ticks are untouched: ids are stable, so an item carries its
 ticked state with it as it moves, and a reorder neither confirms nor excuses anything.
@@ -204,7 +204,7 @@ available.
 A note (§7) has no occurrences, so `ReminderOccurrence.checkedItems` has nothing to
 hang off; its ticks live on the reminder itself (`Reminder.checkedItems`, via
 `POST /api/reminders/:id/check`). That is safe here and nowhere else: the rule
-above exists so a *repeating* checklist cannot inherit yesterday's ticks, and a
+above exists so a _repeating_ checklist cannot inherit yesterday's ticks, and a
 note never repeats because it never fires. The endpoint is restricted to notes for
 that reason — two places holding "what is checked", with a firing to disagree with,
 is exactly what §1a forbids. A note's list also has no "tap Done to confirm": there
@@ -216,13 +216,13 @@ what is left. The list previews also honor it. That choice is stored (`Reminder.
 /api/reminders/:id/hide-checked`) so a list stays the way the user left it — on
 that device and on their others.
 
-It is per *reminder* even though the ticks are per firing, and that is not a
+It is per _reminder_ even though the ticks are per firing, and that is not a
 contradiction: ticks reset each firing, so a fresh nag starts with nothing ticked
 and a remembered "hidden" hides nothing until the user ticks something themselves.
 The reading view a notification lands on therefore still shows the whole list.
 
 Hiding changes nothing this contract guarantees. It is presentation only: the
-notification body is built from the *unticked* items either way, hiding is not
+notification body is built from the _unticked_ items either way, hiding is not
 ticking, and a hidden item is neither confirmed nor excused. Done still clears the
 firing, and only Done.
 
@@ -252,7 +252,7 @@ after an ack must never resurrect a terminal occurrence back to nagging.
 
 Snoozing temporarily clears the firing — alarm and notification both — and
 re-fires it after the chosen delay. When the firing is currently an **alarm**,
-snooze snoozes *that*: the alarm goes away now and **rings again** when the snooze
+snooze snoozes _that_: the alarm goes away now and **rings again** when the snooze
 elapses (it does not silently degrade into a soft notification).
 
 The in-app "Until" choice keeps the exact clock time selected, down to the
@@ -324,7 +324,7 @@ Where several firings are shown at once, the newest is first — in the in-app l
 on a reminder's detail view (`apps/web/src/lib/firingOrder.ts`) and in the Android
 shade, where a nag re-stamps its post time so it rises back up. The firing that
 just arrived is the one the user is reacting to; an older one does not need to hold
-the top of the list, because staying until confirmed is what the nag is *for*.
+the top of the list, because staying until confirmed is what the nag is _for_.
 
 "Newest" means `ReminderOccurrence.lastNotifiedAt` — when the server last put the
 firing in front of the user (the fire, a snooze revival, an escalation). It exists
@@ -353,11 +353,11 @@ the same minute. The Android full-screen surface shows all of them:
   ringing. Confirming on another device, or from the shade, does the same thing —
   the page goes, the queue stays.
 - **Ordered oldest-first, and it does not reshuffle.** This is a deliberate contrast
-  with §4a: a *list* puts the newest on top because it is being scanned, while this
+  with §4a: a _list_ puts the newest on top because it is being scanned, while this
   is being worked through, and a queue that reorders under the user's thumb loses
   their place. A newly-ringing alarm joins the end and pages into view — it is the
   thing that just happened, and it must never ring unseen. It cannot cause an
-  accidental Done: an arriving page always shows an un-armed *Done*, so a tap already
+  accidental Done: an arriving page always shows an un-armed _Done_, so a tap already
   on its way arms that page rather than confirming anything (§1). Waking the screen
   is not such an event and leaves the page alone.
 - **Only one tone sounds**, and it is the newest ringing alarm's; when that one is
@@ -378,7 +378,7 @@ converge to the same server state as everywhere else.
 
 **Only what is happening pops up.** Starting the car is not itself an event, so a nag
 that was already on screen when the drive began does not announce itself in the car;
-what fires, nags or rings *during* the drive does, as it happens. A ringing alarm is
+what fires, nags or rings _during_ the drive does, as it happens. A ringing alarm is
 the exception — it is sounding right now, so it appears the moment the car connects.
 Nothing about this changes the guarantee: an unannounced nag is still `FIRED` and
 still nagging on the phone, and it is listed in full on the car screen (§5b).
@@ -394,7 +394,7 @@ it simply does not project into the car.
 An Auto notification carries **two** action slots, so the car gets the two that end a
 nag, and De-escalate lives on the car screen (§5b) where there is room:
 
-- **Done**: acknowledges, and it is the one surface where Done is *not* a two-tap
+- **Done**: acknowledges, and it is the one surface where Done is _not_ a two-tap
   confirm. Two reasons, and the second outranks the first. The confirm guards against a
   stray pocket tap, which is not a thing that happens to a head unit; and more importantly
   a confirmation step **is a safety problem in a moving car**: it takes a driver's eyes
@@ -426,7 +426,7 @@ up**, and the kept **Notes** last. It is the counterpart to the rule above —
 notifications carry what is happening, this carries everything else — and it is why a
 standing nag can stay quiet when the car starts without becoming lost.
 
-The week and the notes are more than the device *arms*: the alarm set is everything due
+The week and the notes are more than the device _arms_: the alarm set is everything due
 plus 48 hours, because each entry is an exact alarm the OS holds. So the same sync also
 returns a read-only **agenda** (`deviceAgendaEntrySchema`) covering seven days plus the
 notes, stored apart from the alarm set so nothing in it can ring, and merged in at read
@@ -447,7 +447,7 @@ and offers **Done** and **Snooze**, plus **De-escalate** when an escalation is a
 ringing. Same three actions, same server state, same guarantee: only Done clears a
 firing. Done sits one screen in from the list rather than on the list itself — the
 deliberateness the phone gets from its two-tap confirm, without asking a driver to
-read a confirmation. That is the same reasoning the car *notification's* Done relies on
+read a confirmation. That is the same reasoning the car _notification's_ Done relies on
 (§5), and this screen is where **De-escalate** lives, since a notification has only two
 action slots. A reminder that has not fired yet offers no actions, exactly as
 it has no notification to act on.
@@ -481,7 +481,7 @@ Within that limit it holds the contract:
 - **Done is still a two-tap confirm** (§1). A toast button cannot ask a question,
   so the first Done replaces the toast with a "Mark this done?" variant carrying
   Confirm / Not yet; only Confirm acknowledges, and Not yet restores the original
-  and changes nothing. This is the *mechanism* differing, not the rule.
+  and changes nothing. This is the _mechanism_ differing, not the rule.
 - **Snooze** is a picker on the toast itself, spanning the same range as every
   other surface (5 min → 1 day); the app setting only chooses which one starts
   selected. A single fixed duration hidden in settings is not the same feature —
@@ -560,14 +560,14 @@ still shows its real status chip; only the `FIRED` case is the constant.
 Unscheduled and orphaned never overlap: an unscheduled reminder is excluded from the orphan test
 outright, because its `startDate` is a bare record of when it was last saved, not
 a window a firing can fall outside of. Comparing against it anyway is how a
-reminder that had *just* been made unscheduled described its brand-new firing as
+reminder that had _just_ been made unscheduled described its brand-new firing as
 a leftover from before a reschedule, and offered Clear for something the user had
 only asked for a moment earlier.
 
 Urgency in the UI is graded to match: only an **escalated** firing gets a filled,
 loud card. An ordinary due reminder is outlined, and the orphaned and unscheduled
 cases are quieter still (`apps/web/src/lib/firingTone.ts`, shared by the list and
-the detail view). None of this changes what the firing *is* — every one of them
+the detail view). None of this changes what the firing _is_ — every one of them
 still nags until confirmed; only how hard it shouts.
 
 The comparison is deliberately by **date, not time of day**: retiming a reminder
@@ -580,7 +580,7 @@ not a commitment to a date, so giving it a real schedule retires that firing
 instead of leaving it behind.
 
 **The second is turning a reminder into a note** (kind `never` — a reminder that
-never fires; see §7). Here the firings *were* real, and they are still retired —
+never fires; see §7). Here the firings _were_ real, and they are still retired —
 dropped and dismissed on every device, exactly as deleting the reminder does. The
 user has said this thing does not remind, and a nag left behind would contradict
 the mode they just chose, on a card whose own reminder now reads "Never fires".
@@ -591,7 +591,7 @@ History.
 
 Going the other way — **taking a reminder's schedule away** — is not an exception:
 whatever its schedule left unconfirmed keeps nagging, because those firings were
-real. It follows that the reminder does *not* also get the "remind me about this"
+real. It follows that the reminder does _not_ also get the "remind me about this"
 firing an unscheduled reminder normally gets; it is already in front of the user,
 and a second one would be indistinguishable from the first, since an unscheduled
 firing has no time of day to tell them apart. The immediate firing appears only
@@ -619,13 +619,13 @@ above is a guarantee about an occurrence.
 - Escalation is rejected at the boundary rather than stored and ignored: a note
   cannot be escalated to an alarm or emailed to a nominated contact, because
   nothing about it can ever go unanswered.
-- It is a note, not a *type* — a `TODO` note is a kept checklist, a `MEDICATION`
+- It is a note, not a _type_ — a `TODO` note is a kept checklist, a `MEDICATION`
   note is a dose reference. Its checklist is ticked and extended like any other; the
   ticks just live on the reminder, since there is no firing for them to belong to
   (§1a).
 
 Pausing (`active: false`) is not the same thing and does not overlap: a paused
-reminder is one that *would* fire, held; a note is one that would not. That is why
+reminder is one that _would_ fire, held; a note is one that would not. That is why
 the editor tells a note "Never fires — kept as a note" rather than offering
 "won't fire until you turn it on", which a note would never honour.
 

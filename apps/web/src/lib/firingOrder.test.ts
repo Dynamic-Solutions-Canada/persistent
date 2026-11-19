@@ -3,7 +3,11 @@ import assert from 'node:assert/strict'
 import type { Occurrence, OccurrenceStatus } from '@persistent/shared'
 import { compareFirings } from './firingOrder.js'
 
-function firing(id: string, lastNotifiedAt: string | null, status: OccurrenceStatus = 'FIRED'): Occurrence {
+function firing(
+  id: string,
+  lastNotifiedAt: string | null,
+  status: OccurrenceStatus = 'FIRED',
+): Occurrence {
   // scheduledFor deliberately differs, so a test that passes by reading the wrong
   // field would order things backwards.
   return {
@@ -11,7 +15,7 @@ function firing(id: string, lastNotifiedAt: string | null, status: OccurrenceSta
     status,
     lastNotifiedAt,
     firedAt: lastNotifiedAt,
-    scheduledFor: '2020-01-01T00:00:00.000Z'
+    scheduledFor: '2020-01-01T00:00:00.000Z',
   } as Occurrence
 }
 
@@ -48,7 +52,7 @@ test('a revived snooze sorts by when it came back, not its first fire', () => {
     status: 'FIRED',
     firedAt: '2026-08-01T09:00:00.000Z',
     lastNotifiedAt: '2026-08-01T17:00:00.000Z',
-    scheduledFor: '2026-08-01T09:00:00.000Z'
+    scheduledFor: '2026-08-01T09:00:00.000Z',
   } as Occurrence
   const midday = firing('midday', '2026-08-01T12:00:00.000Z')
   assert.deepEqual(order([revived, midday]), ['revived', 'midday'])
@@ -57,7 +61,11 @@ test('a revived snooze sorts by when it came back, not its first fire', () => {
 test('a row with no timestamps at all still sorts', () => {
   // Rows written before lastNotifiedAt existed, and anything not yet fired: these
   // must fall back rather than land at NaN and freeze the comparator.
-  const bare = { id: 'bare', status: 'FIRED', scheduledFor: '2020-01-01T00:00:00.000Z' } as Occurrence
+  const bare = {
+    id: 'bare',
+    status: 'FIRED',
+    scheduledFor: '2020-01-01T00:00:00.000Z',
+  } as Occurrence
   const fired = firing('fired', '2026-08-01T09:00:00.000Z')
   assert.deepEqual(order([bare, fired]), ['fired', 'bare'])
 })

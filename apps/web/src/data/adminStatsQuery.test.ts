@@ -11,12 +11,20 @@ test('period changes preserve dashboard data while loading, then replace it with
   const updated = { userGrowth: { days: 30 } } as AdminStats
   const initialOptions = adminStatsQueryOptions('first-admin', 30, 90)
   client.setQueryData(initialOptions.queryKey, original)
-  const observer = new QueryObserver(client, { ...initialOptions, staleTime: Infinity })
+  const observer = new QueryObserver(client, {
+    ...initialOptions,
+    staleTime: Infinity,
+  })
   const unsubscribe = observer.subscribe(() => {})
   let finish!: (value: AdminStats) => void
-  const pending = new Promise<AdminStats>((resolve) => { finish = resolve })
+  const pending = new Promise<AdminStats>((resolve) => {
+    finish = resolve
+  })
   try {
-    observer.setOptions({ ...adminStatsQueryOptions('first-admin', 30, 30), queryFn: () => pending })
+    observer.setOptions({
+      ...adminStatsQueryOptions('first-admin', 30, 30),
+      queryFn: () => pending,
+    })
     assert.equal(observer.getCurrentResult().isPending, false)
     assert.equal(observer.getCurrentResult().isPlaceholderData, true)
     assert.equal(observer.getCurrentResult().data, original)
@@ -26,7 +34,10 @@ test('period changes preserve dashboard data while loading, then replace it with
     assert.equal(observer.getCurrentResult().data, updated)
     assert.equal(observer.getCurrentResult().isPlaceholderData, false)
 
-    observer.setOptions({ ...adminStatsQueryOptions('second-admin', 30, 30), queryFn: () => new Promise<AdminStats>(() => {}) })
+    observer.setOptions({
+      ...adminStatsQueryOptions('second-admin', 30, 30),
+      queryFn: () => new Promise<AdminStats>(() => {}),
+    })
     assert.equal(observer.getCurrentResult().data, undefined)
     assert.equal(observer.getCurrentResult().isPending, true)
   } finally {
@@ -38,11 +49,21 @@ test('period changes preserve dashboard data while loading, then replace it with
 test('an authorization error removes prior period data', async () => {
   const client = new QueryClient()
   const options = adminStatsQueryOptions('admin', 30, 90)
-  client.setQueryData(options.queryKey, { userGrowth: { days: 90 } } as AdminStats)
-  const observer = new QueryObserver(client, { ...options, staleTime: Infinity })
+  client.setQueryData(options.queryKey, {
+    userGrowth: { days: 90 },
+  } as AdminStats)
+  const observer = new QueryObserver(client, {
+    ...options,
+    staleTime: Infinity,
+  })
   const unsubscribe = observer.subscribe(() => {})
   try {
-    observer.setOptions({ ...adminStatsQueryOptions('admin', 30, 30), queryFn: async () => { throw new Error('Administrator access revoked') } })
+    observer.setOptions({
+      ...adminStatsQueryOptions('admin', 30, 30),
+      queryFn: async () => {
+        throw new Error('Administrator access revoked')
+      },
+    })
     const result = await observer.refetch()
     assert.equal(result.isError, true)
     assert.equal(result.data, undefined)

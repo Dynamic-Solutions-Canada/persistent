@@ -1,5 +1,11 @@
 /** Process-local display state. Shared contracts own matching, catalogs and bridge validation. */
-import { catalogFor, message, nativeLocaleSchema, resolveLocale, type NativeLocale } from '@persistent/shared'
+import {
+  catalogFor,
+  message,
+  nativeLocaleSchema,
+  resolveLocale,
+  type NativeLocale,
+} from '@persistent/shared'
 
 let preferences: NativeLocale | undefined
 let deviceLanguages = [new Intl.DateTimeFormat().resolvedOptions().locale]
@@ -10,7 +16,10 @@ export function nativeLocale(): ReturnType<typeof resolveLocale> {
 }
 
 /** Initialize from host persistence and the OS's current ordered preferences. */
-export function initializeNativeText(value?: NativeLocale, languages?: string[]): void {
+export function initializeNativeText(
+  value?: NativeLocale,
+  languages?: string[],
+): void {
   preferences = value
   if (languages?.length) deviceLanguages = languages
 }
@@ -19,13 +28,17 @@ export function initializeNativeText(value?: NativeLocale, languages?: string[])
 export function applyNativeLocale(value: unknown): NativeLocale | null {
   const parsed = nativeLocaleSchema.safeParse(value)
   if (!parsed.success) return null
-  if (JSON.stringify(preferences) === JSON.stringify(parsed.data)) return parsed.data
+  if (JSON.stringify(preferences) === JSON.stringify(parsed.data))
+    return parsed.data
   preferences = parsed.data
   for (const listener of listeners) listener()
   return parsed.data
 }
 
-export function nativeText(key: string, parameters: Record<string, string | number> = {}): string {
+export function nativeText(
+  key: string,
+  parameters: Record<string, string | number> = {},
+): string {
   return message(nativeLocale(), key, parameters)
 }
 

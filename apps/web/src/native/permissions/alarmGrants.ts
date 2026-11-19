@@ -13,7 +13,8 @@
  */
 
 /** Readiness keys, as `AlarmPlugin.alarmReadiness()` reports them. */
-export type AlarmGrant = 'notifications' | 'exactAlarms' | 'fullScreen' | 'overlay' | 'battery'
+export type AlarmGrant =
+  'notifications' | 'exactAlarms' | 'fullScreen' | 'overlay' | 'battery'
 
 /** What the host reported per grant; `undefined` means this host doesn't report it. */
 export type AlarmReadiness = Record<AlarmGrant, boolean | undefined>
@@ -52,58 +53,69 @@ export const ALARM_GRANTS: readonly AlarmGrantCopy[] = [
     grant: 'notifications',
     severity: 'critical',
     title: 'Turn on notifications',
-    consequence: 'Alarms will sound with nothing on screen to identify or stop them.',
+    consequence:
+      'Alarms will sound with nothing on screen to identify or stop them.',
     why: 'Every reminder appears as a notification, and a ringing alarm needs one so you can see what it is and stop it.',
     instructions: {
-      prompt: 'Android may ask whether Persistent can send notifications. If it does, choose Allow.',
-      settings: 'On the next screen, turn on notifications for Persistent.'
+      prompt:
+        'Android may ask whether Persistent can send notifications. If it does, choose Allow.',
+      settings: 'On the next screen, turn on notifications for Persistent.',
     },
-    manualPath: 'Settings > Apps > Persistent > Notifications'
+    manualPath: 'Settings > Apps > Persistent > Notifications',
   },
   {
     grant: 'exactAlarms',
     severity: 'critical',
     title: 'Allow exact alarms',
-    consequence: 'Reminders may notify you late, batched by the system instead of at the time you set.',
+    consequence:
+      'Reminders may notify you late, batched by the system instead of at the time you set.',
     why: 'This lets reminders fire at the minute you set. Without it, Android may hold them back to save battery.',
     instructions: {
-      settings: 'On the next screen, turn on Allow setting alarms and reminders.'
+      settings:
+        'On the next screen, turn on Allow setting alarms and reminders.',
     },
-    manualPath: 'Settings > Apps > Persistent > Alarms & reminders'
+    manualPath: 'Settings > Apps > Persistent > Alarms & reminders',
   },
   {
     grant: 'fullScreen',
     severity: 'critical',
     title: 'Allow full-screen notifications',
-    consequence: "Alarms won't cover the lock screen, so a ringing alarm may be missed.",
+    consequence:
+      "Alarms won't cover the lock screen, so a ringing alarm may be missed.",
     why: 'This lets a ringing alarm cover the lock screen, so you notice it even when the phone is locked.',
     instructions: {
-      settings: 'On the next screen, turn on Allow full-screen notifications.'
+      settings: 'On the next screen, turn on Allow full-screen notifications.',
     },
-    manualPath: 'Settings > Apps > Special app access > Full-screen notifications'
+    manualPath:
+      'Settings > Apps > Special app access > Full-screen notifications',
   },
   {
     grant: 'overlay',
     severity: 'critical',
     title: 'Allow display over other apps',
-    consequence: "Alarms can't take over the screen while you're using the phone, they collapse into a banner.",
+    consequence:
+      "Alarms can't take over the screen while you're using the phone, they collapse into a banner.",
     why: 'Android requires this before a ringing alarm can take over the screen while you are using your phone. Persistent does not draw over other apps.',
     instructions: {
-      settings: 'On the next screen, find Persistent if asked, then turn on Allow display over other apps.'
+      settings:
+        'On the next screen, find Persistent if asked, then turn on Allow display over other apps.',
     },
-    manualPath: 'Settings > Apps > Special app access > Display over other apps'
+    manualPath:
+      'Settings > Apps > Special app access > Display over other apps',
   },
   {
     grant: 'battery',
     severity: 'reliability',
     title: 'Let Persistent run in the background',
-    consequence: 'Battery saving may delay reminder updates, and some phones may stop Persistent in the background.',
+    consequence:
+      'Battery saving may delay reminder updates, and some phones may stop Persistent in the background.',
     why: "This stops Android's battery saving from putting Persistent to sleep, so reminders stay up to date and keep working on phones that close background apps.",
     instructions: {
-      settings: 'Android will ask whether Persistent can run in the background. Choose Allow.'
+      settings:
+        'Android will ask whether Persistent can run in the background. Choose Allow.',
     },
-    manualPath: 'Settings > Apps > Persistent > Battery > Unrestricted'
-  }
+    manualPath: 'Settings > Apps > Persistent > Battery > Unrestricted',
+  },
 ]
 
 /** The copy for one grant. */
@@ -117,14 +129,18 @@ export function grantCopy(grant: AlarmGrant): AlarmGrantCopy {
  * `undefined`, which every caller treats as "not known to be missing".
  */
 export function normalizeReadiness(raw: unknown): AlarmReadiness {
-  const source = typeof raw === 'object' && raw !== null ? (raw as Record<string, unknown>) : {}
-  const read = (grant: AlarmGrant) => (typeof source[grant] === 'boolean' ? (source[grant] as boolean) : undefined)
+  const source =
+    typeof raw === 'object' && raw !== null
+      ? (raw as Record<string, unknown>)
+      : {}
+  const read = (grant: AlarmGrant) =>
+    typeof source[grant] === 'boolean' ? (source[grant] as boolean) : undefined
   return {
     notifications: read('notifications'),
     exactAlarms: read('exactAlarms'),
     fullScreen: read('fullScreen'),
     overlay: read('overlay'),
-    battery: read('battery')
+    battery: read('battery'),
   }
 }
 
@@ -132,13 +148,23 @@ export function normalizeReadiness(raw: unknown): AlarmReadiness {
  * The grants among `among` that the host reports as missing, in the order the
  * guide asks for them. Unknown grants are never included.
  */
-export function missingGrants(readiness: AlarmReadiness, among: readonly AlarmGrant[]): AlarmGrant[] {
-  return ALARM_GRANTS.map((entry) => entry.grant).filter((grant) => among.includes(grant) && readiness[grant] === false)
+export function missingGrants(
+  readiness: AlarmReadiness,
+  among: readonly AlarmGrant[],
+): AlarmGrant[] {
+  return ALARM_GRANTS.map((entry) => entry.grant).filter(
+    (grant) => among.includes(grant) && readiness[grant] === false,
+  )
 }
 
 /** Whether no grant at all is reported missing (unknown grants don't count). */
 export function isFullySetUp(readiness: AlarmReadiness): boolean {
-  return missingGrants(readiness, ALARM_GRANTS.map((entry) => entry.grant)).length === 0
+  return (
+    missingGrants(
+      readiness,
+      ALARM_GRANTS.map((entry) => entry.grant),
+    ).length === 0
+  )
 }
 
 /**

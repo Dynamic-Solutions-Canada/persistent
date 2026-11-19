@@ -14,8 +14,10 @@ export interface UpcomingReminder {
 
 /** A confirmed single firing has no future obligation and belongs in History. */
 function isFinished(reminder: Reminder): boolean {
-  return (reminder.schedule.kind === 'once' || reminder.schedule.kind === 'none') &&
+  return (
+    (reminder.schedule.kind === 'once' || reminder.schedule.kind === 'none') &&
     reminder.lastOccurrence?.status === 'ACKNOWLEDGED'
+  )
 }
 
 /**
@@ -28,17 +30,30 @@ export function selectUpcomingReminders(
   reminders: readonly Reminder[],
   activeOccurrences: readonly Pick<Occurrence, 'reminderId'>[],
   now: Date = new Date(),
-  nextById?: ReadonlyMap<string, Date | null>
+  nextById?: ReadonlyMap<string, Date | null>,
 ): UpcomingReminder[] {
-  const pendingReminderIds = new Set(activeOccurrences.map((occurrence) => occurrence.reminderId))
+  const pendingReminderIds = new Set(
+    activeOccurrences.map((occurrence) => occurrence.reminderId),
+  )
 
   return reminders
-    .filter((reminder) => !isNote(reminder) && !isFinished(reminder) && !pendingReminderIds.has(reminder.id))
+    .filter(
+      (reminder) =>
+        !isNote(reminder) &&
+        !isFinished(reminder) &&
+        !pendingReminderIds.has(reminder.id),
+    )
     .map((reminder) => ({
       reminder,
       // Received schedules belong to their owner's time zone. Their exact next
       // instant comes from the server instead of this device's schedule preview.
-      next: nextById?.has(reminder.id) ? nextById.get(reminder.id) ?? null : reminderNextFire(reminder, now)
+      next: nextById?.has(reminder.id)
+        ? (nextById.get(reminder.id) ?? null)
+        : reminderNextFire(reminder, now),
     }))
-    .sort((left, right) => (left.next?.getTime() ?? Infinity) - (right.next?.getTime() ?? Infinity))
+    .sort(
+      (left, right) =>
+        (left.next?.getTime() ?? Infinity) -
+        (right.next?.getTime() ?? Infinity),
+    )
 }

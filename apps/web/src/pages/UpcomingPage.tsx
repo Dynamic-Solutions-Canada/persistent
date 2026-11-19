@@ -31,7 +31,10 @@ import { useSettings } from '../settings/useSettings.js'
 import { ReminderPreviewCard } from '../components/ReminderPreviewCard.js'
 import { sharingState } from '../components/sharingState.js'
 import { useReceivedShares } from '../data/shares.js'
-import { receivedReminderIds, receivedReminders } from '../lib/receivedReminders.js'
+import {
+  receivedReminderIds,
+  receivedReminders,
+} from '../lib/receivedReminders.js'
 import { useAuth } from '../auth/useAuth.js'
 import { PullToRefresh } from '../components/PullToRefresh.js'
 import { useReminderDialogs } from '../components/reminderDialogContext.js'
@@ -47,26 +50,42 @@ export function UpcomingPage() {
 
   const shares = received.data ?? []
   const receivedIds = receivedReminderIds(shares)
-  const nextById = new Map(shares.map((share) => [
-    share.id,
-    share.nextScheduledFor ? new Date(share.nextScheduledFor) : null
-  ] as const))
+  const nextById = new Map(
+    shares.map(
+      (share) =>
+        [
+          share.id,
+          share.nextScheduledFor ? new Date(share.nextScheduledFor) : null,
+        ] as const,
+    ),
+  )
   const idle = selectUpcomingReminders(
     [...(reminders.data ?? []), ...receivedReminders(shares)],
     active.data ?? [],
     new Date(),
-    nextById
+    nextById,
   )
 
   return (
-    <PullToRefresh onRefresh={() => Promise.all([reminders.refetch(), active.refetch(), received.refetch()])}>
+    <PullToRefresh
+      onRefresh={() =>
+        Promise.all([reminders.refetch(), active.refetch(), received.refetch()])
+      }
+    >
       <Stack spacing={3}>
         <Stack spacing={1.5}>
-          <SectionHeading title={tr("Upcoming")} subtitle={tr("Everything coming up, soonest first.")} />
+          <SectionHeading
+            title={tr('Upcoming')}
+            subtitle={tr('Everything coming up, soonest first.')}
+          />
 
-          {(reminders.isLoading || received.isLoading) && <Typography level="body-sm">{tr("Loading…")}</Typography>}
+          {(reminders.isLoading || received.isLoading) && (
+            <Typography level="body-sm">{tr('Loading…')}</Typography>
+          )}
           {reminders.data && received.data && idle.length === 0 && (
-            <Typography level="body-sm">{tr("Nothing scheduled. Anything due right now is on Current.")}</Typography>
+            <Typography level="body-sm">
+              {tr('Nothing scheduled. Anything due right now is on Current.')}
+            </Typography>
           )}
 
           <Stack spacing={1.5}>
@@ -79,8 +98,14 @@ export function UpcomingPage() {
               const isReceived = receivedIds.has(reminder.id)
               const isRepeating = reminder.schedule.kind !== 'once'
               const when = next
-                ? formatWhen(next, timeFormat, isReceived ? user?.timeZone : undefined)
-                : reminder.active ? tr("No upcoming notification") : undefined
+                ? formatWhen(
+                    next,
+                    timeFormat,
+                    isReceived ? user?.timeZone : undefined,
+                  )
+                : reminder.active
+                  ? tr('No upcoming notification')
+                  : undefined
               return (
                 <ReminderPreviewCard
                   key={reminder.id}
@@ -88,10 +113,16 @@ export function UpcomingPage() {
                   sharing={isReceived ? 'shared' : sharingState(reminder)}
                   onOpen={() => dialogs.view(reminder.id)}
                   when={when}
-                  secondary={isRepeating && !isReceived ? scheduleSummary(reminder.schedule, timeFormat) : undefined}
+                  secondary={
+                    isRepeating && !isReceived
+                      ? scheduleSummary(reminder.schedule, timeFormat)
+                      : undefined
+                  }
                   status={
                     !reminder.active ? (
-                      <Chip size="sm" color="neutral" variant="outlined">{tr("paused")}</Chip>
+                      <Chip size="sm" color="neutral" variant="outlined">
+                        {tr('paused')}
+                      </Chip>
                     ) : undefined
                   }
                 />

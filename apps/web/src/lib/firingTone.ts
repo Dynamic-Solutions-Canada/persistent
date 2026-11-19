@@ -7,7 +7,10 @@
  */
 import type { ColorPaletteProp, VariantProp } from '@mui/joy/styles'
 import type { Occurrence, Reminder } from '@persistent/shared'
-import { isOutsideReminderWindow, isUnscheduledFiring } from './occurrenceSchedule.js'
+import {
+  isOutsideReminderWindow,
+  isUnscheduledFiring,
+} from './occurrenceSchedule.js'
 
 export interface FiringTone {
   /** A firing the reminder's current schedule no longer covers. */
@@ -28,14 +31,33 @@ export interface FiringTone {
  * of the app is that these stay on screen until confirmed. Firings with no
  * deadline behind them are quieter still.
  */
-export function firingTone(reminder: Reminder, occurrence: Occurrence): FiringTone {
+export function firingTone(
+  reminder: Reminder,
+  occurrence: Occurrence,
+): FiringTone {
   const orphaned = isOutsideReminderWindow(reminder, occurrence)
   if (occurrence.status === 'ESCALATED') {
-    return { orphaned, color: 'danger', variant: 'soft', doneLabel: orphaned ? 'Clear' : 'Done' }
+    return {
+      orphaned,
+      color: 'danger',
+      variant: 'soft',
+      doneLabel: orphaned ? 'Clear' : 'Done',
+    }
   }
-  if (orphaned) return { orphaned, color: 'neutral', variant: 'outlined', doneLabel: 'Clear' }
+  if (orphaned)
+    return {
+      orphaned,
+      color: 'neutral',
+      variant: 'outlined',
+      doneLabel: 'Clear',
+    }
   if (isUnscheduledFiring(reminder)) {
-    return { orphaned, color: 'neutral', variant: 'outlined', doneLabel: 'Done' }
+    return {
+      orphaned,
+      color: 'neutral',
+      variant: 'outlined',
+      doneLabel: 'Done',
+    }
   }
   return { orphaned, color: 'warning', variant: 'outlined', doneLabel: 'Done' }
 }

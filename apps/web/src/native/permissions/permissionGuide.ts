@@ -13,7 +13,12 @@
  *   only. A grant whose screen never opened can't trap the user waiting for a
  *   resume that will not come.
  */
-import { missingGrants, type AlarmGrant, type AlarmReadiness, type GrantRoute } from './alarmGrants.js'
+import {
+  missingGrants,
+  type AlarmGrant,
+  type AlarmReadiness,
+  type GrantRoute,
+} from './alarmGrants.js'
 
 /**
  * - `explain`: why it is needed and what the next screen will ask; nothing opened yet.
@@ -46,17 +51,36 @@ export type GuideEvent =
 
 /** A guide over `scope` that has not read readiness yet. */
 export function initialGuide(scope: readonly AlarmGrant[]): GuideState {
-  return { scope, readiness: null, declined: [], promptTried: [], current: null, phase: 'explain', shown: [] }
+  return {
+    scope,
+    readiness: null,
+    declined: [],
+    promptTried: [],
+    current: null,
+    phase: 'explain',
+    shown: [],
+  }
 }
 
 /** The first grant still missing that the user hasn't put off, or null. */
-function nextGrant(scope: readonly AlarmGrant[], readiness: AlarmReadiness, declined: readonly AlarmGrant[]): AlarmGrant | null {
-  return missingGrants(readiness, scope).find((grant) => !declined.includes(grant)) ?? null
+function nextGrant(
+  scope: readonly AlarmGrant[],
+  readiness: AlarmReadiness,
+  declined: readonly AlarmGrant[],
+): AlarmGrant | null {
+  return (
+    missingGrants(readiness, scope).find(
+      (grant) => !declined.includes(grant),
+    ) ?? null
+  )
 }
 
 /** Put `current` on screen from its explanation, recording that it was shown. */
 function showNext(state: GuideState, current: AlarmGrant | null): GuideState {
-  const shown = current && !state.shown.includes(current) ? [...state.shown, current] : state.shown
+  const shown =
+    current && !state.shown.includes(current)
+      ? [...state.shown, current]
+      : state.shown
   return { ...state, current, phase: 'explain', shown }
 }
 
@@ -98,14 +122,21 @@ export function guideReducer(state: GuideState, event: GuideEvent): GuideState {
         event.route === 'prompt' && !state.promptTried.includes(event.grant)
           ? [...state.promptTried, event.grant]
           : state.promptTried
-      return { ...state, promptTried, phase: event.opened ? 'waiting' : 'unavailable' }
+      return {
+        ...state,
+        promptTried,
+        phase: event.opened ? 'waiting' : 'unavailable',
+      }
     }
 
     case 'notNow': {
       if (!state.current || !state.readiness) return state
 
       const declined = [...state.declined, state.current]
-      return showNext({ ...state, declined }, nextGrant(state.scope, state.readiness, declined))
+      return showNext(
+        { ...state, declined },
+        nextGrant(state.scope, state.readiness, declined),
+      )
     }
   }
 }

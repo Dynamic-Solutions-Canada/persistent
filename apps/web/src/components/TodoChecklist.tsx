@@ -72,7 +72,7 @@ export function TodoChecklist({
   hideChecked = false,
   onHideCheckedChange,
   disabled,
-  confirmable = true
+  confirmable = true,
 }: {
   items: TodoItem[]
   checkedItemIds: readonly string[]
@@ -89,7 +89,11 @@ export function TodoChecklist({
    * so the new wording is what every later firing shows. Omitted where nothing owns
    * the write; the text is then plain and inert.
    */
-  onRenameItem?: (itemId: string, text: string, expectedText: string) => void | Promise<unknown>
+  onRenameItem?: (
+    itemId: string,
+    text: string,
+    expectedText: string,
+  ) => void | Promise<unknown>
   /** Delete an item from the reminder definition. */
   onRemoveItem?: (itemId: string) => void
   /**
@@ -148,7 +152,9 @@ export function TodoChecklist({
   const allDone = total > 0 && done === total
   // Ticking is the only way to hide an item, and unticking is the only way back —
   // so the control stays visible while anything is hidden, however few are left.
-  const visible = hideChecked ? ordered.filter((item) => !checked.has(item.id)) : ordered
+  const visible = hideChecked
+    ? ordered.filter((item) => !checked.has(item.id))
+    : ordered
   // Nothing to reorder with one row, and nothing to drag when only one is on screen.
   const reorderable = Boolean(onReorder) && !disabled && visible.length > 1
 
@@ -163,25 +169,41 @@ export function TodoChecklist({
     const currentOrder = currentIds
       ? currentIds.flatMap((id) => items.filter((item) => item.id === id))
       : items
-    const currentVisible = hideChecked ? currentOrder.filter((item) => !checked.has(item.id)) : currentOrder
+    const currentVisible = hideChecked
+      ? currentOrder.filter((item) => !checked.has(item.id))
+      : currentOrder
     const moved = currentVisible[from]
     const target = currentVisible[to]
     if (!moved || !target) return
-    setOrder(moveTodoItem(currentOrder, moved.id, target.id, to > from).map((item) => item.id))
+    setOrder(
+      moveTodoItem(currentOrder, moved.id, target.id, to > from).map(
+        (item) => item.id,
+      ),
+    )
   }
 
-  const { draggingIndex, dragOffset, listProps, handleProps } = useDragReorder(listRef, visible.length, moveVisible, () => {
-    // Sent once the gesture has settled, as the full set of ids: the server treats it
-    // as a ranking, so an item added elsewhere meanwhile survives (see the endpoint).
-    const settled = dragOrderRef.current
-    if (!settled) return
-    setOrder(null)
-    onReorder?.(settled)
-  })
+  const { draggingIndex, dragOffset, listProps, handleProps } = useDragReorder(
+    listRef,
+    visible.length,
+    moveVisible,
+    () => {
+      // Sent once the gesture has settled, as the full set of ids: the server treats it
+      // as a ranking, so an item added elsewhere meanwhile survives (see the endpoint).
+      const settled = dragOrderRef.current
+      if (!settled) return
+      setOrder(null)
+      onReorder?.(settled)
+    },
+  )
 
   return (
     <Box>
-      <Stack spacing={0.25} ref={listRef} {...listProps} sx={{ mb: visible.length > 0 ? 1 : 0 }}>
+      <Stack
+        spacing={0.25}
+        ref={listRef}
+        {...listProps}
+        sx={{ mb: visible.length > 0 ? 1 : 0 }}
+      >
         {visible.map((item, index) => {
           const isChecked = checked.has(item.id)
           return (
@@ -193,17 +215,20 @@ export function TodoChecklist({
               sx={{
                 minHeight: ROW_MIN_HEIGHT,
                 borderRadius: 'sm',
-                '&:hover .todo-remove, &:focus-within .todo-remove, &:hover .todo-move, &:focus-within .todo-move': { opacity: 1 },
-                '@media (hover: none)': { '& .todo-remove, & .todo-move': { opacity: 1 } },
+                '&:hover .todo-remove, &:focus-within .todo-remove, &:hover .todo-move, &:focus-within .todo-move':
+                  { opacity: 1 },
+                '@media (hover: none)': {
+                  '& .todo-remove, & .todo-move': { opacity: 1 },
+                },
                 ...(draggingIndex === index
                   ? {
                       bgcolor: 'background.level1',
                       boxShadow: 'sm',
                       position: 'relative',
                       zIndex: 1,
-                      transform: `translateY(${dragOffset}px)`
+                      transform: `translateY(${dragOffset}px)`,
                     }
-                  : {})
+                  : {}),
               }}
             >
               {reorderable && (
@@ -212,7 +237,10 @@ export function TodoChecklist({
                   {...handleProps(index)}
                   tabIndex={0}
                   role="button"
-                  aria-label={tr("Reorder {{v0}}. Use the up and down arrow keys to move it.", { v0: item.text })}
+                  aria-label={tr(
+                    'Reorder {{v0}}. Use the up and down arrow keys to move it.',
+                    { v0: item.text },
+                  )}
                   sx={{
                     opacity: 0,
                     transition: 'opacity 150ms ease',
@@ -224,7 +252,7 @@ export function TodoChecklist({
                     color: 'text.tertiary',
                     borderRadius: 'sm',
                     '&:active': { cursor: 'grabbing' },
-                    '&:hover': { color: 'text.secondary' }
+                    '&:hover': { color: 'text.secondary' },
                   }}
                 >
                   <DragIndicatorIcon fontSize="small" />
@@ -243,7 +271,7 @@ export function TodoChecklist({
                   ...checklistCheckboxSx,
                   p: 0.75,
                   borderRadius: 'sm',
-                  '&:hover': { bgcolor: 'background.level1' }
+                  '&:hover': { bgcolor: 'background.level1' },
                 }}
               />
               {/* Struck through rather than removed: the list is the record of what
@@ -252,7 +280,12 @@ export function TodoChecklist({
                 text={item.text}
                 struck={isChecked}
                 disabled={disabled}
-                onRename={onRenameItem ? (text, expectedText) => onRenameItem(item.id, text, expectedText) : undefined}
+                onRename={
+                  onRenameItem
+                    ? (text, expectedText) =>
+                        onRenameItem(item.id, text, expectedText)
+                    : undefined
+                }
               />
               {onRemoveItem && (
                 <IconButton
@@ -261,9 +294,13 @@ export function TodoChecklist({
                   variant="plain"
                   color="danger"
                   disabled={disabled}
-                  aria-label={tr("Remove {{v0}}", { v0: item.text })}
+                  aria-label={tr('Remove {{v0}}', { v0: item.text })}
                   onClick={() => onRemoveItem(item.id)}
-                  sx={{ opacity: 0, transition: 'opacity 150ms ease', flexShrink: 0 }}
+                  sx={{
+                    opacity: 0,
+                    transition: 'opacity 150ms ease',
+                    flexShrink: 0,
+                  }}
                 >
                   <CloseIcon fontSize="small" />
                 </IconButton>
@@ -281,44 +318,58 @@ export function TodoChecklist({
           <TodoAddItem onAdd={onAddItem} disabled={disabled} />
         </Box>
       )}
-      {total > 0 && onToggle && <LinearProgress
-        determinate
-        value={total > 0 ? (done / total) * 100 : 0}
-        color={allDone ? 'success' : 'warning'}
-        sx={{ '--LinearProgress-thickness': '4px' }}
-      />}
-      {total > 0 && onToggle && <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        spacing={1}
-        sx={{ mt: 0.5, minHeight: 32 }}
-      >
-        <Typography level="body-xs" color={allDone ? 'success' : undefined} sx={{ minWidth: 0 }}>
-          {allDone
-            ? confirmable
-              ? tr("All {{v0}} checked, tap Done to confirm", { v0: total })
-              : tr("All {{v0}} checked", { v0: total })
-            : tr("{{v0}} of {{v1}} done", { v0: done, v1: total })}
-        </Typography>
-        {/* Only once something is ticked: before that it would toggle nothing.
+      {total > 0 && onToggle && (
+        <LinearProgress
+          determinate
+          value={total > 0 ? (done / total) * 100 : 0}
+          color={allDone ? 'success' : 'warning'}
+          sx={{ '--LinearProgress-thickness': '4px' }}
+        />
+      )}
+      {total > 0 && onToggle && (
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          spacing={1}
+          sx={{ mt: 0.5, minHeight: 32 }}
+        >
+          <Typography
+            level="body-xs"
+            color={allDone ? 'success' : undefined}
+            sx={{ minWidth: 0 }}
+          >
+            {allDone
+              ? confirmable
+                ? tr('All {{v0}} checked, tap Done to confirm', { v0: total })
+                : tr('All {{v0}} checked', { v0: total })
+              : tr('{{v0}} of {{v1}} done', { v0: done, v1: total })}
+          </Typography>
+          {/* Only once something is ticked: before that it would toggle nothing.
             Right-anchored, opposite the count, so it reads as a control on that
             line rather than another item at the end of the list. */}
-        {done > 0 && onHideCheckedChange && (
-          <Button
-            variant="plain"
-            color="neutral"
-            size="sm"
-            disabled={disabled}
-            onClick={() => onHideCheckedChange(!hideChecked)}
-            // A text button rather than a link: this sits under a thumb on a phone,
-            // sometimes against a ringing alarm, so it keeps a real tap target.
-            sx={{ flexShrink: 0, minHeight: 32, px: 1, fontSize: 'xs', fontWeight: 'md' }}
-          >
-            {hideChecked ? tr("Show checked") : tr("Hide checked")}
-          </Button>
-        )}
-      </Stack>}
+          {done > 0 && onHideCheckedChange && (
+            <Button
+              variant="plain"
+              color="neutral"
+              size="sm"
+              disabled={disabled}
+              onClick={() => onHideCheckedChange(!hideChecked)}
+              // A text button rather than a link: this sits under a thumb on a phone,
+              // sometimes against a ringing alarm, so it keeps a real tap target.
+              sx={{
+                flexShrink: 0,
+                minHeight: 32,
+                px: 1,
+                fontSize: 'xs',
+                fontWeight: 'md',
+              }}
+            >
+              {hideChecked ? tr('Show checked') : tr('Hide checked')}
+            </Button>
+          )}
+        </Stack>
+      )}
     </Box>
   )
 }

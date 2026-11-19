@@ -19,19 +19,41 @@
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
 import type { PersistQueryClientOptions } from '@tanstack/react-query-persist-client'
 import { serializeOwnedCache } from './serializeOwnedCache.js'
-import { readOfflineUser, QUERY_CACHE_KEY, OFFLINE_MAX_AGE } from '../auth/offlineSession.js'
-import { deserializeAccountCache, serializeAccountCache } from './accountCache.js'
+import {
+  readOfflineUser,
+  QUERY_CACHE_KEY,
+  OFFLINE_MAX_AGE,
+} from '../auth/offlineSession.js'
+import {
+  deserializeAccountCache,
+  serializeAccountCache,
+} from './accountCache.js'
 
 const persister = createSyncStoragePersister({
   storage: window.localStorage,
   key: QUERY_CACHE_KEY,
-  serialize: (client) => serializeAccountCache(serializeOwnedCache(client), readOfflineUser(window.localStorage)?.id ?? null),
-  deserialize: (raw) => deserializeAccountCache(raw, readOfflineUser(window.localStorage)?.id ?? null)
+  serialize: (client) =>
+    serializeAccountCache(
+      serializeOwnedCache(client),
+      readOfflineUser(window.localStorage)?.id ?? null,
+    ),
+  deserialize: (raw) =>
+    deserializeAccountCache(
+      raw,
+      readOfflineUser(window.localStorage)?.id ?? null,
+    ),
 })
 
 // Revocable cross-user access and credentials must not survive in an offline cache.
 // The public app catalog has its own account-independent last-good cache.
-const EXCLUDED_PREFIXES = ['auth', 'shares', 'assignments', 'admin', 'announcements', 'promoted-apps']
+const EXCLUDED_PREFIXES = [
+  'auth',
+  'shares',
+  'assignments',
+  'admin',
+  'announcements',
+  'promoted-apps',
+]
 
 export const persistOptions: Omit<PersistQueryClientOptions, 'queryClient'> = {
   persister,
@@ -42,6 +64,7 @@ export const persistOptions: Omit<PersistQueryClientOptions, 'queryClient'> = {
   maxAge: OFFLINE_MAX_AGE,
   dehydrateOptions: {
     shouldDehydrateQuery: (query) =>
-      query.state.status === 'success' && !EXCLUDED_PREFIXES.includes(String(query.queryKey[0]))
-  }
+      query.state.status === 'success' &&
+      !EXCLUDED_PREFIXES.includes(String(query.queryKey[0])),
+  },
 }

@@ -13,7 +13,11 @@ import Input from '@mui/joy/Input'
 import Button from '@mui/joy/Button'
 import Checkbox from '@mui/joy/Checkbox'
 import IconButton from '@mui/joy/IconButton'
-import { isTimeless, scheduleKinds, type ScheduleKind } from '@persistent/shared'
+import {
+  isTimeless,
+  scheduleKinds,
+  type ScheduleKind,
+} from '@persistent/shared'
 import { MonthlyDaysField } from './MonthlyDaysField.js'
 import type { FormState } from './formState.js'
 
@@ -34,14 +38,14 @@ const SCHEDULE_KIND_LABELS: Record<ScheduleKind, string> = {
   weekly: 'Weekly',
   monthly: 'Monthly',
   interval: 'Every N days',
-  custom: 'Custom days'
+  custom: 'Custom days',
 }
 
 export function ScheduleTab({
   form,
   set,
   onKindChange,
-  isEditing
+  isEditing,
 }: {
   form: FormState
   set: <K extends keyof FormState>(key: K, value: FormState[K]) => void
@@ -60,43 +64,51 @@ export function ScheduleTab({
       {/* Shown when editing too: each of the three is a saved state, so a reminder
           has to be able to show the one it is in and to move between them. */}
       <FormControl>
-        <FormLabel>{tr("When")}</FormLabel>
+        <FormLabel>{tr('When')}</FormLabel>
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           <Button
             size="sm"
             variant={form.when === 'now' ? 'solid' : 'outlined'}
             onClick={() => set('when', 'now')}
           >
-            {isEditing ? tr("No date or time") : tr("Remind me now")}
+            {isEditing ? tr('No date or time') : tr('Remind me now')}
           </Button>
           <Button
             size="sm"
             variant={form.when === 'scheduled' ? 'solid' : 'outlined'}
             onClick={() => set('when', 'scheduled')}
-          >{tr("Schedule it")}</Button>
+          >
+            {tr('Schedule it')}
+          </Button>
           {/* The whole point of the mode is that it doesn't remind, so it is named
               for that rather than for a time it will never have. */}
           <Button
             size="sm"
             variant={form.when === 'never' ? 'solid' : 'outlined'}
             onClick={() => set('when', 'never')}
-          >{tr("Never, just a note")}</Button>
+          >
+            {tr('Never, just a note')}
+          </Button>
         </Stack>
         <FormHelperText>
           {form.when === 'scheduled'
-            ? tr("Pick when it notifies you and whether it repeats.")
+            ? tr('Pick when it notifies you and whether it repeats.')
             : form.when === 'never'
-              ? tr("Never notifies you and never nags, kept as a note you can read and edit. Nothing to confirm.")
+              ? tr(
+                  'Never notifies you and never nags, kept as a note you can read and edit. Nothing to confirm.',
+                )
               : isEditing
-                ? tr("Has no date or time. It notified you once, when you created it.")
-                : tr("Notifies you as soon as you create it, nothing to pick.")}
+                ? tr(
+                    'Has no date or time. It notified you once, when you created it.',
+                  )
+                : tr('Notifies you as soon as you create it, nothing to pick.')}
         </FormHelperText>
       </FormControl>
 
       {form.when === 'scheduled' && (
         <>
           <FormControl>
-            <FormLabel>{tr("Repeat")}</FormLabel>
+            <FormLabel>{tr('Repeat')}</FormLabel>
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
               {REPEAT_KINDS.map((k) => (
                 <Button
@@ -113,7 +125,7 @@ export function ScheduleTab({
 
           {isOnce ? (
             <FormControl>
-              <FormLabel>{tr("Time")}</FormLabel>
+              <FormLabel>{tr('Time')}</FormLabel>
               <Input
                 type="time"
                 value={form.timesOfDay[0] ?? '08:00'}
@@ -122,17 +134,24 @@ export function ScheduleTab({
             </FormControl>
           ) : (
             <FormControl>
-              <FormLabel>{tr("Times of day")}</FormLabel>
+              <FormLabel>{tr('Times of day')}</FormLabel>
               <Stack spacing={1}>
                 {form.timesOfDay.map((time, index) => (
-                  <Stack key={index} direction="row" spacing={1} alignItems="center">
+                  <Stack
+                    key={index}
+                    direction="row"
+                    spacing={1}
+                    alignItems="center"
+                  >
                     <Input
                       type="time"
                       value={time}
                       onChange={(e) =>
                         set(
                           'timesOfDay',
-                          form.timesOfDay.map((t, i) => (i === index ? e.target.value : t))
+                          form.timesOfDay.map((t, i) =>
+                            i === index ? e.target.value : t,
+                          ),
                         )
                       }
                       sx={{ flex: 1 }}
@@ -144,7 +163,7 @@ export function ScheduleTab({
                         onClick={() =>
                           set(
                             'timesOfDay',
-                            form.timesOfDay.filter((_t, i) => i !== index)
+                            form.timesOfDay.filter((_t, i) => i !== index),
                           )
                         }
                       >
@@ -153,14 +172,22 @@ export function ScheduleTab({
                     )}
                   </Stack>
                 ))}
-                <Button variant="outlined" size="sm" onClick={() => set('timesOfDay', [...form.timesOfDay, '12:00'])}>{tr("Add time")}</Button>
+                <Button
+                  variant="outlined"
+                  size="sm"
+                  onClick={() =>
+                    set('timesOfDay', [...form.timesOfDay, '12:00'])
+                  }
+                >
+                  {tr('Add time')}
+                </Button>
               </Stack>
             </FormControl>
           )}
 
           {needsDays && (
             <FormControl>
-              <FormLabel>{tr("Days of week")}</FormLabel>
+              <FormLabel>{tr('Days of week')}</FormLabel>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                 {DAY_NAMES.map((name, day) => (
                   <Checkbox
@@ -172,7 +199,7 @@ export function ScheduleTab({
                         'daysOfWeek',
                         e.target.checked
                           ? [...form.daysOfWeek, day].sort((a, b) => a - b)
-                          : form.daysOfWeek.filter((d) => d !== day)
+                          : form.daysOfWeek.filter((d) => d !== day),
                       )
                     }
                   />
@@ -192,7 +219,7 @@ export function ScheduleTab({
 
           {needsInterval && (
             <FormControl>
-              <FormLabel>{tr("Every N days")}</FormLabel>
+              <FormLabel>{tr('Every N days')}</FormLabel>
               <Input
                 type="number"
                 value={form.everyNDays}
@@ -204,7 +231,7 @@ export function ScheduleTab({
 
           {canSkipWeekends && (
             <Checkbox
-              label={tr("Skip weekends")}
+              label={tr('Skip weekends')}
               checked={form.skipWeekends}
               onChange={(e) => set('skipWeekends', e.target.checked)}
             />
@@ -212,13 +239,17 @@ export function ScheduleTab({
 
           {isOnce ? (
             <FormControl>
-              <FormLabel>{tr("Date")}</FormLabel>
-              <Input type="date" value={form.startDate} onChange={(e) => set('startDate', e.target.value)} />
+              <FormLabel>{tr('Date')}</FormLabel>
+              <Input
+                type="date"
+                value={form.startDate}
+                onChange={(e) => set('startDate', e.target.value)}
+              />
             </FormControl>
           ) : (
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
               <FormControl sx={{ flex: 1, minWidth: 0 }}>
-                <FormLabel>{tr("Start date")}</FormLabel>
+                <FormLabel>{tr('Start date')}</FormLabel>
                 <Input
                   type="date"
                   value={form.startDate}
@@ -227,7 +258,7 @@ export function ScheduleTab({
                 />
               </FormControl>
               <FormControl sx={{ flex: 1, minWidth: 0 }}>
-                <FormLabel>{tr("End date (optional)")}</FormLabel>
+                <FormLabel>{tr('End date (optional)')}</FormLabel>
                 <Input
                   type="date"
                   value={form.endDate}

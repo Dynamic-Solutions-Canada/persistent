@@ -29,4 +29,13 @@ export interface DesktopHostSettings {
 }
 
 /** Capability/option metadata is read-only; only machine preferences can be requested by the page. */
-export type DesktopHostSettingsPatch = Partial<Omit<DesktopHostSettings, 'platform' | 'deviceTimeFormat' | 'snoozeInApp' | 'flyoutSizes' | 'snoozeChoices'>>
+export type DesktopHostSettingsPatch = Partial<
+  Omit<
+    DesktopHostSettings,
+    | 'platform'
+    | 'deviceTimeFormat'
+    | 'snoozeInApp'
+    | 'flyoutSizes'
+    | 'snoozeChoices'
+  >
+>

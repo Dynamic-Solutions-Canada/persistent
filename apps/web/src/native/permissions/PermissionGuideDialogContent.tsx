@@ -22,8 +22,20 @@ import Typography from '@mui/joy/Typography'
 import { tr } from '../../localization/i18n.js'
 import { notify } from '../../lib/toast.js'
 import { BackAwareModal } from '../../components/BackAwareModal.js'
-import { grantCopy, isFullySetUp, routeFor, type AlarmGrant, type AlarmReadiness, type GrantRoute } from './alarmGrants.js'
-import { guideReducer, initialGuide, isGuideFinished, type GuideState } from './permissionGuide.js'
+import {
+  grantCopy,
+  isFullySetUp,
+  routeFor,
+  type AlarmGrant,
+  type AlarmReadiness,
+  type GrantRoute,
+} from './alarmGrants.js'
+import {
+  guideReducer,
+  initialGuide,
+  isGuideFinished,
+  type GuideState,
+} from './permissionGuide.js'
 
 export interface PermissionGuideOutcome {
   /** Grants still missing that the user put off; the banner keeps showing them. */
@@ -49,9 +61,17 @@ interface PermissionGuideDialogContentProps extends PermissionGuideDialogProps {
 }
 
 /** A guide over `scope`, already applied to readiness the caller holds, so it can open on its first render. */
-function startGuide({ scope, readiness }: { scope: readonly AlarmGrant[]; readiness: AlarmReadiness | null }): GuideState {
+function startGuide({
+  scope,
+  readiness,
+}: {
+  scope: readonly AlarmGrant[]
+  readiness: AlarmReadiness | null
+}): GuideState {
   const guide = initialGuide(scope)
-  return readiness ? guideReducer(guide, { type: 'readiness', readiness }) : guide
+  return readiness
+    ? guideReducer(guide, { type: 'readiness', readiness })
+    : guide
 }
 
 /**
@@ -61,9 +81,19 @@ function startGuide({ scope, readiness }: { scope: readonly AlarmGrant[]; readin
  * `BackAwareModal` pops the history entry it pushed only on an open-to-closed
  * change, and an unmounted modal would leave that entry to swallow the next Back.
  */
-export function PermissionGuideDialogContent({ scope, onClose, readiness, refresh, launch: launchGrant }: PermissionGuideDialogContentProps) {
+export function PermissionGuideDialogContent({
+  scope,
+  onClose,
+  readiness,
+  refresh,
+  launch: launchGrant,
+}: PermissionGuideDialogContentProps) {
   useTranslation()
-  const [state, dispatch] = useReducer(guideReducer, { scope, readiness }, startGuide)
+  const [state, dispatch] = useReducer(
+    guideReducer,
+    { scope, readiness },
+    startGuide,
+  )
   const [launching, setLaunching] = useState(false)
   const asked = useRef(false)
   const closed = useRef(false)
@@ -79,15 +109,21 @@ export function PermissionGuideDialogContent({ scope, onClose, readiness, refres
       if (closed.current) return
       closed.current = true
 
-      const remaining = finalState.current ? [...finalState.declined, finalState.current] : [...finalState.declined]
+      const remaining = finalState.current
+        ? [...finalState.declined, finalState.current]
+        : [...finalState.declined]
       // Confirm only when the guide asked for something and every grant, not just
       // this guide's scope, is now held; otherwise the banner still has work to show.
-      if (asked.current && finalState.readiness && isFullySetUp(finalState.readiness)) {
-        notify(tr("Alarms are fully set up"), 'success')
+      if (
+        asked.current &&
+        finalState.readiness &&
+        isFullySetUp(finalState.readiness)
+      ) {
+        notify(tr('Alarms are fully set up'), 'success')
       }
       onClose({ declined: remaining, shown: [...finalState.shown] })
     },
-    [onClose]
+    [onClose],
   )
 
   // Runs after the modal's own effect has seen open become false and popped its entry.
@@ -141,7 +177,14 @@ export function PermissionGuideDialogContent({ scope, onClose, readiness, refres
 }
 
 /** One grant's explanation, phase message and actions. */
-function GuideStep({ grant, state, launching, onLaunch, onCheckAgain, onNotNow }: {
+function GuideStep({
+  grant,
+  state,
+  launching,
+  onLaunch,
+  onCheckAgain,
+  onNotNow,
+}: {
   grant: AlarmGrant
   state: GuideState
   launching: boolean
@@ -158,21 +201,31 @@ function GuideStep({ grant, state, launching, onLaunch, onCheckAgain, onNotNow }
       <DialogContent>
         <Stack spacing={1.5}>
           <Typography>{tr(copy.why)}</Typography>
-          <PhaseMessage phase={state.phase} instructions={tr(copy.instructions[route] ?? '')} manualPath={tr(copy.manualPath)} />
+          <PhaseMessage
+            phase={state.phase}
+            instructions={tr(copy.instructions[route] ?? '')}
+            manualPath={tr(copy.manualPath)}
+          />
         </Stack>
       </DialogContent>
       <DialogActions>
         <Button variant="plain" color="neutral" onClick={onNotNow}>
-          {tr("Not now")}
+          {tr('Not now')}
         </Button>
         {state.phase === 'explain' && (
-          <Button loading={launching} onClick={() => onLaunch(route)}>{tr("Continue")}</Button>
+          <Button loading={launching} onClick={() => onLaunch(route)}>
+            {tr('Continue')}
+          </Button>
         )}
         {state.phase === 'stillOff' && (
-          <Button loading={launching} onClick={() => onLaunch(route)}>{tr("Try again")}</Button>
+          <Button loading={launching} onClick={() => onLaunch(route)}>
+            {tr('Try again')}
+          </Button>
         )}
         {(state.phase === 'waiting' || state.phase === 'unavailable') && (
-          <Button variant="soft" onClick={onCheckAgain}>{tr("Check again")}</Button>
+          <Button variant="soft" onClick={onCheckAgain}>
+            {tr('Check again')}
+          </Button>
         )}
       </DialogActions>
     </>
@@ -180,12 +233,26 @@ function GuideStep({ grant, state, launching, onLaunch, onCheckAgain, onNotNow }
 }
 
 /** The second paragraph: what happens next, or what went wrong, for the current phase. */
-function PhaseMessage({ phase, instructions, manualPath }: { phase: GuideState['phase']; instructions: string; manualPath: string }) {
+function PhaseMessage({
+  phase,
+  instructions,
+  manualPath,
+}: {
+  phase: GuideState['phase']
+  instructions: string
+  manualPath: string
+}) {
   switch (phase) {
     case 'explain':
       return <Typography level="body-sm">{instructions}</Typography>
     case 'waiting':
-      return <Typography level="body-sm">{tr("When you're done, come back to Persistent. This updates by itself.")}</Typography>
+      return (
+        <Typography level="body-sm">
+          {tr(
+            "When you're done, come back to Persistent. This updates by itself.",
+          )}
+        </Typography>
+      )
     case 'stillOff':
       return (
         <Typography level="body-sm">
@@ -195,7 +262,10 @@ function PhaseMessage({ phase, instructions, manualPath }: { phase: GuideState['
     case 'unavailable':
       return (
         <Typography level="body-sm">
-          {tr("This phone didn't open that screen. You can turn it on yourself in {{v0}}.", { v0: manualPath })}
+          {tr(
+            "This phone didn't open that screen. You can turn it on yourself in {{v0}}.",
+            { v0: manualPath },
+          )}
         </Typography>
       )
   }

@@ -6,7 +6,16 @@ import { Box, CircularProgress } from '@mui/joy'
 export function AppLoading() {
   useTranslation()
   return (
-    <Box role="status" aria-label={tr("Loading reminders")} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100dvh' }}>
+    <Box
+      role="status"
+      aria-label={tr('Loading reminders')}
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100dvh',
+      }}
+    >
       <CircularProgress />
     </Box>
   )

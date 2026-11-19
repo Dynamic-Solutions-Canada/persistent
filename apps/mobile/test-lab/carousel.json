@@ -24,10 +24,7 @@
       "action": "capture",
       "name": "00-current-light.png",
       "surface": "web",
-      "requiredControls": [
-        "header",
-        "navigation"
-      ]
+      "requiredControls": ["header", "navigation"]
     },
     {
       "action": "shell",
@@ -77,9 +74,7 @@
       "action": "capture",
       "name": "03-checklist-dark.png",
       "surface": "web",
-      "requiredControls": [
-        "dialog"
-      ]
+      "requiredControls": ["dialog"]
     },
     {
       "action": "javascript",
@@ -126,9 +121,7 @@
       "action": "capture",
       "name": "04-medication-light.png",
       "surface": "web",
-      "requiredControls": [
-        "dialog"
-      ]
+      "requiredControls": ["dialog"]
     },
     {
       "action": "javascript",
@@ -184,9 +177,7 @@
       "action": "capture",
       "name": "05-sharing-dark.png",
       "surface": "web",
-      "requiredControls": [
-        "dialog"
-      ]
+      "requiredControls": ["dialog"]
     },
     {
       "action": "javascript",
@@ -215,10 +206,7 @@
       "action": "capture",
       "name": "06-notes-light.png",
       "surface": "web",
-      "requiredControls": [
-        "header",
-        "navigation"
-      ]
+      "requiredControls": ["header", "navigation"]
     },
     {
       "action": "javascript",
@@ -247,10 +235,7 @@
       "action": "capture",
       "name": "07-assigned-dark.png",
       "surface": "web",
-      "requiredControls": [
-        "header",
-        "navigation"
-      ]
+      "requiredControls": ["header", "navigation"]
     },
     {
       "action": "javascript",

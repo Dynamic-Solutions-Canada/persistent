@@ -14,7 +14,12 @@
  * whichever device the user set it from.
  */
 import type { Reminder } from '@prisma/client'
-import { type DeviceAlarm, type Locale, message, ESC_SUFFIX } from '@persistent/shared'
+import {
+  type DeviceAlarm,
+  type Locale,
+  message,
+  ESC_SUFFIX,
+} from '@persistent/shared'
 import { notificationBody } from './notification-format.js'
 import { firingSounds } from './reminder-sounds.js'
 import { toCheckedItemIds } from './serializers.js'
@@ -38,13 +43,18 @@ interface OccurrenceForAlarm {
  * @param escalateAt the occurrence's escalation instant (already computed and
  *   snooze-/silence-gated by the caller), or null when no future escalation applies.
  */
-export function buildDeviceAlarms(occurrence: OccurrenceForAlarm, escalateAt: Date | null, locale: Locale = 'en-US'): DeviceAlarm[] {
+export function buildDeviceAlarms(
+  occurrence: OccurrenceForAlarm,
+  escalateAt: Date | null,
+  locale: Locale = 'en-US',
+): DeviceAlarm[] {
   const { reminder } = occurrence
   // A snoozed occurrence fires again when the snooze ends; everything else at its
   // scheduled time (already-fired ones sit in the past and ring immediately).
-  const fireAtMs = (occurrence.status === 'SNOOZED' && occurrence.snoozedUntil
-    ? occurrence.snoozedUntil
-    : occurrence.scheduledFor
+  const fireAtMs = (
+    occurrence.status === 'SNOOZED' && occurrence.snoozedUntil
+      ? occurrence.snoozedUntil
+      : occurrence.scheduledFor
   ).getTime()
   // Whether the device should RING at `fireAtMs` rather than post a soft nag.
   //
@@ -64,16 +74,23 @@ export function buildDeviceAlarms(occurrence: OccurrenceForAlarm, escalateAt: Da
   //
   // Silence is what takes the ring away for good: it says "stop yelling, keep
   // reminding me", so it outranks both.
-  const snoozed = occurrence.status === 'SNOOZED' && occurrence.snoozedUntil != null
-  const escalationDueOnReturn = snoozed && escalateAt != null && escalateAt.getTime() <= fireAtMs
+  const snoozed =
+    occurrence.status === 'SNOOZED' && occurrence.snoozedUntil != null
+  const escalationDueOnReturn =
+    snoozed && escalateAt != null && escalateAt.getTime() <= fireAtMs
   const ringing =
     occurrence.escalationSilencedAt == null &&
-    (occurrence.status === 'ESCALATED' || occurrence.escalatedAt != null || escalationDueOnReturn)
+    (occurrence.status === 'ESCALATED' ||
+      occurrence.escalatedAt != null ||
+      escalationDueOnReturn)
   // ALARM persistence always rings; so does anything currently escalated.
   const alarm = reminder.persistence === 'ALARM' || ringing
   // Only the unticked checklist items: the device re-pulls this list whenever a tick
   // lands (the `/check` sync nudge), and re-posts the nag when the text drifts.
-  const body = notificationBody(reminder, toCheckedItemIds(occurrence.checkedItems))
+  const body = notificationBody(
+    reminder,
+    toCheckedItemIds(occurrence.checkedItems),
+  )
 
   const main: DeviceAlarm = {
     occurrenceId: occurrence.id,
@@ -91,7 +108,7 @@ export function buildDeviceAlarms(occurrence: OccurrenceForAlarm, escalateAt: Da
     soundKind: alarm ? 'alarm' : 'notification',
     reminderId: occurrence.reminderId,
     shadeProminence: reminder.shadeProminence,
-    ...firingSounds(reminder.sounds, alarm)
+    ...firingSounds(reminder.sounds, alarm),
   }
   const alarms: DeviceAlarm[] = [main]
 
@@ -116,10 +133,12 @@ export function buildDeviceAlarms(occurrence: OccurrenceForAlarm, escalateAt: Da
       ...firingSounds(reminder.sounds, true),
       bodyTemplate: 'escalated',
       baseBody: main.body,
-      body: main.body ? message(locale, '{{body}} (escalated)', { body: main.body }) : message(locale, 'Escalated'),
+      body: main.body
+        ? message(locale, '{{body}} (escalated)', { body: main.body })
+        : message(locale, 'Escalated'),
       // The escalation alarm is always silenceable (escalation never applies to an
       // ALARM-persistence reminder), so the user can quiet it and keep nagging.
-      canSilence: true
+      canSilence: true,
     })
   }
   return alarms

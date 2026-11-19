@@ -38,7 +38,10 @@ function localDateKey(value: string): string {
  * that has *just* been made unscheduled ends up describing its brand-new firing as
  * a leftover from before a reschedule.
  */
-export function isOutsideReminderWindow(reminder: Reminder, occurrence: Occurrence): boolean {
+export function isOutsideReminderWindow(
+  reminder: Reminder,
+  occurrence: Occurrence,
+): boolean {
   if (isUnscheduledFiring(reminder)) return false
   const day = localDateKey(occurrence.scheduledFor)
   if (day < reminder.startDate) return true

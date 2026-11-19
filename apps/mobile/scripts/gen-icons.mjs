@@ -26,7 +26,11 @@ const DENSITIES = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 }
 const ICONS = [
   { src: 'icon-legacy.svg', out: 'ic_launcher.png', baseDp: 48 },
   { src: 'icon-round.svg', out: 'ic_launcher_round.png', baseDp: 48 },
-  { src: 'icon-foreground.svg', out: 'ic_launcher_foreground.png', baseDp: 108 },
+  {
+    src: 'icon-foreground.svg',
+    out: 'ic_launcher_foreground.png',
+    baseDp: 108,
+  },
 ]
 
 function assertRsvg() {
@@ -55,13 +59,18 @@ for (const [density, factor] of Object.entries(DENSITIES)) {
     }
     const px = Math.round(baseDp * factor)
     execFileSync('rsvg-convert', [
-      '-w', String(px),
-      '-h', String(px),
+      '-w',
+      String(px),
+      '-h',
+      String(px),
       srcPath,
-      '-o', join(outDir, out),
+      '-o',
+      join(outDir, out),
     ])
     count++
   }
 }
 
-console.log(`[gen-icons] wrote ${count} PNGs across ${Object.keys(DENSITIES).length} densities`)
+console.log(
+  `[gen-icons] wrote ${count} PNGs across ${Object.keys(DENSITIES).length} densities`,
+)

@@ -1,12 +1,26 @@
 /** Generate reusable marketing layouts around captured UI; never synthesize app content. */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 
-interface PlayShot { file: string; source: string; headline: string; caption: string; theme: string }
-const manifest = JSON.parse(readFileSync('store-assets/manifest.json', 'utf8')) as { play: PlayShot[]; microsoft: Array<{ file: string; alt: string }> }
+interface PlayShot {
+  file: string
+  source: string
+  headline: string
+  caption: string
+  theme: string
+}
+const manifest = JSON.parse(
+  readFileSync('store-assets/manifest.json', 'utf8'),
+) as { play: PlayShot[]; microsoft: Array<{ file: string; alt: string }> }
 
 /** Escape captions and relative asset paths before inserting them into static HTML. */
 function escape(value: string): string {
-  return value.replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]!)
+  return value.replace(
+    /[&<>"']/g,
+    (character) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
+        character
+      ]!,
+  )
 }
 
 mkdirSync('store-assets/render', { recursive: true })
@@ -32,9 +46,14 @@ img { width: 100%; height: 100%; object-fit: contain; display: block; }
 <div class="copy"><h1>${escape(shot.headline)}</h1><p>${escape(shot.caption)}</p></div>
 <div class="phone"><div class="screen"><img src="../${escape(shot.source)}" alt="Captured Persistent app screen"></div></div>
 </html>`
-  const name = shot.file.split('/').at(-1)!.replace(/\.png$/, '.html')
+  const name = shot.file
+    .split('/')
+    .at(-1)!
+    .replace(/\.png$/, '.html')
   writeFileSync(`store-assets/render/${name}`, html)
-  console.log(`Render in Paseo at 720x1280 CSS pixels: store-assets/render/${name}`)
+  console.log(
+    `Render in Paseo at 720x1280 CSS pixels: store-assets/render/${name}`,
+  )
 }
 
 // A review sheet gives the whole refresh a stable, easy-to-share visual overview.

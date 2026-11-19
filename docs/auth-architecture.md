@@ -31,7 +31,7 @@ the `Passkey` model.
 - **Registration** (authenticated): `register/options` → browser
   `startRegistration` → `register/verify` stores the credential's public key.
 - **Authentication** (anonymous): discoverable credentials (`residentKey:
-  required`), so `authenticate/options` → `startAuthentication` →
+required`), so `authenticate/options` → `startAuthentication` →
   `authenticate/verify` looks up the credential, verifies the assertion, and
   starts a normal session — the same cookie as the email flow.
 - The in-flight challenge is held in a short HttpOnly cookie
@@ -58,13 +58,13 @@ from `apps/web/public`) listing the app package + cert SHA-256, which authorizes
 the app for the RP.
 
 **One entry per flavor, because the two install under different package names.**
-Credential Manager matches package *and* certificate on-device, so a package the
+Credential Manager matches package _and_ certificate on-device, so a package the
 file does not name fails the ceremony before any request reaches the server, and
 no server setting can rescue it:
 
-| Flavor | Package | Signed by |
-| --- | --- | --- |
-| `direct` (legacy/local) | `ca.persistent.app` | the release keystore |
+| Flavor                   | Package                          | Signed by                    |
+| ------------------------ | -------------------------------- | ---------------------------- |
+| `direct` (legacy/local)  | `ca.persistent.app`              | the release keystore         |
 | `play` (Play and GitHub) | `ca.dynamicsolutions.persistent` | Google, via Play App Signing |
 
 GitHub distributes the universal APK generated and signed by Google Play, so
@@ -126,10 +126,10 @@ SHA-1; the web client id is passed as the `serverClientId`. This has the same
 per-flavor split as passkeys above, and the same failure mode: no matching client,
 no sign-in, with nothing server-side to adjust.
 
-| Flavor | Package | SHA-1 to register |
-| --- | --- | --- |
-| `direct` | `ca.persistent.app` | `8D:36:D5:65:2D:7A:AB:4F:C8:E9:33:87:C4:3D:F1:5F:7B:E3:01:15` (release keystore, a.k.a. the **upload key**) |
-| `play` | `ca.dynamicsolutions.persistent` | `AC:47:C4:96:38:A1:0A:00:70:B7:82:E7:AC:B4:E7:CC:1D:D9:5E:23` (Play's **app signing key**) |
+| Flavor   | Package                          | SHA-1 to register                                                                                           |
+| -------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `direct` | `ca.persistent.app`              | `8D:36:D5:65:2D:7A:AB:4F:C8:E9:33:87:C4:3D:F1:5F:7B:E3:01:15` (release keystore, a.k.a. the **upload key**) |
+| `play`   | `ca.dynamicsolutions.persistent` | `AC:47:C4:96:38:A1:0A:00:70:B7:82:E7:AC:B4:E7:CC:1D:D9:5E:23` (Play's **app signing key**)                  |
 
 **The upload key is not the app signing key**, and Play Console's App signing page
 lists both, which is how the wrong one gets registered. You sign with the upload
@@ -145,7 +145,7 @@ signing is where the Play values come from.
 
 **Register these in the project that owns `GOOGLE_WEB_CLIENT_ID`** (client
 `20949993505-…`), because the server verifies the ID token with that client as the
-audience. Note this is *not* the Firebase project: FCM lives in `persistent-7c99a`
+audience. Note this is _not_ the Firebase project: FCM lives in `persistent-7c99a`
 (project number `157199800668`) and has both package names registered for push, so
 its "add a SHA-1 to the Android app" flow looks like the right shortcut and creates
 the client in the wrong project.
@@ -286,7 +286,7 @@ ahead of the auth gate so it resolves for a signed-out visitor.
 Every sign-in path needs something a reviewer doesn't have: a mailbox to receive
 the one-time code, a Google account, or an enrolled passkey. Google Play's "App
 access" form expects credentials that just work, and demo mode can't serve —
-it returns the code for *every* address, which is why `demoMode` is hard-disabled
+it returns the code for _every_ address, which is why `demoMode` is hard-disabled
 in production (`env.DEMO_MODE && !isProduction`).
 
 So exactly one account may sign in with a fixed code from the environment

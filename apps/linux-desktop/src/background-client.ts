@@ -16,7 +16,14 @@ interface RealtimeSocket {
   on(event: 'error', handler: (error: Error) => void): unknown
   terminate(): void
 }
-type SocketFactory = (url: URL, options: { headers: { Cookie: string }; handshakeTimeout: number; maxPayload: number }) => RealtimeSocket
+type SocketFactory = (
+  url: URL,
+  options: {
+    headers: { Cookie: string }
+    handshakeTimeout: number
+    maxPayload: number
+  },
+) => RealtimeSocket
 
 export class BackgroundClient {
   private enabled = false
@@ -31,14 +38,21 @@ export class BackgroundClient {
   private pending = false
   private backoff = 3000
 
-  constructor(private transport: ProfileTransport, private engine: NotificationEngine, private makeSocket: SocketFactory = (url, options) => new WebSocket(url, options)) {}
+  constructor(
+    private transport: ProfileTransport,
+    private engine: NotificationEngine,
+    private makeSocket: SocketFactory = (url, options) =>
+      new WebSocket(url, options),
+  ) {}
 
   /** Enable background recovery only after native notification registration succeeds. */
   start(): void {
     if (this.enabled) return
     this.enabled = true
     this.recovery = setInterval(() => this.refresh(), 60_000)
-    this.monitor = setInterval(() => { void this.engine.tick() }, 5000)
+    this.monitor = setInterval(() => {
+      void this.engine.tick()
+    }, 5000)
     this.refresh()
     void this.connect()
   }
@@ -104,26 +118,40 @@ export class BackgroundClient {
         const controller = new AbortController()
         this.controller = controller
         try {
-          if (!await this.transport.cookie()) {
+          if (!(await this.transport.cookie())) {
             if (generation === this.generation) await this.engine.reset()
             continue
           }
-          const response = await this.transport.request('/api/sync/occurrences?alarmsOnly=true', {
-            signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20_000)])
-          })
-          if (generation !== this.generation || controller.signal.aborted) continue
+          const response = await this.transport.request(
+            '/api/sync/occurrences?alarmsOnly=true',
+            {
+              signal: AbortSignal.any([
+                controller.signal,
+                AbortSignal.timeout(20_000),
+              ]),
+            },
+          )
+          if (generation !== this.generation || controller.signal.aborted)
+            continue
           if (response.status === 401) {
             this.sessionChanged(true)
             continue
           }
-          if (!response.ok) throw new Error(`Alarm recovery HTTP ${response.status}`)
+          if (!response.ok)
+            throw new Error(`Alarm recovery HTTP ${response.status}`)
           const projection = activeProjection(await response.json())
           if (generation === this.generation && !controller.signal.aborted) {
             await this.engine.reconcile(projection)
-            this.transport.log(`Alarm recovery succeeded (${projection.size} active occurrences)`)
+            this.transport.log(
+              `Alarm recovery succeeded (${projection.size} active occurrences)`,
+            )
           }
         } catch (error) {
-          if (!controller.signal.aborted && generation === this.generation) this.transport.log('Alarm recovery failed; retaining live notifications', error)
+          if (!controller.signal.aborted && generation === this.generation)
+            this.transport.log(
+              'Alarm recovery failed; retaining live notifications',
+              error,
+            )
         } finally {
           if (this.controller === controller) this.controller = null
         }
@@ -138,17 +166,30 @@ export class BackgroundClient {
     if (!this.enabled || this.paused) return false
     const generation = this.generation
     try {
-      if (!await this.transport.cookie() || generation !== this.generation) return false
-      const response = await this.transport.request(`/api/occurrences/${encodeURIComponent(id)}/${action}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}', signal: AbortSignal.timeout(20_000)
-      })
+      if (!(await this.transport.cookie()) || generation !== this.generation)
+        return false
+      const response = await this.transport.request(
+        `/api/occurrences/${encodeURIComponent(id)}/${action}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: '{}',
+          signal: AbortSignal.timeout(20_000),
+        },
+      )
       if (generation !== this.generation) return false
       if (response.status === 401) this.sessionChanged(true)
-      if (!response.ok) this.transport.log(`Notification action rejected: HTTP ${response.status}`)
+      if (!response.ok)
+        this.transport.log(
+          `Notification action rejected: HTTP ${response.status}`,
+        )
       this.refresh()
       return response.ok
     } catch (error) {
-      this.transport.log('Notification action outcome is unknown; recovering from server', error)
+      this.transport.log(
+        'Notification action outcome is unknown; recovering from server',
+        error,
+      )
       this.refresh()
       return false
     }
@@ -159,14 +200,24 @@ export class BackgroundClient {
     const generation = this.generation
     try {
       const cookie = await this.transport.cookie()
-      if (generation !== this.generation || !this.enabled || this.paused || this.socket) return
+      if (
+        generation !== this.generation ||
+        !this.enabled ||
+        this.paused ||
+        this.socket
+      )
+        return
       if (!cookie) {
         this.scheduleReconnect(generation)
         return
       }
       const url = new URL('/ws', this.transport.origin())
       url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
-      const socket = this.makeSocket(url, { headers: { Cookie: cookie }, handshakeTimeout: 15_000, maxPayload: 256 * 1024 })
+      const socket = this.makeSocket(url, {
+        headers: { Cookie: cookie },
+        handshakeTimeout: 15_000,
+        maxPayload: 256 * 1024,
+      })
       this.socket = socket
       socket.on('open', () => {
         if (generation !== this.generation) return
@@ -177,16 +228,25 @@ export class BackgroundClient {
       socket.on('message', (data) => {
         if (generation !== this.generation) return
         try {
-          const event = JSON.parse(data.toString()) as { type?: string; occurrenceId?: string }
+          const event = JSON.parse(data.toString()) as {
+            type?: string
+            occurrenceId?: string
+          }
           if (event.type === 'ping') return
           // Abort any older snapshot before an immediate cross-device clear.
           this.refresh()
-          if (event.type === 'dismiss' && typeof event.occurrenceId === 'string') void this.engine.remove(event.occurrenceId)
+          if (
+            event.type === 'dismiss' &&
+            typeof event.occurrenceId === 'string'
+          )
+            void this.engine.remove(event.occurrenceId)
         } catch (error) {
           this.transport.log('Ignoring malformed realtime message', error)
         }
       })
-      socket.on('error', (error) => this.transport.log('Realtime connection failed; will recover', error))
+      socket.on('error', (error) =>
+        this.transport.log('Realtime connection failed; will recover', error),
+      )
       socket.on('close', () => {
         if (generation !== this.generation) return
         this.socket = null
@@ -199,7 +259,13 @@ export class BackgroundClient {
   }
 
   private scheduleReconnect(generation: number): void {
-    if (!this.enabled || this.paused || generation !== this.generation || this.retry) return
+    if (
+      !this.enabled ||
+      this.paused ||
+      generation !== this.generation ||
+      this.retry
+    )
+      return
     this.retry = setTimeout(() => {
       this.retry = null
       void this.connect()

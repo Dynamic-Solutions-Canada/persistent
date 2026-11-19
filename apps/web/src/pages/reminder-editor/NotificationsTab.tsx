@@ -12,25 +12,30 @@ import FormControl from '@mui/joy/FormControl'
 import FormLabel from '@mui/joy/FormLabel'
 import Button from '@mui/joy/Button'
 import Alert from '@mui/joy/Alert'
-import { persistenceLevels, shadeProminenceLevels, type PersistenceLevel, type ShadeProminence } from '@persistent/shared'
+import {
+  persistenceLevels,
+  shadeProminenceLevels,
+  type PersistenceLevel,
+  type ShadeProminence,
+} from '@persistent/shared'
 import { DurationField } from '../../components/DurationField.js'
 import { ReminderSoundsField } from './ReminderSoundsField.js'
 import type { FormState } from './formState.js'
 
 const PERSISTENCE_LABELS: Record<PersistenceLevel, string> = {
   PERSISTENT: 'Notification',
-  ALARM: 'Alarm'
+  ALARM: 'Alarm',
 }
 
 const SHADE_PROMINENCE_LABELS: Record<ShadeProminence, string> = {
   INHERIT: 'Use default',
   NORMAL: 'Normal',
-  MINIMIZED: 'Minimized'
+  MINIMIZED: 'Minimized',
 }
 
 export function NotificationsTab({
   form,
-  set
+  set,
 }: {
   form: FormState
   set: <K extends keyof FormState>(key: K, value: FormState[K]) => void
@@ -38,14 +43,18 @@ export function NotificationsTab({
   useTranslation()
   if (form.when === 'never') {
     return (
-      <Alert color="neutral" variant="soft">{tr("This is a note, it never notifies you, so there is nothing here to set. Give it a time on the Schedule tab to use these settings.")}</Alert>
+      <Alert color="neutral" variant="soft">
+        {tr(
+          'This is a note, it never notifies you, so there is nothing here to set. Give it a time on the Schedule tab to use these settings.',
+        )}
+      </Alert>
     )
   }
 
   return (
     <Stack spacing={2}>
       <FormControl>
-        <FormLabel>{tr("How it notifies")}</FormLabel>
+        <FormLabel>{tr('How it notifies')}</FormLabel>
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           {persistenceLevels.map((p) => (
             <Button
@@ -60,14 +69,16 @@ export function NotificationsTab({
         </Stack>
         <Typography level="body-xs" sx={{ mt: 0.5 }}>
           {form.persistence === 'ALARM'
-            ? tr("Rings continuously until you tap Done.")
-            : tr("A notification that stays until done. Choose how often it re-sounds to nag you.")}
+            ? tr('Rings continuously until you tap Done.')
+            : tr(
+                'A notification that stays until done. Choose how often it re-sounds to nag you.',
+              )}
         </Typography>
       </FormControl>
 
       {form.persistence === 'PERSISTENT' && (
         <FormControl>
-          <FormLabel>{tr("Nag interval")}</FormLabel>
+          <FormLabel>{tr('Nag interval')}</FormLabel>
           <DurationField
             value={form.soundIntervalMinutes}
             onChange={(m) => set('soundIntervalMinutes', m)}
@@ -79,7 +90,7 @@ export function NotificationsTab({
       <ReminderSoundsField form={form} set={set} />
 
       <FormControl>
-        <FormLabel>{tr("Your shade prominence")}</FormLabel>
+        <FormLabel>{tr('Your shade prominence')}</FormLabel>
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           {shadeProminenceLevels.map((p) => (
             <Button
@@ -92,13 +103,21 @@ export function NotificationsTab({
             </Button>
           ))}
         </Stack>
-        <Typography level="body-xs" sx={{ mt: 0.5 }}>{tr("Only changes your notifications for this reminder.")}</Typography>
+        <Typography level="body-xs" sx={{ mt: 0.5 }}>
+          {tr('Only changes your notifications for this reminder.')}
+        </Typography>
         <Typography level="body-xs" sx={{ mt: 0.5 }}>
           {form.shadeProminence === 'MINIMIZED'
-            ? tr("Android only: tucks this reminder into the collapsed section at the bottom of the notification shade, with no pop-up banner. Visual only, it does not change the sound.")
+            ? tr(
+                'Android only: tucks this reminder into the collapsed section at the bottom of the notification shade, with no pop-up banner. Visual only, it does not change the sound.',
+              )
             : form.shadeProminence === 'NORMAL'
-              ? tr("Android only: shows in the main notification shade and may pop up a banner. Visual only, it does not change the sound.")
-              : tr("Android only: follows your device default (Settings). Controls where the notification sits in the shade, not the sound.")}
+              ? tr(
+                  'Android only: shows in the main notification shade and may pop up a banner. Visual only, it does not change the sound.',
+                )
+              : tr(
+                  'Android only: follows your device default (Settings). Controls where the notification sits in the shade, not the sound.',
+                )}
         </Typography>
       </FormControl>
     </Stack>

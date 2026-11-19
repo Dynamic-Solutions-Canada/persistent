@@ -26,7 +26,10 @@ export function attachWsHub(server: Server): WsHub {
   const wss = new WebSocketServer({ noServer: true })
 
   server.on('upgrade', (request, socket, head) => {
-    if (!request.url || new URL(request.url, 'http://localhost').pathname !== '/ws') {
+    if (
+      !request.url ||
+      new URL(request.url, 'http://localhost').pathname !== '/ws'
+    ) {
       return
     }
     // The upgrade request carries cookies; reuse the normal session resolver.
@@ -83,6 +86,6 @@ export function attachWsHub(server: Server): WsHub {
     close() {
       clearInterval(heartbeat)
       wss.close()
-    }
+    },
   }
 }

@@ -22,11 +22,14 @@ export function DeleteAccountPage() {
       <Stack spacing={3}>
         <Box>
           <Typography level="h2">Delete your Persistent account</Typography>
-          <Typography level="body-xs">Applies to the Persistent app (ca.persistent.app) and the web app.</Typography>
+          <Typography level="body-xs">
+            Applies to the Persistent app (ca.persistent.app) and the web app.
+          </Typography>
         </Box>
 
         <Alert color="warning" variant="soft">
-          Deletion is immediate and permanent. There is no restore window and no grace period.
+          Deletion is immediate and permanent. There is no restore window and no
+          grace period.
         </Alert>
 
         <Box>
@@ -36,14 +39,20 @@ export function DeleteAccountPage() {
           <Stack spacing={1}>
             <Typography level="body-sm">
               1. Open Persistent (Android app or{' '}
-              <Link href="https://persistent.dynamic-solutions.ca">the web app</Link>) and sign in.
+              <Link href="https://persistent.dynamic-solutions.ca">
+                the web app
+              </Link>
+              ) and sign in.
             </Typography>
-            <Typography level="body-sm">2. Go to <strong>Settings</strong>.</Typography>
+            <Typography level="body-sm">
+              2. Go to <strong>Settings</strong>.
+            </Typography>
             <Typography level="body-sm">
               3. Scroll to <strong>Delete account</strong> and tap it.
             </Typography>
             <Typography level="body-sm">
-              4. Type your email address to confirm, then tap <strong>Delete permanently</strong>.
+              4. Type your email address to confirm, then tap{' '}
+              <strong>Delete permanently</strong>.
             </Typography>
           </Stack>
         </Box>
@@ -53,8 +62,9 @@ export function DeleteAccountPage() {
             If you can't sign in
           </Typography>
           <Typography level="body-sm">
-            Email <Link href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</Link> from the address on the account and
-            ask us to delete it. We action these manually, so allow a few days.
+            Email <Link href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</Link>{' '}
+            from the address on the account and ask us to delete it. We action
+            these manually, so allow a few days.
           </Typography>
         </Box>
 
@@ -63,9 +73,11 @@ export function DeleteAccountPage() {
             What gets deleted
           </Typography>
           <Typography level="body-sm">
-            Your account and email address, every reminder and its settings, your reminder history, saved
-            passkeys, signed-in sessions, and device registrations are deleted immediately. If someone assigned
-            a reminder to you, their status record remains without your email address. There is no restore window.
+            Your account and email address, every reminder and its settings,
+            your reminder history, saved passkeys, signed-in sessions, and
+            device registrations are deleted immediately. If someone assigned a
+            reminder to you, their status record remains without your email
+            address. There is no restore window.
           </Typography>
         </Box>
 
@@ -74,8 +86,9 @@ export function DeleteAccountPage() {
             Deleting individual reminders instead
           </Typography>
           <Typography level="body-sm">
-            If you only want to remove some data, open a reminder and choose <strong>Delete reminder</strong>. That
-            removes it and its history without touching the rest of your account.
+            If you only want to remove some data, open a reminder and choose{' '}
+            <strong>Delete reminder</strong>. That removes it and its history
+            without touching the rest of your account.
           </Typography>
         </Box>
 

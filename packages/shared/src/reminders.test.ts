@@ -18,20 +18,23 @@ import {
   withTodoItem,
   withoutTodoItem,
   withTodoItemText,
-  withTodoOrder
+  withTodoOrder,
 } from './reminders.js'
 
 const base = {
   title: 'Test',
   schedule: { kind: 'once' as const, timesOfDay: ['08:00'] },
-  startDate: '2026-06-24'
+  startDate: '2026-06-24',
 }
 
 test('snooze input accepts duration or exact time, but not a mixed request', () => {
   const until = '2026-06-25T09:30:00.000Z'
   assert.deepEqual(snoozeInputSchema.parse({ minutes: 30 }), { minutes: 30 })
   assert.deepEqual(snoozeInputSchema.parse({ until }), { until })
-  assert.equal(snoozeInputSchema.safeParse({ minutes: 30, until }).success, false)
+  assert.equal(
+    snoozeInputSchema.safeParse({ minutes: 30, until }).success,
+    false,
+  )
 })
 
 test('shadeProminence defaults to INHERIT when omitted', () => {
@@ -40,33 +43,59 @@ test('shadeProminence defaults to INHERIT when omitted', () => {
 })
 
 test('shadeProminence accepts NORMAL and MINIMIZED', () => {
-  assert.equal(reminderInputSchema.parse({ ...base, shadeProminence: 'NORMAL' }).shadeProminence, 'NORMAL')
-  assert.equal(reminderInputSchema.parse({ ...base, shadeProminence: 'MINIMIZED' }).shadeProminence, 'MINIMIZED')
+  assert.equal(
+    reminderInputSchema.parse({ ...base, shadeProminence: 'NORMAL' })
+      .shadeProminence,
+    'NORMAL',
+  )
+  assert.equal(
+    reminderInputSchema.parse({ ...base, shadeProminence: 'MINIMIZED' })
+      .shadeProminence,
+    'MINIMIZED',
+  )
 })
 
 test('shadeProminence rejects unknown values', () => {
-  assert.equal(reminderInputSchema.safeParse({ ...base, shadeProminence: 'LOUD' }).success, false)
+  assert.equal(
+    reminderInputSchema.safeParse({ ...base, shadeProminence: 'LOUD' }).success,
+    false,
+  )
 })
 
 // --- Per-reminder sounds -----------------------------------------------------
 
 test('a reminder overrides no sounds when none are given', () => {
-  assert.deepEqual(reminderInputSchema.parse(base).sounds, { notification: null, nag: null, alarm: null })
+  assert.deepEqual(reminderInputSchema.parse(base).sounds, {
+    notification: null,
+    nag: null,
+    alarm: null,
+  })
 })
 
 test('each of the three sounds can be overridden on its own', () => {
   const parsed = reminderInputSchema.parse({
     ...base,
-    sounds: { alarm: { uri: 'content://media/external/audio/media/7', title: 'Argon' } }
+    sounds: {
+      alarm: { uri: 'content://media/external/audio/media/7', title: 'Argon' },
+    },
   })
-  assert.deepEqual(parsed.sounds.alarm, { uri: 'content://media/external/audio/media/7', title: 'Argon' })
+  assert.deepEqual(parsed.sounds.alarm, {
+    uri: 'content://media/external/audio/media/7',
+    title: 'Argon',
+  })
   assert.equal(parsed.sounds.notification, null)
   assert.equal(parsed.sounds.nag, null)
 })
 
 test('a sound needs both a uri and the title it was picked under', () => {
   // The title is the cross-device fallback, so a choice without one is not a choice.
-  assert.equal(reminderInputSchema.safeParse({ ...base, sounds: { alarm: { uri: 'content://x' } } }).success, false)
+  assert.equal(
+    reminderInputSchema.safeParse({
+      ...base,
+      sounds: { alarm: { uri: 'content://x' } },
+    }).success,
+    false,
+  )
 })
 
 test('toReminderSounds reads an unparseable column as overriding nothing', () => {
@@ -82,20 +111,29 @@ test('toReminderSounds reads an unparseable column as overriding nothing', () =>
 // --- Unscheduled ("no date or time") reminders -------------------------------
 
 test('an unscheduled reminder parses with no times of day', () => {
-  const parsed = reminderInputSchema.parse({ ...base, schedule: { kind: 'none', timesOfDay: [] } })
+  const parsed = reminderInputSchema.parse({
+    ...base,
+    schedule: { kind: 'none', timesOfDay: [] },
+  })
   assert.equal(parsed.schedule.kind, 'none')
   assert.deepEqual(parsed.schedule.timesOfDay, [])
 })
 
 test('an unscheduled reminder rejects a time of day', () => {
   // 'none' means no wall-clock firing at all; carrying a time would be ambiguous.
-  const result = reminderInputSchema.safeParse({ ...base, schedule: { kind: 'none', timesOfDay: ['08:00'] } })
+  const result = reminderInputSchema.safeParse({
+    ...base,
+    schedule: { kind: 'none', timesOfDay: ['08:00'] },
+  })
   assert.equal(result.success, false)
 })
 
 test('every other kind still requires at least one time of day', () => {
   for (const kind of ['once', 'daily'] as const) {
-    const result = reminderInputSchema.safeParse({ ...base, schedule: { kind, timesOfDay: [] } })
+    const result = reminderInputSchema.safeParse({
+      ...base,
+      schedule: { kind, timesOfDay: [] },
+    })
     assert.equal(result.success, false, `${kind} should require a time of day`)
   }
 })
@@ -105,7 +143,7 @@ test('every other kind still requires at least one time of day', () => {
 test('monthly parses with days of the month', () => {
   const parsed = reminderInputSchema.parse({
     ...base,
-    schedule: { kind: 'monthly', timesOfDay: ['09:00'], daysOfMonth: [1, 15] }
+    schedule: { kind: 'monthly', timesOfDay: ['09:00'], daysOfMonth: [1, 15] },
   })
   assert.deepEqual(parsed.schedule.daysOfMonth, [1, 15])
 })
@@ -114,13 +152,16 @@ test('monthly accepts "last day of the month" with no numbered day', () => {
   // "The last day" is a complete schedule on its own — there is no number to pick.
   const parsed = reminderInputSchema.parse({
     ...base,
-    schedule: { kind: 'monthly', timesOfDay: ['09:00'], lastDayOfMonth: true }
+    schedule: { kind: 'monthly', timesOfDay: ['09:00'], lastDayOfMonth: true },
   })
   assert.equal(parsed.schedule.lastDayOfMonth, true)
 })
 
 test('monthly with neither a day nor the last day is rejected', () => {
-  const result = reminderInputSchema.safeParse({ ...base, schedule: { kind: 'monthly', timesOfDay: ['09:00'] } })
+  const result = reminderInputSchema.safeParse({
+    ...base,
+    schedule: { kind: 'monthly', timesOfDay: ['09:00'] },
+  })
   assert.equal(result.success, false)
 })
 
@@ -128,7 +169,7 @@ test('a day of the month outside 1-31 is rejected', () => {
   for (const day of [0, 32]) {
     const result = reminderInputSchema.safeParse({
       ...base,
-      schedule: { kind: 'monthly', timesOfDay: ['09:00'], daysOfMonth: [day] }
+      schedule: { kind: 'monthly', timesOfDay: ['09:00'], daysOfMonth: [day] },
     })
     assert.equal(result.success, false, `day ${day} should be rejected`)
   }
@@ -141,34 +182,58 @@ const todoBase = { ...base, type: 'TODO' as const }
 test('a checklist reminder parses with items', () => {
   const parsed = reminderInputSchema.parse({
     ...todoBase,
-    typeData: { items: [{ id: 'a', text: 'Vitamins' }, { id: 'b', text: 'Inhaler' }] }
+    typeData: {
+      items: [
+        { id: 'a', text: 'Vitamins' },
+        { id: 'b', text: 'Inhaler' },
+      ],
+    },
   })
-  assert.deepEqual(todoItems(parsed.typeData).map((i) => i.text), ['Vitamins', 'Inhaler'])
+  assert.deepEqual(
+    todoItems(parsed.typeData).map((i) => i.text),
+    ['Vitamins', 'Inhaler'],
+  )
 })
 
 test('a checklist reminder with no items is rejected', () => {
   // A TODO with nothing to tick is just a reminder — say so rather than saving a
   // type whose whole point is the list.
-  assert.equal(reminderInputSchema.safeParse({ ...todoBase, typeData: {} }).success, false)
+  assert.equal(
+    reminderInputSchema.safeParse({ ...todoBase, typeData: {} }).success,
+    false,
+  )
 })
 
 test('duplicate item ids are rejected — one tick must never mark two items', () => {
   const result = reminderInputSchema.safeParse({
     ...todoBase,
-    typeData: { items: [{ id: 'a', text: 'Vitamins' }, { id: 'a', text: 'Inhaler' }] }
+    typeData: {
+      items: [
+        { id: 'a', text: 'Vitamins' },
+        { id: 'a', text: 'Inhaler' },
+      ],
+    },
   })
   assert.equal(result.success, false)
 })
 
 test('a non-TODO reminder is unaffected by the checklist rules', () => {
-  assert.equal(reminderInputSchema.safeParse({ ...base, type: 'MEDICATION', typeData: {} }).success, true)
+  assert.equal(
+    reminderInputSchema.safeParse({ ...base, type: 'MEDICATION', typeData: {} })
+      .success,
+    true,
+  )
 })
 
 test('the removed TASK / APPOINTMENT types are rejected', () => {
   // They only ever changed an icon, so they were dropped and existing rows fell
   // back to NONE; a client still sending one should fail loudly, not silently.
   for (const type of ['TASK', 'APPOINTMENT']) {
-    assert.equal(reminderInputSchema.safeParse({ ...base, type }).success, false, `${type} should be rejected`)
+    assert.equal(
+      reminderInputSchema.safeParse({ ...base, type }).success,
+      false,
+      `${type} should be rejected`,
+    )
   }
 })
 
@@ -182,8 +247,13 @@ test('progress ignores ticks left behind by a deleted item', () => {
 test('a body with a checklist keeps one item per line', () => {
   const body = reminderBodyText({
     type: 'TODO',
-    typeData: { items: [{ id: 'a', text: 'Milk' }, { id: 'b', text: 'Bread' }] },
-    details: 'From the corner shop'
+    typeData: {
+      items: [
+        { id: 'a', text: 'Milk' },
+        { id: 'b', text: 'Bread' },
+      ],
+    },
+    details: 'From the corner shop',
   })
   assert.equal(body, '• Milk\n• Bread\nFrom the corner shop')
 })
@@ -191,14 +261,20 @@ test('a body with a checklist keeps one item per line', () => {
 // --- Notes (schedule kind `never`) -------------------------------------------
 
 test('a note parses with no times of day', () => {
-  const parsed = reminderInputSchema.parse({ ...base, schedule: { kind: 'never', timesOfDay: [] } })
+  const parsed = reminderInputSchema.parse({
+    ...base,
+    schedule: { kind: 'never', timesOfDay: [] },
+  })
   assert.equal(parsed.schedule.kind, 'never')
   assert.deepEqual(parsed.schedule.timesOfDay, [])
 })
 
 test('a note rejects a time of day', () => {
   // `never` means no firing at all; a time would claim one.
-  const result = reminderInputSchema.safeParse({ ...base, schedule: { kind: 'never', timesOfDay: ['08:00'] } })
+  const result = reminderInputSchema.safeParse({
+    ...base,
+    schedule: { kind: 'never', timesOfDay: ['08:00'] },
+  })
   assert.equal(result.success, false)
 })
 
@@ -207,10 +283,18 @@ test('a note rejects escalation — there is no firing for anyone to ignore', ()
   for (const escalation of [
     { escalateAfterMinutes: 15 },
     { escalateAtTime: '09:00' },
-    { escalateEmail: 'someone@example.com', escalateEmailAfterMinutes: 60 }
+    { escalateEmail: 'someone@example.com', escalateEmailAfterMinutes: 60 },
   ]) {
-    const result = reminderInputSchema.safeParse({ ...base, schedule: note, ...escalation })
-    assert.equal(result.success, false, `${JSON.stringify(escalation)} should be rejected on a note`)
+    const result = reminderInputSchema.safeParse({
+      ...base,
+      schedule: note,
+      ...escalation,
+    })
+    assert.equal(
+      result.success,
+      false,
+      `${JSON.stringify(escalation)} should be rejected on a note`,
+    )
   }
 })
 
@@ -219,7 +303,7 @@ test('a note still accepts the reminder fields it does use', () => {
     ...base,
     title: 'Wifi password',
     details: 'hunter2',
-    schedule: { kind: 'never', timesOfDay: [] }
+    schedule: { kind: 'never', timesOfDay: [] },
   })
   assert.equal(parsed.details, 'hunter2')
 })
@@ -247,7 +331,7 @@ test('a note carries its own checked items; everything else defaults to none', (
     endDate: null,
     checkedItemIds: ['cp-1'],
     createdAt: '2026-08-02T09:00:00.000Z',
-    updatedAt: '2026-08-02T09:00:00.000Z'
+    updatedAt: '2026-08-02T09:00:00.000Z',
   })
   assert.deepEqual(parsed.checkedItemIds, ['cp-1'])
 })
@@ -277,7 +361,7 @@ test('hideCheckedItems defaults to expanded on a row that predates the column', 
     endDate: null,
     checkedItemIds: [],
     createdAt: '2026-08-02T09:00:00.000Z',
-    updatedAt: '2026-08-02T09:00:00.000Z'
+    updatedAt: '2026-08-02T09:00:00.000Z',
   })
   assert.equal(parsed.hideCheckedItems, false)
 })
@@ -288,7 +372,10 @@ test('the hide-checked input carries the whole state, not a toggle', () => {
   // No default: "collapse this" and "expand this" are different requests, and a
   // body that says neither is a bug in the caller rather than a request to expand.
   assert.equal(hideCheckedInputSchema.safeParse({}).success, false)
-  assert.equal(hideCheckedInputSchema.safeParse({ hidden: 'yes' }).success, false)
+  assert.equal(
+    hideCheckedInputSchema.safeParse({ hidden: 'yes' }).success,
+    false,
+  )
 })
 
 test('saving the editor form cannot change whether checked items are hidden', () => {
@@ -305,39 +392,65 @@ test('medication is offered for a new reminder', () => {
 })
 
 test('initial sharing grants normalize email and reject unsupported access', () => {
-  assert.deepEqual(initialSharesSchema.parse([{ email: '  RYAN@Example.com ', permission: 'ACT' }]), [
-    { email: 'ryan@example.com', permission: 'ACT' }
-  ])
-  assert.equal(initialSharesSchema.safeParse([{ email: 'ryan@example.com', permission: 'OWNER' }]).success, false)
-  assert.equal(initialSharesSchema.safeParse(Array(21).fill({ email: 'a@example.com', permission: 'VIEW' })).success, false)
+  assert.deepEqual(
+    initialSharesSchema.parse([
+      { email: '  RYAN@Example.com ', permission: 'ACT' },
+    ]),
+    [{ email: 'ryan@example.com', permission: 'ACT' }],
+  )
+  assert.equal(
+    initialSharesSchema.safeParse([
+      { email: 'ryan@example.com', permission: 'OWNER' },
+    ]).success,
+    false,
+  )
+  assert.equal(
+    initialSharesSchema.safeParse(
+      Array(21).fill({ email: 'a@example.com', permission: 'VIEW' }),
+    ).success,
+    false,
+  )
 })
 
 test('medication is still a valid stored type — existing reminders keep their doses', () => {
   const parsed = reminderInputSchema.parse({
     ...base,
     type: 'MEDICATION',
-    typeData: { medications: [{ name: 'Ibuprofen', quantity: 200, unit: 'mg' }] }
+    typeData: {
+      medications: [{ name: 'Ibuprofen', quantity: 200, unit: 'mg' }],
+    },
   })
   assert.equal(parsed.type, 'MEDICATION')
-  assert.equal(reminderBodyText({ ...parsed, details: parsed.details ?? null }), 'Ibuprofen 200 mg')
+  assert.equal(
+    reminderBodyText({ ...parsed, details: parsed.details ?? null }),
+    'Ibuprofen 200 mg',
+  )
 })
 
 test('a checklist body omits the items this firing has already ticked', () => {
   const source = {
     type: 'TODO' as const,
-    typeData: { items: [{ id: 'a', text: 'Milk' }, { id: 'b', text: 'Bread' }] },
-    details: 'From the corner shop'
+    typeData: {
+      items: [
+        { id: 'a', text: 'Milk' },
+        { id: 'b', text: 'Bread' },
+      ],
+    },
+    details: 'From the corner shop',
   }
   assert.equal(reminderBodyText(source, ['a']), '• Bread\nFrom the corner shop')
   // Every item, unfiltered, when no ticks are supplied (an interactive checklist).
-  assert.equal(reminderBodyText(source), '• Milk\n• Bread\nFrom the corner shop')
+  assert.equal(
+    reminderBodyText(source),
+    '• Milk\n• Bread\nFrom the corner shop',
+  )
 })
 
 test('a fully-ticked checklist falls back to details alone', () => {
   const source = {
     type: 'TODO' as const,
     typeData: { items: [{ id: 'a', text: 'Milk' }] },
-    details: 'From the corner shop'
+    details: 'From the corner shop',
   }
   assert.equal(reminderBodyText(source, ['a']), 'From the corner shop')
 })
@@ -349,12 +462,14 @@ test('withTodoItem appends to the end of the checklist', () => {
   const next = withTodoItem(typeData, { id: 'b', text: 'Bread' })
   assert.deepEqual(todoItems(next), [
     { id: 'a', text: 'Milk' },
-    { id: 'b', text: 'Bread' }
+    { id: 'b', text: 'Bread' },
   ])
 })
 
 test('withTodoItem starts a checklist that has none yet', () => {
-  assert.deepEqual(todoItems(withTodoItem({}, { id: 'a', text: 'Milk' })), [{ id: 'a', text: 'Milk' }])
+  assert.deepEqual(todoItems(withTodoItem({}, { id: 'a', text: 'Milk' })), [
+    { id: 'a', text: 'Milk' },
+  ])
 })
 
 test('withTodoItem ignores an id the list already carries', () => {
@@ -367,12 +482,21 @@ test('withTodoItem ignores an id the list already carries', () => {
 test('withTodoItem leaves the rest of typeData alone', () => {
   // A reminder that was once a medication still holds its doses; adding a
   // checklist line must not be the write that drops them.
-  const next = withTodoItem({ medications: [{ name: 'Ibuprofen' }] }, { id: 'a', text: 'Milk' })
+  const next = withTodoItem(
+    { medications: [{ name: 'Ibuprofen' }] },
+    { id: 'a', text: 'Milk' },
+  )
   assert.deepEqual(next.medications, [{ name: 'Ibuprofen' }])
 })
 
 test('withoutTodoItem removes only the named item and is safe to replay', () => {
-  const typeData = { items: [{ id: 'a', text: 'Milk' }, { id: 'b', text: 'Bread' }], other: 'kept' }
+  const typeData = {
+    items: [
+      { id: 'a', text: 'Milk' },
+      { id: 'b', text: 'Bread' },
+    ],
+    other: 'kept',
+  }
   const next = withoutTodoItem(typeData, 'a')
   assert.deepEqual(todoItems(next), [{ id: 'b', text: 'Bread' }])
   assert.equal(next.other, 'kept')
@@ -380,70 +504,132 @@ test('withoutTodoItem removes only the named item and is safe to replay', () => 
 })
 
 test('reading-view text edits contain exactly one valid field', () => {
-  assert.equal(reminderContentInputSchema.safeParse({ title: 'Updated' }).success, true)
-  assert.equal(reminderContentInputSchema.safeParse({ details: null }).success, true)
-  assert.equal(reminderContentInputSchema.safeParse({ title: '   ' }).success, false)
-  assert.equal(reminderContentInputSchema.safeParse({ title: 'Updated', details: 'Body' }).success, false)
+  assert.equal(
+    reminderContentInputSchema.safeParse({ title: 'Updated' }).success,
+    true,
+  )
+  assert.equal(
+    reminderContentInputSchema.safeParse({ details: null }).success,
+    true,
+  )
+  assert.equal(
+    reminderContentInputSchema.safeParse({ title: '   ' }).success,
+    false,
+  )
+  assert.equal(
+    reminderContentInputSchema.safeParse({ title: 'Updated', details: 'Body' })
+      .success,
+    false,
+  )
   assert.equal(reminderContentInputSchema.safeParse({}).success, false)
 })
 
 test('a checklist is capped at MAX_TODO_ITEMS', () => {
-  const items = Array.from({ length: MAX_TODO_ITEMS + 1 }, (_v, i) => ({ id: `i${i}`, text: `Item ${i}` }))
-  assert.equal(reminderInputSchema.safeParse({ ...base, type: 'TODO', typeData: { items } }).success, false)
+  const items = Array.from({ length: MAX_TODO_ITEMS + 1 }, (_v, i) => ({
+    id: `i${i}`,
+    text: `Item ${i}`,
+  }))
   assert.equal(
-    reminderInputSchema.safeParse({ ...base, type: 'TODO', typeData: { items: items.slice(0, MAX_TODO_ITEMS) } })
-      .success,
-    true
+    reminderInputSchema.safeParse({
+      ...base,
+      type: 'TODO',
+      typeData: { items },
+    }).success,
+    false,
+  )
+  assert.equal(
+    reminderInputSchema.safeParse({
+      ...base,
+      type: 'TODO',
+      typeData: { items: items.slice(0, MAX_TODO_ITEMS) },
+    }).success,
+    true,
   )
 })
 
 // --- Reordering a checklist from a card ---------------------------------------
 
 test('withTodoOrder sorts the checklist by the given ranking', () => {
-  const typeData = { items: [{ id: 'a', text: 'Milk' }, { id: 'b', text: 'Bread' }, { id: 'c', text: 'Eggs' }] }
+  const typeData = {
+    items: [
+      { id: 'a', text: 'Milk' },
+      { id: 'b', text: 'Bread' },
+      { id: 'c', text: 'Eggs' },
+    ],
+  }
   assert.deepEqual(
     todoItems(withTodoOrder(typeData, ['c', 'a', 'b'])).map((i) => i.id),
-    ['c', 'a', 'b']
+    ['c', 'a', 'b'],
   )
 })
 
 test('withTodoOrder keeps an item the ranking never heard of, at the end', () => {
   // The other device added 'd' after this order was decided. A whole-list write would
   // drop it; a ranking leaves it alone.
-  const typeData = { items: [{ id: 'a', text: 'Milk' }, { id: 'b', text: 'Bread' }, { id: 'd', text: 'Jam' }] }
+  const typeData = {
+    items: [
+      { id: 'a', text: 'Milk' },
+      { id: 'b', text: 'Bread' },
+      { id: 'd', text: 'Jam' },
+    ],
+  }
   assert.deepEqual(
     todoItems(withTodoOrder(typeData, ['b', 'a'])).map((i) => i.id),
-    ['b', 'a', 'd']
+    ['b', 'a', 'd'],
   )
 })
 
 test('withTodoOrder ignores an id that is no longer on the list', () => {
-  const typeData = { items: [{ id: 'a', text: 'Milk' }, { id: 'b', text: 'Bread' }] }
+  const typeData = {
+    items: [
+      { id: 'a', text: 'Milk' },
+      { id: 'b', text: 'Bread' },
+    ],
+  }
   assert.deepEqual(
     todoItems(withTodoOrder(typeData, ['gone', 'b', 'a'])).map((i) => i.id),
-    ['b', 'a']
+    ['b', 'a'],
   )
 })
 
 test('withTodoOrder is idempotent — a replayed reorder changes nothing', () => {
-  const typeData = { items: [{ id: 'a', text: 'Milk' }, { id: 'b', text: 'Bread' }] }
+  const typeData = {
+    items: [
+      { id: 'a', text: 'Milk' },
+      { id: 'b', text: 'Bread' },
+    ],
+  }
   const once = withTodoOrder(typeData, ['b', 'a'])
-  assert.deepEqual(todoItems(withTodoOrder(once, ['b', 'a'])).map((i) => i.id), ['b', 'a'])
+  assert.deepEqual(
+    todoItems(withTodoOrder(once, ['b', 'a'])).map((i) => i.id),
+    ['b', 'a'],
+  )
 })
 
 test('withTodoOrder leaves the rest of typeData alone', () => {
-  const next = withTodoOrder({ medications: [{ name: 'Ibuprofen' }], items: [{ id: 'a', text: 'Milk' }] }, ['a'])
+  const next = withTodoOrder(
+    {
+      medications: [{ name: 'Ibuprofen' }],
+      items: [{ id: 'a', text: 'Milk' }],
+    },
+    ['a'],
+  )
   assert.deepEqual(next.medications, [{ name: 'Ibuprofen' }])
 })
 
 // --- Renaming a checklist item ------------------------------------------------
 
 test('withTodoItemText changes only the named item, keeping ids and order', () => {
-  const typeData = { items: [{ id: 'a', text: 'Milk' }, { id: 'b', text: 'Bread' }] }
+  const typeData = {
+    items: [
+      { id: 'a', text: 'Milk' },
+      { id: 'b', text: 'Bread' },
+    ],
+  }
   const next = withTodoItemText(typeData, 'b', 'Sourdough')
   assert.deepEqual(todoItems(next), [
     { id: 'a', text: 'Milk' },
-    { id: 'b', text: 'Sourdough' }
+    { id: 'b', text: 'Sourdough' },
   ])
 })
 
@@ -453,20 +639,54 @@ test('withTodoItemText ignores an id the list no longer has', () => {
 })
 
 test('withTodoItemText leaves the rest of typeData alone', () => {
-  const next = withTodoItemText({ medications: [{ name: 'Ibuprofen' }], items: [{ id: 'a', text: 'Milk' }] }, 'a', 'Oat milk')
+  const next = withTodoItemText(
+    {
+      medications: [{ name: 'Ibuprofen' }],
+      items: [{ id: 'a', text: 'Milk' }],
+    },
+    'a',
+    'Oat milk',
+  )
   assert.deepEqual(next.medications, [{ name: 'Ibuprofen' }])
 })
 
-
 test('collaboration comparison values survive parsing without trimming the original text', () => {
   const version = '2026-10-18T12:00:00.000Z'
-  assert.equal(reminderUpdateInputSchema.parse({ ...base, expectedUpdatedAt: version }).expectedUpdatedAt, version)
-  assert.equal(reminderContentInputSchema.parse({ title: 'New', expectedText: ' Original ' }).expectedText, ' Original ')
-  assert.equal(renameTodoItemInputSchema.parse({ text: 'New', expectedText: ' Original ' }).expectedText, ' Original ')
-  assert.equal(reminderContentInputSchema.parse({ details: 'New', expectedText: '' }).expectedText, '')
+  assert.equal(
+    reminderUpdateInputSchema.parse({ ...base, expectedUpdatedAt: version })
+      .expectedUpdatedAt,
+    version,
+  )
+  assert.equal(
+    reminderContentInputSchema.parse({
+      title: 'New',
+      expectedText: ' Original ',
+    }).expectedText,
+    ' Original ',
+  )
+  assert.equal(
+    renameTodoItemInputSchema.parse({ text: 'New', expectedText: ' Original ' })
+      .expectedText,
+    ' Original ',
+  )
+  assert.equal(
+    reminderContentInputSchema.parse({ details: 'New', expectedText: '' })
+      .expectedText,
+    '',
+  )
 })
 
 test('invalid collaboration versions cannot bypass validation', () => {
-  assert.equal(reminderUpdateInputSchema.safeParse({ ...base, expectedUpdatedAt: 'not-a-version' }).success, false)
-  assert.equal(renameTodoItemInputSchema.safeParse({ text: 'New', expectedText: null }).success, false)
+  assert.equal(
+    reminderUpdateInputSchema.safeParse({
+      ...base,
+      expectedUpdatedAt: 'not-a-version',
+    }).success,
+    false,
+  )
+  assert.equal(
+    renameTodoItemInputSchema.safeParse({ text: 'New', expectedText: null })
+      .success,
+    false,
+  )
 })

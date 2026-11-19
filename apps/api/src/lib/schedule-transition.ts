@@ -28,7 +28,10 @@
 export type ScheduleTransition = 'retire' | 'mint' | null
 
 /** Compare the stored schedule kind with the incoming one. */
-export function scheduleTransition(before: string, after: string): ScheduleTransition {
+export function scheduleTransition(
+  before: string,
+  after: string,
+): ScheduleTransition {
   // Nothing crossed a boundary — including note -> note, which must not run the
   // retire pass over firings a note cannot have.
   if (before === after) return null

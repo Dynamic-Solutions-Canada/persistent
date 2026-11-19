@@ -20,16 +20,25 @@ export function AccountSettingsCard() {
   return (
     <Card variant="outlined">
       <Stack spacing={1.5}>
-        <Typography level="title-sm">{tr("Account")}</Typography>
+        <Typography level="title-sm">{tr('Account')}</Typography>
         <Typography level="body-sm">{user?.email}</Typography>
-        <Typography level="body-xs"><Trans i18nKey={"Time zone: <v0/>"} components={{ v0: <>{user?.timeZone}</> }} /></Typography>
-        <Link component={RouterLink} to="/settings/shared">{tr("Shared with me")}</Link>
+        <Typography level="body-xs">
+          <Trans
+            i18nKey={'Time zone: <v0/>'}
+            components={{ v0: <>{user?.timeZone}</> }}
+          />
+        </Typography>
+        <Link component={RouterLink} to="/settings/shared">
+          {tr('Shared with me')}
+        </Link>
         <Button
           variant="soft"
           color="danger"
           onClick={() => void logout()}
           sx={{ alignSelf: 'flex-start' }}
-        >{tr("Sign out")}</Button>
+        >
+          {tr('Sign out')}
+        </Button>
         <EmailLanguageSelect />
         <Divider />
         <PasskeysSection />

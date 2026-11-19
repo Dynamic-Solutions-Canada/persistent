@@ -3,14 +3,34 @@
  * Native clock metadata stays live and read-only; explicit 12h/24h choices win.
  * These UI preferences are not server-synced account settings.
  */
-import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { resolveLocale, type Locale, type LocalePreferences, type SoundChoice } from '@persistent/shared'
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
+import {
+  resolveLocale,
+  type Locale,
+  type LocalePreferences,
+  type SoundChoice,
+} from '@persistent/shared'
 import { useHostSettings } from '../native/useHostSettings.js'
 import { AlarmPlugin, isNative } from '../native/alarmBridge.js'
-import { connectNativeLanguage, type NativeLanguageBridge } from '../localization/nativeLanguage.js'
+import {
+  connectNativeLanguage,
+  type NativeLanguageBridge,
+} from '../localization/nativeLanguage.js'
 import { useTranslation } from 'react-i18next'
 import { configureLocale } from '../localization/i18n.js'
-import { deviceLanguages, readLocalePreferences, resolveFormattingLocale } from '../localization/localeState.js'
+import {
+  deviceLanguages,
+  readLocalePreferences,
+  resolveFormattingLocale,
+} from '../localization/localeState.js'
 import { detectTimeFormat, type TimeFormat } from '../lib/datetime.js'
 import { readDoodleColor, type DoodleColorId } from './doodleColors.js'
 import { readThemeId, DEFAULT_THEME_ID, type ThemeId } from './themes.js'
@@ -88,9 +108,17 @@ function saveSettings(settings: StoredState): void {
 }
 
 function toSound(value: unknown): SoundChoice {
-  if (value && typeof value === 'object' && 'uri' in value && typeof (value as SoundChoice).uri === 'string') {
+  if (
+    value &&
+    typeof value === 'object' &&
+    'uri' in value &&
+    typeof (value as SoundChoice).uri === 'string'
+  ) {
     const v = value as SoundChoice
-    return { uri: v.uri, title: typeof v.title === 'string' && v.title ? v.title : 'Default' }
+    return {
+      uri: v.uri,
+      title: typeof v.title === 'string' && v.title ? v.title : 'Default',
+    }
   }
   return DEFAULT_SOUND
 }
@@ -115,27 +143,38 @@ function loadSettings(): StoredState {
     alarmSound: DEFAULT_SOUND,
     notificationSound: DEFAULT_SOUND,
     nagSound: DEFAULT_SOUND,
-    shadeProminence: 'NORMAL'
+    shadeProminence: 'NORMAL',
   }
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<StoredState>
       const chosen =
-        parsed.timeFormatChosen === true && (parsed.timeFormat === '12h' || parsed.timeFormat === '24h')
+        parsed.timeFormatChosen === true &&
+        (parsed.timeFormat === '12h' || parsed.timeFormat === '24h')
       const savedThemeId = readThemeId(parsed.themeId)
       // Earlier settings captured Navy even when users never picked a theme.
       // Mark the migration so explicitly choosing Navy afterward survives reload.
-      const themeId = parsed.themeDefaultMigrated !== true && savedThemeId === 'doodle'
-        ? DEFAULT_THEME_ID
-        : savedThemeId
-      const doodles = typeof parsed.doodles === 'boolean' ? parsed.doodles : legacyDoodles(typeof parsed.themeId === 'string' ? parsed.themeId : defaults.themeId)
+      const themeId =
+        parsed.themeDefaultMigrated !== true && savedThemeId === 'doodle'
+          ? DEFAULT_THEME_ID
+          : savedThemeId
+      const doodles =
+        typeof parsed.doodles === 'boolean'
+          ? parsed.doodles
+          : legacyDoodles(
+              typeof parsed.themeId === 'string'
+                ? parsed.themeId
+                : defaults.themeId,
+            )
 
       const settings: StoredState = {
         // Honor an explicit choice; otherwise re-detect (ignores values that were
         // auto-captured by an unrelated setting change).
         ...readLocalePreferences(parsed),
-        timeFormat: chosen ? (parsed.timeFormat as TimeFormat) : defaults.timeFormat,
+        timeFormat: chosen
+          ? (parsed.timeFormat as TimeFormat)
+          : defaults.timeFormat,
         timeFormatChosen: chosen,
         themeDefaultMigrated: true,
         themeId,
@@ -144,7 +183,8 @@ function loadSettings(): StoredState {
         alarmSound: toSound(parsed.alarmSound),
         notificationSound: toSound(parsed.notificationSound),
         nagSound: toSound(parsed.nagSound),
-        shadeProminence: parsed.shadeProminence === 'MINIMIZED' ? 'MINIMIZED' : 'NORMAL'
+        shadeProminence:
+          parsed.shadeProminence === 'MINIMIZED' ? 'MINIMIZED' : 'NORMAL',
       }
       if (parsed.themeDefaultMigrated !== true) saveSettings(settings)
       return settings
@@ -157,29 +197,50 @@ function loadSettings(): StoredState {
 
 const SettingsContext = createContext<SettingsContextValue | null>(null)
 
-export function SettingsProvider({ children, nativeBridge = isNative() ? AlarmPlugin : null }: { children: ReactNode; nativeBridge?: NativeLanguageBridge | null }) {
+export function SettingsProvider({
+  children,
+  nativeBridge = isNative() ? AlarmPlugin : null,
+}: {
+  children: ReactNode
+  nativeBridge?: NativeLanguageBridge | null
+}) {
   const { settings: hostSettings } = useHostSettings()
   const [settings, setSettings] = useState<StoredState>(loadSettings)
   const [languages, setLanguages] = useState(deviceLanguages)
-  const [nativeLanguageReady, setNativeLanguageReady] = useState(() => nativeBridge === null)
-  const nativeLanguage = useRef<ReturnType<typeof connectNativeLanguage> | null>(null)
+  const [nativeLanguageReady, setNativeLanguageReady] = useState(
+    () => nativeBridge === null,
+  )
+  const nativeLanguage = useRef<ReturnType<
+    typeof connectNativeLanguage
+  > | null>(null)
   const locale = resolveLocale(languages, settings.languageOverride)
-  const formattingLocale = resolveFormattingLocale(languages, settings.formattingLocaleOverride)
+  const formattingLocale = resolveFormattingLocale(
+    languages,
+    settings.formattingLocaleOverride,
+  )
 
   useEffect(() => {
     if (!nativeBridge) return
-    const connection = connectNativeLanguage(nativeBridge, readLocalePreferences().languageOverride, {
-      apply(state) {
-        setLanguages(state.deviceLanguages)
-        setSettings((previous) => {
-          if (previous.languageOverride === state.languageOverride) return previous
-          const next = { ...previous, languageOverride: state.languageOverride }
-          saveSettings(next)
-          return next
-        })
+    const connection = connectNativeLanguage(
+      nativeBridge,
+      readLocalePreferences().languageOverride,
+      {
+        apply(state) {
+          setLanguages(state.deviceLanguages)
+          setSettings((previous) => {
+            if (previous.languageOverride === state.languageOverride)
+              return previous
+            const next = {
+              ...previous,
+              languageOverride: state.languageOverride,
+            }
+            saveSettings(next)
+            return next
+          })
+        },
+        ready: () => setNativeLanguageReady(true),
       },
-      ready: () => setNativeLanguageReady(true)
-    })
+    )
     nativeLanguage.current = connection
     return () => {
       connection.dispose()
@@ -188,7 +249,9 @@ export function SettingsProvider({ children, nativeBridge = isNative() ? AlarmPl
   }, [nativeBridge])
 
   useEffect(() => {
-    const changed = () => { if (!isNative()) setLanguages(deviceLanguages()) }
+    const changed = () => {
+      if (!isNative()) setLanguages(deviceLanguages())
+    }
     window.addEventListener('languagechange', changed)
     window.addEventListener('focus', changed)
     return () => {
@@ -197,7 +260,10 @@ export function SettingsProvider({ children, nativeBridge = isNative() ? AlarmPl
     }
   }, [])
 
-  useLayoutEffect(() => configureLocale(locale, formattingLocale), [locale, formattingLocale])
+  useLayoutEffect(
+    () => configureLocale(locale, formattingLocale),
+    [locale, formattingLocale],
+  )
 
   function update(patch: Partial<StoredState>) {
     setSettings((prev) => {
@@ -216,29 +282,36 @@ export function SettingsProvider({ children, nativeBridge = isNative() ? AlarmPl
     // hosts and browsers retain locale detection until a supported host replies.
     timeFormat: settings.timeFormatChosen
       ? settings.timeFormat
-      : hostSettings?.deviceTimeFormat ?? detectTimeFormat(formattingLocale),
+      : (hostSettings?.deviceTimeFormat ?? detectTimeFormat(formattingLocale)),
     setLanguageOverride: (languageOverride) => {
       nativeLanguage.current?.manualChoice()
       update({ languageOverride })
     },
-    setFormattingLocaleOverride: (formattingLocaleOverride) => update({ formattingLocaleOverride }),
+    setFormattingLocaleOverride: (formattingLocaleOverride) =>
+      update({ formattingLocaleOverride }),
     resetTimeFormat: () => update({ timeFormatChosen: false }),
-    setTimeFormat: (timeFormat) => update({ timeFormat, timeFormatChosen: true }),
+    setTimeFormat: (timeFormat) =>
+      update({ timeFormat, timeFormatChosen: true }),
     setThemeId: (themeId) => update({ themeId }),
     setDoodles: (doodles) => update({ doodles }),
     setDoodleColor: (doodleColor) => update({ doodleColor }),
     setAlarmSound: (alarmSound) => update({ alarmSound }),
     setNotificationSound: (notificationSound) => update({ notificationSound }),
     setNagSound: (nagSound) => update({ nagSound }),
-    setShadeProminence: (shadeProminence) => update({ shadeProminence })
+    setShadeProminence: (shadeProminence) => update({ shadeProminence }),
   }
 
-  return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>
+  return (
+    <SettingsContext.Provider value={value}>
+      {children}
+    </SettingsContext.Provider>
+  )
 }
 
 export function useSettings(): SettingsContextValue {
   useTranslation()
   const context = useContext(SettingsContext)
-  if (!context) throw new Error('useSettings must be used within a SettingsProvider')
+  if (!context)
+    throw new Error('useSettings must be used within a SettingsProvider')
   return context
 }

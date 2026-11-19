@@ -4,13 +4,13 @@
 
 Each wording record contains `title` (always `Persistent`), `fullDescription`, `shortDescription`, `features`, `releaseNotes`, `keywords` and `screenshotCaptions`. These are semantic source fields, not Microsoft CSV field names or IDs. The draft is not consumed by the existing screenshot/release-note publisher automatically.
 
-| Text | Limit |
-| --- | --- |
-| Full description | 4,000 characters |
-| Short description | 270 characters |
-| Features | Up to 20, each up to 200 characters |
-| Release notes | 1,500 characters |
-| Keywords | Up to 7, each up to 40 characters, at most 21 words combined |
+| Text                | Limit                                                                       |
+| ------------------- | --------------------------------------------------------------------------- |
+| Full description    | 4,000 characters                                                            |
+| Short description   | 270 characters                                                              |
+| Features            | Up to 20, each up to 200 characters                                         |
+| Release notes       | 1,500 characters                                                            |
+| Keywords            | Up to 7, each up to 40 characters, at most 21 words combined                |
 | Screenshot captions | Exactly the four existing ordered desktop images, each up to 200 characters |
 
 The text describes a Windows tray companion and optional returning notifications while signed in, with the tray process running and the PC awake. It distinguishes Android's previously scheduled exact, offline, closed-app alarms. The Windows 11 widget is described as read-only and limited to supported systems. Language, regional dates, clock format, account time zone and email language stay separate; user-authored text and medicine details are preserved. The language-change audio/menu-reset tradeoff is included in every release-note wording. Privacy copy states no ads, tracking or third-party analytics SDK and discloses internal aggregate usage statistics, replacing the inaccurate blanket claim of no analytics.

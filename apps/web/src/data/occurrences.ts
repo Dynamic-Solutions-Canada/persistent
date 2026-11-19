@@ -4,7 +4,13 @@
  * mutation defaults (queued + replayed on reconnect); WS events refresh here.
  */
 import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query'
-import type { CheckItemInput, Occurrence, OccurrenceList, SnoozeInput, UndoDoneInput } from '@persistent/shared'
+import type {
+  CheckItemInput,
+  Occurrence,
+  OccurrenceList,
+  SnoozeInput,
+  UndoDoneInput,
+} from '@persistent/shared'
 import { apiFetch } from '../lib/apiClient.js'
 import { mutationKeys, queryKeys } from '../lib/queryClient.js'
 
@@ -12,7 +18,11 @@ export function useActiveOccurrences() {
   return useQuery({
     queryKey: queryKeys.occurrencesActive,
     queryFn: async () =>
-      (await apiFetch<{ occurrences: Occurrence[] }>('/api/occurrences?scope=active')).occurrences
+      (
+        await apiFetch<{ occurrences: Occurrence[] }>(
+          '/api/occurrences?scope=active',
+        )
+      ).occurrences,
   })
 }
 
@@ -20,7 +30,11 @@ export function useUpcomingOccurrences() {
   return useQuery({
     queryKey: queryKeys.occurrencesUpcoming,
     queryFn: async () =>
-      (await apiFetch<{ occurrences: Occurrence[] }>('/api/occurrences?scope=upcoming')).occurrences
+      (
+        await apiFetch<{ occurrences: Occurrence[] }>(
+          '/api/occurrences?scope=upcoming',
+        )
+      ).occurrences,
   })
 }
 
@@ -38,24 +52,32 @@ export function usePastOccurrences() {
     queryKey: queryKeys.occurrencesHistory,
     queryFn: async ({ pageParam }) =>
       apiFetch<OccurrenceList>(
-        pageParam ? `/api/occurrences?scope=history&cursor=${encodeURIComponent(pageParam)}` : '/api/occurrences?scope=history'
+        pageParam
+          ? `/api/occurrences?scope=history&cursor=${encodeURIComponent(pageParam)}`
+          : '/api/occurrences?scope=history',
       ),
     initialPageParam: '',
-    getNextPageParam: (last) => last.nextCursor ?? undefined
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
   })
 }
 
 export function useAckOccurrence() {
-  return useMutation<unknown, Error, { id: string; arg: void }>({ mutationKey: mutationKeys.ackOccurrence })
+  return useMutation<unknown, Error, { id: string; arg: void }>({
+    mutationKey: mutationKeys.ackOccurrence,
+  })
 }
 
 export function useSnoozeOccurrence() {
-  return useMutation<unknown, Error, { id: string; arg: SnoozeInput }>({ mutationKey: mutationKeys.snoozeOccurrence })
+  return useMutation<unknown, Error, { id: string; arg: SnoozeInput }>({
+    mutationKey: mutationKeys.snoozeOccurrence,
+  })
 }
 
 /** Silence an escalation alarm: stop the alarm but keep the reminder nagging. */
 export function useSilenceOccurrence() {
-  return useMutation<unknown, Error, { id: string; arg: void }>({ mutationKey: mutationKeys.silenceOccurrence })
+  return useMutation<unknown, Error, { id: string; arg: void }>({
+    mutationKey: mutationKeys.silenceOccurrence,
+  })
 }
 
 /**
@@ -64,11 +86,13 @@ export function useSilenceOccurrence() {
  */
 export function useCheckOccurrenceItem() {
   return useMutation<unknown, Error, { id: string; arg: CheckItemInput }>({
-    mutationKey: mutationKeys.checkOccurrenceItem
+    mutationKey: mutationKeys.checkOccurrenceItem,
   })
 }
 
 /** Reopen the specific completion selected in History. */
 export function useUndoDoneOccurrence() {
-  return useMutation<unknown, Error, { id: string; arg: UndoDoneInput }>({ mutationKey: mutationKeys.undoDoneOccurrence })
+  return useMutation<unknown, Error, { id: string; arg: UndoDoneInput }>({
+    mutationKey: mutationKeys.undoDoneOccurrence,
+  })
 }

@@ -56,7 +56,7 @@ export function TodoItemsField({
   onChange,
   onInsert,
   onMove,
-  onRemove
+  onRemove,
 }: {
   todos: TodoRow[]
   /**
@@ -86,7 +86,11 @@ export function TodoItemsField({
   const inputs = useRef(new Map<string, HTMLInputElement | null>())
   const [focusId, setFocusId] = useState<string | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
-  const { draggingIndex, dragOffset, listProps, handleProps } = useDragReorder(listRef, todos.length, onMove)
+  const { draggingIndex, dragOffset, listProps, handleProps } = useDragReorder(
+    listRef,
+    todos.length,
+    onMove,
+  )
 
   // Ref callbacks run before effects, so by the time this fires the freshly
   // inserted input has registered itself and can be focused.
@@ -109,7 +113,9 @@ export function TodoItemsField({
 
   return (
     <Box role="group" aria-labelledby={labelId}>
-      <FormLabel id={labelId} sx={{ mb: 0.75 }}>{tr("Checklist")}</FormLabel>
+      <FormLabel id={labelId} sx={{ mb: 0.75 }}>
+        {tr('Checklist')}
+      </FormLabel>
       <Stack spacing={1} ref={listRef} {...listProps}>
         {todos.map((item, index) => (
           <Stack
@@ -123,17 +129,20 @@ export function TodoItemsField({
             // underneath it.
             sx={{
               borderRadius: 'sm',
-              '&:hover .todo-remove, &:focus-within .todo-remove, &:hover .todo-move, &:focus-within .todo-move': { opacity: 1 },
-              '@media (hover: none)': { '& .todo-remove, & .todo-move': { opacity: 1 } },
+              '&:hover .todo-remove, &:focus-within .todo-remove, &:hover .todo-move, &:focus-within .todo-move':
+                { opacity: 1 },
+              '@media (hover: none)': {
+                '& .todo-remove, & .todo-move': { opacity: 1 },
+              },
               ...(draggingIndex === index
                 ? {
                     bgcolor: 'background.level1',
                     boxShadow: 'sm',
                     position: 'relative',
                     zIndex: 1,
-                    transform: `translateY(${dragOffset}px)`
+                    transform: `translateY(${dragOffset}px)`,
                   }
-                : {})
+                : {}),
             }}
           >
             {multiple && (
@@ -142,7 +151,10 @@ export function TodoItemsField({
                 {...handleProps(index)}
                 tabIndex={0}
                 role="button"
-                aria-label={tr("Reorder {{v0}}. Use the up and down arrow keys to move it.", { v0: item.text || `item ${index + 1}` })}
+                aria-label={tr(
+                  'Reorder {{v0}}. Use the up and down arrow keys to move it.',
+                  { v0: item.text || `item ${index + 1}` },
+                )}
                 sx={{
                   opacity: 0,
                   transition: 'opacity 150ms ease',
@@ -152,7 +164,7 @@ export function TodoItemsField({
                   borderRadius: 'sm',
                   py: 0.5,
                   '&:active': { cursor: 'grabbing' },
-                  '&:hover': { color: 'text.secondary' }
+                  '&:hover': { color: 'text.secondary' },
                 }}
               >
                 <DragIndicatorIcon fontSize="small" />
@@ -167,24 +179,32 @@ export function TodoItemsField({
                 size="md"
                 checked={checkedIds.has(item.id)}
                 onChange={(event) => onToggle(item.id, event.target.checked)}
-                aria-label={item.text || tr("Item {{v0}}", { v0: index + 1 })}
-                sx={{ ...checklistCheckboxSx, p: 0.5, flexShrink: 0, borderRadius: 'sm', '&:hover': { bgcolor: 'background.level1' } }}
+                aria-label={item.text || tr('Item {{v0}}', { v0: index + 1 })}
+                sx={{
+                  ...checklistCheckboxSx,
+                  p: 0.5,
+                  flexShrink: 0,
+                  borderRadius: 'sm',
+                  '&:hover': { bgcolor: 'background.level1' },
+                }}
               />
             )}
             <Input
               sx={{ flex: 1, minWidth: 0 }}
               // Its own name: the group's label names the set, not the row, and a
               // placeholder is not an accessible name (it vanishes once typing starts).
-              aria-label={tr("Checklist item {{v0}}", { v0: index + 1 })}
-              placeholder={index === 0 ? tr("First thing to do") : tr("Next item")}
+              aria-label={tr('Checklist item {{v0}}', { v0: index + 1 })}
+              placeholder={
+                index === 0 ? tr('First thing to do') : tr('Next item')
+              }
               value={item.text}
               slotProps={{
                 input: {
                   ref: (el: HTMLInputElement | null) => {
                     if (el) inputs.current.set(item.id, el)
                     else inputs.current.delete(item.id)
-                  }
-                }
+                  },
+                },
               }}
               onChange={(e) => onChange(index, e.target.value)}
               onKeyDown={(e) => {
@@ -196,22 +216,32 @@ export function TodoItemsField({
               }}
             />
             <IconButton
-                className="todo-remove"
-                size="sm"
-                variant="plain"
-                color="danger"
-                aria-label={tr("Remove {{v0}}", { v0: item.text || `item ${index + 1}` })}
-                onClick={() => onRemove(index)}
-                sx={{ opacity: 0, transition: 'opacity 150ms ease' }}
-              >
-                <CloseIcon />
-              </IconButton>
+              className="todo-remove"
+              size="sm"
+              variant="plain"
+              color="danger"
+              aria-label={tr('Remove {{v0}}', {
+                v0: item.text || `item ${index + 1}`,
+              })}
+              onClick={() => onRemove(index)}
+              sx={{ opacity: 0, transition: 'opacity 150ms ease' }}
+            >
+              <CloseIcon />
+            </IconButton>
           </Stack>
         ))}
         {/* The draft row appears above its persistent Add button. Enter inside an
             existing row still inserts below that row for keyboard list entry. */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Button variant="plain" color="neutral" size="sm" startDecorator={<AddIcon />} onClick={() => insertAt(todos.length)}>{tr("Add item")}</Button>
+          <Button
+            variant="plain"
+            color="neutral"
+            size="sm"
+            startDecorator={<AddIcon />}
+            onClick={() => insertAt(todos.length)}
+          >
+            {tr('Add item')}
+          </Button>
         </Box>
       </Stack>
     </Box>

@@ -23,12 +23,27 @@ test('store exports reject truncated input, alpha and zero dimensions', () => {
 })
 
 test('raw phone shots are not accepted as carousel exports', () => {
-  assert.throws(() => validateStoreImage(header(672, 1497), 'play'), /1080x1920/)
-  assert.deepEqual(validateStoreImage(header(1080, 1920), 'play'), { width: 1080, height: 1920 })
+  assert.throws(
+    () => validateStoreImage(header(672, 1497), 'play'),
+    /1080x1920/,
+  )
+  assert.deepEqual(validateStoreImage(header(1080, 1920), 'play'), {
+    width: 1080,
+    height: 1920,
+  })
 })
 
 test('desktop captures meet both minimum dimensions', () => {
-  assert.throws(() => validateStoreImage(header(1920, 767), 'microsoft'), /minimum/)
-  assert.throws(() => validateStoreImage(header(1365, 1080), 'microsoft'), /minimum/)
-  assert.deepEqual(validateStoreImage(header(1920, 1080), 'microsoft'), { width: 1920, height: 1080 })
+  assert.throws(
+    () => validateStoreImage(header(1920, 767), 'microsoft'),
+    /minimum/,
+  )
+  assert.throws(
+    () => validateStoreImage(header(1365, 1080), 'microsoft'),
+    /minimum/,
+  )
+  assert.deepEqual(validateStoreImage(header(1920, 1080), 'microsoft'), {
+    width: 1920,
+    height: 1080,
+  })
 })

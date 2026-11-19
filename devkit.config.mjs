@@ -8,7 +8,7 @@
 /** Fixed listeners inside every checkout container; Compose receives these through `env()`. */
 export const DEV_PORTS = Object.freeze({
   api: '4000',
-  web: '5173'
+  web: '5173',
 })
 
 export default {
@@ -24,11 +24,11 @@ export default {
     composeFiles: ['compose.server.yml'],
     backupsKept: 10,
     site: { source: 'nginx.server.conf', name: 'persistent.conf' },
-    submodules: true
+    submodules: true,
   },
 
   // Private worktree volumes removed by archive; shared caches remain.
-  cleanup: { volumes: ["{project}_android-home"] },
+  cleanup: { volumes: ['{project}_android-home'] },
 
   /** Web is first because the proxy routes to the first port in each checkout's derived block. */
   ports: ['web'],
@@ -49,7 +49,7 @@ export default {
   install: {
     command: ['npm', 'ci'],
     inputs: ['package.json', 'package-lock.json', '.nvmrc'],
-    output: 'node_modules'
+    output: 'node_modules',
   },
 
   /**
@@ -71,6 +71,6 @@ export default {
     API_PORT: DEV_PORTS.api,
     CLIENT_ORIGIN: urls.join(','),
     VITE_DEV_PORT: DEV_PORTS.web,
-    VITE_API_PORT: DEV_PORTS.api
-  })
+    VITE_API_PORT: DEV_PORTS.api,
+  }),
 }

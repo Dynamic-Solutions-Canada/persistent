@@ -29,16 +29,17 @@ import SnoozeIcon from '@mui/icons-material/Snooze'
 import EditIcon from '@mui/icons-material/Edit'
 import ShareIcon from '@mui/icons-material/Share'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import { formatMedications, reminderBodyText, todoItems } from '@persistent/shared'
 import {
-  useReminders,
-  useUpdateReminderContent
-} from '../data/reminders.js'
+  formatMedications,
+  reminderBodyText,
+  todoItems,
+} from '@persistent/shared'
+import { useReminders, useUpdateReminderContent } from '../data/reminders.js'
 import {
   useActiveOccurrences,
   useAckOccurrence,
   useSnoozeOccurrence,
-  useSilenceOccurrence
+  useSilenceOccurrence,
 } from '../data/occurrences.js'
 import { reminderScheduleLine } from '../lib/scheduleSummary.js'
 import { formatWhen } from '../lib/datetime.js'
@@ -59,7 +60,11 @@ import { InlineReminderText } from '../components/InlineReminderText.js'
 import { useReceivedShares } from '../data/shares.js'
 import { SharedReminderPage } from './SharedReminderPage.js'
 
-export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
+export function ReminderDetailPage({
+  reminderId,
+  onClose,
+  onEdit,
+}: {
   reminderId?: string
   onClose?: () => void
   onEdit?: () => void
@@ -81,18 +86,28 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
   const reminder = reminders.data?.find((r) => r.id === id)
   const shared = received.data?.some((item) => item.id === id)
 
-  if (!reminder && shared) return <SharedReminderPage reminderId={id} onClose={onClose} onEdit={onEdit} />
+  if (!reminder && shared)
+    return (
+      <SharedReminderPage reminderId={id} onClose={onClose} onEdit={onEdit} />
+    )
 
   // The reminder may still be loading (deep link from a notification) or gone.
   if (!reminder) {
     return (
       <Stack spacing={2}>
         {reminders.isLoading || received.isLoading ? (
-          <Typography level="body-sm">{tr("Loading…")}</Typography>
+          <Typography level="body-sm">{tr('Loading…')}</Typography>
         ) : (
           <>
-            <Typography level="body-sm">{tr("Reminder not found.")}</Typography>
-            <Button component={RouterLink} to="/" variant="outlined" sx={{ alignSelf: 'flex-start' }}>{tr("Back to reminders")}</Button>
+            <Typography level="body-sm">{tr('Reminder not found.')}</Typography>
+            <Button
+              component={RouterLink}
+              to="/"
+              variant="outlined"
+              sx={{ alignSelf: 'flex-start' }}
+            >
+              {tr('Back to reminders')}
+            </Button>
           </>
         )}
       </Stack>
@@ -103,41 +118,70 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
   // body drops the bulleted copy reminderBodyText builds for notifications. The
   // editor saves no details on a checklist, so this is normally empty.
   const items = reminder.type === 'TODO' ? todoItems(reminder.typeData) : []
-  const canEditNoteBody = Boolean(onClose && reminder.schedule.kind === 'never' && reminder.type !== 'TODO')
-  let body = items.length > 0 ? (reminder.details ?? '') : reminderBodyText(reminder)
+  const canEditNoteBody = Boolean(
+    onClose && reminder.schedule.kind === 'never' && reminder.type !== 'TODO',
+  )
+  let body =
+    items.length > 0 ? (reminder.details ?? '') : reminderBodyText(reminder)
   if (canEditNoteBody) {
-    body = reminder.type === 'MEDICATION' ? formatMedications(reminder.typeData) : ''
+    body =
+      reminder.type === 'MEDICATION' ? formatMedications(reminder.typeData) : ''
   }
   const next = reminderNextFire(reminder)
   // Each pending occurrence gets its own action block, ordered as on the main
   // list — escalations first, then most recently fired (`lib/firingOrder.ts`).
-  const occurrences = (active.data ?? []).filter((o) => o.reminderId === reminder.id).sort(compareFirings)
+  const occurrences = (active.data ?? [])
+    .filter((o) => o.reminderId === reminder.id)
+    .sort(compareFirings)
 
   const content = (
     <>
       <Stack spacing={2}>
-        {!onClose && <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Button component={RouterLink} to="/" variant="plain" color="neutral" size="sm" startDecorator={<ArrowBackIcon />}>{tr("Back")}</Button>
-          <Stack direction="row" spacing={0.5}>
+        {!onClose && (
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+          >
             <Button
+              component={RouterLink}
+              to="/"
               variant="plain"
+              color="neutral"
               size="sm"
-              startDecorator={<ShareIcon />}
-              endDecorator={reminder.shareCount + reminder.invitationCount > 0
-                ? <ShareCountChip count={reminder.shareCount + reminder.invitationCount} />
-                : undefined}
-              onClick={() => setShareOpen(true)}
-            >{tr("Share")}</Button>
-            <Button
-              component={onEdit ? 'button' : RouterLink}
-              to={onEdit ? undefined : `/reminders/${reminder.id}/edit`}
-              onClick={onEdit}
-              variant="outlined"
-              size="sm"
-              startDecorator={<EditIcon />}
-            >{tr("Edit")}</Button>
+              startDecorator={<ArrowBackIcon />}
+            >
+              {tr('Back')}
+            </Button>
+            <Stack direction="row" spacing={0.5}>
+              <Button
+                variant="plain"
+                size="sm"
+                startDecorator={<ShareIcon />}
+                endDecorator={
+                  reminder.shareCount + reminder.invitationCount > 0 ? (
+                    <ShareCountChip
+                      count={reminder.shareCount + reminder.invitationCount}
+                    />
+                  ) : undefined
+                }
+                onClick={() => setShareOpen(true)}
+              >
+                {tr('Share')}
+              </Button>
+              <Button
+                component={onEdit ? 'button' : RouterLink}
+                to={onEdit ? undefined : `/reminders/${reminder.id}/edit`}
+                onClick={onEdit}
+                variant="outlined"
+                size="sm"
+                startDecorator={<EditIcon />}
+              >
+                {tr('Edit')}
+              </Button>
+            </Stack>
           </Stack>
-        </Stack>}
+        )}
 
         <Box>
           <Stack direction="row" spacing={1} alignItems="center">
@@ -146,7 +190,12 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
               <InlineReminderText
                 kind="title"
                 text={reminder.title}
-                onSave={(title, expectedText) => updateContent.mutateAsync({ id: reminder.id, arg: { title, expectedText } })}
+                onSave={(title, expectedText) =>
+                  updateContent.mutateAsync({
+                    id: reminder.id,
+                    arg: { title, expectedText },
+                  })
+                }
               />
             ) : (
               <Typography level="title-lg" sx={{ minWidth: 0 }}>
@@ -154,19 +203,29 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
               </Typography>
             )}
             {!reminder.active && (
-              <Chip size="sm" color="neutral" variant="outlined">{tr("paused")}</Chip>
+              <Chip size="sm" color="neutral" variant="outlined">
+                {tr('paused')}
+              </Chip>
             )}
           </Stack>
           {reminder.schedule.kind !== 'never' && (
-            <Typography level="body-xs" sx={{ mt: 0.5, color: 'text.tertiary' }}>
+            <Typography
+              level="body-xs"
+              sx={{ mt: 0.5, color: 'text.tertiary' }}
+            >
               {reminderScheduleLine(reminder, timeFormat)}
-              {next && reminder.schedule.kind !== 'once' ? tr(" · Next: {{v0}}", { v0: formatWhen(next, timeFormat) }) : ''}
+              {next && reminder.schedule.kind !== 'once'
+                ? tr(' · Next: {{v0}}', { v0: formatWhen(next, timeFormat) })
+                : ''}
             </Typography>
           )}
           {body && (
             // pre-wrap: details are authored in a multi-line textarea, so the line
             // breaks the user typed are part of the content and must survive here.
-            <Typography level="body-sm" sx={{ mt: 0.5, whiteSpace: 'pre-wrap' }}>
+            <Typography
+              level="body-sm"
+              sx={{ mt: 0.5, whiteSpace: 'pre-wrap' }}
+            >
               {body}
             </Typography>
           )}
@@ -175,7 +234,12 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
               <InlineReminderText
                 kind="body"
                 text={reminder.details ?? ''}
-                onSave={(details, expectedText) => updateContent.mutateAsync({ id: reminder.id, arg: { details: details || null, expectedText } })}
+                onSave={(details, expectedText) =>
+                  updateContent.mutateAsync({
+                    id: reminder.id,
+                    arg: { details: details || null, expectedText },
+                  })
+                }
               />
             </Box>
           )}
@@ -186,38 +250,85 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
             {occurrences.map((occurrence) => {
               // Same treatment as the list card, from the same helper: only an
               // escalation shouts, and "Due" is used only where it's honest.
-              const { orphaned, color, variant, doneLabel } = firingTone(reminder, occurrence)
+              const { orphaned, color, variant, doneLabel } = firingTone(
+                reminder,
+                occurrence,
+              )
               return (
-                <Card key={occurrence.id} color={color} variant={variant} size="sm">
+                <Card
+                  key={occurrence.id}
+                  color={color}
+                  variant={variant}
+                  size="sm"
+                >
                   <Box sx={{ minWidth: 0 }}>
-                    <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} flexWrap="wrap" useFlexGap>
-                      <Typography level="body-sm">{formatWhen(occurrence.scheduledFor, timeFormat)}</Typography>
-                      <FiringStatusChip reminder={reminder} occurrence={occurrence} />
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      justifyContent="space-between"
+                      spacing={1}
+                      flexWrap="wrap"
+                      useFlexGap
+                    >
+                      <Typography level="body-sm">
+                        {formatWhen(occurrence.scheduledFor, timeFormat)}
+                      </Typography>
+                      <FiringStatusChip
+                        reminder={reminder}
+                        occurrence={occurrence}
+                      />
                     </Stack>
-                    {occurrence.status === 'SNOOZED' && occurrence.snoozedUntil && (
-                      <Typography
-                        level="body-xs"
-                        color="primary"
-                        startDecorator={<SnoozeIcon sx={{ fontSize: 14 }} />}
-                      ><Trans i18nKey={"Snoozed until <v0/>"} components={{ v0: <>{formatWhen(occurrence.snoozedUntil, timeFormat)}</> }} /></Typography>
-                    )}
+                    {occurrence.status === 'SNOOZED' &&
+                      occurrence.snoozedUntil && (
+                        <Typography
+                          level="body-xs"
+                          color="primary"
+                          startDecorator={<SnoozeIcon sx={{ fontSize: 14 }} />}
+                        >
+                          <Trans
+                            i18nKey={'Snoozed until <v0/>'}
+                            components={{
+                              v0: (
+                                <>
+                                  {formatWhen(
+                                    occurrence.snoozedUntil,
+                                    timeFormat,
+                                  )}
+                                </>
+                              ),
+                            }}
+                          />
+                        </Typography>
+                      )}
                   </Box>
                   {orphaned && (
-                    <Typography level="body-xs" sx={{ color: 'text.tertiary' }}>{tr("Notified you before this reminder was rescheduled. Clearing it won't affect the new schedule.")}</Typography>
+                    <Typography level="body-xs" sx={{ color: 'text.tertiary' }}>
+                      {tr(
+                        "Notified you before this reminder was rescheduled. Clearing it won't affect the new schedule.",
+                      )}
+                    </Typography>
                   )}
                   {reminder.type === 'TODO' && (
                     <Box>
-                      <ReminderChecklist reminder={reminder} isNote={false} firing={occurrence} />
+                      <ReminderChecklist
+                        reminder={reminder}
+                        isNote={false}
+                        firing={occurrence}
+                      />
                     </Box>
                   )}
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <OccurrenceActions
                       occurrence={occurrence}
                       doneLabel={doneLabel}
-                      onDone={() => ack.mutate({ id: occurrence.id, arg: undefined })}
+                      onDone={() =>
+                        ack.mutate({ id: occurrence.id, arg: undefined })
+                      }
                       doneLoading={ack.isPending}
                       onSnooze={() => setSnoozeFor(occurrence.id)}
-                      onSilence={() => silence.mutate({ id: occurrence.id, arg: undefined })}
+                      onSilence={() =>
+                        silence.mutate({ id: occurrence.id, arg: undefined })
+                      }
                       silenceLoading={silence.isPending}
                     />
                   </Box>
@@ -234,14 +345,18 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
             variant="plain"
             sx={{ p: 0, bgcolor: 'transparent', boxShadow: 'none' }}
           >
-            <Typography level="title-sm">{tr("Checklist")}</Typography>
-            <ReminderChecklist reminder={reminder} isNote={reminder.schedule.kind === 'never'} />
+            <Typography level="title-sm">{tr('Checklist')}</Typography>
+            <ReminderChecklist
+              reminder={reminder}
+              isNote={reminder.schedule.kind === 'never'}
+            />
             {reminder.schedule.kind !== 'never' && (
-              <Typography level="body-xs" sx={{ color: 'text.tertiary' }}>{tr("Ticked off each time this reminder notifies you.")}</Typography>
+              <Typography level="body-xs" sx={{ color: 'text.tertiary' }}>
+                {tr('Ticked off each time this reminder notifies you.')}
+              </Typography>
             )}
           </Card>
         )}
-
       </Stack>
 
       <SnoozeDialog
@@ -253,12 +368,20 @@ export function ReminderDetailPage({ reminderId, onClose, onEdit }: {
           setSnoozeFor(null)
         }}
       />
-      <ReminderSharing open={shareOpen} onClose={() => setShareOpen(false)} reminderId={reminder.id} />
+      <ReminderSharing
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        reminderId={reminder.id}
+      />
     </>
   )
 
-  return onClose ? content : (
-    <PullToRefresh onRefresh={() => Promise.all([reminders.refetch(), active.refetch()])}>
+  return onClose ? (
+    content
+  ) : (
+    <PullToRefresh
+      onRefresh={() => Promise.all([reminders.refetch(), active.refetch()])}
+    >
       {content}
     </PullToRefresh>
   )

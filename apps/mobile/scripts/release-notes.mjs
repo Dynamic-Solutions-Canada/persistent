@@ -59,7 +59,7 @@ export const PATHS = [
   ':(exclude)*.test.ts',
   ':(exclude)*.md',
   ':(exclude)*package.json',
-  ':(exclude)*package-lock.json'
+  ':(exclude)*package-lock.json',
 ]
 
 export const FALLBACK = '- Maintenance and behind-the-scenes improvements'
@@ -76,7 +76,10 @@ export function userFacing(subjects) {
 export function notesMarkdown(subjects, { repo, previous, tag } = {}) {
   const lines = ["## What's changed", '', ...userFacing(subjects)]
   if (repo && previous && tag) {
-    lines.push('', `**Full changelog**: https://github.com/${repo}/compare/${previous}...${tag}`)
+    lines.push(
+      '',
+      `**Full changelog**: https://github.com/${repo}/compare/${previous}...${tag}`,
+    )
   }
   return `${lines.join('\n')}\n`
 }
@@ -87,7 +90,8 @@ function git(args, cwd) {
 
 /** Choose the preceding published Android version, excluding drafts and desktop tags. */
 export function previousPublishedTag(tag, releases) {
-  const version = (value) => /^v(\d+)\.(\d+)\.(\d+)$/.exec(value)?.slice(1).map(Number)
+  const version = (value) =>
+    /^v(\d+)\.(\d+)\.(\d+)$/.exec(value)?.slice(1).map(Number)
   const current = version(tag)
   if (!current) throw new Error(`Invalid Android release tag: ${tag}`)
 
@@ -99,8 +103,13 @@ export function previousPublishedTag(tag, releases) {
   }
   const candidates = releases
     .filter((release) => !release.isDraft && !release.isPrerelease)
-    .map((release) => ({ tag: release.tagName, version: version(release.tagName) }))
-    .filter((release) => release.version && compare(release.version, current) < 0)
+    .map((release) => ({
+      tag: release.tagName,
+      version: version(release.tagName),
+    }))
+    .filter(
+      (release) => release.version && compare(release.version, current) < 0,
+    )
     .sort((left, right) => compare(right.version, left.version))
   return candidates[0]?.tag ?? null
 }
@@ -119,7 +128,10 @@ function repoRoot() {
 
 /** Commit subjects in [range] that touched a path a user can notice. */
 export function subjectsIn(range, cwd = repoRoot()) {
-  const out = git(['log', '--no-merges', '--pretty=format:%s', range, '--', ...PATHS], cwd)
+  const out = git(
+    ['log', '--no-merges', '--pretty=format:%s', range, '--', ...PATHS],
+    cwd,
+  )
   return out.split('\n').filter((line) => line.trim())
 }
 
@@ -130,7 +142,7 @@ function parseArgs(argv) {
     if (!token.startsWith('--')) continue
     const key = token.slice(2)
     const next = argv[i + 1]
-    args[key] = next && !next.startsWith('--') ? (i += 1, next) : true
+    args[key] = next && !next.startsWith('--') ? ((i += 1), next) : true
   }
   return args
 }
@@ -147,13 +159,26 @@ function main() {
       process.exit(1)
     }
     if (args['published-only']) {
-      if (typeof args.repo !== 'string') throw new Error('--published-only requires --repo')
+      if (typeof args.repo !== 'string')
+        throw new Error('--published-only requires --repo')
       // Failed tags must not consume feature notes in the next successful release.
       // GitHub is authoritative here; a lookup failure must stop publication.
-      const releases = JSON.parse(execFileSync('gh', [
-        'release', 'list', '--repo', args.repo, '--limit', '100',
-        '--json', 'tagName,isDraft,isPrerelease'
-      ], { encoding: 'utf8' }))
+      const releases = JSON.parse(
+        execFileSync(
+          'gh',
+          [
+            'release',
+            'list',
+            '--repo',
+            args.repo,
+            '--limit',
+            '100',
+            '--json',
+            'tagName,isDraft,isPrerelease',
+          ],
+          { encoding: 'utf8' },
+        ),
+      )
       previous = previousPublishedTag(tag, releases)
     } else {
       try {
@@ -171,7 +196,11 @@ function main() {
 
   const repo = typeof args.repo === 'string' ? args.repo : null
   process.stdout.write(
-    notesMarkdown(subjectsIn(range), { repo, previous, tag: tag ?? range.split('..')[1] })
+    notesMarkdown(subjectsIn(range), {
+      repo,
+      previous,
+      tag: tag ?? range.split('..')[1],
+    }),
   )
 }
 

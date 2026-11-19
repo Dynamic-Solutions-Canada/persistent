@@ -23,11 +23,11 @@ export const announcements: readonly CuratedAnnouncement[] = [
     paragraphs: [
       'Persistent now has dedicated Light and Dark themes. Match system is the new default and automatically follows your device appearance.',
       'If you prefer the original look, Navy is still available in Settings, along with Forest and Plum.',
-      'Doodles work with any theme. In Settings, choose a doodle color, match the theme, or select No doodles.'
+      'Doodles work with any theme. In Settings, choose a doodle color, match the theme, or select No doodles.',
     ],
     // The v0.27.0 release, which made Match system the default.
-    existingAccountsBefore: new Date('2026-10-09T21:02:22Z')
-  }
+    existingAccountsBefore: new Date('2026-10-09T21:02:22Z'),
+  },
 ]
 
 /**
@@ -37,9 +37,16 @@ export const announcements: readonly CuratedAnnouncement[] = [
  * @param accountCreatedAt when the account was created, for audience cutoffs
  * @param viewedIds announcement ids this account has already dismissed
  */
-export function unreadAnnouncementsFor(accountCreatedAt: Date, viewedIds: ReadonlySet<string>): Announcement[] {
+export function unreadAnnouncementsFor(
+  accountCreatedAt: Date,
+  viewedIds: ReadonlySet<string>,
+): Announcement[] {
   return announcements
     .filter((announcement) => !viewedIds.has(announcement.id))
-    .filter((announcement) => !announcement.existingAccountsBefore || accountCreatedAt < announcement.existingAccountsBefore)
+    .filter(
+      (announcement) =>
+        !announcement.existingAccountsBefore ||
+        accountCreatedAt < announcement.existingAccountsBefore,
+    )
     .map(({ id, title, paragraphs }) => ({ id, title, paragraphs }))
 }

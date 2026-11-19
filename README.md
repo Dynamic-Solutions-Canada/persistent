@@ -37,7 +37,7 @@
   <img src="apps/mobile/store/graphics/screenshots/05-sharing-dark.png" alt="Sharing dialog with a staged sample recipient in Enjoy Dark" height="400">
 </p>
 
-Most reminder apps fire once and are easy to swipe away. Persistent keeps nagging, with a notification that won't dismiss or a full alarm that loops, until you *actually mark it done*. It's built for the things you can't afford to miss.
+Most reminder apps fire once and are easy to swipe away. Persistent keeps nagging, with a notification that won't dismiss or a full alarm that loops, until you _actually mark it done_. It's built for the things you can't afford to miss.
 
 ## Features
 
@@ -79,10 +79,10 @@ These alerts work while the app runs and the computer is awake. Both apps catch 
 
 **Install:** download an AppImage from the [Linux releases](https://github.com/Dynamic-Solutions-Canada/persistent/releases?q=Linux&expanded=true). It is available for Intel/AMD 64-bit and ARM64 computers.
 
-| Computer | AppImage filename ends with |
-| --- | --- |
-| 64-bit Intel or AMD | `x86_64.AppImage` |
-| ARM64 | `arm64.AppImage` |
+| Computer            | AppImage filename ends with |
+| ------------------- | --------------------------- |
+| 64-bit Intel or AMD | `x86_64.AppImage`           |
+| ARM64               | `arm64.AppImage`            |
 
 Mark the download executable and run it. Use `--install` to add a user-level application-menu launcher and keep a stable path for updates; no Node toolchain is needed. AppImage is the only supported Linux package format. See [Linux installation details](apps/linux-desktop/README.md#build-package-and-install) for requirements and troubleshooting.
 

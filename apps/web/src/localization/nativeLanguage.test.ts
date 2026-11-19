@@ -1,16 +1,28 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { NativeLanguageState, Locale } from '@persistent/shared'
-import { connectNativeLanguage, type NativeLanguageBridge } from './nativeLanguage.js'
+import {
+  connectNativeLanguage,
+  type NativeLanguageBridge,
+} from './nativeLanguage.js'
 
 function deferred<T>() {
   let resolve!: (value: T) => void
   let reject!: (error: unknown) => void
-  const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no })
+  const promise = new Promise<T>((yes, no) => {
+    resolve = yes
+    reject = no
+  })
   return { promise, resolve, reject }
 }
-const snapshot = (languageOverride: Locale | null): NativeLanguageState => ({ version: 1, languageOverride, deviceLanguages: ['en-CA'] })
-const settle = async () => { await new Promise<void>((resolve) => setImmediate(resolve)) }
+const snapshot = (languageOverride: Locale | null): NativeLanguageState => ({
+  version: 1,
+  languageOverride,
+  deviceLanguages: ['en-CA'],
+})
+const settle = async () => {
+  await new Promise<void>((resolve) => setImmediate(resolve))
+}
 
 /** A delayed bridge models a live WebView's native round trip and native configuration events. */
 function fixture(read: NativeLanguageBridge['getLocale'], retryDelay?: number) {
@@ -20,15 +32,37 @@ function fixture(read: NativeLanguageBridge['getLocale'], retryDelay?: number) {
   const writes: (Locale | null)[] = []
   const bridge: NativeLanguageBridge = {
     getLocale: read,
-    async addListener(_name, listener) { event = listener; return { async remove() {} } }
+    async addListener(_name, listener) {
+      event = listener
+      return { async remove() {} }
+    },
   }
-  const connection = connectNativeLanguage(bridge, language, {
-    apply(value) { language = value.languageOverride }, ready() { ready = true }
-  }, retryDelay)
+  const connection = connectNativeLanguage(
+    bridge,
+    language,
+    {
+      apply(value) {
+        language = value.languageOverride
+      },
+      ready() {
+        ready = true
+      },
+    },
+    retryDelay,
+  )
   return {
-    connection, writes, event: (value: NativeLanguageState) => event(value),
-    publish() { if (ready) writes.push(language) },
-    get language() { return language }, get ready() { return ready }
+    connection,
+    writes,
+    event: (value: NativeLanguageState) => event(value),
+    publish() {
+      if (ready) writes.push(language)
+    },
+    get language() {
+      return language
+    },
+    get ready() {
+      return ready
+    },
   }
 }
 
@@ -80,7 +114,9 @@ test('transient read failure retries without publishing; only definitive unsuppo
   await new Promise((resolve) => setTimeout(resolve, 75))
   app.publish()
   assert.deepEqual(app.writes, [null])
-  const oldHost = fixture(async () => { throw { code: 'UNIMPLEMENTED' } })
+  const oldHost = fixture(async () => {
+    throw { code: 'UNIMPLEMENTED' }
+  })
   context.after(() => oldHost.connection.dispose())
   await settle()
   oldHost.publish()
@@ -107,19 +143,32 @@ test('subscription failures warn once without secrets, retry and reconcile a mis
   let applied: Locale | null = null
   const warnings: string[] = []
   const originalWarn = console.warn
-  console.warn = (value: unknown) => { warnings.push(String(value)) }
-  const connection = connectNativeLanguage({
-    async addListener() {
-      attempts += 1
-      if (attempts < 3) throw new Error('private provider detail must not be logged')
-      subscribed.resolve()
-      return { async remove() {} }
+  console.warn = (value: unknown) => {
+    warnings.push(String(value))
+  }
+  const connection = connectNativeLanguage(
+    {
+      async addListener() {
+        attempts += 1
+        if (attempts < 3)
+          throw new Error('private provider detail must not be logged')
+        subscribed.resolve()
+        return { async remove() {} }
+      },
+      async getLocale() {
+        reads += 1
+        return snapshot(reads === 1 ? 'fr-FR' : 'ja-JP')
+      },
     },
-    async getLocale() {
-      reads += 1
-      return snapshot(reads === 1 ? 'fr-FR' : 'ja-JP')
-    }
-  }, 'de-DE', { apply: (value) => { applied = value.languageOverride }, ready() {} }, 10)
+    'de-DE',
+    {
+      apply: (value) => {
+        applied = value.languageOverride
+      },
+      ready() {},
+    },
+    10,
+  )
   try {
     await subscribed.promise
     await settle()

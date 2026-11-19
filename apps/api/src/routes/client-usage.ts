@@ -3,7 +3,11 @@ import { Router } from 'express'
 import { clientUsageSchema } from '@persistent/shared'
 import { prisma } from '../lib/prisma.js'
 import { requireUserId } from '../lib/auth-middleware.js'
-import { AUTH_COOKIE_NAME, hashSecret, readCookie } from '../lib/auth-session.js'
+import {
+  AUTH_COOKIE_NAME,
+  hashSecret,
+  readCookie,
+} from '../lib/auth-session.js'
 import { badRequest, unauthorized } from '../lib/http-error.js'
 
 export const clientUsageRouter = Router()
@@ -16,14 +20,19 @@ clientUsageRouter.post('/', async (request, response) => {
   if (!secret) throw unauthorized('Sign in to continue.')
   const now = new Date()
   const result = await prisma.session.updateMany({
-    where: { userId, secretHash: hashSecret(secret), revokedAt: null, expiresAt: { gt: now } },
+    where: {
+      userId,
+      secretHash: hashSecret(secret),
+      revokedAt: null,
+      expiresAt: { gt: now },
+    },
     data: {
       clientApp: parsed.data.app,
       clientPlatform: parsed.data.platform,
       webVersion: parsed.data.webVersion,
       nativeVersion: parsed.data.nativeVersion,
-      clientReportedAt: now
-    }
+      clientReportedAt: now,
+    },
   })
   if (result.count !== 1) throw unauthorized('Sign in to continue.')
   response.setHeader('Cache-Control', 'no-store')

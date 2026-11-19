@@ -5,7 +5,10 @@
  * must be ignored. Missing/garbage timestamps are treated as not-stale (apply),
  * preserving the prior last-to-arrive behavior for older clients.
  */
-export function isStaleWrite(clientEditedAtIso: string | null | undefined, existingUpdatedAt: Date): boolean {
+export function isStaleWrite(
+  clientEditedAtIso: string | null | undefined,
+  existingUpdatedAt: Date,
+): boolean {
   if (!clientEditedAtIso) return false
   const edited = new Date(clientEditedAtIso).getTime()
   if (Number.isNaN(edited)) return false

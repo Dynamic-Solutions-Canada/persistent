@@ -5,17 +5,21 @@
  */
 import type { VitePWAOptions } from 'vite-plugin-pwa'
 
-export const navigationCaching: NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number] = {
-  urlPattern: ({ request, url }) => request.mode === 'navigate'
-    && !/^\/(?:api|ws)(?:\/|$)/i.test(url.pathname),
+export const navigationCaching: NonNullable<
+  NonNullable<VitePWAOptions['workbox']>['runtimeCaching']
+>[number] = {
+  urlPattern: ({ request, url }) =>
+    request.mode === 'navigate' && !/^\/(?:api|ws)(?:\/|$)/i.test(url.pathname),
   handler: 'NetworkOnly',
   options: {
     precacheFallback: { fallbackURL: 'index.html' },
-    plugins: [{
-      fetchDidSucceed: async ({ response }: { response: Response }) => {
-        if (response.ok) return response
-        throw new Error(`Navigation request failed with ${response.status}`)
-      }
-    }]
-  }
+    plugins: [
+      {
+        fetchDidSucceed: async ({ response }: { response: Response }) => {
+          if (response.ok) return response
+          throw new Error(`Navigation request failed with ${response.status}`)
+        },
+      },
+    ],
+  },
 }

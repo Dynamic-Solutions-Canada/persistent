@@ -14,16 +14,30 @@ test('resident logging works with closed launcher output and omits error details
       import { createHostLog } from ${JSON.stringify(new URL('./host-log.ts', import.meta.url).href)};
       closeSync(1); closeSync(2);
       createHostLog(${JSON.stringify(directory)})('Sign-in diagnostic', new Error('private response'));`
-    const result = spawnSync(process.execPath, ['--import', 'tsx', '--input-type=module', '-e', source])
+    const result = spawnSync(process.execPath, [
+      '--import',
+      'tsx',
+      '--input-type=module',
+      '-e',
+      source,
+    ])
     assert.equal(result.status, 0)
     const contents = readFileSync(join(directory, 'host.log'), 'utf8')
     assert.match(contents, /Sign-in diagnostic \(Error\)/)
     assert.doesNotMatch(contents, /private response/)
     writeFileSync(join(directory, 'host.log'), 'x'.repeat(1_000_001))
     createHostLog(directory)('After rotation')
-    assert.match(readFileSync(join(directory, 'host.log'), 'utf8'), /After rotation/)
-    assert.equal(readFileSync(join(directory, 'host.log.previous'), 'utf8').length, 1_000_001)
-  } finally { rmSync(directory, { recursive: true, force: true }) }
+    assert.match(
+      readFileSync(join(directory, 'host.log'), 'utf8'),
+      /After rotation/,
+    )
+    assert.equal(
+      readFileSync(join(directory, 'host.log.previous'), 'utf8').length,
+      1_000_001,
+    )
+  } finally {
+    rmSync(directory, { recursive: true, force: true })
+  }
 })
 
 test('unwritable log destination never throws or writes to a launcher pipe', () => {
@@ -32,5 +46,7 @@ test('unwritable log destination never throws or writes to a launcher pipe', () 
     const file = join(directory, 'file')
     writeFileSync(file, '')
     assert.doesNotThrow(() => createHostLog(file)('Diagnostic'))
-  } finally { rmSync(directory, { recursive: true, force: true }) }
+  } finally {
+    rmSync(directory, { recursive: true, force: true })
+  }
 })

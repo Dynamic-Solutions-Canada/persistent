@@ -9,8 +9,14 @@ export function SharingChip({ state }: { state: SharingState }) {
   useTranslation()
   if (!state) return null
   return (
-    <Chip component="span" size="sm" variant="soft" color="neutral" startDecorator={<ShareIcon sx={{ fontSize: 14 }} />}>
-      {state === 'shared' ? tr("Shared") : tr("Invited")}
+    <Chip
+      component="span"
+      size="sm"
+      variant="soft"
+      color="neutral"
+      startDecorator={<ShareIcon sx={{ fontSize: 14 }} />}
+    >
+      {state === 'shared' ? tr('Shared') : tr('Invited')}
     </Chip>
   )
 }

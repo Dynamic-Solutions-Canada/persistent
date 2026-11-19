@@ -10,7 +10,9 @@ test('Snooze waits for its authenticated listener, while SPA routes keep both li
   delivery.ready()
   assert.deepEqual(messages, [])
   delivery.ready(true)
-  assert.deepEqual(messages, [{ type: 'snoozeOccurrence', occurrenceId: 'one' }])
+  assert.deepEqual(messages, [
+    { type: 'snoozeOccurrence', occurrenceId: 'one' },
+  ])
   delivery.navigating({ isMainFrame: true, isSameDocument: true })
   delivery.queue({ type: 'snoozeOccurrence', occurrenceId: 'two' })
   delivery.flush()
@@ -24,7 +26,8 @@ test('Snooze waits for its authenticated listener, while SPA routes keep both li
 test('full document replacement buffers the latest click, and sign-out discards personal pending actions', () => {
   const messages: PageRequest[] = []
   const delivery = new PageDelivery((message) => messages.push(message))
-  delivery.ready(); delivery.ready(true)
+  delivery.ready()
+  delivery.ready(true)
   delivery.navigating({ isMainFrame: true, isSameDocument: false })
   delivery.queue({ type: 'navigate', path: '/first' })
   delivery.queue({ type: 'navigate', path: '/latest' })

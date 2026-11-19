@@ -11,9 +11,12 @@ import type { PermissionGuideOutcome } from './PermissionGuideDialogContent.js'
 const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/' })
 const previous = new Map<string, PropertyDescriptor | undefined>()
 const globals = {
-  React, window: dom.window, document: dom.window.document,
-  HTMLElement: dom.window.HTMLElement, DocumentFragment: dom.window.DocumentFragment,
-  IS_REACT_ACT_ENVIRONMENT: true
+  React,
+  window: dom.window,
+  document: dom.window.document,
+  HTMLElement: dom.window.HTMLElement,
+  DocumentFragment: dom.window.DocumentFragment,
+  IS_REACT_ACT_ENVIRONMENT: true,
 }
 for (const [name, value] of Object.entries(globals)) {
   previous.set(name, Object.getOwnPropertyDescriptor(globalThis, name))
@@ -29,21 +32,39 @@ after(() => {
 })
 
 const require = createRequire(import.meta.url)
-const { PermissionGuideDialogContent } = require('./PermissionGuideDialogContent.tsx') as typeof import('./PermissionGuideDialogContent.js')
-const { StartupDataContext } = require('../../components/startupDataContext.ts') as typeof import('../../components/startupDataContext.js')
-const { setToastHandler } = require('../../lib/toast.ts') as typeof import('../../lib/toast.js')
+const { PermissionGuideDialogContent } =
+  require('./PermissionGuideDialogContent.tsx') as typeof import('./PermissionGuideDialogContent.js')
+const { StartupDataContext } =
+  require('../../components/startupDataContext.ts') as typeof import('../../components/startupDataContext.js')
+const { setToastHandler } =
+  require('../../lib/toast.ts') as typeof import('../../lib/toast.js')
 
-const ALL: AlarmGrant[] = ['notifications', 'exactAlarms', 'fullScreen', 'overlay', 'battery']
+const ALL: AlarmGrant[] = [
+  'notifications',
+  'exactAlarms',
+  'fullScreen',
+  'overlay',
+  'battery',
+]
 
 /** Readiness with every grant held except the ones listed. */
 function missing(...grants: AlarmGrant[]): AlarmReadiness {
-  return Object.fromEntries(ALL.map((grant) => [grant, !grants.includes(grant)])) as AlarmReadiness
+  return Object.fromEntries(
+    ALL.map((grant) => [grant, !grants.includes(grant)]),
+  ) as AlarmReadiness
 }
 
-const settle = () => act(async () => { await new Promise((resolve) => setTimeout(resolve, 30)) })
+const settle = () =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 30))
+  })
 
 /** Render the real Joy dialog with controlled readiness and a recorded launcher. */
-async function mount(context: TestContext, scope: AlarmGrant[], options: { opens?: boolean; recheck?: AlarmReadiness } = {}) {
+async function mount(
+  context: TestContext,
+  scope: AlarmGrant[],
+  options: { opens?: boolean; recheck?: AlarmReadiness } = {},
+) {
   const root = createRoot(dom.window.document.getElementById('root')!)
   const launches: [AlarmGrant, GrantRoute][] = []
   const closes: PermissionGuideOutcome[] = []
@@ -51,20 +72,26 @@ async function mount(context: TestContext, scope: AlarmGrant[], options: { opens
   setToastHandler((message) => toasts.push(message))
 
   const render = async (readiness: AlarmReadiness | null, mounted = true) => {
-    await act(async () => root.render(
-      <StartupDataContext.Provider value={true}>
-        {mounted && <PermissionGuideDialogContent
-          scope={scope}
-          readiness={readiness}
-          refresh={async () => options.recheck ?? null}
-          launch={async (grant, route) => {
-            launches.push([grant, route])
-            return options.opens ?? true
-          }}
-          onClose={(outcome) => { closes.push(outcome) }}
-        />}
-      </StartupDataContext.Provider>
-    ))
+    await act(async () =>
+      root.render(
+        <StartupDataContext.Provider value={true}>
+          {mounted && (
+            <PermissionGuideDialogContent
+              scope={scope}
+              readiness={readiness}
+              refresh={async () => options.recheck ?? null}
+              launch={async (grant, route) => {
+                launches.push([grant, route])
+                return options.opens ?? true
+              }}
+              onClose={(outcome) => {
+                closes.push(outcome)
+              }}
+            />
+          )}
+        </StartupDataContext.Provider>,
+      ),
+    )
     await settle()
   }
 
@@ -75,9 +102,12 @@ async function mount(context: TestContext, scope: AlarmGrant[], options: { opens
     dom.window.history.replaceState(null, '', '/')
   })
 
-  const shows = (text: string) => dom.window.document.body.textContent?.includes(text) ?? false
+  const shows = (text: string) =>
+    dom.window.document.body.textContent?.includes(text) ?? false
   const press = async (label: string) => {
-    const button = [...dom.window.document.querySelectorAll('button')].find((item) => item.textContent === label)
+    const button = [...dom.window.document.querySelectorAll('button')].find(
+      (item) => item.textContent === label,
+    )
     assert.ok(button, `no ${label} button`)
     await act(async () => button.click())
     await settle()
@@ -111,7 +141,9 @@ test('a screen the phone cannot open shows where to find it, and Not now finishe
   assert.ok(guide.shows('Alarms & reminders'))
 
   await guide.press('Not now')
-  assert.deepEqual(guide.closes, [{ declined: ['exactAlarms'], shown: ['exactAlarms'] }])
+  assert.deepEqual(guide.closes, [
+    { declined: ['exactAlarms'], shown: ['exactAlarms'] },
+  ])
   assert.deepEqual(guide.toasts, [])
   await guide.render(missing('exactAlarms'))
   assert.equal(guide.closes.length, 1)
@@ -162,7 +194,10 @@ test('finishing pops the history entry the dialog pushed, so the next Back is no
 })
 
 test('a screen that opens nothing because the grant is already on finishes instead of blaming the phone', async (context) => {
-  const guide = await mount(context, ['overlay'], { opens: false, recheck: missing() })
+  const guide = await mount(context, ['overlay'], {
+    opens: false,
+    recheck: missing(),
+  })
   await guide.render(missing('overlay'))
   await guide.press('Continue')
   assert.equal(guide.shows("This phone didn't open that screen"), false)

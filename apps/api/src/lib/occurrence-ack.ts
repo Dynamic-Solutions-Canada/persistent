@@ -23,9 +23,15 @@ import type { OccurrenceStatus } from '@persistent/shared'
 
 export type AckDecision = 'apply' | 'noop' | 'reject'
 
-export function ackDecision(status: OccurrenceStatus, scheduledFor: Date, now: Date): AckDecision {
-  if (status === 'FIRED' || status === 'SNOOZED' || status === 'ESCALATED') return 'apply'
+export function ackDecision(
+  status: OccurrenceStatus,
+  scheduledFor: Date,
+  now: Date,
+): AckDecision {
+  if (status === 'FIRED' || status === 'SNOOZED' || status === 'ESCALATED')
+    return 'apply'
   if (status === 'ACKNOWLEDGED') return 'noop'
-  if (status === 'PENDING') return scheduledFor.getTime() <= now.getTime() ? 'apply' : 'reject'
+  if (status === 'PENDING')
+    return scheduledFor.getTime() <= now.getTime() ? 'apply' : 'reject'
   return 'reject'
 }

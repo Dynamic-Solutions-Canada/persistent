@@ -7,17 +7,27 @@ import { fileURLToPath } from 'node:url'
 process.env.DATABASE_URL ??= 'postgresql://localhost:5432/test'
 const { envKeys } = await import('./env.js')
 
-const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..')
+const repoRoot = join(
+  dirname(fileURLToPath(import.meta.url)),
+  '..',
+  '..',
+  '..',
+  '..',
+)
 const read = (name: string) => readFileSync(join(repoRoot, name), 'utf8')
 
 /** Keys under a service's `environment:` block in compose.server.yml. */
 function composeEnvKeys(): string[] {
-  return [...read('compose.server.yml').matchAll(/^ {6}([A-Z][A-Z0-9_]+):/gm)].map((m) => m[1]!)
+  return [
+    ...read('compose.server.yml').matchAll(/^ {6}([A-Z][A-Z0-9_]+):/gm),
+  ].map((m) => m[1]!)
 }
 
 /** Keys set as `ENV NAME=` in the Dockerfile. */
 function dockerfileEnvKeys(): string[] {
-  return [...read('Dockerfile').matchAll(/^ENV ([A-Z][A-Z0-9_]+)=/gm)].map((m) => m[1]!)
+  return [...read('Dockerfile').matchAll(/^ENV ([A-Z][A-Z0-9_]+)=/gm)].map(
+    (m) => m[1]!,
+  )
 }
 
 test('every env var the API reads is supplied to the container', () => {
@@ -31,7 +41,7 @@ test('every env var the API reads is supplied to the container', () => {
     missing,
     [],
     `Not provided to the container: ${missing.join(', ')}. ` +
-      'Add them to the api service\'s environment: block in compose.server.yml (or as a Dockerfile ENV).'
+      "Add them to the api service's environment: block in compose.server.yml (or as a Dockerfile ENV).",
   )
 })
 
@@ -46,5 +56,8 @@ test('the image never bakes in a .env', () => {
     .map((line) => line.trim())
     .filter((line) => line && !line.startsWith('#'))
   assert.ok(ignored.includes('**/.env'), '.dockerignore must exclude **/.env')
-  assert.ok(ignored.includes('**/.env.*'), '.dockerignore must exclude **/.env.* (backups, per-env files)')
+  assert.ok(
+    ignored.includes('**/.env.*'),
+    '.dockerignore must exclude **/.env.* (backups, per-env files)',
+  )
 })

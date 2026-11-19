@@ -32,62 +32,87 @@ function generateCode(): string {
 
 function hashCode(email: string, code: string): string {
   // Bind the hash to the email so a leaked hash can't be replayed for another address.
-  return crypto.createHash('sha256').update(`${email}:${code}`).digest('base64url')
+  return crypto
+    .createHash('sha256')
+    .update(`${email}:${code}`)
+    .digest('base64url')
 }
 
-export async function issueEmailCode(email: string, locale: Locale = 'en-US'): Promise<IssueResult> {
+export async function issueEmailCode(
+  email: string,
+  locale: Locale = 'en-US',
+): Promise<IssueResult> {
   const since = new Date(Date.now() - RATE_WINDOW_MS)
-  const recent = await prisma.emailCode.count({ where: { email, createdAt: { gte: since } } })
+  const recent = await prisma.emailCode.count({
+    where: { email, createdAt: { gte: since } },
+  })
   if (recent >= MAX_CODES_PER_WINDOW) {
-    throw tooManyRequests('Too many sign-in codes requested. Try again in a few minutes.')
+    throw tooManyRequests(
+      'Too many sign-in codes requested. Try again in a few minutes.',
+    )
   }
 
   const code = generateCode()
   const expiresAt = new Date(Date.now() + CODE_TTL_MS)
   await prisma.emailCode.create({
-    data: { email, codeHash: hashCode(email, code), expiresAt }
+    data: { email, codeHash: hashCode(email, code), expiresAt },
   })
 
   if (demoMode || !isEmailConfigured()) {
-    logger.info('Issued sign-in code (demo/no-email mode).', { email, expiresAt: expiresAt.toISOString() })
+    logger.info('Issued sign-in code (demo/no-email mode).', {
+      email,
+      expiresAt: expiresAt.toISOString(),
+    })
     return { expiresAt, previewCode: code }
   }
 
   await sendCloudflareEmail({
     to: email,
-    ...buildVerificationEmail(code, locale)
+    ...buildVerificationEmail(code, locale),
   })
-  logger.info('Sent sign-in code email.', { email, expiresAt: expiresAt.toISOString() })
+  logger.info('Sent sign-in code email.', {
+    email,
+    expiresAt: expiresAt.toISOString(),
+  })
   return { expiresAt, previewCode: null }
 }
 
 /** Returns true if the code is valid; consumes it (and sibling codes) on success. */
-export async function verifyEmailCode(email: string, code: string): Promise<boolean> {
+export async function verifyEmailCode(
+  email: string,
+  code: string,
+): Promise<boolean> {
   const record = await prisma.emailCode.findFirst({
     where: { email, consumedAt: null, expiresAt: { gt: new Date() } },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
   })
   if (!record) return false
 
   if (record.attempts >= MAX_VERIFY_ATTEMPTS) {
-    await prisma.emailCode.update({ where: { id: record.id }, data: { consumedAt: new Date() } })
+    await prisma.emailCode.update({
+      where: { id: record.id },
+      data: { consumedAt: new Date() },
+    })
     return false
   }
 
   const matches = crypto.timingSafeEqual(
     Buffer.from(record.codeHash),
-    Buffer.from(hashCode(email, code))
+    Buffer.from(hashCode(email, code)),
   )
 
   if (!matches) {
-    await prisma.emailCode.update({ where: { id: record.id }, data: { attempts: { increment: 1 } } })
+    await prisma.emailCode.update({
+      where: { id: record.id },
+      data: { attempts: { increment: 1 } },
+    })
     return false
   }
 
   // Consume this and any other outstanding codes for the email.
   await prisma.emailCode.updateMany({
     where: { email, consumedAt: null },
-    data: { consumedAt: new Date() }
+    data: { consumedAt: new Date() },
   })
   return true
 }

@@ -2,8 +2,20 @@
  * Prisma-row -> shared-DTO serializers. Keeps the JSON shape the web client
  * sees consistent and matching the Zod schemas in @persistent/shared.
  */
-import type { Reminder as ReminderRow, ReminderOccurrence, User, Passkey } from '@prisma/client'
-import type { Occurrence, Reminder, SessionUser, Schedule, TypeData, PasskeyInfo } from '@persistent/shared'
+import type {
+  Reminder as ReminderRow,
+  ReminderOccurrence,
+  User,
+  Passkey,
+} from '@prisma/client'
+import type {
+  Occurrence,
+  Reminder,
+  SessionUser,
+  Schedule,
+  TypeData,
+  PasskeyInfo,
+} from '@persistent/shared'
 import { normalizeLocaleOverride, toReminderSounds } from '@persistent/shared'
 
 export function toPasskey(row: Passkey): PasskeyInfo {
@@ -14,7 +26,7 @@ export function toPasskey(row: Passkey): PasskeyInfo {
     transports: row.transports ? row.transports.split(',').filter(Boolean) : [],
     backedUp: row.backedUp,
     createdAt: row.createdAt.toISOString(),
-    lastUsedAt: row.lastUsedAt?.toISOString() ?? null
+    lastUsedAt: row.lastUsedAt?.toISOString() ?? null,
   }
 }
 
@@ -26,14 +38,14 @@ export function toSessionUser(user: User): SessionUser {
     timeZone: user.timeZone,
     emailLanguage: normalizeLocaleOverride(user.emailLanguage) ?? 'en-US',
     isAdmin: user.isAdmin,
-    createdAt: user.createdAt.toISOString()
+    createdAt: user.createdAt.toISOString(),
   }
 }
 
 export function toReminder(
   row: ReminderRow,
   lastOccurrence?: Pick<ReminderOccurrence, 'status' | 'scheduledFor'> | null,
-  sharing = { shareCount: 0, invitationCount: 0 }
+  sharing = { shareCount: 0, invitationCount: 0 },
 ): Reminder {
   return {
     id: row.id,
@@ -61,12 +73,15 @@ export function toReminder(
     checkedItemIds: toCheckedItemIds(row.checkedItems),
     hideCheckedItems: row.hideCheckedItems,
     lastOccurrence: lastOccurrence
-      ? { status: lastOccurrence.status, scheduledFor: lastOccurrence.scheduledFor.toISOString() }
+      ? {
+          status: lastOccurrence.status,
+          scheduledFor: lastOccurrence.scheduledFor.toISOString(),
+        }
       : null,
     shareCount: sharing.shareCount,
     invitationCount: sharing.invitationCount,
     createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString()
+    updatedAt: row.updatedAt.toISOString(),
   }
 }
 
@@ -76,10 +91,14 @@ export function toReminder(
  * promises rather than trusting the shape. Anything else reads as "nothing ticked".
  */
 export function toCheckedItemIds(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : []
+  return Array.isArray(value)
+    ? value.filter((id): id is string => typeof id === 'string')
+    : []
 }
 
-export function toOccurrence(row: ReminderOccurrence & { reminder: ReminderRow }): Occurrence {
+export function toOccurrence(
+  row: ReminderOccurrence & { reminder: ReminderRow },
+): Occurrence {
   return {
     id: row.id,
     reminderId: row.reminderId,
@@ -100,7 +119,7 @@ export function toOccurrence(row: ReminderOccurrence & { reminder: ReminderRow }
       hideCheckedItems: row.reminder.hideCheckedItems,
       persistence: row.reminder.persistence,
       soundIntervalSeconds: row.reminder.soundIntervalSeconds,
-      shadeProminence: row.reminder.shadeProminence
-    }
+      shadeProminence: row.reminder.shadeProminence,
+    },
   }
 }

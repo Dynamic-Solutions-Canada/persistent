@@ -56,7 +56,7 @@ export const deviceAlarmSchema = z.object({
   /** Parent reminder id, so tapping the notification can open its editor. */
   reminderId: z.string(),
   /** Shade placement (visual only); ignored for alarms/escalations. */
-  shadeProminence: shadeProminenceSchema
+  shadeProminence: shadeProminenceSchema,
 })
 
 export type DeviceAlarm = z.infer<typeof deviceAlarmSchema>
@@ -90,7 +90,7 @@ export const deviceAgendaEntrySchema = z.object({
    * rather than inferred from an empty `occurrenceId`, so a surface can't accidentally
    * offer Done on one and queue an ack against nothing.
    */
-  note: z.boolean()
+  note: z.boolean(),
 })
 
 export type DeviceAgendaEntry = z.infer<typeof deviceAgendaEntrySchema>

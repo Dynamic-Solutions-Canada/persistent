@@ -6,8 +6,14 @@ import { externalLinkIntent } from './security.js'
 export function observeExternalLinks(server: string): void {
   const clicked = (event: MouseEvent) => {
     if (event.button !== 0 && event.button !== 1) return
-    const target = event.target instanceof Element ? event.target.closest('a[href], area[href]') : null
-    if (!(target instanceof HTMLAnchorElement || target instanceof HTMLAreaElement)) return
+    const target =
+      event.target instanceof Element
+        ? event.target.closest('a[href], area[href]')
+        : null
+    if (!(
+      target instanceof HTMLAnchorElement || target instanceof HTMLAreaElement
+    ))
+      return
     const href = externalLinkIntent(event.isTrusted, target.href, server)
     if (!href) return
     event.preventDefault()

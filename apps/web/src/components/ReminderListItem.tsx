@@ -26,7 +26,7 @@ export function ReminderListItem({
   description,
   subtitle,
   secondary,
-  trailing
+  trailing,
 }: {
   to?: string
   onOpen?: () => void
@@ -46,10 +46,26 @@ export function ReminderListItem({
       onClick={onOpen}
       variant="outlined"
       size="sm"
-      sx={{ textDecoration: 'none', textAlign: 'left', width: '100%', cursor: 'pointer', ...reminderCardHover }}
+      sx={{
+        textDecoration: 'none',
+        textAlign: 'left',
+        width: '100%',
+        cursor: 'pointer',
+        ...reminderCardHover,
+      }}
     >
-      <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
-        <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        spacing={1}
+      >
+        <Stack
+          direction="row"
+          spacing={1.25}
+          alignItems="center"
+          sx={{ minWidth: 0 }}
+        >
           <TypeIcon type={type} size={24} />
           <Box sx={{ minWidth: 0 }}>
             <Typography level="title-sm" noWrap>
@@ -68,7 +84,12 @@ export function ReminderListItem({
             )}
           </Box>
         </Stack>
-        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flexShrink: 0 }}>
+        <Stack
+          direction="row"
+          spacing={0.75}
+          alignItems="center"
+          sx={{ flexShrink: 0 }}
+        >
           {status && <StatusChip status={status} />}
           <SharingChip state={sharing} />
           {trailing}

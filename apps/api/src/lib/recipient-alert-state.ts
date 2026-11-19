@@ -1,8 +1,17 @@
 /** Project the owner's canonical firing into one recipient's alert state. */
-import type { OccurrenceStatus, RecipientAlertState, ReminderOccurrence } from '@prisma/client'
+import type {
+  OccurrenceStatus,
+  RecipientAlertState,
+  ReminderOccurrence,
+} from '@prisma/client'
 import { prisma } from './prisma.js'
 
-const TERMINAL_OR_FUTURE: OccurrenceStatus[] = ['PENDING', 'ACKNOWLEDGED', 'MISSED', 'SUPERSEDED']
+const TERMINAL_OR_FUTURE: OccurrenceStatus[] = [
+  'PENDING',
+  'ACKNOWLEDGED',
+  'MISSED',
+  'SUPERSEDED',
+]
 
 /**
  * The reminder's Done and checklist state stay on its one occurrence. A recipient
@@ -12,7 +21,7 @@ const TERMINAL_OR_FUTURE: OccurrenceStatus[] = ['PENDING', 'ACKNOWLEDGED', 'MISS
 export function occurrenceForActor<T extends ReminderOccurrence>(
   occurrence: T,
   actorId: string,
-  state: RecipientAlertState | null | undefined
+  state: RecipientAlertState | null | undefined,
 ): T {
   if (occurrence.userId === actorId) return occurrence
 
@@ -31,7 +40,7 @@ export function occurrenceForActor<T extends ReminderOccurrence>(
     snoozedUntil: state?.snoozedUntil ?? null,
     escalatedAt: state?.escalatedAt ?? null,
     escalationSilencedAt: state?.escalationSilencedAt ?? null,
-    lastNotifiedAt: state?.lastNotifiedAt ?? occurrence.firedAt
+    lastNotifiedAt: state?.lastNotifiedAt ?? occurrence.firedAt,
   }
 }
 
@@ -44,7 +53,7 @@ export function occurrenceForActor<T extends ReminderOccurrence>(
 export async function claimRecipientEscalation(
   occurrenceId: string,
   recipientId: string,
-  now: Date
+  now: Date,
 ): Promise<RecipientAlertState | null> {
   const claimed = await prisma.$queryRaw<RecipientAlertState[]>`
     INSERT INTO "RecipientAlertState" ("occurrenceId", "recipientId", "escalatedAt", "lastNotifiedAt")
@@ -77,7 +86,7 @@ export async function claimRecipientEscalation(
 export async function claimRecipientSnoozeRevival(
   occurrenceId: string,
   recipientId: string,
-  now: Date
+  now: Date,
 ): Promise<RecipientAlertState | null> {
   const claimed = await prisma.$queryRaw<RecipientAlertState[]>`
     UPDATE "RecipientAlertState" AS state

@@ -5,7 +5,20 @@ export interface XClient {
   stream?: { destroy(): void }
   terminate(): void
   sync(): Promise<void>
-  InternAtom(onlyIfExists: boolean, name: string, callback: (error: Error | null, atom: number) => void): void
-  SendClientMessage(root: number, window: number, type: number, format: number, data: number[]): void
+  InternAtom(
+    onlyIfExists: boolean,
+    name: string,
+    callback: (error: Error | null, atom: number) => void,
+  ): void
+  SendClientMessage(
+    root: number,
+    window: number,
+    type: number,
+    format: number,
+    data: number[],
+  ): void
 }
-export interface XDisplay { client: XClient; screen: { root: number }[] }
+export interface XDisplay {
+  client: XClient
+  screen: { root: number }[]
+}

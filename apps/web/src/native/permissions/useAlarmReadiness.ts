@@ -42,9 +42,11 @@ function subscribe(listener: () => void): () => void {
   // App-lifetime listener: installed once, on the first native reader.
   if (isNative() && !resumeListenerInstalled) {
     resumeListenerInstalled = true
-    void App.addListener('resume', () => void refreshAlarmReadiness()).catch(() => {
-      resumeListenerInstalled = false
-    })
+    void App.addListener('resume', () => void refreshAlarmReadiness()).catch(
+      () => {
+        resumeListenerInstalled = false
+      },
+    )
   }
 
   void refreshAlarmReadiness()
@@ -57,7 +59,14 @@ function subscribe(listener: () => void): () => void {
  * Readiness, plus `refresh` for an explicit re-check (it also returns the read).
  * `readiness` is null until the first read, and always on the web.
  */
-export function useAlarmReadiness(): { readiness: AlarmReadiness | null; refresh: () => Promise<AlarmReadiness | null> } {
-  const readiness = useSyncExternalStore(subscribe, () => latest, () => null)
+export function useAlarmReadiness(): {
+  readiness: AlarmReadiness | null
+  refresh: () => Promise<AlarmReadiness | null>
+} {
+  const readiness = useSyncExternalStore(
+    subscribe,
+    () => latest,
+    () => null,
+  )
   return { readiness, refresh: refreshAlarmReadiness }
 }

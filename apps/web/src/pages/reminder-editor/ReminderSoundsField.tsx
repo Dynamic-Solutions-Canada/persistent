@@ -25,7 +25,7 @@ import type { FormState } from './formState.js'
 
 export function ReminderSoundsField({
   form,
-  set
+  set,
 }: {
   form: FormState
   set: <K extends keyof FormState>(key: K, value: FormState[K]) => void
@@ -39,7 +39,10 @@ export function ReminderSoundsField({
 
   async function choose(kind: ReminderSoundKind) {
     // The nag is a notification-type tone, so it browses the notification bank.
-    const picked = await pickSound(kind === 'alarm' ? 'alarm' : 'notification', form.sounds[kind]?.uri ?? '')
+    const picked = await pickSound(
+      kind === 'alarm' ? 'alarm' : 'notification',
+      form.sounds[kind]?.uri ?? '',
+    )
     if (picked) setSound(kind, picked)
   }
 
@@ -48,12 +51,25 @@ export function ReminderSoundsField({
   const soft = form.persistence === 'PERSISTENT'
   const rings = form.persistence === 'ALARM' || (soft && form.escalate)
 
-  function row(kind: ReminderSoundKind, label: string, deviceTone: SoundChoice, deviceFallback?: string) {
+  function row(
+    kind: ReminderSoundKind,
+    label: string,
+    deviceTone: SoundChoice,
+    deviceFallback?: string,
+  ) {
     const chosen = form.sounds[kind]
     return (
       <SoundPickerRow
         label={tr(label)}
-        value={chosen ? chosen.title : tr('This device: {{tone}}', { tone: deviceTone.uri ? deviceTone.title : (deviceFallback ?? tr('Default')) })}
+        value={
+          chosen
+            ? chosen.title
+            : tr('This device: {{tone}}', {
+                tone: deviceTone.uri
+                  ? deviceTone.title
+                  : (deviceFallback ?? tr('Default')),
+              })
+        }
         onChoose={isNative() ? () => void choose(kind) : undefined}
         onClear={chosen ? () => setSound(kind, null) : undefined}
       />
@@ -62,16 +78,28 @@ export function ReminderSoundsField({
 
   return (
     <FormControl>
-      <FormLabel>{tr("Sound")}</FormLabel>
+      <FormLabel>{tr('Sound')}</FormLabel>
       <Stack spacing={1.5} sx={{ width: '100%' }}>
         {soft && row('notification', 'Notification sound', notificationSound)}
-        {soft && form.soundIntervalMinutes > 0 &&
-          row('nag', 'Nag sound', nagSound, tr("same as notification ({{v0}})", { v0: notificationSound.title }))}
+        {soft &&
+          form.soundIntervalMinutes > 0 &&
+          row(
+            'nag',
+            'Nag sound',
+            nagSound,
+            tr('same as notification ({{v0}})', {
+              v0: notificationSound.title,
+            }),
+          )}
         {rings && row('alarm', 'Alarm sound', alarmSound)}
         <Typography level="body-xs">
           {isNative()
-            ? tr("Android only: overrides this device’s sound for this reminder alone. A device that doesn’t have the tone falls back to its own.")
-            : tr("Android only. Tones are picked in the Android app; a device that doesn’t have the tone falls back to its own.")}
+            ? tr(
+                'Android only: overrides this device’s sound for this reminder alone. A device that doesn’t have the tone falls back to its own.',
+              )
+            : tr(
+                'Android only. Tones are picked in the Android app; a device that doesn’t have the tone falls back to its own.',
+              )}
         </Typography>
       </Stack>
     </FormControl>

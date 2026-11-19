@@ -26,7 +26,7 @@ export function MonthlyDaysField({
   daysOfMonth,
   lastDayOfMonth,
   onChangeDays,
-  onChangeLastDay
+  onChangeLastDay,
 }: {
   daysOfMonth: number[]
   lastDayOfMonth: boolean
@@ -36,20 +36,24 @@ export function MonthlyDaysField({
   useTranslation()
   const toggle = (day: number) =>
     onChangeDays(
-      daysOfMonth.includes(day) ? daysOfMonth.filter((d) => d !== day) : [...daysOfMonth, day].sort((a, b) => a - b)
+      daysOfMonth.includes(day)
+        ? daysOfMonth.filter((d) => d !== day)
+        : [...daysOfMonth, day].sort((a, b) => a - b),
     )
-  const picksShortMonthDay = daysOfMonth.some((day) => SHORT_MONTH_DAYS.includes(day))
+  const picksShortMonthDay = daysOfMonth.some((day) =>
+    SHORT_MONTH_DAYS.includes(day),
+  )
 
   return (
     <FormControl>
-      <FormLabel>{tr("Days of month")}</FormLabel>
+      <FormLabel>{tr('Days of month')}</FormLabel>
       {/* A grid rather than a wrapping row: 31 equal cells stay tappable and line
           up as a calendar-ish block at phone widths. */}
       <Box
         sx={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(2.5rem, 1fr))',
-          gap: 0.5
+          gap: 0.5,
         }}
       >
         {DAYS.map((day) => (
@@ -66,13 +70,17 @@ export function MonthlyDaysField({
       </Box>
       <Stack sx={{ mt: 1 }}>
         <Checkbox
-          label={tr("Last day of the month")}
+          label={tr('Last day of the month')}
           checked={lastDayOfMonth}
           onChange={(e) => onChangeLastDay(e.target.checked)}
         />
       </Stack>
       {picksShortMonthDay && (
-        <FormHelperText>{tr("A month without that day is skipped, February has no 30th or 31st. Use \"Last day of the month\" for the end of every month.")}</FormHelperText>
+        <FormHelperText>
+          {tr(
+            'A month without that day is skipped, February has no 30th or 31st. Use "Last day of the month" for the end of every month.',
+          )}
+        </FormHelperText>
       )}
     </FormControl>
   )

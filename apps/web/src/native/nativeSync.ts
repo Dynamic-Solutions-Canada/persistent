@@ -16,7 +16,7 @@ import {
   type DeviceAlarm,
   type Occurrence,
   type PushConfig,
-  ESC_SUFFIX
+  ESC_SUFFIX,
 } from '@persistent/shared'
 import { getLocale } from '../localization/localeState.js'
 import { apiFetch } from '../lib/apiClient.js'
@@ -37,7 +37,9 @@ interface SyncResponse {
 }
 
 /** Read the user's chosen sound URIs from the persisted settings (no React here). */
-function chosenSoundUri(kind: 'alarmSound' | 'notificationSound' | 'nagSound'): string {
+function chosenSoundUri(
+  kind: 'alarmSound' | 'notificationSound' | 'nagSound',
+): string {
   try {
     const raw = localStorage.getItem('persistent-settings')
     if (raw) {
@@ -76,10 +78,13 @@ function defaultShadeMinimized(): boolean {
  * picker, so it is authoritative here.
  */
 function toScheduledAlarm(alarm: DeviceAlarm): ScheduledAlarm {
-  const deviceUri = chosenSoundUri(alarm.soundKind === 'alarm' ? 'alarmSound' : 'notificationSound')
+  const deviceUri = chosenSoundUri(
+    alarm.soundKind === 'alarm' ? 'alarmSound' : 'notificationSound',
+  )
   // Only the soft-notification path re-sounds, so an alarm carries no nag tone —
   // it loops one continuous tone until confirmed.
-  const deviceNagUri = alarm.soundKind === 'alarm' ? '' : chosenSoundUri('nagSound')
+  const deviceNagUri =
+    alarm.soundKind === 'alarm' ? '' : chosenSoundUri('nagSound')
   return {
     occurrenceId: alarm.occurrenceId,
     fireAtMs: alarm.fireAtMs,
@@ -96,7 +101,7 @@ function toScheduledAlarm(alarm: DeviceAlarm): ScheduledAlarm {
     nagSoundTitle: alarm.nagSound?.title ?? '',
     reminderId: alarm.reminderId,
     canSilence: alarm.canSilence,
-    shadeProminence: alarm.shadeProminence
+    shadeProminence: alarm.shadeProminence,
   }
 }
 
@@ -118,7 +123,7 @@ export async function mirrorSyncConfig(): Promise<void> {
     apiBaseUrl: window.location.origin,
     alarmSoundUri: chosenSoundUri('alarmSound'),
     notificationSoundUri: chosenSoundUri('notificationSound'),
-    nagSoundUri: chosenSoundUri('nagSound')
+    nagSoundUri: chosenSoundUri('nagSound'),
   }).catch(() => {})
 }
 
@@ -126,9 +131,15 @@ export async function mirrorSyncConfig(): Promise<void> {
 async function drainPendingAcks(): Promise<void> {
   const { occurrenceIds } = await AlarmPlugin.drainPendingAcks()
   // A Done on the escalation alarm acks the underlying occurrence.
-  const baseIds = new Set(occurrenceIds.map((id) => (id.endsWith(ESC_SUFFIX) ? id.slice(0, -ESC_SUFFIX.length) : id)))
+  const baseIds = new Set(
+    occurrenceIds.map((id) =>
+      id.endsWith(ESC_SUFFIX) ? id.slice(0, -ESC_SUFFIX.length) : id,
+    ),
+  )
   for (const id of baseIds) {
-    await apiFetch(`/api/occurrences/${id}/ack`, { method: 'POST' }).catch(() => {})
+    await apiFetch(`/api/occurrences/${id}/ack`, { method: 'POST' }).catch(
+      () => {},
+    )
   }
 }
 
@@ -136,10 +147,12 @@ async function drainPendingAcks(): Promise<void> {
 async function drainPendingSnoozes(): Promise<void> {
   const { snoozes } = await AlarmPlugin.drainPendingSnoozes()
   for (const { occurrenceId, minutes } of snoozes) {
-    const id = occurrenceId.endsWith(ESC_SUFFIX) ? occurrenceId.slice(0, -ESC_SUFFIX.length) : occurrenceId
+    const id = occurrenceId.endsWith(ESC_SUFFIX)
+      ? occurrenceId.slice(0, -ESC_SUFFIX.length)
+      : occurrenceId
     await apiFetch(`/api/occurrences/${id}/snooze`, {
       method: 'POST',
-      body: JSON.stringify({ minutes })
+      body: JSON.stringify({ minutes }),
     }).catch(() => {})
   }
 }
@@ -148,9 +161,15 @@ async function drainPendingSnoozes(): Promise<void> {
 async function drainPendingSilences(): Promise<void> {
   const { occurrenceIds } = await AlarmPlugin.drainPendingSilences()
   // A Silence on the escalation alarm silences the underlying occurrence.
-  const baseIds = new Set(occurrenceIds.map((id) => (id.endsWith(ESC_SUFFIX) ? id.slice(0, -ESC_SUFFIX.length) : id)))
+  const baseIds = new Set(
+    occurrenceIds.map((id) =>
+      id.endsWith(ESC_SUFFIX) ? id.slice(0, -ESC_SUFFIX.length) : id,
+    ),
+  )
   for (const id of baseIds) {
-    await apiFetch(`/api/occurrences/${id}/silence`, { method: 'POST' }).catch(() => {})
+    await apiFetch(`/api/occurrences/${id}/silence`, { method: 'POST' }).catch(
+      () => {},
+    )
   }
 }
 
@@ -215,7 +234,9 @@ async function initFcm(): Promise<void> {
   })
   // A push arriving while the bridge is alive: the FcmService already applied the
   // self-contained action natively, so just reconcile to the server's truth.
-  await PushNotifications.addListener('pushNotificationReceived', () => scheduleResync())
+  await PushNotifications.addListener('pushNotificationReceived', () =>
+    scheduleResync(),
+  )
   await PushNotifications.register().catch(() => {})
 }
 
@@ -231,7 +252,9 @@ export async function initNative(): Promise<void> {
   // Sync the device-default prominence so the native INHERIT fallback matches the
   // local setting even if it was changed while the app was closed (no-op natively
   // if unchanged, so this won't needlessly re-post).
-  await AlarmPlugin.setDefaultShadeProminence({ minimized: defaultShadeMinimized() }).catch(() => {})
+  await AlarmPlugin.setDefaultShadeProminence({
+    minimized: defaultShadeMinimized(),
+  }).catch(() => {})
   await syncAlarms().catch(() => {})
   // Autonomous background re-sync: the device keeps its own alarm schedule fresh
   // from the server on a ~15-min cadence (and when connectivity returns) WITHOUT
@@ -248,15 +271,23 @@ export async function initNative(): Promise<void> {
       // Ack/snooze (from any device or the in-app Done button) clears the alarm:
       // stop the on-device sound/notification for that occurrence immediately,
       // including its escalation alarm.
-      void AlarmPlugin.cancel({ occurrenceId: event.occurrenceId }).catch(() => {})
-      void AlarmPlugin.cancel({ occurrenceId: event.occurrenceId + ESC_SUFFIX }).catch(() => {})
+      void AlarmPlugin.cancel({ occurrenceId: event.occurrenceId }).catch(
+        () => {},
+      )
+      void AlarmPlugin.cancel({
+        occurrenceId: event.occurrenceId + ESC_SUFFIX,
+      }).catch(() => {})
       scheduleResync()
     } else if (event.type === 'silence') {
       // Silenced on another device: stop this device's ringing alarm but keep the
       // notification nagging (down to a soft notification). The resync then sees
       // the occurrence is no longer escalated and won't re-arm its alarm.
-      void AlarmPlugin.silence({ occurrenceId: event.occurrenceId }).catch(() => {})
-      void AlarmPlugin.silence({ occurrenceId: event.occurrenceId + ESC_SUFFIX }).catch(() => {})
+      void AlarmPlugin.silence({ occurrenceId: event.occurrenceId }).catch(
+        () => {},
+      )
+      void AlarmPlugin.silence({
+        occurrenceId: event.occurrenceId + ESC_SUFFIX,
+      }).catch(() => {})
       scheduleResync()
     } else if (
       event.type === 'reminder.changed' ||
@@ -288,6 +319,10 @@ export async function refreshPushLocale(): Promise<void> {
   if (!registeredFcmToken) return
   await apiFetch('/api/push/subscriptions', {
     method: 'POST',
-    body: JSON.stringify({ kind: 'FCM', token: registeredFcmToken, locale: getLocale() })
+    body: JSON.stringify({
+      kind: 'FCM',
+      token: registeredFcmToken,
+      locale: getLocale(),
+    }),
   })
 }

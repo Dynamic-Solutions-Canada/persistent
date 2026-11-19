@@ -58,13 +58,13 @@ const evening = [
   { id: 'ev-1', text: 'Lock the back door' },
   { id: 'ev-2', text: 'Dishwasher on' },
   { id: 'ev-3', text: 'Set the thermostat' },
-  { id: 'ev-4', text: 'Lights off' }
+  { id: 'ev-4', text: 'Lights off' },
 ]
 const groceries = [
   { id: 'gr-1', text: 'Milk' },
   { id: 'gr-2', text: 'Bread' },
   { id: 'gr-3', text: 'Coffee' },
-  { id: 'gr-4', text: 'Eggs' }
+  { id: 'gr-4', text: 'Eggs' },
 ]
 // A checklist on a note. Ticked directly on the reminder (a note has no firing
 // for ticks to belong to), which is the one place that state is legitimate.
@@ -72,7 +72,7 @@ const camping = [
   { id: 'cp-1', text: 'Tent + poles' },
   { id: 'cp-2', text: 'Sleeping bags' },
   { id: 'cp-3', text: 'Stove and gas' },
-  { id: 'cp-4', text: 'Head torches' }
+  { id: 'cp-4', text: 'Head torches' },
 ]
 
 const seeds: Seed[] = [
@@ -83,9 +83,11 @@ const seeds: Seed[] = [
       details: 'The upstairs tap is still dripping.',
       type: 'NONE',
       schedule: { kind: 'none', timesOfDay: [] },
-      startDate: isoDay()
+      startDate: isoDay(),
     },
-    occurrences: [{ scheduledFor: ago(3 * HOUR), status: 'FIRED', firedAt: ago(3 * HOUR) }]
+    occurrences: [
+      { scheduledFor: ago(3 * HOUR), status: 'FIRED', firedAt: ago(3 * HOUR) },
+    ],
   },
   {
     note: 'plainly due — the ordinary warning card',
@@ -94,24 +96,40 @@ const seeds: Seed[] = [
       type: 'NONE',
       schedule: { kind: 'once', timesOfDay: ['09:00'] },
       startDate: isoDay(),
-      soundIntervalSeconds: 600
+      soundIntervalSeconds: 600,
     },
-    occurrences: [{ scheduledFor: ago(90 * MINUTE), status: 'FIRED', firedAt: ago(90 * MINUTE) }]
+    occurrences: [
+      {
+        scheduledFor: ago(90 * MINUTE),
+        status: 'FIRED',
+        firedAt: ago(90 * MINUTE),
+      },
+    ],
   },
   {
     note: 'escalated to an alarm — the only card that should shout',
     reminder: {
       title: 'Morning meds',
       type: 'MEDICATION',
-      typeData: { medications: [{ name: 'Metformin', quantity: 500, unit: 'mg' }, { name: 'Ramipril', quantity: 5, unit: 'mg' }] },
+      typeData: {
+        medications: [
+          { name: 'Metformin', quantity: 500, unit: 'mg' },
+          { name: 'Ramipril', quantity: 5, unit: 'mg' },
+        ],
+      },
       schedule: { kind: 'daily', timesOfDay: ['08:00'] },
       startDate: isoDay(-30),
       escalateAfterMinutes: 30,
-      soundIntervalSeconds: 300
+      soundIntervalSeconds: 300,
     },
     occurrences: [
-      { scheduledFor: ago(5 * HOUR), status: 'ESCALATED', firedAt: ago(5 * HOUR), escalatedAt: ago(4 * HOUR) }
-    ]
+      {
+        scheduledFor: ago(5 * HOUR),
+        status: 'ESCALATED',
+        firedAt: ago(5 * HOUR),
+        escalatedAt: ago(4 * HOUR),
+      },
+    ],
   },
   {
     note: 'checklist part-way through — 2 of 4 ticked',
@@ -120,11 +138,16 @@ const seeds: Seed[] = [
       type: 'TODO',
       typeData: { items: evening },
       schedule: { kind: 'daily', timesOfDay: ['22:00'] },
-      startDate: isoDay(-14)
+      startDate: isoDay(-14),
     },
     occurrences: [
-      { scheduledFor: ago(2 * HOUR), status: 'FIRED', firedAt: ago(2 * HOUR), checkedItems: ['ev-1', 'ev-2'] }
-    ]
+      {
+        scheduledFor: ago(2 * HOUR),
+        status: 'FIRED',
+        firedAt: ago(2 * HOUR),
+        checkedItems: ['ev-1', 'ev-2'],
+      },
+    ],
   },
   {
     note: 'snoozed — comes back in 25 minutes',
@@ -133,11 +156,16 @@ const seeds: Seed[] = [
       details: 'Shoulder set, 10 reps each.',
       type: 'NONE',
       schedule: { kind: 'daily', timesOfDay: ['17:00'] },
-      startDate: isoDay(-7)
+      startDate: isoDay(-7),
     },
     occurrences: [
-      { scheduledFor: ago(45 * MINUTE), status: 'SNOOZED', firedAt: ago(45 * MINUTE), snoozedUntil: ahead(25 * MINUTE) }
-    ]
+      {
+        scheduledFor: ago(45 * MINUTE),
+        status: 'SNOOZED',
+        firedAt: ago(45 * MINUTE),
+        snoozedUntil: ahead(25 * MINUTE),
+      },
+    ],
   },
   {
     note: 'revived snooze — fired this morning, came back a minute ago, so it sorts first',
@@ -146,7 +174,7 @@ const seeds: Seed[] = [
       details: 'Second follow-up.',
       type: 'NONE',
       schedule: { kind: 'daily', timesOfDay: ['08:00'] },
-      startDate: isoDay(-5)
+      startDate: isoDay(-5),
     },
     occurrences: [
       {
@@ -154,40 +182,55 @@ const seeds: Seed[] = [
         status: 'FIRED',
         // firedAt stays anchored to the first fire; lastNotifiedAt is the revival.
         firedAt: ago(9 * HOUR),
-        lastNotifiedAt: ago(MINUTE)
-      }
-    ]
+        lastNotifiedAt: ago(MINUTE),
+      },
+    ],
   },
   {
     note: 'orphaned — fired, then the reminder was pushed into next week',
     reminder: {
       title: 'Gym session',
       type: 'NONE',
-      schedule: { kind: 'weekly', timesOfDay: ['07:00'], daysOfWeek: [1, 3, 5] },
-      startDate: isoDay(7)
+      schedule: {
+        kind: 'weekly',
+        timesOfDay: ['07:00'],
+        daysOfWeek: [1, 3, 5],
+      },
+      startDate: isoDay(7),
     },
-    occurrences: [{ scheduledFor: ago(2 * DAY), status: 'FIRED', firedAt: ago(2 * DAY) }]
+    occurrences: [
+      { scheduledFor: ago(2 * DAY), status: 'FIRED', firedAt: ago(2 * DAY) },
+    ],
   },
   {
     note: 'monthly on the 1st, 15th and the last day',
     reminder: {
       title: 'Pay rent',
       type: 'NONE',
-      schedule: { kind: 'monthly', timesOfDay: ['09:00'], daysOfMonth: [1, 15], lastDayOfMonth: true },
-      startDate: isoDay(-60)
-    }
+      schedule: {
+        kind: 'monthly',
+        timesOfDay: ['09:00'],
+        daysOfMonth: [1, 15],
+        lastDayOfMonth: true,
+      },
+      startDate: isoDay(-60),
+    },
   },
   {
     note: 'monthly, last day only',
     reminder: {
       title: 'Submit timesheet',
       type: 'NONE',
-      schedule: { kind: 'monthly', timesOfDay: ['16:30'], lastDayOfMonth: true },
+      schedule: {
+        kind: 'monthly',
+        timesOfDay: ['16:30'],
+        lastDayOfMonth: true,
+      },
       startDate: isoDay(-90),
       escalateEmail: 'someone@example.com',
       escalateEmailAfterMinutes: 120,
-      escalateEmailMessage: 'Timesheet still not submitted.'
-    }
+      escalateEmailMessage: 'Timesheet still not submitted.',
+    },
   },
   {
     note: 'weekday-only daily, skipping weekends',
@@ -196,8 +239,8 @@ const seeds: Seed[] = [
       type: 'NONE',
       schedule: { kind: 'daily', timesOfDay: ['09:15'], skipWeekends: true },
       startDate: isoDay(-21),
-      shadeProminence: 'MINIMIZED'
-    }
+      shadeProminence: 'MINIMIZED',
+    },
   },
   {
     note: 'every N days',
@@ -205,8 +248,8 @@ const seeds: Seed[] = [
       title: 'Water the plants',
       type: 'NONE',
       schedule: { kind: 'interval', timesOfDay: ['18:00'], everyNDays: 3 },
-      startDate: isoDay(-9)
-    }
+      startDate: isoDay(-9),
+    },
   },
   {
     note: 'custom weekdays',
@@ -214,19 +257,21 @@ const seeds: Seed[] = [
       title: 'Bin collection',
       type: 'NONE',
       schedule: { kind: 'custom', timesOfDay: ['06:45'], daysOfWeek: [2, 5] },
-      startDate: isoDay(-30)
-    }
+      startDate: isoDay(-30),
+    },
   },
   {
     note: 'a hard alarm, several times a day',
     reminder: {
       title: 'Insulin',
       type: 'MEDICATION',
-      typeData: { medications: [{ name: 'Insulin', quantity: 10, unit: 'units' }] },
+      typeData: {
+        medications: [{ name: 'Insulin', quantity: 10, unit: 'units' }],
+      },
       schedule: { kind: 'daily', timesOfDay: ['07:30', '12:30', '18:30'] },
       startDate: isoDay(-45),
-      persistence: 'ALARM'
-    }
+      persistence: 'ALARM',
+    },
   },
   {
     note: 'paused — should sink to the bottom and show no next fire',
@@ -235,18 +280,19 @@ const seeds: Seed[] = [
       type: 'NONE',
       schedule: { kind: 'weekly', timesOfDay: ['10:00'], daysOfWeek: [6] },
       startDate: isoDay(-60),
-      active: false
-    }
+      active: false,
+    },
   },
   {
     note: 'a note — never fires, so it sits in Notes on Current, never as a card',
     reminder: {
       title: 'Wifi password',
-      details: 'Guest network: hunter2\nRouter admin is on the sticker underneath.',
+      details:
+        'Guest network: hunter2\nRouter admin is on the sticker underneath.',
       type: 'NONE',
       schedule: { kind: 'never', timesOfDay: [] },
-      startDate: isoDay()
-    }
+      startDate: isoDay(),
+    },
   },
   {
     note: 'a note holding a checklist — ticked on the reminder, and left collapsed',
@@ -261,8 +307,8 @@ const seeds: Seed[] = [
       checkedItems: ['cp-1', 'cp-3'],
       // The one seed covering the stored "Hide checked" view: this list opens
       // showing only the two items still outstanding.
-      hideCheckedItems: true
-    }
+      hideCheckedItems: true,
+    },
   },
   {
     note: 'a checklist not yet due, so the detail view shows it read-only',
@@ -271,8 +317,8 @@ const seeds: Seed[] = [
       type: 'TODO',
       typeData: { items: groceries },
       schedule: { kind: 'weekly', timesOfDay: ['11:00'], daysOfWeek: [0] },
-      startDate: isoDay(-30)
-    }
+      startDate: isoDay(-30),
+    },
   },
   {
     note: 'history — done, including a checklist finished only part-way',
@@ -280,21 +326,36 @@ const seeds: Seed[] = [
       title: 'Evening walk',
       type: 'NONE',
       schedule: { kind: 'daily', timesOfDay: ['19:00'] },
-      startDate: isoDay(-30)
+      startDate: isoDay(-30),
     },
     occurrences: [
-      { scheduledFor: ago(DAY), status: 'ACKNOWLEDGED', firedAt: ago(DAY), acknowledgedAt: ago(DAY - HOUR) },
-      { scheduledFor: ago(2 * DAY), status: 'ACKNOWLEDGED', firedAt: ago(2 * DAY), acknowledgedAt: ago(2 * DAY - HOUR) }
-    ]
+      {
+        scheduledFor: ago(DAY),
+        status: 'ACKNOWLEDGED',
+        firedAt: ago(DAY),
+        acknowledgedAt: ago(DAY - HOUR),
+      },
+      {
+        scheduledFor: ago(2 * DAY),
+        status: 'ACKNOWLEDGED',
+        firedAt: ago(2 * DAY),
+        acknowledgedAt: ago(2 * DAY - HOUR),
+      },
+    ],
   },
   {
     note: 'history — a checklist confirmed with items left unticked',
     reminder: {
       title: 'Trip packing',
       type: 'TODO',
-      typeData: { items: groceries.map((g, i) => ({ id: `pk-${i}`, text: ['Passport', 'Charger', 'Tickets', 'Headphones'][i]! })) },
+      typeData: {
+        items: groceries.map((g, i) => ({
+          id: `pk-${i}`,
+          text: ['Passport', 'Charger', 'Tickets', 'Headphones'][i]!,
+        })),
+      },
       schedule: { kind: 'once', timesOfDay: ['08:00'] },
-      startDate: isoDay(-3)
+      startDate: isoDay(-3),
     },
     occurrences: [
       {
@@ -302,10 +363,10 @@ const seeds: Seed[] = [
         status: 'ACKNOWLEDGED',
         firedAt: ago(3 * DAY),
         acknowledgedAt: ago(3 * DAY - 2 * HOUR),
-        checkedItems: ['pk-0', 'pk-2']
-      }
-    ]
-  }
+        checkedItems: ['pk-0', 'pk-2'],
+      },
+    ],
+  },
 ]
 
 async function main(): Promise<void> {
@@ -313,19 +374,25 @@ async function main(): Promise<void> {
     ? await prisma.user.findUnique({ where: { email: emailArg } })
     : await prisma.user.findFirst({ orderBy: { createdAt: 'asc' } })
   if (!user) {
-    throw new Error(emailArg ? `No user with email ${emailArg}.` : 'No users in this database — sign in first.')
+    throw new Error(
+      emailArg
+        ? `No user with email ${emailArg}.`
+        : 'No users in this database — sign in first.',
+    )
   }
 
   if (!keep) {
     // Scoped to this user's reminders only (occurrences cascade). The account,
     // its passkeys and its sessions are deliberately left alone.
-    const { count } = await prisma.reminder.deleteMany({ where: { userId: user.id } })
+    const { count } = await prisma.reminder.deleteMany({
+      where: { userId: user.id },
+    })
     console.log(`Removed ${count} existing reminder(s) for ${user.email}.`)
   }
 
   for (const seed of seeds) {
     const reminder = await prisma.reminder.create({
-      data: { ...(seed.reminder as never), userId: user.id }
+      data: { ...(seed.reminder as never), userId: user.id },
     })
     for (const occurrence of seed.occurrences ?? []) {
       await prisma.reminderOccurrence.create({
@@ -335,12 +402,13 @@ async function main(): Promise<void> {
           scheduledFor: occurrence.scheduledFor,
           status: occurrence.status,
           firedAt: occurrence.firedAt ?? null,
-          lastNotifiedAt: occurrence.lastNotifiedAt ?? occurrence.firedAt ?? null,
+          lastNotifiedAt:
+            occurrence.lastNotifiedAt ?? occurrence.firedAt ?? null,
           acknowledgedAt: occurrence.acknowledgedAt ?? null,
           snoozedUntil: occurrence.snoozedUntil ?? null,
           escalatedAt: occurrence.escalatedAt ?? null,
-          checkedItems: occurrence.checkedItems ?? []
-        }
+          checkedItems: occurrence.checkedItems ?? [],
+        },
       })
     }
     console.log(`  + ${reminder.title.padEnd(24)} ${seed.note}`)

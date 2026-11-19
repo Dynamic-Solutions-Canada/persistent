@@ -51,5 +51,5 @@ createRoot(container).render(
         </ErrorBoundary>
       </AppThemeProvider>
     </SettingsProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 )

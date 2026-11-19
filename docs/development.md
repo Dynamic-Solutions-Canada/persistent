@@ -131,16 +131,16 @@ one worktree hostname cannot authenticate at another. Cloning its database row
 does not change that browser/WebAuthn binding, so use email-code sign-in and
 register a passkey separately on each hostname where one is useful.
 
-| Command | Purpose |
-| --- | --- |
+| Command                        | Purpose                                                                                          |
+| ------------------------------ | ------------------------------------------------------------------------------------------------ |
 | `npm run dev:prepare-worktree` | Prepare configuration, dependencies, Prisma and shared contracts without starting infrastructure |
-| `npm run dev:background` | Start the development runner detached from its terminal |
-| `npm run dev:down` | Stop this checkout's development runner and containers, preserving its database volume |
-| `npm run dev:doctor` | Report every development prerequisite and its fix |
-| `npm run dev:host -- snapshot` | Refresh the portable database baseline for new worktrees |
-| `npm run dev:host -- reset` | Recreate a worktree database volume; add `--empty` to skip the baseline |
-| `npm run dev:host -- prune` | Find volumes for deleted worktrees; add `--yes` to remove them |
-| `npm run dev:host -- infra` | Restart the machine proxy and this checkout's PostgreSQL container |
+| `npm run dev:background`       | Start the development runner detached from its terminal                                          |
+| `npm run dev:down`             | Stop this checkout's development runner and containers, preserving its database volume           |
+| `npm run dev:doctor`           | Report every development prerequisite and its fix                                                |
+| `npm run dev:host -- snapshot` | Refresh the portable database baseline for new worktrees                                         |
+| `npm run dev:host -- reset`    | Recreate a worktree database volume; add `--empty` to skip the baseline                          |
+| `npm run dev:host -- prune`    | Find volumes for deleted worktrees; add `--yes` to remove them                                   |
+| `npm run dev:host -- infra`    | Restart the machine proxy and this checkout's PostgreSQL container                               |
 
 `npm run dev:down` removes this checkout's containers and network while preserving its
 database volume.

@@ -9,7 +9,7 @@ export const apiErrorSchema = z.object({
   /** Additive stable identifier. Legacy clients continue reading the English error field. */
   code: z.string().optional(),
   message: z.string().optional(),
-  parameters: z.record(z.union([z.string(), z.number()])).optional()
+  parameters: z.record(z.union([z.string(), z.number()])).optional(),
 })
 
 export type ApiErrorBody = z.infer<typeof apiErrorSchema>
@@ -18,13 +18,18 @@ export type ApiErrorBody = z.infer<typeof apiErrorSchema>
  * Best-effort extraction of a human-readable message from an unknown error
  * (fetch failures, thrown `Error`s, parsed API bodies).
  */
-export function extractErrorMessage(value: unknown, fallback = 'Something went wrong.'): string {
+export function extractErrorMessage(
+  value: unknown,
+  fallback = 'Something went wrong.',
+): string {
   if (typeof value === 'string' && value.trim().length > 0) return value
   if (value instanceof Error && value.message) return value.message
   if (value && typeof value === 'object') {
     const candidate = value as { error?: unknown; message?: unknown }
-    if (typeof candidate.error === 'string' && candidate.error.trim()) return candidate.error
-    if (typeof candidate.message === 'string' && candidate.message.trim()) return candidate.message
+    if (typeof candidate.error === 'string' && candidate.error.trim())
+      return candidate.error
+    if (typeof candidate.message === 'string' && candidate.message.trim())
+      return candidate.message
   }
   return fallback
 }

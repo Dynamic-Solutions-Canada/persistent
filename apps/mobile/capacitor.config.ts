@@ -17,7 +17,9 @@ const devUrl = process.env.PERSISTENT_ANDROID_DEV_URL
 if (devUrl) {
   const parsed = new URL(devUrl)
   if (!['localhost', '127.0.0.1', '[::1]'].includes(parsed.hostname)) {
-    throw new Error('PERSISTENT_ANDROID_DEV_URL must use a loopback hostname (with adb reverse).')
+    throw new Error(
+      'PERSISTENT_ANDROID_DEV_URL must use a loopback hostname (with adb reverse).',
+    )
   }
 }
 
@@ -27,16 +29,16 @@ const config: CapacitorConfig = {
   webDir: '../web/dist',
   server: {
     url: devUrl ?? 'https://persistent.dynamic-solutions.ca',
-    cleartext: Boolean(devUrl?.startsWith('http:'))
+    cleartext: Boolean(devUrl?.startsWith('http:')),
   },
   android: {
-    allowMixedContent: false
+    allowMixedContent: false,
   },
   plugins: {
     PushNotifications: {
-      presentationOptions: ['alert', 'sound']
-    }
-  }
+      presentationOptions: ['alert', 'sound'],
+    },
+  },
 }
 
 export default config

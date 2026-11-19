@@ -111,19 +111,19 @@ blockable. No broader package suppression, lock configuration, retouch or hidden
 system chrome was substituted. An explicit sanitation decision is needed before
 modifying the lab companion or these specific system channels.
 
-| Matrix | Result and evidence |
-| --- | --- |
-| `matrix-1gdd42qbhs4ua` | Historical physical run: first PNG rejected for battery/migration prompts and heads-up overlay. |
-| `matrix-1dwfz0ehz67co` | Historical physical run: account announcement blocked readiness. |
-| `matrix-1b3z46dkxrzud` | Historical physical run: raw accessibility missed visible shade text. |
-| `matrix-2d3elolm709ak` | Historical physical run: Cloudflare 1033 after foreground supervisor exited early. |
-| `matrix-1mrjnwgo6km74` | Historical physical run: shade accessibility wait failed; Current rejected for heads-up overlay. |
-| `matrix-c9dmlwllv8iha` | Virtual diagnostic passed; exposed shell argument and raw accessibility failures. |
-| `matrix-3ykhipbz8d64a` | Virtual diagnostic passed with corrected shell transport; native readiness and UI Automator verified. |
-| `matrix-f1ctyucd9cyua` | Full virtual run exported three PNGs; medication guard expected a nonexistent Dose label. Corrected to actual Qty/Unit fields. |
-| `matrix-28qsdlmq7cbeh` | Full virtual run exported seven PNGs; native alarm wait failed at action 55 due to sound debounce. |
+| Matrix                 | Result and evidence                                                                                                                         |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `matrix-1gdd42qbhs4ua` | Historical physical run: first PNG rejected for battery/migration prompts and heads-up overlay.                                             |
+| `matrix-1dwfz0ehz67co` | Historical physical run: account announcement blocked readiness.                                                                            |
+| `matrix-1b3z46dkxrzud` | Historical physical run: raw accessibility missed visible shade text.                                                                       |
+| `matrix-2d3elolm709ak` | Historical physical run: Cloudflare 1033 after foreground supervisor exited early.                                                          |
+| `matrix-1mrjnwgo6km74` | Historical physical run: shade accessibility wait failed; Current rejected for heads-up overlay.                                            |
+| `matrix-c9dmlwllv8iha` | Virtual diagnostic passed; exposed shell argument and raw accessibility failures.                                                           |
+| `matrix-3ykhipbz8d64a` | Virtual diagnostic passed with corrected shell transport; native readiness and UI Automator verified.                                       |
+| `matrix-f1ctyucd9cyua` | Full virtual run exported three PNGs; medication guard expected a nonexistent Dose label. Corrected to actual Qty/Unit fields.              |
+| `matrix-28qsdlmq7cbeh` | Full virtual run exported seven PNGs; native alarm wait failed at action 55 due to sound debounce.                                          |
 | `matrix-3gmnp2qckhu23` | Focused Current capture passed in 20 seconds; original PNG and inset measurements confirm system-bar clearance and absent transient banner. |
-| `matrix-q2pd7fif1tjga` | Android 16/API 36 focused Current capture passed in 15 seconds; original PNG and measurements show no inset/banner regression. |
+| `matrix-q2pd7fif1tjga` | Android 16/API 36 focused Current capture passed in 15 seconds; original PNG and measurements show no inset/banner regression.              |
 
 Evidence is retained only under ignored `tmp/test-lab/results/`, including
 `virtual-probe`, `virtual-probe-second`, `virtual-carousel` and

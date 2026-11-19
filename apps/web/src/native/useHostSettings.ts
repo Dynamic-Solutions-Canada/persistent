@@ -16,7 +16,7 @@ import {
   requestHostSettings,
   writeHostSettings,
   type HostSettings,
-  type HostSettingsPatch
+  type HostSettingsPatch,
 } from './desktopBridge.js'
 
 export interface HostSettingsState {

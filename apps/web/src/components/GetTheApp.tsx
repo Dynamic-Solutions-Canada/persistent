@@ -22,7 +22,7 @@ import { desktopPlatform, isDesktopHost } from '../native/desktopBridge.js'
 import {
   APP_PROMO_DISMISSED_KEY,
   getNativeAppsPromotion,
-  type NativeAppsPromoHost
+  type NativeAppsPromoHost,
 } from './appPromotion.js'
 import { NativeAppButtons } from './NativeAppButtons.js'
 import { NativeAppsDialog } from './NativeAppsDialog.js'
@@ -46,15 +46,22 @@ export function GetTheAppButton() {
         color="primary"
         startDecorator={<DevicesRoundedIcon />}
         onClick={() => setDialogOpen(true)}
-      >{tr("Get the app")}</Button>
-      <NativeAppsDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
+      >
+        {tr('Get the app')}
+      </Button>
+      <NativeAppsDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+      />
     </>
   )
 }
 
 export function NativeAppsPromoBanner() {
   useTranslation()
-  const [hidden, setHidden] = useState(() => localStorage.getItem(APP_PROMO_DISMISSED_KEY) === '1')
+  const [hidden, setHidden] = useState(
+    () => localStorage.getItem(APP_PROMO_DISMISSED_KEY) === '1',
+  )
   if (hidden) return null
 
   const promotion = getNativeAppsPromotion(currentPromoHost())
@@ -76,7 +83,7 @@ export function NativeAppsPromoBanner() {
           variant="plain"
           color="neutral"
           size="sm"
-          aria-label={tr("Dismiss app notice")}
+          aria-label={tr('Dismiss app notice')}
           onClick={() => {
             localStorage.setItem(APP_PROMO_DISMISSED_KEY, '1')
             setHidden(true)

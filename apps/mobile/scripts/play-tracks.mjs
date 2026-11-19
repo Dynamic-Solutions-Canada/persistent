@@ -7,11 +7,18 @@
  */
 export async function retirePhoneTestingTracks(tracks, writeTrack) {
   for (const track of tracks ?? []) {
-    if (track.track === 'production' || track.track.includes(':') || !track.releases?.length) {
+    if (
+      track.track === 'production' ||
+      track.track.includes(':') ||
+      !track.releases?.length
+    ) {
       continue
     }
     // An empty release retires the served bundles. An empty releases array
     // is accepted by Play but leaves the existing completed release in place.
-    await writeTrack({ track: track.track, releases: [{ status: 'completed', versionCodes: [] }] })
+    await writeTrack({
+      track: track.track,
+      releases: [{ status: 'completed', versionCodes: [] }],
+    })
   }
 }

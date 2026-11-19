@@ -1,9 +1,18 @@
 /** Reconcile the native OS picker before publishing an older web preference back to Android. */
-import { nativeLanguageStateSchema, type Locale, type NativeLanguageState } from '@persistent/shared'
+import {
+  nativeLanguageStateSchema,
+  type Locale,
+  type NativeLanguageState,
+} from '@persistent/shared'
 
 export interface NativeLanguageBridge {
-  getLocale(options: { fallbackLanguageOverride: Locale | null }): Promise<NativeLanguageState>
-  addListener(event: 'localeChanged', listener: (state: NativeLanguageState) => void): Promise<{ remove(): Promise<void> }>
+  getLocale(options: {
+    fallbackLanguageOverride: Locale | null
+  }): Promise<NativeLanguageState>
+  addListener(
+    event: 'localeChanged',
+    listener: (state: NativeLanguageState) => void,
+  ): Promise<{ remove(): Promise<void> }>
 }
 
 interface Callbacks {
@@ -13,7 +22,12 @@ interface Callbacks {
 
 /** Only Capacitor's explicit unsupported-method code proves that legacy fallback is appropriate. */
 function unsupported(error: unknown): boolean {
-  return typeof error === 'object' && error !== null && 'code' in error && error.code === 'UNIMPLEMENTED'
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    error.code === 'UNIMPLEMENTED'
+  )
 }
 
 /**
@@ -21,7 +35,12 @@ function unsupported(error: unknown): boolean {
  * Slow reads never unlock publishing. Transient failures retry while the web remains
  * usable, and disposal cancels retries/listeners without applying late responses.
  */
-export function connectNativeLanguage(bridge: NativeLanguageBridge, fallback: Locale | null, callbacks: Callbacks, retryDelay = 2000) {
+export function connectNativeLanguage(
+  bridge: NativeLanguageBridge,
+  fallback: Locale | null,
+  callbacks: Callbacks,
+  retryDelay = 2000,
+) {
   let disposed = false
   let revision = 0
   let receivedNativeState = false
@@ -33,7 +52,9 @@ export function connectNativeLanguage(bridge: NativeLanguageBridge, fallback: Lo
   const warnOnce = (operation: string) => {
     if (reported.has(operation)) return
     reported.add(operation)
-    console.warn(`[locale] Native language ${operation} failed; retrying without overwriting the native preference.`)
+    console.warn(
+      `[locale] Native language ${operation} failed; retrying without overwriting the native preference.`,
+    )
   }
 
   const apply = (value: unknown): boolean => {
@@ -54,7 +75,9 @@ export function connectNativeLanguage(bridge: NativeLanguageBridge, fallback: Lo
   const read = async () => {
     const requestedRevision = revision
     try {
-      const value = await bridge.getLocale({ fallbackLanguageOverride: fallback })
+      const value = await bridge.getLocale({
+        fallbackLanguageOverride: fallback,
+      })
       if (disposed || requestedRevision !== revision) return
       if (!apply(value)) throw new Error('Invalid native language snapshot')
     } catch (error) {
@@ -63,7 +86,9 @@ export function connectNativeLanguage(bridge: NativeLanguageBridge, fallback: Lo
         callbacks.ready()
       } else {
         warnOnce('read')
-        retry = setTimeout(() => { void read() }, retryDelay)
+        retry = setTimeout(() => {
+          void read()
+        }, retryDelay)
       }
     }
   }
@@ -73,7 +98,8 @@ export function connectNativeLanguage(bridge: NativeLanguageBridge, fallback: Lo
       await listener?.remove()
     } catch {
       // Cleanup cannot change readiness; report a safe bounded diagnostic.
-      if (!reported.has('cleanup')) console.warn('[locale] Native language listener cleanup failed.')
+      if (!reported.has('cleanup'))
+        console.warn('[locale] Native language listener cleanup failed.')
       reported.add('cleanup')
     }
   }
@@ -91,7 +117,9 @@ export function connectNativeLanguage(bridge: NativeLanguageBridge, fallback: Lo
     } catch (error) {
       if (disposed || unsupported(error)) return
       warnOnce('subscription')
-      listenerRetry = setTimeout(() => { void subscribe(true) }, retryDelay)
+      listenerRetry = setTimeout(() => {
+        void subscribe(true)
+      }, retryDelay)
     }
   }
 
@@ -111,6 +139,6 @@ export function connectNativeLanguage(bridge: NativeLanguageBridge, fallback: Lo
       clearTimeout(retry)
       clearTimeout(listenerRetry)
       void removeListener()
-    }
+    },
   }
 }

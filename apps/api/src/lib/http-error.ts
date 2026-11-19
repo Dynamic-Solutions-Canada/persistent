@@ -4,7 +4,10 @@
  * inline so the error shape stays consistent.
  */
 export class HttpError extends Error {
-  constructor(public readonly statusCode: number, message: string) {
+  constructor(
+    public readonly statusCode: number,
+    message: string,
+  ) {
     super(message)
     this.name = 'HttpError'
   }

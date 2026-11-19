@@ -1,6 +1,12 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { emptyForm, fromReminder, isFormDirty, toInput, type FormState } from './formState.js'
+import {
+  emptyForm,
+  fromReminder,
+  isFormDirty,
+  toInput,
+  type FormState,
+} from './formState.js'
 import type { Reminder, Schedule } from '@persistent/shared'
 
 function form(overrides: Partial<FormState> = {}): FormState {
@@ -14,17 +20,35 @@ test('an untouched form is not dirty', () => {
 
 test('editing the title is dirty', () => {
   const original = form({ title: 'Water plants' })
-  assert.equal(isFormDirty(original, { ...original, title: 'Water the plants' }), true)
+  assert.equal(
+    isFormDirty(original, { ...original, title: 'Water the plants' }),
+    true,
+  )
 })
 
 test('editing a checklist item is dirty', () => {
   const original = form({ type: 'TODO', todos: [{ id: 'a', text: 'Milk' }] })
-  assert.equal(isFormDirty(original, { ...original, todos: [{ id: 'a', text: 'Oat milk' }] }), true)
+  assert.equal(
+    isFormDirty(original, {
+      ...original,
+      todos: [{ id: 'a', text: 'Oat milk' }],
+    }),
+    true,
+  )
 })
 
 test('reordering checklist items is dirty', () => {
-  const original = form({ type: 'TODO', todos: [{ id: 'a', text: 'Milk' }, { id: 'b', text: 'Bread' }] })
-  const reordered = { ...original, todos: [original.todos[1]!, original.todos[0]!] }
+  const original = form({
+    type: 'TODO',
+    todos: [
+      { id: 'a', text: 'Milk' },
+      { id: 'b', text: 'Bread' },
+    ],
+  })
+  const reordered = {
+    ...original,
+    todos: [original.todos[1]!, original.todos[0]!],
+  }
   assert.equal(isFormDirty(original, reordered), true)
 })
 
@@ -32,13 +56,19 @@ test('fields the chosen type does not save are not a change', () => {
   // Typed a medication, then switched the reminder to a plain one: the rows are
   // still in form state but no longer saved, so leaving loses nothing.
   const original = form({ type: 'NONE' })
-  const strayMedication = { ...original, medications: [{ name: 'Ibuprofen', unit: 'mg', quantity: '200' }] }
+  const strayMedication = {
+    ...original,
+    medications: [{ name: 'Ibuprofen', unit: 'mg', quantity: '200' }],
+  }
   assert.equal(isFormDirty(original, strayMedication), false)
 })
 
 test('weekday choices left behind by a schedule that no longer uses them are not a change', () => {
   const original = form({ when: 'scheduled', kind: 'daily' })
-  assert.equal(isFormDirty(original, { ...original, daysOfWeek: [0, 6] }), false)
+  assert.equal(
+    isFormDirty(original, { ...original, daysOfWeek: [0, 6] }),
+    false,
+  )
 })
 
 test('a schedule change that does get saved is dirty', () => {
@@ -49,7 +79,10 @@ test('a schedule change that does get saved is dirty', () => {
 // --- Notes (When = Never) ----------------------------------------------------
 
 /** A saved reminder, enough of one for the two conversions to round-trip it. */
-function reminder(schedule: Schedule, overrides: Partial<Reminder> = {}): Reminder {
+function reminder(
+  schedule: Schedule,
+  overrides: Partial<Reminder> = {},
+): Reminder {
   return {
     id: 'r1',
     title: 'Wifi password',
@@ -76,12 +109,14 @@ function reminder(schedule: Schedule, overrides: Partial<Reminder> = {}): Remind
     invitationCount: 0,
     createdAt: '2026-08-02T09:00:00.000Z',
     updatedAt: '2026-08-02T09:00:00.000Z',
-    ...overrides
+    ...overrides,
   }
 }
 
 test('a note saves as the `never` schedule, with no time of day', () => {
-  const input = toInput(form({ when: 'never', timesOfDay: ['08:00'], kind: 'daily' }))
+  const input = toInput(
+    form({ when: 'never', timesOfDay: ['08:00'], kind: 'daily' }),
+  )
   assert.equal(input.schedule.kind, 'never')
   assert.deepEqual(input.schedule.timesOfDay, [])
 })
@@ -101,8 +136,8 @@ test('a note drops escalation rather than saving a promise nothing can keep', ()
       escalate: true,
       escalateAfterMinutes: '15',
       escalateEmailEnabled: true,
-      escalateEmail: 'someone@example.com'
-    })
+      escalateEmail: 'someone@example.com',
+    }),
   )
   assert.equal(input.escalateAfterMinutes, null)
   assert.equal(input.escalateAtTime, null)
@@ -111,7 +146,10 @@ test('a note drops escalation rather than saving a promise nothing can keep', ()
 })
 
 test('a note has no end date — there is no run of firings to stop', () => {
-  assert.equal(toInput(form({ when: 'never', endDate: '2026-12-31' })).endDate, null)
+  assert.equal(
+    toInput(form({ when: 'never', endDate: '2026-12-31' })).endDate,
+    null,
+  )
 })
 
 test('a note keeps the repeat the user had picked, ready for it to fire again', () => {
@@ -129,6 +167,11 @@ test('switching a firing reminder to a note is a change worth stopping for', () 
 })
 
 test('an existing medication reminder still saves its doses', () => {
-  const state = form({ type: 'MEDICATION', medications: [{ name: 'Ibuprofen', unit: 'mg', quantity: '200' }] })
-  assert.deepEqual(toInput(state).typeData, { medications: [{ name: 'Ibuprofen', unit: 'mg', quantity: 200 }] })
+  const state = form({
+    type: 'MEDICATION',
+    medications: [{ name: 'Ibuprofen', unit: 'mg', quantity: '200' }],
+  })
+  assert.deepEqual(toInput(state).typeData, {
+    medications: [{ name: 'Ibuprofen', unit: 'mg', quantity: 200 }],
+  })
 })

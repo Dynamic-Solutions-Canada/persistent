@@ -1,7 +1,10 @@
 /** Account transitions and local access policy shared by startup, reconnect and sign-in. */
 import type { QueryClient } from '@tanstack/react-query'
 import { queryKeys } from '../lib/queryClient.js'
-import { notifyHostSignedIn, notifyHostSignedOut } from '../native/desktopBridge.js'
+import {
+  notifyHostSignedIn,
+  notifyHostSignedOut,
+} from '../native/desktopBridge.js'
 import { AlarmPlugin, isNative } from '../native/alarmBridge.js'
 import { readOfflineUser, saveOfflineUser } from './offlineSession.js'
 import { setSessionNetwork } from './sessionNetwork.js'
@@ -23,7 +26,9 @@ import type { LocalSession } from './loadSession.js'
  * observer bound to a live query.
  */
 export function dropSignedOutData(queryClient: QueryClient): void {
-  queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== queryKeys.auth[0] })
+  queryClient.removeQueries({
+    predicate: (query) => query.queryKey[0] !== queryKeys.auth[0],
+  })
   queryClient.getMutationCache().clear()
 }
 
@@ -40,13 +45,18 @@ export async function clearNativeAlerts(): Promise<void> {
     // Local cleanup is best-effort during sign-out. A native bridge failure must
     // not leave the authenticated web session or cached account data in place.
     await AlarmPlugin.cancelAll().catch(() => {
-      console.warn('Could not clear local Android alerts during account cleanup.')
+      console.warn(
+        'Could not clear local Android alerts during account cleanup.',
+      )
     })
   }
 }
 
 /** Reconcile account ownership before allowing saved mutations to leave this device. */
-export async function acceptSession(queryClient: QueryClient, session: LocalSession): Promise<LocalSession> {
+export async function acceptSession(
+  queryClient: QueryClient,
+  session: LocalSession,
+): Promise<LocalSession> {
   setSessionNetwork(false)
   // Cached aggregate data cannot outlive server confirmation or a revoked role.
   if (session.offline || !session.user?.isAdmin) {
@@ -55,7 +65,9 @@ export async function acceptSession(queryClient: QueryClient, session: LocalSess
   }
   const previous = readOfflineUser(window.localStorage)
   if (!session.offline && previous?.id !== session.user?.id) {
-    await queryClient.cancelQueries({ predicate: (query) => query.queryKey[0] !== 'auth' })
+    await queryClient.cancelQueries({
+      predicate: (query) => query.queryKey[0] !== 'auth',
+    })
     dropSignedOutData(queryClient)
     await clearNativeAlerts()
   }
@@ -63,18 +75,28 @@ export async function acceptSession(queryClient: QueryClient, session: LocalSess
     try {
       saveOfflineUser(window.localStorage, session.user)
     } catch {
-      console.warn('Offline account storage is unavailable; offline reopening cannot be saved.')
+      console.warn(
+        'Offline account storage is unavailable; offline reopening cannot be saved.',
+      )
     }
   } else {
     // In-memory feeds can contain received firings after losing connectivity.
     // Apply the same ownership filter used by the persisted offline copy.
-    const reminders = queryClient.getQueryData<Array<{ id: string }>>(queryKeys.reminders) ?? []
+    const reminders =
+      queryClient.getQueryData<Array<{ id: string }>>(queryKeys.reminders) ?? []
     const ownedIds = new Set(reminders.map((reminder) => reminder.id))
-    await queryClient.cancelQueries({ predicate: (query) => query.queryKey[0] !== 'auth' })
+    await queryClient.cancelQueries({
+      predicate: (query) => query.queryKey[0] !== 'auth',
+    })
     void queryClient.resetQueries({ queryKey: ['shares'] })
     void queryClient.resetQueries({ queryKey: ['assignments'] })
-    for (const query of queryClient.getQueryCache().findAll({ queryKey: ['occurrences'] })) {
-      queryClient.setQueryData(query.queryKey, ownedOccurrenceData(query.state.data, ownedIds))
+    for (const query of queryClient
+      .getQueryCache()
+      .findAll({ queryKey: ['occurrences'] })) {
+      queryClient.setQueryData(
+        query.queryKey,
+        ownedOccurrenceData(query.state.data, ownedIds),
+      )
     }
   }
   setSessionNetwork(Boolean(session.user) && !session.offline)

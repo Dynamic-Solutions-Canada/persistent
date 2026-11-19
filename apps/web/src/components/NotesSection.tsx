@@ -10,7 +10,10 @@ import { useReminderDialogs } from './reminderDialogContext.js'
 import { ReminderPreviewCard } from './ReminderPreviewCard.js'
 import { sharingState } from './sharingState.js'
 
-export function NotesSection({ reminders, receivedIds = new Set<string>() }: {
+export function NotesSection({
+  reminders,
+  receivedIds = new Set<string>(),
+}: {
   reminders: readonly Reminder[]
   receivedIds?: ReadonlySet<string>
 }) {
@@ -21,7 +24,10 @@ export function NotesSection({ reminders, receivedIds = new Set<string>() }: {
 
   return (
     <Stack spacing={1.5}>
-      <SectionHeading title={tr("Notes")} subtitle={tr("Reminders set not to notify you.")} />
+      <SectionHeading
+        title={tr('Notes')}
+        subtitle={tr('Reminders set not to notify you.')}
+      />
       <Stack spacing={1.5}>
         {notes.map((reminder) => (
           <ReminderPreviewCard
@@ -29,8 +35,16 @@ export function NotesSection({ reminders, receivedIds = new Set<string>() }: {
             reminder={reminder}
             onOpen={() => dialogs.view(reminder.id)}
             checkedItemIds={reminder.checkedItemIds}
-            sharing={receivedIds.has(reminder.id) ? 'shared' : sharingState(reminder)}
-            status={!reminder.active ? <Chip size="sm" color="neutral" variant="outlined">{tr("paused")}</Chip> : undefined}
+            sharing={
+              receivedIds.has(reminder.id) ? 'shared' : sharingState(reminder)
+            }
+            status={
+              !reminder.active ? (
+                <Chip size="sm" color="neutral" variant="outlined">
+                  {tr('paused')}
+                </Chip>
+              ) : undefined
+            }
           />
         ))}
       </Stack>

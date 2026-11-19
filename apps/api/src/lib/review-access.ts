@@ -41,7 +41,10 @@ export function reviewAccessEnabled(): boolean {
 /** Is `email` the designated review account? (Code not checked.) */
 export function isReviewAccount(email: string): boolean {
   if (!reviewAccessEnabled()) return false
-  return email.trim().toLowerCase() === env.REVIEW_ACCOUNT_EMAIL!.trim().toLowerCase()
+  return (
+    email.trim().toLowerCase() ===
+    env.REVIEW_ACCOUNT_EMAIL!.trim().toLowerCase()
+  )
 }
 
 /** Does this email+code pair match the configured review credentials? */

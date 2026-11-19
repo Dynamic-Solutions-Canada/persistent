@@ -8,6 +8,7 @@ Audit the repository documentation and bring it back in sync with the current co
 Invocation input (optional): the user-provided scope or recent change summary.
 
 Requirements:
+
 - Focus on accuracy, not churn.
 - If a scope or recent change summary is provided, narrow the audit to the affected files and their related documentation. If omitted, audit all listed files.
 - Update only docs and customization files that are stale, incomplete, or misleading.
@@ -15,6 +16,7 @@ Requirements:
 - Keep `AGENTS.md` files, `.agents/`, and `docs/` coherent with the repository workflow.
 
 Audit scope:
+
 - `README.md`
 - Every tracked `AGENTS.md` (enumerate with `git ls-files '*AGENTS.md'`)
 - `.agents/guides/` and `.agents/skills/`
@@ -24,6 +26,7 @@ Audit scope:
 - `apps/mobile/README.md` when the native client or alarm plugin changed
 
 Recommended steps:
+
 1. Review the active change scope with `git status --short`, `git diff --stat`, and `git diff --cached --stat`.
 2. Read the affected source files before editing docs.
 3. Update high-level docs when setup, architecture, contracts, or workflow changed.
@@ -33,6 +36,7 @@ Recommended steps:
 7. Summarize what changed, what stayed correct, and any remaining documentation gaps.
 
 Notes:
+
 - The persistence/alarm model is the project's defining contract. Keep
   `docs/alarm-architecture.md`, `docs/notification-behavior.md`, and
   `.agents/guides/reminder-model.md` aligned.

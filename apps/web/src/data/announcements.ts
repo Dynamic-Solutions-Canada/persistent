@@ -9,11 +9,15 @@ export function useAnnouncements() {
   return useQuery({
     queryKey: queryKeys.announcements,
     meta: { startupOptional: true },
-    queryFn: async () => announcementListSchema.parse(await apiFetch('/api/announcements')).announcements
+    queryFn: async () =>
+      announcementListSchema.parse(await apiFetch('/api/announcements'))
+        .announcements,
   })
 }
 
 /** Queue a durable dismissal with the same account binding as other app writes. */
 export function useViewAnnouncement() {
-  return useMutation<unknown, Error, { id: string }>({ mutationKey: mutationKeys.viewAnnouncement })
+  return useMutation<unknown, Error, { id: string }>({
+    mutationKey: mutationKeys.viewAnnouncement,
+  })
 }

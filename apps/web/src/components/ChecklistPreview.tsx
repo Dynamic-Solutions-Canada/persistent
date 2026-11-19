@@ -12,7 +12,10 @@ import type { ReminderPreviewSource } from '../lib/reminderPreview.js'
  * A visual checklist with no nested controls. The parent card remains one button,
  * while each item still looks checked or unchecked at a glance.
  */
-export function ChecklistPreview({ reminder, checkedItemIds = [] }: {
+export function ChecklistPreview({
+  reminder,
+  checkedItemIds = [],
+}: {
   reminder: ReminderPreviewSource
   checkedItemIds?: readonly string[]
 }) {
@@ -23,15 +26,24 @@ export function ChecklistPreview({ reminder, checkedItemIds = [] }: {
   if (items.length === 0) return null
 
   const checked = new Set(checkedItemIds)
-  const hiddenCount = reminder.hideCheckedItems ? items.filter((item) => checked.has(item.id)).length : 0
-  const visible = reminder.hideCheckedItems ? items.filter((item) => !checked.has(item.id)) : items
+  const hiddenCount = reminder.hideCheckedItems
+    ? items.filter((item) => checked.has(item.id)).length
+    : 0
+  const visible = reminder.hideCheckedItems
+    ? items.filter((item) => !checked.has(item.id))
+    : items
 
   return (
     <Stack spacing={0.5} sx={{ mt: 0.5 }}>
       {visible.map((item) => {
         const isChecked = checked.has(item.id)
         return (
-          <Stack key={item.id} direction="row" spacing={1} alignItems="flex-start">
+          <Stack
+            key={item.id}
+            direction="row"
+            spacing={1}
+            alignItems="flex-start"
+          >
             <Stack
               aria-hidden="true"
               alignItems="center"
@@ -40,7 +52,7 @@ export function ChecklistPreview({ reminder, checkedItemIds = [] }: {
               sx={(theme) => ({
                 ...theme.typography['body-sm'],
                 height: '1lh',
-                flexShrink: 0
+                flexShrink: 0,
               })}
             >
               <Box
@@ -54,7 +66,7 @@ export function ChecklistPreview({ reminder, checkedItemIds = [] }: {
                   borderColor: isChecked ? 'success.500' : 'text.tertiary',
                   borderRadius: '4px',
                   bgcolor: isChecked ? 'success.500' : 'transparent',
-                  color: 'common.white'
+                  color: 'common.white',
                 }}
               >
                 {isChecked && <CheckIcon sx={{ fontSize: 15 }} />}
@@ -65,7 +77,7 @@ export function ChecklistPreview({ reminder, checkedItemIds = [] }: {
               sx={{
                 minWidth: 0,
                 whiteSpace: 'pre-wrap',
-                ...checklistItemTextSx(isChecked)
+                ...checklistItemTextSx(isChecked),
               }}
             >
               {item.text}
@@ -74,7 +86,12 @@ export function ChecklistPreview({ reminder, checkedItemIds = [] }: {
         )
       })}
       {hiddenCount > 0 && (
-        <Typography level="body-xs" sx={{ color: 'text.tertiary' }}><Trans i18nKey={"<v0/> checked hidden"} components={{ v0: <>{hiddenCount}</> }} /></Typography>
+        <Typography level="body-xs" sx={{ color: 'text.tertiary' }}>
+          <Trans
+            i18nKey={'<v0/> checked hidden'}
+            components={{ v0: <>{hiddenCount}</> }}
+          />
+        </Typography>
       )}
     </Stack>
   )

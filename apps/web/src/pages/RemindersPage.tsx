@@ -49,7 +49,8 @@ export function RemindersPage() {
   // times of day can have more than one pending at once, each acked separately.
   const reminderById = new Map((reminders.data ?? []).map((r) => [r.id, r]))
   for (const share of received.data ?? []) {
-    if (share.editableReminder) reminderById.set(share.id, share.editableReminder)
+    if (share.editableReminder)
+      reminderById.set(share.id, share.editableReminder)
   }
   const attention = (active.data ?? [])
     .flatMap((occurrence) => {
@@ -60,17 +61,30 @@ export function RemindersPage() {
     .sort((a, b) => compareFirings(a.occurrence, b.occurrence))
 
   return (
-    <PullToRefresh onRefresh={() => Promise.all([reminders.refetch(), active.refetch(), received.refetch()])}>
+    <PullToRefresh
+      onRefresh={() =>
+        Promise.all([reminders.refetch(), active.refetch(), received.refetch()])
+      }
+    >
       <Stack spacing={3}>
         <Stack spacing={1.5}>
-          <SectionHeading title={tr("Current")} subtitle={tr("Reminders still waiting to be confirmed.")} />
+          <SectionHeading
+            title={tr('Current')}
+            subtitle={tr('Reminders still waiting to be confirmed.')}
+          />
 
-          {(reminders.isLoading || received.isLoading) && <Typography level="body-sm">{tr("Loading…")}</Typography>}
+          {(reminders.isLoading || received.isLoading) && (
+            <Typography level="body-sm">{tr('Loading…')}</Typography>
+          )}
           {/* An empty Current is the *good* state — everything is confirmed — so it
               says so and points at the tab that has something to show, rather than
               reading like an error or an empty app. */}
           {reminders.data && received.data && attention.length === 0 && (
-            <Typography level="body-sm">{tr("Nothing needs confirming right now. Check Upcoming for what's scheduled.")}</Typography>
+            <Typography level="body-sm">
+              {tr(
+                "Nothing needs confirming right now. Check Upcoming for what's scheduled.",
+              )}
+            </Typography>
           )}
 
           <Stack spacing={1.5}>
@@ -79,9 +93,15 @@ export function RemindersPage() {
                 key={occurrence.id}
                 reminder={reminder}
                 occurrence={occurrence}
-                received={received.data?.some((share) => share.id === reminder.id)}
+                received={received.data?.some(
+                  (share) => share.id === reminder.id,
+                )}
                 timeFormat={timeFormat}
-                timeZone={received.data?.some((share) => share.id === reminder.id) ? user?.timeZone : undefined}
+                timeZone={
+                  received.data?.some((share) => share.id === reminder.id)
+                    ? user?.timeZone
+                    : undefined
+                }
               />
             ))}
           </Stack>
@@ -89,13 +109,22 @@ export function RemindersPage() {
 
         {sentAssignments.data && sentAssignments.data.length > 0 && (
           <Stack spacing={1.5}>
-            <SectionHeading title={tr("Assigned by me")} subtitle={tr("Track reminders you made for someone else.")} />
-            <Button component={RouterLink} to="/assigned" variant="outlined" color="neutral">{tr("View assignments")}</Button>
+            <SectionHeading
+              title={tr('Assigned by me')}
+              subtitle={tr('Track reminders you made for someone else.')}
+            />
+            <Button
+              component={RouterLink}
+              to="/assigned"
+              variant="outlined"
+              color="neutral"
+            >
+              {tr('View assignments')}
+            </Button>
           </Stack>
         )}
 
         <NewReminderFab />
-
       </Stack>
     </PullToRefresh>
   )

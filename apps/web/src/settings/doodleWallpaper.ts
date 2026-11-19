@@ -4,7 +4,7 @@ const GLYPHS: Record<string, string> = {
   bell: `<path d='M-8 8 C-8 2 -7 -8 0 -8 C7 -8 8 2 8 8 Z'/><path d='M0 -8 V-11'/><path d='M-3 8 a3 3 0 0 0 6 0'/>`,
   pill: `<rect x='-12' y='-5.5' width='24' height='11' rx='5.5'/><path d='M0 -5.5 V5.5'/>`,
   check: `<circle cx='0' cy='0' r='10'/><path d='M-5 0 l3 3 l6 -7'/>`,
-  calendar: `<rect x='-13' y='-10' width='26' height='22' rx='3'/><path d='M-13 -3 H13 M-6 -14 V-8 M6 -14 V-8'/>`
+  calendar: `<rect x='-13' y='-10' width='26' height='22' rx='3'/><path d='M-13 -3 H13 M-6 -14 V-8 M6 -14 V-8'/>`,
 }
 
 const TILE = 468
@@ -90,7 +90,12 @@ const PLACEMENTS: [keyof typeof GLYPHS, number, number, number][] = [
 ]
 
 /** Draw edge-crossing glyphs in neighboring tiles so no doodle is cut at a seam. */
-function glyphCopies(name: keyof typeof GLYPHS, x: number, y: number, rotation: number): string {
+function glyphCopies(
+  name: keyof typeof GLYPHS,
+  x: number,
+  y: number,
+  rotation: number,
+): string {
   const copies: string[] = []
   const edgePadding = 20
 
@@ -98,10 +103,17 @@ function glyphCopies(name: keyof typeof GLYPHS, x: number, y: number, rotation: 
     for (const offsetY of [-TILE, 0, TILE]) {
       const copyX = x + offsetX
       const copyY = y + offsetY
-      if (copyX < -edgePadding || copyX > TILE + edgePadding || copyY < -edgePadding || copyY > TILE + edgePadding) {
+      if (
+        copyX < -edgePadding ||
+        copyX > TILE + edgePadding ||
+        copyY < -edgePadding ||
+        copyY > TILE + edgePadding
+      ) {
         continue
       }
-      copies.push(`<g transform='translate(${copyX} ${copyY}) rotate(${rotation})'>${GLYPHS[name]}</g>`)
+      copies.push(
+        `<g transform='translate(${copyX} ${copyY}) rotate(${rotation})'>${GLYPHS[name]}</g>`,
+      )
     }
   }
   return copies.join('')
@@ -109,7 +121,9 @@ function glyphCopies(name: keyof typeof GLYPHS, x: number, y: number, rotation: 
 
 /** A seamless SVG tile, with fixed positions and subdued ink, encoded as a CSS url(). */
 export function doodleTile(color: string): string {
-  const body = PLACEMENTS.map(([name, x, y, rotation]) => glyphCopies(name, x, y, rotation)).join('')
+  const body = PLACEMENTS.map(([name, x, y, rotation]) =>
+    glyphCopies(name, x, y, rotation),
+  ).join('')
   const svg =
     `<svg xmlns='http://www.w3.org/2000/svg' width='${TILE}' height='${TILE}' viewBox='0 0 ${TILE} ${TILE}' ` +
     `fill='none' stroke='${color}' stroke-opacity='0.45' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>` +

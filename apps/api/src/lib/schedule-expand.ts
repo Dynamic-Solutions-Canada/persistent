@@ -44,12 +44,18 @@ export function expandSchedule(input: ExpandInput): Date[] {
 
   const results: Date[] = []
   // Hard cap to avoid runaway loops on a pathological window.
-  for (let guard = 0; guard < 1000 && cursor <= windowEnd; guard += 1, cursor = cursor.plus({ days: 1 })) {
+  for (
+    let guard = 0;
+    guard < 1000 && cursor <= windowEnd;
+    guard += 1, cursor = cursor.plus({ days: 1 })
+  ) {
     if (end && cursor.startOf('day') > end) break
     if (!isActiveDay(cursor, anchor, schedule)) continue
 
     for (const time of schedule.timesOfDay) {
-      const [hour, minute] = time.split(':').map((part) => Number.parseInt(part, 10))
+      const [hour, minute] = time
+        .split(':')
+        .map((part) => Number.parseInt(part, 10))
       const fireAt = cursor.set({ hour, minute, second: 0, millisecond: 0 })
       if (!fireAt.isValid) continue
       const jsDate = fireAt.toJSDate()
@@ -69,7 +75,11 @@ export function expandSchedule(input: ExpandInput): Date[] {
   return maxResults == null ? sorted : sorted.slice(0, maxResults)
 }
 
-function isActiveDay(day: DateTime, anchor: DateTime, schedule: Schedule): boolean {
+function isActiveDay(
+  day: DateTime,
+  anchor: DateTime,
+  schedule: Schedule,
+): boolean {
   const weekdaySun0 = luxonWeekdayToSun0(day.weekday)
   const isWeekend = weekdaySun0 === 0 || weekdaySun0 === 6
 
@@ -91,7 +101,9 @@ function isActiveDay(day: DateTime, anchor: DateTime, schedule: Schedule): boole
     }
     case 'interval': {
       const every = schedule.everyNDays ?? 1
-      const days = Math.round(day.startOf('day').diff(anchor.startOf('day'), 'days').days)
+      const days = Math.round(
+        day.startOf('day').diff(anchor.startOf('day'), 'days').days,
+      )
       if (days < 0 || days % every !== 0) return false
       return !(schedule.skipWeekends && isWeekend)
     }

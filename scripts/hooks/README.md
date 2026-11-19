@@ -2,8 +2,8 @@
 
 Claude Code hooks registered in `.claude/settings.json`. They guide an agent during a session; anything that must never be committed belongs in a git hook instead (AI-11 and HYG-10 in the shared standards).
 
-| Hook | Runs on | Blocks | Do instead |
-| --- | --- | --- | --- |
+| Hook                       | Runs on                                                          | Blocks                                                                                                                                            | Do instead                                                                                                                 |
+| -------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | `generated-file-guard.mjs` | `PreToolUse` for `Edit`, `MultiEdit`, `Write` and `NotebookEdit` | Editing a file whose header says it is generated or not to be edited by hand, or anything under a directory listed in `generated-file-guard.json` | Change the generator or its source, then regenerate. Shell commands, including the regeneration itself, are not inspected. |
 
 `generated-file-guard.json` lists this repo's generated directories:

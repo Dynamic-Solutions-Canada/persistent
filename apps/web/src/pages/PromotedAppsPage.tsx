@@ -12,12 +12,15 @@ import Stack from '@mui/joy/Stack'
 import Typography from '@mui/joy/Typography'
 import { SectionHeading } from '../components/SectionHeading.js'
 import { usePromotedApps } from '../data/promotedApps.js'
-import { blurbFor, CATALOG_BASE_URL } from '../../../desktop/external/promo/catalog.js'
+import {
+  blurbFor,
+  CATALOG_BASE_URL,
+} from '../../../desktop/external/promo/catalog.js'
 
 // Vite includes these immutable assets in the build and the offline precache.
 const icons = import.meta.glob<string>(
   '../../../desktop/external/promo/Assets/PromotedApps/*.png',
-  { eager: true, query: '?url', import: 'default' }
+  { eager: true, query: '?url', import: 'default' },
 )
 
 export function PromotedAppsPage() {
@@ -28,13 +31,27 @@ export function PromotedAppsPage() {
 
   return (
     <Stack spacing={1.5}>
-      <Button component={RouterLink} to="/settings" variant="plain" sx={{ alignSelf: 'flex-start' }}>{tr("Back to Settings")}</Button>
-      <SectionHeading title={tr("Our other apps")} subtitle={tr("More apps from Dynamic Solutions (CA).")} />
+      <Button
+        component={RouterLink}
+        to="/settings"
+        variant="plain"
+        sx={{ alignSelf: 'flex-start' }}
+      >
+        {tr('Back to Settings')}
+      </Button>
+      <SectionHeading
+        title={tr('Our other apps')}
+        subtitle={tr('More apps from Dynamic Solutions (CA).')}
+      />
       {apps.map((app) => (
         <Card key={app.appId} variant="outlined">
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Avatar
-              src={icons[`../../../desktop/external/promo/Assets/PromotedApps/${app.icon}`] ?? `${CATALOG_BASE_URL}${app.icon}`}
+              src={
+                icons[
+                  `../../../desktop/external/promo/Assets/PromotedApps/${app.icon}`
+                ] ?? `${CATALOG_BASE_URL}${app.icon}`
+              }
               alt=""
               variant="plain"
               slotProps={{ img: { crossOrigin: 'anonymous' } }}
@@ -44,9 +61,13 @@ export function PromotedAppsPage() {
             <Stack spacing={0.5}>
               <Typography level="title-sm">{app.name}</Typography>
               <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
-                {[...new Set(app.links.map((link) => link.platform))].map((platform) => (
-                  <Chip key={platform} size="sm" variant="soft">{platform}</Chip>
-                ))}
+                {[...new Set(app.links.map((link) => link.platform))].map(
+                  (platform) => (
+                    <Chip key={platform} size="sm" variant="soft">
+                      {platform}
+                    </Chip>
+                  ),
+                )}
               </Stack>
             </Stack>
           </Stack>
@@ -69,7 +90,11 @@ export function PromotedAppsPage() {
           </Stack>
         </Card>
       ))}
-      {apps.length === 0 && <Typography level="body-sm">{tr("No other apps are listed right now.")}</Typography>}
+      {apps.length === 0 && (
+        <Typography level="body-sm">
+          {tr('No other apps are listed right now.')}
+        </Typography>
+      )}
     </Stack>
   )
 }

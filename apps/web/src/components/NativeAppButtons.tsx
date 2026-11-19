@@ -6,7 +6,11 @@ import Stack from '@mui/joy/Stack'
 import AndroidIcon from '@mui/icons-material/Android'
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded'
 import WindowRoundedIcon from '@mui/icons-material/WindowRounded'
-import { LINUX_DOWNLOADS_URL, PLAY_STORE_URL, WINDOWS_STORE_URL } from './appPromotion.js'
+import {
+  LINUX_DOWNLOADS_URL,
+  PLAY_STORE_URL,
+  WINDOWS_STORE_URL,
+} from './appPromotion.js'
 
 export interface NativeAppButtonsProps {
   showAndroid?: boolean
@@ -18,7 +22,7 @@ export interface NativeAppButtonsProps {
 export function NativeAppButtons({
   showAndroid = true,
   showWindows = true,
-  showLinux = true
+  showLinux = true,
 }: NativeAppButtonsProps) {
   useTranslation()
   return (
@@ -33,7 +37,9 @@ export function NativeAppButtons({
           variant="outlined"
           startDecorator={<AndroidIcon />}
           sx={{ width: { xs: '100%', sm: 'auto' } }}
-        >{tr("Google Play")}</Button>
+        >
+          {tr('Google Play')}
+        </Button>
       )}
       {showWindows && (
         <Button
@@ -45,7 +51,9 @@ export function NativeAppButtons({
           variant="outlined"
           startDecorator={<WindowRoundedIcon />}
           sx={{ width: { xs: '100%', sm: 'auto' } }}
-        >{tr("Microsoft Store")}</Button>
+        >
+          {tr('Microsoft Store')}
+        </Button>
       )}
       {showLinux && (
         <Button
@@ -57,7 +65,9 @@ export function NativeAppButtons({
           variant="outlined"
           startDecorator={<DownloadRoundedIcon />}
           sx={{ width: { xs: '100%', sm: 'auto' } }}
-        >{tr("Linux downloads")}</Button>
+        >
+          {tr('Linux downloads')}
+        </Button>
       )}
     </Stack>
   )

@@ -25,23 +25,30 @@ export function computeWebBuildId(files: readonly WebBuildFile[]): string {
     throw new Error('web-build-id found no emitted assets to derive an id from')
   }
   const hash = createHash('sha256')
-  for (const file of [...files].sort((a, b) => a.fileName.localeCompare(b.fileName, 'en'))) {
+  for (const file of [...files].sort((a, b) =>
+    a.fileName.localeCompare(b.fileName, 'en'),
+  )) {
     const bytes = Buffer.from(file.source)
     // Length-prefix each field so names and contents cannot blur file boundaries.
-    hash.update(`${Buffer.byteLength(file.fileName)}:${file.fileName}${bytes.length}:`)
+    hash.update(
+      `${Buffer.byteLength(file.fileName)}:${file.fileName}${bytes.length}:`,
+    )
     hash.update(bytes)
   }
   return hash.digest('hex').slice(0, 16)
 }
 
 /** Public files bypass the bundler, but belong to the same loaded app identity. */
-async function readPublicFiles(directory: string, prefix = ''): Promise<WebBuildFile[]> {
+async function readPublicFiles(
+  directory: string,
+  prefix = '',
+): Promise<WebBuildFile[]> {
   const files: WebBuildFile[] = []
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const fileName = `${prefix}${entry.name}`
     const absolute = path.join(directory, entry.name)
     if (entry.isDirectory()) {
-      files.push(...await readPublicFiles(absolute, `${fileName}/`))
+      files.push(...(await readPublicFiles(absolute, `${fileName}/`)))
     } else {
       files.push({ fileName, source: await readFile(absolute) })
     }
@@ -67,24 +74,29 @@ export function webBuildIdPlugin(): Plugin {
         }
         const files = new Map<string, WebBuildFile>()
         if (publicDir) {
-          for (const file of await readPublicFiles(publicDir)) files.set(file.fileName, file)
+          for (const file of await readPublicFiles(publicDir))
+            files.set(file.fileName, file)
         }
         for (const output of Object.values(bundle)) {
           files.set(output.fileName, {
             fileName: output.fileName,
-            source: output.type === 'chunk' ? output.code : output.source
+            source: output.type === 'chunk' ? output.code : output.source,
           })
         }
         const buildId = computeWebBuildId([...files.values()])
         const source = Buffer.from(html.source).toString('utf8')
-        if (!source.includes('<head>')) throw new Error('web-build-id requires an HTML head')
-        html.source = source.replace('<head>', `<head>\n    <meta name="${WEB_BUILD_ID_META_NAME}" content="${buildId}">`)
+        if (!source.includes('<head>'))
+          throw new Error('web-build-id requires an HTML head')
+        html.source = source.replace(
+          '<head>',
+          `<head>\n    <meta name="${WEB_BUILD_ID_META_NAME}" content="${buildId}">`,
+        )
         this.emitFile({
           type: 'asset',
           fileName: WEB_BUILD_ID_FILE,
-          source: `${JSON.stringify({ buildId })}\n`
+          source: `${JSON.stringify({ buildId })}\n`,
         })
-      }
-    }
+      },
+    },
   }
 }

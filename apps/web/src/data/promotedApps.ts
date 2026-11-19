@@ -1,7 +1,10 @@
 /** Public, account-independent app catalog with a bundled and last-good offline fallback. */
 import { useQuery } from '@tanstack/react-query'
 import manifest from '../../../desktop/external/promo/Assets/PromotedApps/apps.json'
-import { CATALOG_BASE_URL, parseCatalog } from '../../../desktop/external/promo/catalog.js'
+import {
+  CATALOG_BASE_URL,
+  parseCatalog,
+} from '../../../desktop/external/promo/catalog.js'
 import { apiFetch } from '../lib/apiClient.js'
 import { queryKeys } from '../lib/queryClient.js'
 
@@ -12,7 +15,9 @@ function readCatalog() {
   try {
     const saved = localStorage.getItem(CACHE_KEY)
     if (saved) return parseCatalog(JSON.parse(saved))
-  } catch { /* Use bundled content if storage is blocked or obsolete. */ }
+  } catch {
+    /* Use bundled content if storage is blocked or obsolete. */
+  }
   return parseCatalog(manifest)
 }
 
@@ -36,17 +41,19 @@ export function usePromotedApps() {
         const value = await apiFetch<unknown>(`${CATALOG_BASE_URL}apps.json`, {
           credentials: 'omit',
           signal: controller.signal,
-          cache: 'no-store'
+          cache: 'no-store',
         })
         const apps = parseCatalog(value)
         try {
           localStorage.setItem(CACHE_KEY, JSON.stringify({ apps }))
-        } catch { /* The page still works when storage is full or unavailable. */ }
+        } catch {
+          /* The page still works when storage is full or unavailable. */
+        }
         return apps
       } finally {
         clearTimeout(timeout)
         signal.removeEventListener('abort', cancel)
       }
-    }
+    },
   })
 }

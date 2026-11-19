@@ -4,7 +4,11 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useReminderDialogs } from './reminderDialogContext.js'
 
 /** Replace the deep link with Current so closing or Back leaves a usable list. */
-export function ReminderDialogLink({ kind }: { kind: 'view' | 'edit' | 'new' }) {
+export function ReminderDialogLink({
+  kind,
+}: {
+  kind: 'view' | 'edit' | 'new'
+}) {
   const { id } = useParams()
   const navigate = useNavigate()
   const dialogs = useReminderDialogs()

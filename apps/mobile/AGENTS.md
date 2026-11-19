@@ -47,7 +47,7 @@ the registered Play certificate; never substitute a locally signed APK. Two thin
 - **the in-app updater**: `direct` registers `UpdatePlugin` and declares
   `REQUEST_INSTALL_PACKAGES`; Play forbids an app it distributes from updating itself.
 - **the whole Android Auto integration**: the car screen (`ReminderCarAppService` +
-  its screens) *and* the notification mirror's `com.google.android.gms.car.application`
+  its screens) _and_ the notification mirror's `com.google.android.gms.car.application`
   declaration. A templated car app must declare one of Auto's approved categories and a
   reminder app is none of them. The mirror used to be judged separately, on the grounds
   that it "needs no category". That was true, but it said `<uses name="notification"/>`, which
@@ -72,7 +72,7 @@ file mentions it.
 `MainActivity` is shared and calls `FlavorPlugins.register(this)`, which each flavor
 supplies.
 Build with `npm run assemble:release` (direct APK) or `npm run bundle:play` (Play
-AAB). Both flavors load the *same* hosted web bundle, so any updater UI must gate
+AAB). Both flavors load the _same_ hosted web bundle, so any updater UI must gate
 on `hasNativeUpdater()` (`apps/web/src/native/alarmBridge.ts`), never
 `isNative()`.
 

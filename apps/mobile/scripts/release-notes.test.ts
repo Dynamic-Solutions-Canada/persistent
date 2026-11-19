@@ -18,7 +18,7 @@ import {
   notesMarkdown,
   subjectsIn,
   previousPublishedTag,
-  FALLBACK
+  FALLBACK,
   // @ts-expect-error - plain .mjs script, no type declarations
 } from './release-notes.mjs'
 
@@ -34,19 +34,24 @@ describe('previousPublishedTag', () => {
       { tagName: 'v0.27.0', isDraft: true },
       { tagName: 'v0.26.1', isPrerelease: true },
       { tagName: 'v0.25.0' },
-      { tagName: 'v0.26.0' }
+      { tagName: 'v0.26.0' },
     ]
     assert.equal(previousPublishedTag('v0.27.1', releases), 'v0.26.0')
   })
 
   it('has no predecessor for the first published Android version', () => {
-    assert.equal(previousPublishedTag('v0.1.0', [{ tagName: 'desktop-v0.5.7' }]), null)
+    assert.equal(
+      previousPublishedTag('v0.1.0', [{ tagName: 'desktop-v0.5.7' }]),
+      null,
+    )
   })
 })
 
 describe('userFacing', () => {
   it('keeps changes a user can notice', () => {
-    assert.deepEqual(userFacing(['Give notes a tab of their own']), ['- Give notes a tab of their own'])
+    assert.deepEqual(userFacing(['Give notes a tab of their own']), [
+      '- Give notes a tab of their own',
+    ])
   })
 
   it('drops version bumps, docs, tooling and tests by subject', () => {
@@ -55,7 +60,7 @@ describe('userFacing', () => {
       'Update the docs for the alarm contract',
       'Refactor the scheduler',
       'Add a test for the route order',
-      'Fix the CI workflow'
+      'Fix the CI workflow',
     ]
     assert.deepEqual(userFacing(dropped), [FALLBACK])
   })
@@ -74,14 +79,21 @@ describe('notesMarkdown', () => {
     const md = notesMarkdown(['Give notes a tab of their own'], {
       repo: 'o/r',
       previous: 'v0.1.0',
-      tag: 'v0.2.0'
+      tag: 'v0.2.0',
     })
-    assert.match(md, /^## What's changed\n\n- Give notes a tab of their own\n\n\*\*Full changelog\*\*/)
+    assert.match(
+      md,
+      /^## What's changed\n\n- Give notes a tab of their own\n\n\*\*Full changelog\*\*/,
+    )
     assert.match(md, /compare\/v0\.1\.0\.\.\.v0\.2\.0\n$/)
   })
 
   it('omits the compare link for a first release', () => {
-    const md = notesMarkdown(['Ship it'], { repo: 'o/r', previous: null, tag: 'v0.1.0' })
+    const md = notesMarkdown(['Ship it'], {
+      repo: 'o/r',
+      previous: null,
+      tag: 'v0.1.0',
+    })
     assert.doesNotMatch(md, /Full changelog/)
   })
 })
@@ -101,7 +113,7 @@ describe('subjectsIn', () => {
     const subjects = subjectsIn('v0.21.1..v0.22.0', repoRoot)
     assert.ok(
       !subjects.some((s: string) => s.includes('precondition')),
-      `apps/mobile/scripts changes must not appear, got: ${subjects.join(' | ')}`
+      `apps/mobile/scripts changes must not appear, got: ${subjects.join(' | ')}`,
     )
   })
 
@@ -114,12 +126,12 @@ describe('subjectsIn', () => {
     assert.ok(subjects.length > 0, 'the range should have commits')
     assert.ok(
       !subjects.some((s: string) => s.includes('DATABASE_URL')),
-      `a package.json-only change must not appear, got: ${subjects.join(' | ')}`
+      `a package.json-only change must not appear, got: ${subjects.join(' | ')}`,
     )
     // ...while the real user-facing change in the same range survives.
     assert.ok(
       subjects.some((s: string) => s.includes('carry its own tones')),
-      `the feature commit must survive, got: ${subjects.join(' | ')}`
+      `the feature commit must survive, got: ${subjects.join(' | ')}`,
     )
   })
 })
@@ -129,7 +141,7 @@ describe('the CLI', () => {
     const out = execFileSync(
       'node',
       [join(here, 'release-notes.mjs'), '--tag', 'v0.22.0', '--repo', 'o/r'],
-      { encoding: 'utf8', cwd: here }
+      { encoding: 'utf8', cwd: here },
     )
     assert.match(out, /## What's changed/)
     assert.match(out, /- Turn predictive back on/)

@@ -10,43 +10,96 @@ function occurrenceOn(day: string): Occurrence {
   return { scheduledFor: at.toISOString() } as Occurrence
 }
 
-function reminderWindow(startDate: string, endDate: string | null = null): Reminder {
-  return { startDate, endDate, schedule: { kind: 'once', timesOfDay: ['09:00'] } } as Reminder
+function reminderWindow(
+  startDate: string,
+  endDate: string | null = null,
+): Reminder {
+  return {
+    startDate,
+    endDate,
+    schedule: { kind: 'once', timesOfDay: ['09:00'] },
+  } as Reminder
 }
 
 /** A reminder with no date/time: `startDate` is a bare record, not a window. */
 function unscheduledReminder(startDate: string): Reminder {
-  return { startDate, endDate: null, schedule: { kind: 'none', timesOfDay: [] as string[] } } as Reminder
+  return {
+    startDate,
+    endDate: null,
+    schedule: { kind: 'none', timesOfDay: [] as string[] },
+  } as Reminder
 }
 
-test('a firing before the reminder\'s start date is orphaned', () => {
+test("a firing before the reminder's start date is orphaned", () => {
   // The reported case: fired today, then the reminder was moved to start next week.
-  assert.equal(isOutsideReminderWindow(reminderWindow('2026-07-26'), occurrenceOn('2026-07-19')), true)
+  assert.equal(
+    isOutsideReminderWindow(
+      reminderWindow('2026-07-26'),
+      occurrenceOn('2026-07-19'),
+    ),
+    true,
+  )
 })
 
-test('a firing after the reminder\'s end date is orphaned', () => {
-  assert.equal(isOutsideReminderWindow(reminderWindow('2026-07-01', '2026-07-10'), occurrenceOn('2026-07-19')), true)
+test("a firing after the reminder's end date is orphaned", () => {
+  assert.equal(
+    isOutsideReminderWindow(
+      reminderWindow('2026-07-01', '2026-07-10'),
+      occurrenceOn('2026-07-19'),
+    ),
+    true,
+  )
 })
 
 test('a firing inside the window is not orphaned', () => {
-  assert.equal(isOutsideReminderWindow(reminderWindow('2026-07-01', '2026-07-31'), occurrenceOn('2026-07-19')), false)
+  assert.equal(
+    isOutsideReminderWindow(
+      reminderWindow('2026-07-01', '2026-07-31'),
+      occurrenceOn('2026-07-19'),
+    ),
+    false,
+  )
 })
 
 test('a firing on the start date itself is not orphaned', () => {
-  assert.equal(isOutsideReminderWindow(reminderWindow('2026-07-19'), occurrenceOn('2026-07-19')), false)
+  assert.equal(
+    isOutsideReminderWindow(
+      reminderWindow('2026-07-19'),
+      occurrenceOn('2026-07-19'),
+    ),
+    false,
+  )
 })
 
 test('a firing on the end date itself is not orphaned', () => {
-  assert.equal(isOutsideReminderWindow(reminderWindow('2026-07-01', '2026-07-19'), occurrenceOn('2026-07-19')), false)
+  assert.equal(
+    isOutsideReminderWindow(
+      reminderWindow('2026-07-01', '2026-07-19'),
+      occurrenceOn('2026-07-19'),
+    ),
+    false,
+  )
 })
 
 test('an open-ended reminder never orphans a firing after its start', () => {
-  assert.equal(isOutsideReminderWindow(reminderWindow('2026-01-01', null), occurrenceOn('2030-01-01')), false)
+  assert.equal(
+    isOutsideReminderWindow(
+      reminderWindow('2026-01-01', null),
+      occurrenceOn('2030-01-01'),
+    ),
+    false,
+  )
 })
 
 test('an unscheduled reminder never orphans its firing, however old', () => {
   // Taking a reminder's schedule away restamps startDate to that day while its
   // firing stays anchored to when the reminder was made. Read as a window, that
   // says "fired before a reschedule" about the firing the edit just produced.
-  assert.equal(isOutsideReminderWindow(unscheduledReminder('2026-08-01'), occurrenceOn('2026-06-28')), false)
+  assert.equal(
+    isOutsideReminderWindow(
+      unscheduledReminder('2026-08-01'),
+      occurrenceOn('2026-06-28'),
+    ),
+    false,
+  )
 })
