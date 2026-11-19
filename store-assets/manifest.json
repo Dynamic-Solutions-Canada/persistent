@@ -1,20 +1,20 @@
 {
   "play": [
     {
-      "file": "play/00-current-light.png",
-      "source": "raw/android/native/00-current-light.png",
-      "theme": "enjoy-light",
+      "file": "play/00-current-dark.png",
+      "source": "raw/android/native/00-current-dark.png",
+      "theme": "enjoy-dark",
       "headline": "Keep the important things\nin sight.",
       "caption": "Every reminder waits for your confirmation.",
-      "alt": "Enjoy Light Current view with plants, puppy, and a part-completed morning checklist."
+      "alt": "Enjoy Dark Current view with plants, puppy, and a part-completed morning checklist."
     },
     {
-      "file": "play/01-notification-shade.png",
-      "source": "raw/android/native/01-notification-shade.png",
+      "file": "play/01-notification-shade-dark.png",
+      "source": "raw/android/native/01-notification-shade-dark.png",
       "theme": "enjoy-dark",
       "headline": "Swipe it away?\nIt comes back.",
       "caption": "Reminders return until you confirm they're done.",
-      "alt": "Real Pixel 9 Pro notification shade with four distinct synthetic reminders and expanded plant reminder Done and Snooze actions."
+      "alt": "Real Android notification shade, in dark mode, with four distinct synthetic reminders and the plant reminder's Done and Snooze actions expanded."
     },
     {
       "file": "play/02-alarm-dark.png",
@@ -22,7 +22,7 @@
       "theme": "enjoy-dark",
       "headline": "Ignore it too long,\nit escalates.",
       "caption": "Unconfirmed reminders can become a ringing alarm.",
-      "alt": "Real Pixel 9 Pro escalated alarm for the synthetic Check the oven reminder, with native Done, Snooze, and De-escalate controls."
+      "alt": "Real Android escalated alarm, in dark mode, for the synthetic Check the oven reminder, with native Done, Snooze, and De-escalate controls."
     },
     {
       "file": "play/03-checklist-dark.png",
@@ -33,12 +33,12 @@
       "alt": "Enjoy Dark reading dialog with a morning checklist and Done and Snooze controls below it."
     },
     {
-      "file": "play/04-medication-light.png",
-      "source": "raw/android/native/04-medication-light.png",
-      "theme": "enjoy-light",
+      "file": "play/04-medication-dark.png",
+      "source": "raw/android/native/04-medication-dark.png",
+      "theme": "enjoy-dark",
       "headline": "Make room for\nyour daily routines.",
       "caption": "Medication reminders with names and doses.",
-      "alt": "Synthetic vitamin D reminder editor in Enjoy Light with a 1000 IU dose."
+      "alt": "Synthetic vitamin D reminder editor in Enjoy Dark with a 1000 IU dose."
     },
     {
       "file": "play/05-sharing-dark.png",
@@ -49,12 +49,12 @@
       "alt": "Enjoy Dark sharing dialog with a staged synthetic recipient, Alex."
     },
     {
-      "file": "play/06-notes-light.png",
-      "source": "raw/android/native/06-notes-light.png",
-      "theme": "enjoy-light",
+      "file": "play/06-notes-dark.png",
+      "source": "raw/android/native/06-notes-dark.png",
+      "theme": "enjoy-dark",
       "headline": "A place for the things\nyou want to keep.",
       "caption": "Notes and checklists, without an alarm.",
-      "alt": "Enjoy Light Notes view showing a trip-packing checklist."
+      "alt": "Enjoy Dark Notes view showing a trip-packing checklist."
     },
     {
       "file": "play/07-assigned-dark.png",

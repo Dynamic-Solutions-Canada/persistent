@@ -6,19 +6,19 @@ Eight 1080 x 1920 RGB PNGs, with real app captures and synthetic data. Includes 
 
 Every reminder waits for your confirmation.
 
-![Enjoy Light Current view with plants, puppy, and a part-completed morning checklist.](00-current-light.png)
+![Enjoy Dark Current view with plants, puppy, and a part-completed morning checklist.](00-current-dark.png)
 
 ## Swipe it away? It comes back.
 
 Reminders return until you confirm they're done.
 
-![Real Pixel 9 Pro notification shade with four distinct synthetic reminders and expanded plant reminder Done and Snooze actions.](01-notification-shade.png)
+![Real Android notification shade, in dark mode, with four distinct synthetic reminders and the plant reminder's Done and Snooze actions expanded.](01-notification-shade-dark.png)
 
 ## Ignore it too long, it escalates.
 
 Unconfirmed reminders can become a ringing alarm.
 
-![Real Pixel 9 Pro escalated alarm for the synthetic Check the oven reminder, with native Done, Snooze, and De-escalate controls.](02-alarm-dark.png)
+![Real Android escalated alarm, in dark mode, for the synthetic Check the oven reminder, with native Done, Snooze, and De-escalate controls.](02-alarm-dark.png)
 
 ## Finish the task. Then mark it done.
 
@@ -30,7 +30,7 @@ Checklists, notes, and controls in one clear view.
 
 Medication reminders with names and doses.
 
-![Synthetic vitamin D reminder editor in Enjoy Light with a 1000 IU dose.](04-medication-light.png)
+![Synthetic vitamin D reminder editor in Enjoy Dark with a 1000 IU dose.](04-medication-dark.png)
 
 ## Share the reminder. Stay on the same page.
 
@@ -42,7 +42,7 @@ Plan together, or assign a task to one person.
 
 Notes and checklists, without an alarm.
 
-![Enjoy Light Notes view showing a trip-packing checklist.](06-notes-light.png)
+![Enjoy Dark Notes view showing a trip-packing checklist.](06-notes-dark.png)
 
 ## Know when it is done.
 

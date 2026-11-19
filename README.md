@@ -32,7 +32,7 @@
 
 <!-- These are the same synthetic-data mockups used by the Play listing. -->
 <p align="center">
-  <img src="store-assets/play/00-current-light.png" alt="Current reminders in Enjoy Light" height="400">
+  <img src="store-assets/play/00-current-dark.png" alt="Current reminders in Enjoy Dark" height="400">
   <img src="store-assets/play/03-checklist-dark.png" alt="Checklist and reminder controls in Enjoy Dark" height="400">
   <img src="store-assets/play/05-sharing-dark.png" alt="Sharing dialog with a staged sample recipient in Enjoy Dark" height="400">
 </p>
