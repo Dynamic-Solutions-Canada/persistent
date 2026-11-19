@@ -176,8 +176,8 @@ export function PrivacyPage() {
             browser to download a JSON file with your account, reminders and
             their history, sharing, assignments, and the names and dates of your
             passkeys and signed-in devices. It never contains sign-in secrets.
-            The Windows app opens this in your browser; on Android and Linux,
-            open the web app in a browser to download it.
+            The Windows, Android and Linux apps either open this in your browser
+            or tell you how to.
           </Typography>
         </Section>
 

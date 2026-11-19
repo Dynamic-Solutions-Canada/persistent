@@ -133,6 +133,11 @@ export interface AlarmPluginPlugin {
    */
   readNotices(): Promise<{ text: string }>
   /**
+   * Open one of the app's own pages in the system browser. The host refuses any
+   * other origin. Missing from older hosts, which reject with `UNIMPLEMENTED`.
+   */
+  openInBrowser(options: { url: string }): Promise<void>
+  /**
    * Set the device default shade prominence (for reminders set to INHERIT) and
    * re-post any live notifications so the change applies immediately.
    */

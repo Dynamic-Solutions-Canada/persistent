@@ -273,6 +273,27 @@ class AlarmPlugin : Plugin() {
         call.resolve(JSObject().put("text", text))
     }
 
+    /**
+     * Open one of the app's own pages in the system browser (A2), for what only a browser can
+     * do, such as downloading the account export. Capacitor keeps same-origin links inside the
+     * WebView, so the page cannot reach the browser with a link. Only the app's own origin is
+     * accepted ([OwnOriginUrl]); no session or token is ever passed, the user signs in there.
+     * Resolves when the browser was asked to open; rejects a refused URL or a missing browser.
+     */
+    @PluginMethod
+    fun openInBrowser(call: PluginCall) {
+        val url = OwnOriginUrl.allowed(call.getString("url"), bridge.appUrl) ?: run {
+            call.reject("url is not on the app's origin")
+            return
+        }
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            .addCategory(Intent.CATEGORY_BROWSABLE)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { activity.startActivity(intent) }
+            .onSuccess { call.resolve() }
+            .onFailure { call.reject("no browser to open the page") }
+    }
+
     /** Older web bundles' entry point; new ones call [openPermissionSettings] after explaining. */
     @PluginMethod
     fun requestOverlayPermission(call: PluginCall) {

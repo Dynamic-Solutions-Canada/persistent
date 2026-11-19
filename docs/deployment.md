@@ -72,7 +72,7 @@ A backup holds the same personal data and secrets as the live database and needs
 
 A signed-in user downloads their own data from **Settings > Account > Download my data** in a web browser: one JSON file, `persistent-export-YYYY-MM-DD.json`, dated in the account's time zone (UTC when that zone is not recognised). It holds the account details, every owned reminder with its settings, history and who it is shared with, reminders shared with the user (title, owner and the user's own alert state), assignments in both directions, and the names and dates of passkeys, sessions and push registrations. It never holds a credential: no session secret, passkey key, push endpoint or sign-in code. Timestamps in the file are UTC.
 
-The Windows app opens the page in the default browser. The Android and Linux apps show where to go instead, because they cannot yet open their own site in the browser. Each account can export three times an hour. See [account export](auth-architecture.md#account-export).
+The Windows and Android apps open the page in the default browser (an Android app older than this feature shows where to go instead). The Linux app shows where to go, because it cannot yet open its own site in the browser. Each account can export three times an hour. See [account export](auth-architecture.md#account-export).
 
 ### Account deletion
 

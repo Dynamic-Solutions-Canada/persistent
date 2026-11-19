@@ -131,7 +131,7 @@ ReminderSoundsField.tsx`). The reminder one is not a device preference wearing a
   drives the on-device alarm plugin: schedules alarms from `/api/sync/occurrences`,
   re-syncs live on WS events, and exposes `pickSound`. Guard every call behind
   `isNative()`; it's a no-op on the web. Started from `useAuth` after sign-in. The
-  same folder holds `DirectBuildMigrationNotice` and `UpdateSettings`, which
+  same folder holds `DirectBuildMigrationNotice` and `AppUpdateInformation`, which
   detect legacy direct builds with `hasNativeUpdater()` and explain why the
   new APK installs separately. Offer GitHub APK downloads and Google Play as
   equal choices; the Store is optional. GitHub now distributes the verified Google-signed Play APK;
