@@ -12,6 +12,13 @@ export const DEV_PORTS = Object.freeze({
 })
 
 export default {
+  /**
+   * devkit-init owns the dev runner, lifecycle scripts, paseo.json and the edit guard. The deploy
+   * script stays this repo's own until the generated one is adopted with its nginx and backup
+   * checks.
+   */
+  generated: { deploy: false },
+
   // Private worktree volumes removed by archive; shared caches remain.
   cleanup: { volumes: ["{project}_android-home"] },
 

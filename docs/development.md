@@ -94,9 +94,9 @@ baseline, applies migrations added by its branch, and prints both its proxied `*
 direct Vite URL. A standalone clone still needs an initial `npm install` to install Devkit itself.
 Persistent has no filesystem baseline paths, so snapshots contain database state only.
 
-`npm run dev:prepare-worktree` copies missing allowlisted local configuration,
-ensures checkout-local dependencies, generates the Prisma client, and builds the
-shared contracts. It is safe to repeat and does not start Docker, PostgreSQL,
+`npm run dev:prepare-worktree` copies missing allowlisted local configuration and
+ensures checkout-local dependencies (`devkit prepare`), then runs this repo's
+`dev:postprepare`, which generates the Prisma client and builds the shared contracts. It is safe to repeat and does not start Docker, PostgreSQL,
 the proxy, or the app. Preparation and development automatically select the Node
 version in `.nvmrc` from an existing nvm installation and check the pinned npm
 version, even when Paseo's shell uses a newer Node by default. They do not install
@@ -154,6 +154,8 @@ worktree volumes only after the final active workspace reference is archived; or
 run the `dev` script when you want to use it. Both hooks and all Scripts menu
 commands use the pinned runtime wrapper, so they do not depend on Paseo's host
 Node version or an interactive shell's nvm setup.
+
+`devkit-init` writes the dev runner (`scripts/dev/run-dev.mjs`), the `dev` and lifecycle npm scripts, `paseo.json` and the edit guard, and `npm run check:devkit` (part of `validate`) fails when one is stale or hand-edited; run `npm exec devkit-init` after every devkit bump. Inside the container the runner hands over to this repo's `dev:container` script: wait for the database, generate the Prisma client, apply migrations, build the shared package, then start the shared, API and web dev servers. Change those steps there, never in the runner.
 
 The Scripts menu exposes `dev-prepare-worktree`, `dev`, `dev-background`,
 `dev-down`, `dev-doctor`, `validate`, `test`, and `build`. Prefer the supervised
