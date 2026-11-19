@@ -158,6 +158,12 @@ function check(): void {
   for (const [store, shots] of Object.entries(manifest)) {
     if (store !== 'play' && store !== 'microsoft') continue
     if (selectedStore && selectedStore !== store) continue
+    // winui-app-kit's renderer checks the Microsoft images and the en-US captions
+    // (`npm run check:screenshots`); this keeps only the per-locale caption count.
+    if (store === 'microsoft') {
+      checkCaptions(shots.length)
+      continue
+    }
     if (shots.length < 4)
       throw new Error(`${store}: expected at least four curated screenshots`)
     if (store === 'play' && shots.length > 8)
@@ -168,7 +174,6 @@ function check(): void {
       console.log(`${store}: ${shot.file} (${width}x${height})`)
     }
     checkSingleCopy(store, shots)
-    if (store === 'microsoft') checkCaptions(shots.length)
   }
 }
 

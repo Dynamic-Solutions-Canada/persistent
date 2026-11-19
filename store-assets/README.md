@@ -108,40 +108,16 @@ or unrelated notification dismissal; an already clean real capture is preferable
 
 ## Microsoft Store
 
-Use the repository's desktop skill and `npm run install:desktop` to sideload the current working tree. Preserve the installed Store package. From Windows PowerShell 7, with repository scripts addressed using `wslpath -w`:
+The four Microsoft screenshots are the real tray flyout on the Windows 11 test VM (`windows-dev`), never on a personal desktop. `raw/microsoft/` holds each whole-desktop capture at 1:1 with the `.json` sidecar the capture helper writes; `microsoft/screenshots/` holds the listing images rendered from them. The manifest's `microsoft` entries follow winui-app-kit's schema (its `scripts/store/render-screenshots.py` header has the rules): each names its output under `microsoft/`, its `source`, `theme: "dark"`, `crop: "tray"`, the en-US caption and the alt text.
 
-```powershell
-./scripts/dev/store-desktop-session.ps1 -Action Start -DemoUrl http://localhost:<web-port>
-./scripts/dev/store-desktop-session.ps1 -Action Show
-```
-
-The capture session saves the original settings/process paths in Windows TEMP, uses a separate WebView profile, and opens the default unpinned 420 x 960 DIP flyout above the tray. It enables a process-local WebView debugging endpoint on port 9224 for demo sign-in and navigation. If needed, pass `-SessionRoot` to both Start and Stop. Start refuses to overwrite an existing restoration backup.
-
-Sign in to the demo account and capture Current Light, the checklist reading dialog Dark, vitamin reminder editor Light (with dose and Save visible; do not save), and Assigned by me Dark. Use the actual flyout. The helper can evaluate a JavaScript expression file through that WebView with `-ScriptFile`; defer navigation with `setTimeout` so the response returns before the context disappears. Pass `-DemoUrl` matching the session URL.
-
-```powershell
-./scripts/dev/capture-desktop-store.ps1 -DemoUrl http://localhost:<web-port> -Output <absolute-path>/store-assets/microsoft/01-current-light.png
-```
-
-The script captures a real 1440 x 1700 physical-pixel region at the monitor's bottom-right corner, including the default native flyout, desktop wallpaper, and taskbar. It preserves the captured pixels without scaling or adding a canvas. This framing keeps personal desktop shortcuts and centered app buttons outside the crop. Hide unrelated tray icons before capture, leaving Persistent and standard Windows controls visible; the script does not change tray settings or retouch icons. Temporarily minimize unrelated windows, reopen the flyout, and restore the windows after capturing. Keep the flyout unobscured; never include personal windows or reminders. No marketing copy or extra logos are added to Microsoft images.
-
-Always restore after the capture, including after a failure:
-
-```powershell
-./scripts/dev/store-desktop-session.ps1 -Action Stop
-```
-
-Verify the original settings and Store process are restored, then remove only the separate `Persistent.Desktop` dev package and this session's TEMP folder. If windows were manually minimized, restore them too. Do not uninstall the Store app or alter its signed-in profile.
+1. **Capture** with the windows-build-tools app-test helpers, in a throwaway session: an uncommitted compose override adds `-snapshot` (check it is in QEMU's command line before Windows boots) and the VirtIO display at 1920 x 1080, at 100% scaling. Connect the VM to the dev stack's network, forward the guest's `localhost:5173` to the web container, install the Debug dev package, and point the packaged app at the local origin: an MSIX app reads its settings from `%LOCALAPPDATA%\Packages\Persistent.Desktop_<publisher id>\LocalCache\Roaming\Persistent\settings.json`, not the real `%APPDATA%`, so check the origin before signing in. Sign in to the demo account only, through the WebView2 debug port (in the throwaway guest, the `HKLM` WebView2 `AdditionalBrowserArguments` policy for `Persistent.Desktop.exe` is the only route that enables it). Run `screenshot-desktop.ps1 -Mode Prepare` (dark theme, the `img19.jpg` wallpaper), dismiss announcements and the native-app promotion, open the default unpinned flyout from the tray, and save each view with `Save-DesktopCapture`: Current, the checklist reading dialog, the vitamin reminder editor (dose and Save visible; never saved) and Assigned by me, all in Enjoy Dark. Copy each `.png` and `.json` into `raw/microsoft/` under the manifest's names, run `app_test_clean`, disconnect the VM from the dev network, then recreate it from the base compose and stop it so nothing persists.
+2. **Render** with `npm run shots:render`, which also runs winui-app-kit's renderer: each capture is cropped to the manifest's `size` from the bottom-right of the screen, taskbar included, with nothing composited, shaved or scaled, and written without an alpha channel (ASSET-9). Recaptioning needs no recapture; a new look does. `npm run check:screenshots` (part of `validate`) checks the sidecars, the sizes, the dark theme and that the captions equal the en-US `screenshotCaptions` in `microsoft/listings.json`; `shots:check` checks that every listing locale has one caption per screenshot.
 
 ## Verify and review
 
 Run `npm run shots:check` and `npm run validate`. Generate the contact sheet without a browser using Windows PowerShell 7: `scripts/dev/render-store-review.ps1 -AssetsRoot <absolute Windows path to store-assets>`. It reads the saved PNGs and writes `review.png`, without changing the store exports. The HTML renderer also writes `render/review.html` for interactive review. Both previews adapt to the manifest's Play image count. Inspect every final image, not just dimensions: no clipped dialogs, loading frames, missing labels, personal data, stale themes, or duplicate reminder cards. Keep Play text above the phone and concise. Record the tested source revision and capture date when refreshing; do not upload screenshots for a theme that has not shipped without coordinating the app update.
 
-The Microsoft set was captured October 10, 2026 from the development working tree,
-using the sideloaded 0.5.8.2 native app. Play uses eight full-display Pixel 9 Pro captures. The six app views include
-the theme-aware Android status icon and gesture bar fix at `8c9e50e`; the
-notification and escalation captures were taken from source revision `0ed773f`.
-The native capture provenance is recorded in `raw/android/native/README.md`.
+The Microsoft set was captured November 19, 2026, between 4:02 p.m. and 4:04 p.m. Toronto time, on `windows-dev` (Windows 11 10.0.26200) with the Debug dev package of desktop 0.6.1 showing the web app from the development working tree at `9d75add`, signed in only to the protected synthetic demo account. Play uses eight full-display captures. The native capture provenance is recorded in `raw/android/native/README.md`.
 
 ## Publishing an approved refresh
 

@@ -68,6 +68,6 @@ figure { margin: 0; } img { width: 100%; display: block; border-radius: 6px; }
 </style><h1>Persistent: Google Play carousel</h1><div class="play">
 ${manifest.play.map((shot) => `<figure><img src="../${escape(shot.file)}" alt="${escape(shot.headline)}"></figure>`).join('')}
 </div><h2>Microsoft Store: native Windows tray flyout</h2><div class="desktop">
-${manifest.microsoft.map((shot) => `<figure><img src="../${escape(shot.file)}" alt="${escape(shot.alt)}"></figure>`).join('')}
+${manifest.microsoft.map((shot) => `<figure><img src="../microsoft/${escape(shot.file)}" alt="${escape(shot.alt)}"></figure>`).join('')}
 </div></html>`
 writeFileSync('store-assets/render/review.html', review)

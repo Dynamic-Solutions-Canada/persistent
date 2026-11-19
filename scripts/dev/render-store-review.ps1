@@ -35,7 +35,7 @@ try {
     $graphics.DrawString('Microsoft Store: actual Windows tray flyout',$heading,$ink,30,724)
     for ($index=0; $index -lt $manifest.microsoft.Count; $index++) {
         $shot = $manifest.microsoft[$index]
-        $image = [Drawing.Image]::FromFile((Join-Path $AssetsRoot $shot.file))
+        $image = [Drawing.Image]::FromFile((Join-Path (Join-Path $AssetsRoot 'microsoft') $shot.file))
         try { Draw-ContainedPreview $image (30+$index*542) 785 520 470 }
         finally { $image.Dispose() }
     }

@@ -32,8 +32,14 @@ async function loadAssets() {
   if (!version)
     throw new Error('Could not read <Version> from Directory.Build.props.')
   const notes = listingTexts('desktop', version)
-  for (const shot of manifest.microsoft) {
-    if (!/^microsoft\/[a-z0-9-]+\.png$/.test(shot.file))
+  // winui-app-kit's manifest schema names each screenshot under store-assets/microsoft/; the
+  // upload works with paths under store-assets/.
+  const shots = manifest.microsoft.map((shot) => ({
+    ...shot,
+    file: `microsoft/${shot.file}`,
+  }))
+  for (const shot of shots) {
+    if (!/^microsoft\/screenshots\/[a-z0-9-]+\.png$/.test(shot.file))
       throw new Error('Unexpected desktop screenshot path.')
     const bytes = await readFile(path.join(assetsRoot, shot.file))
     const size = pngSize(bytes)
@@ -59,10 +65,10 @@ async function loadAssets() {
         ]),
       ),
     },
-    manifest.microsoft,
+    shots,
     notes,
   )
-  return { shots: manifest.microsoft, notes }
+  return { shots, notes }
 }
 
 /** Create a short-lived authenticated API client; never print credentials, responses, or SAS URLs. */
