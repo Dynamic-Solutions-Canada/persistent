@@ -14,5 +14,9 @@
   "prepare_script": "apps/desktop/Persistent.DesktopMSIX/generate-msix-images.ps1",
   "signing": "shared-dev",
   "certificate_switch": "-CertPath",
-  "password_switch": "-CertPassword"
+  "password_switch": "-CertPassword",
+  "notices": {
+    "product_name": "Persistent for Windows",
+    "about_source": "apps/desktop/Persistent.Desktop/Pages/AboutLinks.cs"
+  }
 }

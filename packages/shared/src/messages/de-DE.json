@@ -977,5 +977,6 @@
   "empty.firings.description": "Hier erscheint jede Auslösung und wann sie erledigt wurde.",
   "empty.shared-with-me.title": "Nichts mit dir geteilt",
   "empty.other-apps.title": "Keine weiteren Apps",
-  "empty.shared-gone.title": "Nicht mehr geteilt"
+  "empty.shared-gone.title": "Nicht mehr geteilt",
+  "about.open-logs-folder": "Protokollordner öffnen"
 }

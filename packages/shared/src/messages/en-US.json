@@ -977,5 +977,6 @@
   "empty.firings.description": "Each firing and when it was handled show here.",
   "empty.shared-with-me.title": "Nothing shared with you",
   "empty.other-apps.title": "No other apps",
-  "empty.shared-gone.title": "No longer shared"
+  "empty.shared-gone.title": "No longer shared",
+  "about.open-logs-folder": "Open logs folder"
 }

@@ -91,6 +91,9 @@ internal static class HostSettings
             type = "hostSettings",
             settings = new
             {
+                // Optional at the bridge; tells the page this is Windows rather than leaving it
+                // to infer that from the transport (host contract gap #7).
+                platform = "windows",
                 // Query the OS each time, including after flyout resume. Locale
                 // defaults cannot represent the user's Windows clock override.
                 deviceTimeFormat = ReadDeviceTimeFormat(),

@@ -42,6 +42,9 @@ public sealed partial class AboutPage : Page
 
         SourceLink.NavigateUri = UpdateService.RepositoryUri;
         PrivacyLink.NavigateUri = new Uri($"{SettingsManager.Current.EffectiveServerUrl}/privacy");
+        SupportLink.NavigateUri = AboutLinks.Support(UpdateService.RepositoryUri);
+        LicenseLink.NavigateUri = AboutLinks.License(UpdateService.RepositoryUri);
+        NoticesLink.NavigateUri = AboutLinks.ThirdPartyNotices(UpdateService.RepositoryUri);
     }
 
     private async void UpdateButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)

@@ -134,6 +134,11 @@ writer of `settings.json`; the page holds no copy and persists nothing.
 - Bump tracked `<Version>` in `Directory.Build.props` for releases only. The
   shared helper increments a dev revision in disposable staging. Releases are
   tagged `desktop-vX.Y.Z` so they don't collide with the Android `vX.Y.Z` tags.
+- **Pre-release check (TEST-9) before a `desktop-vX.Y.Z` tag.** Install a dev-signed build in the `windows-dev` VM (`npm run package:desktop:dev` on the Windows build host, then the shared `vm/app-test` helpers; never the Windows host's own desktop) and record what was seen. Remove an item once a release has checked it; for the next release:
+  - Settings > About shows Source code, Privacy policy, Support, License, Third-party notices and Open logs folder in that order; take dark screenshots of it.
+  - Support and Third-party notices open the default browser; a non-https link is dropped, not handed to the shell.
+  - Google sign-in still opens inside the flyout (do not sign in); the app page loads and the flyout answers after a page reload.
+  - The installed package's publisher display name reads "Dynamic Solutions (CA)".
 - **Store identity in `Package.appxmanifest` is the Partner Center identity** and
   must not be "tidied". `build-msix.ps1` rewrites it for default sideload builds;
   `-Store` leaves it alone and skips signing. Explicit `-StoreIdentity` signs a

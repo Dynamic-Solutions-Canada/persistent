@@ -977,5 +977,6 @@
   "empty.firings.description": "每次触发及其处理时间会显示在这里。",
   "empty.shared-with-me.title": "没有与你共享的内容",
   "empty.other-apps.title": "没有其他应用",
-  "empty.shared-gone.title": "已不再共享"
+  "empty.shared-gone.title": "已不再共享",
+  "about.open-logs-folder": "打开日志文件夹"
 }

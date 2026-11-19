@@ -1,3 +1,6 @@
 [submodule "apps/desktop/external/promo"]
 	path = apps/desktop/external/promo
 	url = https://github.com/Dynamic-Solutions-Canada/apps-promo.git
+[submodule "apps/desktop/external/winui-app-kit"]
+	path = apps/desktop/external/winui-app-kit
+	url = https://github.com/Dynamic-Solutions-Canada/winui-app-kit.git

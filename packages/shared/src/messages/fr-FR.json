@@ -977,5 +977,6 @@
   "empty.firings.description": "Chaque déclenchement et le moment où il a été traité apparaissent ici.",
   "empty.shared-with-me.title": "Rien n’est partagé avec vous",
   "empty.other-apps.title": "Aucune autre application",
-  "empty.shared-gone.title": "N’est plus partagé"
+  "empty.shared-gone.title": "N’est plus partagé",
+  "about.open-logs-folder": "Ouvrir le dossier des journaux"
 }

@@ -977,5 +977,6 @@
   "empty.firings.description": "Cada disparo e quando foi resolvido aparecem aqui.",
   "empty.shared-with-me.title": "Nada compartilhado com você",
   "empty.other-apps.title": "Nenhum outro app",
-  "empty.shared-gone.title": "Não é mais compartilhado"
+  "empty.shared-gone.title": "Não é mais compartilhado",
+  "about.open-logs-folder": "Abrir pasta de logs"
 }

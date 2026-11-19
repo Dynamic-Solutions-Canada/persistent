@@ -977,5 +977,6 @@
   "empty.firings.description": "各通知と対応した日時がここに表示されます。",
   "empty.shared-with-me.title": "共有されたものはありません",
   "empty.other-apps.title": "ほかのアプリはありません",
-  "empty.shared-gone.title": "共有は終了しました"
+  "empty.shared-gone.title": "共有は終了しました",
+  "about.open-logs-folder": "ログ フォルダーを開く"
 }

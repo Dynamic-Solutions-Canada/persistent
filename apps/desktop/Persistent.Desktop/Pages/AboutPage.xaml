@@ -53,9 +53,13 @@
                     CornerRadius="8" Padding="16,12">
                 <StackPanel Spacing="8">
                     <TextBlock l10n:Localize.Text="Links" FontWeight="SemiBold" />
-                    <HyperlinkButton x:Name="SourceLink" l10n:Localize.Content="Source code on GitHub" Padding="0" />
+                    <!-- BRAND-8 order, with winui-app-kit's kit.about labels (the about.* keys). -->
+                    <HyperlinkButton x:Name="SourceLink" l10n:Localize.Content="about.source-code" Padding="0" />
                     <HyperlinkButton x:Name="PrivacyLink" l10n:Localize.Content="Privacy policy" Padding="0" />
-                    <HyperlinkButton x:Name="LogsLink" Click="LogsLink_Click" l10n:Localize.Content="Open the log folder" Padding="0" />
+                    <HyperlinkButton x:Name="SupportLink" l10n:Localize.Content="about.support" Padding="0" />
+                    <HyperlinkButton x:Name="LicenseLink" l10n:Localize.Content="about.license" Padding="0" />
+                    <HyperlinkButton x:Name="NoticesLink" l10n:Localize.Content="about.third-party-notices" Padding="0" />
+                    <HyperlinkButton x:Name="LogsLink" Click="LogsLink_Click" l10n:Localize.Content="about.open-logs-folder" Padding="0" />
                 </StackPanel>
             </Border>
         </StackPanel>

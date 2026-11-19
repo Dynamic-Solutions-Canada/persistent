@@ -102,6 +102,10 @@ jobs:
           global-json-file: apps/desktop/global.json
 
       - run: npm run test:desktop
+      # Windows third-party notices (HYG-3): restore the app, then hold the committed file to
+      # the restore graph (winui-app-kit's generator).
+      - run: dotnet restore apps/desktop/Persistent.Desktop/Persistent.Desktop.csproj -p:EnableWindowsTargeting=true
+      - run: npm run check:notices:desktop
 
   android-tests:
     name: Android unit tests

@@ -977,5 +977,6 @@
   "empty.firings.description": "Aquí aparecerá cada activación y cuándo se atendió.",
   "empty.shared-with-me.title": "No hay nada compartido contigo",
   "empty.other-apps.title": "No hay otras aplicaciones",
-  "empty.shared-gone.title": "Ya no se comparte"
+  "empty.shared-gone.title": "Ya no se comparte",
+  "about.open-logs-folder": "Abrir carpeta de registros"
 }

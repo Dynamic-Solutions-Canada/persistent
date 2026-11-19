@@ -15,3 +15,6 @@ trap 'rm -rf "$profile"' EXIT
 
 XDG_CONFIG_HOME="$profile" PERSISTENT_LOCALIZATION_TEST_PROFILE="$profile" \
   dotnet run --project "$repo_root/apps/desktop/tools/localization-tests" --configuration Release
+
+# The host's pure link, origin and About-link policies.
+dotnet run --project "$repo_root/apps/desktop/tools/host-tests" --configuration Release

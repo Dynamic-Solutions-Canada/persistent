@@ -22,5 +22,7 @@ The arm64 AppImage differs only in its native binary packages.
 The API server image runs only on the maintainer's server and is not
 distributed, so it has no notices file. The Android app generates its own notices
 at build time (AboutLibraries, apps/mobile/android-plugin/third-party-notices.gradle)
-into the APK, where the app's notices page shows them after the web list. Notices
-for the Windows app are not in place yet.
+into the APK, where the app's notices page shows them after the web list. The
+Windows app's notices are generated from its NuGet restore graph by winui-app-kit
+(apps/desktop/Persistent.Desktop/THIRD-PARTY-NOTICES.txt), ship beside the app,
+and are linked from its About page.

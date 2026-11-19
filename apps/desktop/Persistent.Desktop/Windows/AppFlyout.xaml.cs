@@ -314,13 +314,28 @@ public sealed partial class AppFlyout : Window
         instance.DispatcherQueue.TryEnqueue(() => instance.PostNavigate(path));
     }
 
+    /// <summary>
+    /// Post a message to the page, but only while the loaded document is on the app's origin
+    /// (gap #9): the flyout can also be showing Google's sign-in page. Returns whether it was sent.
+    /// </summary>
+    private bool PostToPage(string json)
+    {
+        if (!_webViewReady) return false;
+        if (!IsAppUrl(WebView.CoreWebView2.Source))
+        {
+            Logger.Debug("Held a page message while another origin is loaded");
+            return false;
+        }
+        WebView.CoreWebView2.PostWebMessageAsJson(json);
+        return true;
+    }
+
     private void PostNavigate(string path)
     {
         if (!_webViewReady) return;
         try
         {
-            WebView.CoreWebView2.PostWebMessageAsJson(
-                JsonSerializer.Serialize(new { type = "navigate", path }));
+            PostToPage(JsonSerializer.Serialize(new { type = "navigate", path }));
         }
         catch (Exception ex)
         {
@@ -453,6 +468,9 @@ public sealed partial class AppFlyout : Window
         core.NavigationStarting += OnNavigationStarting;
         core.NewWindowRequested += OnNewWindowRequested;
         core.NavigationCompleted += OnNavigationCompleted;
+        // A new document (including the page reloading itself after a web update) has not
+        // subscribed yet; hold navigate and widget refreshes until its pageReady (gap #13).
+        core.ContentLoading += (_, _) => _pageListening = false;
         core.ProcessFailed += OnProcessFailed;
 
         _webViewReady = true;
@@ -641,23 +659,19 @@ public sealed partial class AppFlyout : Window
         ShowError("Persistent stopped responding", UiText.Get("The embedded browser process ended. Reload to start it again."));
     }
 
-    private static bool IsAppUrl(string? uri)
-    {
-        if (string.IsNullOrEmpty(uri)) return false;
-        return Uri.TryCreate(uri, UriKind.Absolute, out var parsed)
-            && Uri.TryCreate(SettingsManager.Current.EffectiveServerUrl, UriKind.Absolute, out var origin)
-            && string.Equals(parsed.Host, origin.Host, StringComparison.OrdinalIgnoreCase)
-            && parsed.Port == origin.Port
-            && string.Equals(parsed.Scheme, origin.Scheme, StringComparison.OrdinalIgnoreCase);
-    }
+    private static bool IsAppUrl(string? uri) =>
+        FlyoutUrlPolicy.IsAppUrl(uri, SettingsManager.Current.EffectiveServerUrl);
 
-    private static bool IsSignInUrl(string? uri) =>
-        !string.IsNullOrEmpty(uri)
-        && Uri.TryCreate(uri, UriKind.Absolute, out var parsed)
-        && parsed.Host.Equals("accounts.google.com", StringComparison.OrdinalIgnoreCase);
+    private static bool IsSignInUrl(string? uri) => FlyoutUrlPolicy.IsSignInUrl(uri);
 
+    /// <summary>Hand an https link to the default browser; any other scheme is dropped (gap #10).</summary>
     private static void OpenExternally(string uri)
     {
+        if (!FlyoutUrlPolicy.IsBrowserUrl(uri))
+        {
+            Logger.Info("Dropped a link that is not https: {Uri}", uri);
+            return;
+        }
         try
         {
             Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });
@@ -882,7 +896,7 @@ public sealed partial class AppFlyout : Window
         try
         {
             string json = await HostSettings.BuildMessageJsonAsync();
-            WebView.CoreWebView2.PostWebMessageAsJson(json);
+            PostToPage(json);
         }
         catch (Exception ex)
         {
@@ -1031,7 +1045,7 @@ public sealed partial class AppFlyout : Window
         if (!_webViewReady) return;
         try
         {
-            WebView.CoreWebView2.PostWebMessageAsJson("{\"type\":\"checkForUpdate\"}");
+            PostToPage("{\"type\":\"checkForUpdate\"}");
         }
         catch (Exception ex)
         {
@@ -1068,8 +1082,7 @@ public sealed partial class AppFlyout : Window
 
         try
         {
-            WebView.CoreWebView2.PostWebMessageAsJson("{\"type\":\"refreshWidgetSnapshot\"}");
-            _pendingWidgetRefresh = false;
+            if (PostToPage("{\"type\":\"refreshWidgetSnapshot\"}")) _pendingWidgetRefresh = false;
         }
         catch (Exception ex)
         {
@@ -1319,7 +1332,7 @@ public sealed partial class AppFlyout : Window
         if (!_webViewReady) return;
         try
         {
-            WebView.CoreWebView2.PostWebMessageAsJson("{\"type\":\"back\"}");
+            PostToPage("{\"type\":\"back\"}");
         }
         catch (Exception ex)
         {
