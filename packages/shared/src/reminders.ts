@@ -289,7 +289,7 @@ export const todoItemListSchema = z.array(todoItemSchema).max(MAX_TODO_ITEMS)
 export type TodoItemList = z.infer<typeof todoItemListSchema>
 
 /** Loose JSON bag for per-type fields; medication uses `medicationDataSchema`, todo `todoItemSchema`. */
-export const typeDataSchema = z.record(z.unknown())
+export const typeDataSchema = z.record(z.string(), z.unknown())
 export type TypeData = z.infer<typeof typeDataSchema>
 
 // --- Display text shared by notifications + cards ---

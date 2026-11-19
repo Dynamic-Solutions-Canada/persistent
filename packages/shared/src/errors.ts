@@ -9,7 +9,9 @@ export const apiErrorSchema = z.object({
   /** Additive stable identifier. Legacy clients continue reading the English error field. */
   code: z.string().optional(),
   message: z.string().optional(),
-  parameters: z.record(z.union([z.string(), z.number()])).optional(),
+  parameters: z
+    .record(z.string(), z.union([z.string(), z.number()]))
+    .optional(),
 })
 
 export type ApiErrorBody = z.infer<typeof apiErrorSchema>

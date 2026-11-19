@@ -3264,7 +3264,7 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 
 ------------------------------------------------------------------------------
-zod@3.25.76
+zod@4.6.7
 License: MIT
 Publisher: Colin McDonnell <zod@colinhacks.com>
 Repository: https://github.com/colinhacks/zod

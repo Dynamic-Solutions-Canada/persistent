@@ -2,6 +2,8 @@
  * App bootstrap: start the auto-updating service worker, then mount React with
  * the Joy theme, TanStack Query, auth, and the router.
  */
+// First: zod's browser settings must apply before any schema is created (lib/zodConfig.ts).
+import './lib/zodConfig.js'
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
