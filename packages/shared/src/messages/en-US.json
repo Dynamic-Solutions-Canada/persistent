@@ -949,5 +949,12 @@
   "Alarms may be less reliable": "Alarms may be less reliable",
   "For alarms to ring reliably, Android needs Persistent to send notifications, set exact alarms, show full-screen alarms, display over other apps, and run in the background. Anything missing is listed at the top of the app, with a button that explains it before opening Android settings. You can set notification and alarm sounds and the default shade prominence in <c0>Settings</c0>.": "For alarms to ring reliably, Android needs Persistent to send notifications, set exact alarms, show full-screen alarms, display over other apps, and run in the background. Anything missing is listed at the top of the app, with a button that explains it before opening Android settings. You can set notification and alarm sounds and the default shade prominence in <c0>Settings</c0>.",
   "On the next screen, turn on notifications for Persistent.": "On the next screen, turn on notifications for Persistent.",
-  "Android may ask whether Persistent can send notifications. If it does, choose Allow.": "Android may ask whether Persistent can send notifications. If it does, choose Allow."
+  "Android may ask whether Persistent can send notifications. If it does, choose Allow.": "Android may ask whether Persistent can send notifications. If it does, choose Allow.",
+  "account.export.title": "Download my data",
+  "account.export.description": "A JSON file with your account, reminders, history, sharing and assignments. Sign-in secrets are never included.",
+  "account.export.download": "Download my data",
+  "account.export.browser-note": "The file downloads in your web browser. Sign in there if it asks.",
+  "account.export.open-browser": "Open in browser",
+  "account.export.instructions": "To download your data, open {{site}} in a web browser and choose Settings > Account > Download my data.",
+  "account.export.failed": "Couldn't download your data."
 }

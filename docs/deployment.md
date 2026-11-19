@@ -64,7 +64,9 @@ A backup holds the same personal data and secrets as the live database and needs
 
 ### Export
 
-**Not yet in place:** there is no self-service export of a user's reminders and history. Users can read everything they own in the app, but cannot download it. A "download my data" option, a JSON file of the user's own records, is planned, since store-listed products provide one (D-025).
+A signed-in user downloads their own data from **Settings > Account > Download my data** in a web browser: one JSON file, `persistent-export-YYYY-MM-DD.json`, dated in the account's time zone (UTC when that zone is not recognised). It holds the account details, every owned reminder with its settings, history and who it is shared with, reminders shared with the user (title, owner and the user's own alert state), assignments in both directions, and the names and dates of passkeys, sessions and push registrations. It never holds a credential: no session secret, passkey key, push endpoint or sign-in code. Timestamps in the file are UTC.
+
+The Windows app opens the page in the default browser. The Android and Linux apps show where to go instead, because they cannot yet open their own site in the browser. Each account can export three times an hour. See [account export](auth-architecture.md#account-export).
 
 ### Account deletion
 
@@ -74,5 +76,5 @@ Deleting the account removes, in one transaction, the user and everything that c
 
 - **Assignments the user received:** the creator keeps the progress record; an active assignment becomes declined, and the recipient's address is replaced by "(deleted account)".
 - **Reminders shared with the user by others:** they stay with their owners; only the user's access is removed.
-- **Operational logs:** the account's internal id stays in the API container's log ("account deleted") until it rotates out; container logs are capped at five 10 MB files. No email address or reminder content is logged.
+- **Operational logs:** the account's internal id stays in the API container's log ("account deleted", and "account exported" for each export) until it rotates out; container logs are capped at five 10 MB files. No email address or reminder content is logged.
 - **Backups:** a deleted account remains in server backups, and in pre-deploy dumps once they exist, taken before the deletion, until those expire.

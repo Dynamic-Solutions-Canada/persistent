@@ -949,5 +949,12 @@
   "Alarms may be less reliable": "Las alarmas pueden ser menos fiables",
   "For alarms to ring reliably, Android needs Persistent to send notifications, set exact alarms, show full-screen alarms, display over other apps, and run in the background. Anything missing is listed at the top of the app, with a button that explains it before opening Android settings. You can set notification and alarm sounds and the default shade prominence in <c0>Settings</c0>.": "Para que las alarmas suenen de forma fiable, Android necesita que Persistent pueda enviar notificaciones, configurar alarmas exactas, mostrar alarmas a pantalla completa, mostrarse sobre otras aplicaciones y funcionar en segundo plano. Lo que falte aparece en la parte superior de la app, con un botón que lo explica antes de abrir los ajustes de Android. Puedes elegir los sonidos de notificaciones y alarmas y la prominencia predeterminada en el panel en <c0>Ajustes</c0>.",
   "On the next screen, turn on notifications for Persistent.": "En la siguiente pantalla, activa las notificaciones de Persistent.",
-  "Android may ask whether Persistent can send notifications. If it does, choose Allow.": "Android puede preguntar si Persistent puede enviar notificaciones. Si lo hace, elige Permitir."
+  "Android may ask whether Persistent can send notifications. If it does, choose Allow.": "Android puede preguntar si Persistent puede enviar notificaciones. Si lo hace, elige Permitir.",
+  "account.export.title": "Descargar mis datos",
+  "account.export.description": "Un archivo JSON con tu cuenta, recordatorios, historial, elementos compartidos y asignaciones. Nunca incluye datos secretos de inicio de sesión.",
+  "account.export.download": "Descargar mis datos",
+  "account.export.browser-note": "El archivo se descarga en tu navegador. Inicia sesión allí si te lo pide.",
+  "account.export.open-browser": "Abrir en el navegador",
+  "account.export.instructions": "Para descargar tus datos, abre {{site}} en un navegador y elige Ajustes > Cuenta > Descargar mis datos.",
+  "account.export.failed": "No se han podido descargar tus datos."
 }

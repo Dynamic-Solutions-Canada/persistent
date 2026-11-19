@@ -281,6 +281,14 @@ Google Play requires both an in-app deletion path and a publicly reachable URL
 describing it; the latter is the privacy policy at `/privacy`, which is routed
 ahead of the auth gate so it resolves for a signed-out visitor.
 
+## Account export
+
+`GET /api/auth/me/export` returns the signed-in account's data as a JSON attachment (`AccountExport` in `packages/shared/src/account-export.ts`, built by `apps/api/src/lib/account-export.ts`). Every query is scoped by the authenticated user id, through the same grants as the app: owned rows by `userId`, received shares by `recipientId`, assignments by `creatorId` or `recipientId`. A reminder shared with the user contributes only its title, its owner's address and the user's own alert state. Secrets are never selected: no session hash, passkey credential id or public key, push endpoint, sign-in code or admin flag.
+
+A full copy of an account is the most valuable thing a stolen session can take, so the endpoint allows three exports per account per hour, far stricter than ordinary reads, and logs each one ("account exported", with the account id only). The response is `Cache-Control: no-store`.
+
+Only a browser saves the file. The web entry point is Settings > Account > Download my data. The Windows app opens Settings in the default browser; the Android and Linux apps cannot open their own origin in the browser yet, so they name the page to open instead. No session or token is ever put in a URL: the user signs in to the browser.
+
 ## App-store review access
 
 Every sign-in path needs something a reviewer doesn't have: a mailbox to receive

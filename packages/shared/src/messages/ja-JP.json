@@ -949,5 +949,12 @@
   "Alarms may be less reliable": "アラームの信頼性が下がる可能性があります",
   "For alarms to ring reliably, Android needs Persistent to send notifications, set exact alarms, show full-screen alarms, display over other apps, and run in the background. Anything missing is listed at the top of the app, with a button that explains it before opening Android settings. You can set notification and alarm sounds and the default shade prominence in <c0>Settings</c0>.": "アラームを確実に鳴らすには、Persistent に通知の送信、正確なアラームの設定、全画面アラームの表示、他のアプリの上への表示、バックグラウンドでの実行を Android で許可する必要があります。不足しているものはアプリの上部に表示され、Android の設定を開く前にボタンから説明を確認できます。通知音とアラーム音、通知シェードでの既定の表示は<c0>設定</c0>で変更できます。",
   "On the next screen, turn on notifications for Persistent.": "次の画面で Persistent の通知をオンにしてください。",
-  "Android may ask whether Persistent can send notifications. If it does, choose Allow.": "Persistent に通知の送信を許可するか Android が確認する場合があります。表示されたら「許可」を選んでください。"
+  "Android may ask whether Persistent can send notifications. If it does, choose Allow.": "Persistent に通知の送信を許可するか Android が確認する場合があります。表示されたら「許可」を選んでください。",
+  "account.export.title": "データをダウンロード",
+  "account.export.description": "アカウント、リマインダー、履歴、共有、割り当てを含む JSON ファイルです。サインイン用の秘密情報は含まれません。",
+  "account.export.download": "データをダウンロード",
+  "account.export.browser-note": "ファイルはウェブブラウザでダウンロードされます。求められた場合はブラウザでサインインしてください。",
+  "account.export.open-browser": "ブラウザで開く",
+  "account.export.instructions": "データをダウンロードするには、ウェブブラウザで {{site}} を開き、設定 > アカウント > データをダウンロード を選択してください。",
+  "account.export.failed": "データをダウンロードできませんでした。"
 }

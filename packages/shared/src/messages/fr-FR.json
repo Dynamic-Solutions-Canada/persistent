@@ -949,5 +949,12 @@
   "Alarms may be less reliable": "Les alarmes risquent d’être moins fiables",
   "For alarms to ring reliably, Android needs Persistent to send notifications, set exact alarms, show full-screen alarms, display over other apps, and run in the background. Anything missing is listed at the top of the app, with a button that explains it before opening Android settings. You can set notification and alarm sounds and the default shade prominence in <c0>Settings</c0>.": "Pour que les alarmes sonnent de façon fiable, Android doit autoriser Persistent à envoyer des notifications, définir des alarmes exactes, afficher des alarmes plein écran, s’afficher par-dessus les autres applications et s’exécuter en arrière-plan. Ce qui manque est indiqué en haut de l’application, avec un bouton qui l’explique avant d’ouvrir les paramètres d’Android. Vous pouvez choisir les sons de notification et d’alarme ainsi que la visibilité par défaut dans le volet dans les <c0>Paramètres</c0>.",
   "On the next screen, turn on notifications for Persistent.": "Sur l’écran suivant, activez les notifications de Persistent.",
-  "Android may ask whether Persistent can send notifications. If it does, choose Allow.": "Android peut demander si Persistent peut envoyer des notifications. Si c’est le cas, choisissez Autoriser."
+  "Android may ask whether Persistent can send notifications. If it does, choose Allow.": "Android peut demander si Persistent peut envoyer des notifications. Si c’est le cas, choisissez Autoriser.",
+  "account.export.title": "Télécharger mes données",
+  "account.export.description": "Un fichier JSON contenant votre compte, vos rappels, votre historique, vos partages et vos attributions. Les secrets de connexion ne sont jamais inclus.",
+  "account.export.download": "Télécharger mes données",
+  "account.export.browser-note": "Le fichier se télécharge dans votre navigateur. Connectez-vous-y si nécessaire.",
+  "account.export.open-browser": "Ouvrir dans le navigateur",
+  "account.export.instructions": "Pour télécharger vos données, ouvrez {{site}} dans un navigateur et choisissez Paramètres > Compte > Télécharger mes données.",
+  "account.export.failed": "Impossible de télécharger vos données."
 }

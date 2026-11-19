@@ -5,6 +5,7 @@
  * - POST /api/auth/verify-code   — verify, upsert the user, start a session.
  * - POST /api/auth/logout        — revoke the current session.
  * - GET  /api/auth/me            — current user or null.
+ * - GET  /api/auth/me/export     : download a copy of the account's data (rate-limited).
  * - DELETE /api/auth/me          — permanently delete the account and all its data.
  */
 import { Router } from 'express'
@@ -60,6 +61,10 @@ import { claimShareInvitations } from '../lib/share-invitations.js'
 import { claimPendingAssignments } from '../lib/assignments.js'
 import { initialAdminGrant } from '../lib/admin-access.js'
 import { broadcast } from '../lib/realtime.js'
+import {
+  accountExportFileName,
+  buildAccountExport,
+} from '../lib/account-export.js'
 
 export const authRouter = Router()
 
@@ -192,6 +197,35 @@ authRouter.get('/me', async (request, response) => {
   }
   const user = await prisma.user.findUnique({ where: { id: request.userId } })
   response.json({ user: user ? toSessionUser(user) : null })
+})
+
+/**
+ * Exports per account per hour. A full copy of an account is the most valuable thing a
+ * stolen session can take, so this is far stricter than ordinary reads.
+ */
+const EXPORTS_PER_HOUR = 3
+
+/**
+ * Download every record the signed-in account owns, as a JSON attachment (SEC-13).
+ * See `lib/account-export.ts` for what is included and what is never exported.
+ */
+authRouter.get('/me/export', async (request, response) => {
+  const userId = requireUserId(request)
+  if (!rateLimit(`account-export:${userId}`, EXPORTS_PER_HOUR, 60 * 60_000)) {
+    throw tooManyRequests('Too many requests. Try again later.')
+  }
+  const now = new Date()
+  const data = await buildAccountExport(userId, now)
+  const fileName = accountExportFileName(data.account.timeZone, now)
+
+  response.setHeader('Cache-Control', 'no-store')
+  response.setHeader(
+    'Content-Disposition',
+    `attachment; filename="${fileName}"`,
+  )
+  response.type('application/json')
+  response.send(`${JSON.stringify(data, null, 2)}\n`)
+  logger.info('account exported', { userId })
 })
 
 /** Update only the authenticated account's explicit email language. */

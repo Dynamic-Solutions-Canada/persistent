@@ -53,7 +53,7 @@ Most reminder apps fire once and are easy to swipe away. Persistent keeps naggin
 - **Assign a reminder:** create one for a single other person. They own its alerts and actions; you can see when each firing was handled in Assigned by me. They can decline it.
 - **Medication reminders:** keep a medicine name and dose with a reminder. Persistent helps you remember; it does not provide medical advice.
 - **Simple sign-in:** a one-time email code, a passkey, or Sign in with Google. There is no password to forget or leak.
-- **Your data stays yours:** no ads or third-party trackers, and Persistent collects no telemetry or crash reports. Administrators can view aggregate service activity and feature usage counts from the service's own database. Delete your account and everything in it from **Settings > Account** at any time; see the [privacy policy](https://persistent.dynamic-solutions.ca/privacy).
+- **Your data stays yours:** no ads or third-party trackers, and Persistent collects no telemetry or crash reports. Administrators can view aggregate service activity and feature usage counts from the service's own database. Download a copy of your data, or delete your account and everything in it, from **Settings > Account** at any time; see the [privacy policy](https://persistent.dynamic-solutions.ca/privacy).
 
 ## Get it
 

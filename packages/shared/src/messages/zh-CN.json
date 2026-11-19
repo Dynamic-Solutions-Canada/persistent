@@ -949,5 +949,12 @@
   "Alarms may be less reliable": "闹钟的可靠性可能会降低",
   "For alarms to ring reliably, Android needs Persistent to send notifications, set exact alarms, show full-screen alarms, display over other apps, and run in the background. Anything missing is listed at the top of the app, with a button that explains it before opening Android settings. You can set notification and alarm sounds and the default shade prominence in <c0>Settings</c0>.": "要让闹钟可靠响铃，Android 需要允许 Persistent 发送通知、设置精确闹钟、显示全屏闹钟、显示在其他应用上层以及在后台运行。缺少的权限会列在应用顶部，并附有按钮，在打开 Android 设置前先加以说明。你可以在<c0>设置</c0>中设置通知和闹钟铃声，以及通知栏中的默认显示方式。",
   "On the next screen, turn on notifications for Persistent.": "请在下一个界面中为 Persistent 开启通知。",
-  "Android may ask whether Persistent can send notifications. If it does, choose Allow.": "Android 可能会询问是否允许 Persistent 发送通知。如果出现询问，请选择“允许”。"
+  "Android may ask whether Persistent can send notifications. If it does, choose Allow.": "Android 可能会询问是否允许 Persistent 发送通知。如果出现询问，请选择“允许”。",
+  "account.export.title": "下载我的数据",
+  "account.export.description": "一个 JSON 文件，包含你的账户、提醒、历史记录、共享和分配。绝不包含登录密钥。",
+  "account.export.download": "下载我的数据",
+  "account.export.browser-note": "文件将在你的网页浏览器中下载。如有提示，请在浏览器中登录。",
+  "account.export.open-browser": "在浏览器中打开",
+  "account.export.instructions": "要下载你的数据，请在网页浏览器中打开 {{site}}，然后选择 设置 > 账户 > 下载我的数据。",
+  "account.export.failed": "无法下载你的数据。"
 }

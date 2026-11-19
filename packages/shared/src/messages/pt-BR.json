@@ -949,5 +949,12 @@
   "Alarms may be less reliable": "Os alarmes podem ficar menos confiáveis",
   "For alarms to ring reliably, Android needs Persistent to send notifications, set exact alarms, show full-screen alarms, display over other apps, and run in the background. Anything missing is listed at the top of the app, with a button that explains it before opening Android settings. You can set notification and alarm sounds and the default shade prominence in <c0>Settings</c0>.": "Para que os alarmes toquem de forma confiável, o Android precisa permitir que o Persistent envie notificações, defina alarmes exatos, mostre alarmes em tela cheia, apareça sobre outros apps e funcione em segundo plano. O que estiver faltando aparece no topo do app, com um botão que explica antes de abrir as configurações do Android. Você pode definir os sons de notificação e alarme e o destaque padrão na aba de notificações em <c0>Configurações</c0>.",
   "On the next screen, turn on notifications for Persistent.": "Na próxima tela, ative as notificações do Persistent.",
-  "Android may ask whether Persistent can send notifications. If it does, choose Allow.": "O Android pode perguntar se o Persistent pode enviar notificações. Se perguntar, escolha Permitir."
+  "Android may ask whether Persistent can send notifications. If it does, choose Allow.": "O Android pode perguntar se o Persistent pode enviar notificações. Se perguntar, escolha Permitir.",
+  "account.export.title": "Baixar meus dados",
+  "account.export.description": "Um arquivo JSON com sua conta, lembretes, histórico, compartilhamentos e atribuições. Segredos de login nunca são incluídos.",
+  "account.export.download": "Baixar meus dados",
+  "account.export.browser-note": "O arquivo é baixado no seu navegador. Entre na sua conta lá, se for solicitado.",
+  "account.export.open-browser": "Abrir no navegador",
+  "account.export.instructions": "Para baixar seus dados, abra {{site}} em um navegador e escolha Configurações > Conta > Baixar meus dados.",
+  "account.export.failed": "Não foi possível baixar seus dados."
 }

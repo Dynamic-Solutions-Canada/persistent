@@ -1,6 +1,7 @@
 /**
- * Thin fetch wrapper for JSON endpoints. Sends cookies by default, throws a typed
- * ApiError on non-2xx, and parses the JSON body. Use this instead of bare fetch.
+ * Thin fetch wrapper for JSON endpoints (`apiFetch`) and file attachments
+ * (`apiDownload`). Sends cookies by default, throws a typed ApiError on non-2xx,
+ * and parses the JSON body. Use this instead of bare fetch.
  * Public external requests must explicitly set credentials to 'omit'.
  */
 import { LOCALE_HEADER } from '@persistent/shared'
@@ -21,6 +22,30 @@ export async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
+  const response = await send(path, options)
+  const text = await response.text()
+  return (text ? safeParse(text) : null) as T
+}
+
+/**
+ * Fetch a same-origin file attachment, such as the account export, with the same
+ * cookies, locale header and typed errors as `apiFetch`.
+ *
+ * @returns the body and the file name from `Content-Disposition`, or null when the
+ *   server named none.
+ */
+export async function apiDownload(
+  path: string,
+  options: RequestInit = {},
+): Promise<{ blob: Blob; fileName: string | null }> {
+  const response = await send(path, options)
+  const disposition = response.headers.get('content-disposition') ?? ''
+  const fileName = /filename="([^"]+)"/.exec(disposition)?.[1] ?? null
+  return { blob: await response.blob(), fileName }
+}
+
+/** Send one request with the shared headers, throwing `ApiError` on a non-2xx status. */
+async function send(path: string, options: RequestInit): Promise<Response> {
   // Public promo requests can be cross-origin and must carry no device metadata.
   const headers = new Headers(options.headers)
   if (options.body && !headers.has('content-type'))
@@ -34,20 +59,17 @@ export async function apiFetch<T>(
     ...options,
     headers,
   })
+  if (response.ok) return response
 
   const text = await response.text()
   const body = text ? safeParse(text) : null
-
-  if (!response.ok) {
-    throw new ApiError(
-      response.status,
-      extractErrorMessage(
-        localizedErrorBody(body),
-        `Request failed (${response.status}).`,
-      ),
-    )
-  }
-  return body as T
+  throw new ApiError(
+    response.status,
+    extractErrorMessage(
+      localizedErrorBody(body),
+      `Request failed (${response.status}).`,
+    ),
+  )
 }
 
 function safeParse(text: string): unknown {

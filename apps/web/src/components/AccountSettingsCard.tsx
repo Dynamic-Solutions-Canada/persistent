@@ -1,4 +1,4 @@
-/** One account settings surface for identity, passkeys, sign-out, and deletion. */
+/** One account settings surface for identity, passkeys, sign-out, data export, and deletion. */
 import { useTranslation, Trans } from 'react-i18next'
 import { tr } from '../localization/i18n.js'
 import { Link as RouterLink } from 'react-router-dom'
@@ -12,6 +12,7 @@ import { EmailLanguageSelect } from '../localization/EmailLanguageSelect.js'
 import { useAuth } from '../auth/useAuth.js'
 import { PasskeysSection } from './PasskeysSection.js'
 import { DeleteAccountSection } from './DeleteAccountSection.js'
+import { AccountExportSection } from './AccountExportSection.js'
 
 export function AccountSettingsCard() {
   useTranslation()
@@ -42,6 +43,8 @@ export function AccountSettingsCard() {
         <EmailLanguageSelect />
         <Divider />
         <PasskeysSection />
+        <Divider />
+        <AccountExportSection />
         {/* Keep the irreversible action at the bottom, apart from everyday controls. */}
         <Divider />
         <DeleteAccountSection />

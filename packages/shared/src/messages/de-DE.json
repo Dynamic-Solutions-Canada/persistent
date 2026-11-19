@@ -949,5 +949,12 @@
   "Alarms may be less reliable": "Alarme sind möglicherweise weniger zuverlässig",
   "For alarms to ring reliably, Android needs Persistent to send notifications, set exact alarms, show full-screen alarms, display over other apps, and run in the background. Anything missing is listed at the top of the app, with a button that explains it before opening Android settings. You can set notification and alarm sounds and the default shade prominence in <c0>Settings</c0>.": "Damit Alarme zuverlässig klingeln, braucht Persistent unter Android die Erlaubnis, Benachrichtigungen zu senden, exakte Alarme einzurichten, Vollbildalarme anzuzeigen, über anderen Apps einzublenden und im Hintergrund zu laufen. Was fehlt, wird oben in der App aufgeführt, mit einer Schaltfläche, die es erklärt, bevor die Android-Einstellungen geöffnet werden. Benachrichtigungs- und Alarmtöne sowie die Standardanzeige in der Benachrichtigungsleiste legst du in den <c0>Einstellungen</c0> fest.",
   "On the next screen, turn on notifications for Persistent.": "Schalte auf dem nächsten Bildschirm die Benachrichtigungen für Persistent ein.",
-  "Android may ask whether Persistent can send notifications. If it does, choose Allow.": "Android fragt eventuell, ob Persistent Benachrichtigungen senden darf. Falls ja, wähle Zulassen."
+  "Android may ask whether Persistent can send notifications. If it does, choose Allow.": "Android fragt eventuell, ob Persistent Benachrichtigungen senden darf. Falls ja, wähle Zulassen.",
+  "account.export.title": "Meine Daten herunterladen",
+  "account.export.description": "Eine JSON-Datei mit deinem Konto, deinen Erinnerungen, deinem Verlauf, deinen Freigaben und Zuweisungen. Anmeldegeheimnisse sind nie enthalten.",
+  "account.export.download": "Meine Daten herunterladen",
+  "account.export.browser-note": "Die Datei wird in deinem Webbrowser heruntergeladen. Melde dich dort an, falls du dazu aufgefordert wirst.",
+  "account.export.open-browser": "Im Browser öffnen",
+  "account.export.instructions": "Um deine Daten herunterzuladen, öffne {{site}} in einem Webbrowser und wähle Einstellungen > Konto > Meine Daten herunterladen.",
+  "account.export.failed": "Deine Daten konnten nicht heruntergeladen werden."
 }

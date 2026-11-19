@@ -13,7 +13,7 @@ import Link from '@mui/joy/Link'
 // Also the contact address on the Play listing — Google verifies it routes.
 const CONTACT_EMAIL = 'contact@dynamic-solutions.ca'
 
-const LAST_UPDATED = '21 October 2026'
+const LAST_UPDATED = '18 November 2026'
 
 function Section({
   title,
@@ -167,6 +167,17 @@ export function PrivacyPage() {
             an assignee declines and is deleted when the creator deletes their
             account. Sign-in codes expire within minutes. Sessions expire on
             their own and can be revoked by signing out.
+          </Typography>
+        </Section>
+
+        <Section title="Getting a copy of your data">
+          <Typography level="body-sm">
+            Open <strong>Settings → Account → Download my data</strong> in a web
+            browser to download a JSON file with your account, reminders and
+            their history, sharing, assignments, and the names and dates of your
+            passkeys and signed-in devices. It never contains sign-in secrets.
+            The Windows app opens this in your browser; on Android and Linux,
+            open the web app in a browser to download it.
           </Typography>
         </Section>
 
