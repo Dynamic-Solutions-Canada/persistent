@@ -3,7 +3,7 @@ import type {
   OccurrenceStatus,
   RecipientAlertState,
   ReminderOccurrence,
-} from '@prisma/client'
+} from '../generated/prisma/client.js'
 import { prisma } from './prisma.js'
 
 const TERMINAL_OR_FUTURE: OccurrenceStatus[] = [

@@ -1,7 +1,7 @@
 /** Concurrent editors must compare their original state under the sharing lock. */
 import assert from 'node:assert/strict'
 import { beforeEach, test } from 'node:test'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '../generated/prisma/client.js'
 import type { Request, Response } from 'express'
 import {
   MAX_TODO_ITEMS,

@@ -1,7 +1,7 @@
 /** Re-sharing must preserve the original inviter, including registration/claim overlap. */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '../generated/prisma/client.js'
 import type { Request, Response } from 'express'
 
 process.env.DATABASE_URL ??= 'postgresql://localhost:5432/test'

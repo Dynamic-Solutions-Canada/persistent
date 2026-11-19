@@ -1,6 +1,6 @@
 /** Activate pending assignments when the invited address signs in. */
 import { assignmentCreateSchema } from '@persistent/shared'
-import { Prisma } from '@prisma/client'
+import { Prisma } from '../generated/prisma/client.js'
 import { prisma } from './prisma.js'
 import { toReminderData } from './reminder-data.js'
 import {

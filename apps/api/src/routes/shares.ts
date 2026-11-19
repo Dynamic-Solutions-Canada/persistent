@@ -19,7 +19,7 @@ import { nudgeNativeSync } from '../lib/delivery/index.js'
 import { logger } from '../lib/logger.js'
 import { toCheckedItemIds, toReminder } from '../lib/serializers.js'
 import { expandSchedule } from '../lib/schedule-expand.js'
-import type { Prisma } from '@prisma/client'
+import type { Prisma } from '../generated/prisma/client.js'
 
 import {
   withSharingReminder,

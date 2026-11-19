@@ -1,5 +1,5 @@
 /** Map a validated reminder input to Prisma columns for both owner and assignee creation. */
-import type { Prisma } from '@prisma/client'
+import type { Prisma } from '../generated/prisma/client.js'
 import { reminderInputSchema } from '@persistent/shared'
 
 /** Keep ownership outside this mapping so callers choose the actual reminder owner. */

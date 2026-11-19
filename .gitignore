@@ -3,6 +3,8 @@
 # Web: dependencies and build output.
 node_modules/
 dist/
+# The Prisma client, generated into the API's source tree by `npm run db:generate`.
+/apps/api/src/generated/
 .vite/
 *.tsbuildinfo
 coverage/

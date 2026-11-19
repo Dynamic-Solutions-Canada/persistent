@@ -1,5 +1,5 @@
 /** Membership management requires an explicit current grant; ownership never transfers. */
-import type { Prisma } from '@prisma/client'
+import type { Prisma } from '../generated/prisma/client.js'
 import { notFound } from './http-error.js'
 import { prisma } from './prisma.js'
 import { broadcast } from './realtime.js'

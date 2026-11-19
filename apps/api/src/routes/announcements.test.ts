@@ -2,7 +2,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import type { Request, Response } from 'express'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '../generated/prisma/client.js'
 
 process.env.DATABASE_URL ??= 'postgresql://localhost:5432/test'
 // Prisma delegates are proxies whose virtual methods Node's mock tracker cannot

@@ -1,7 +1,7 @@
 /** Undo must remove an accidental completion from the creator's progress record too. */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '../generated/prisma/client.js'
 process.env.DATABASE_URL ??= 'postgresql://localhost:5432/test'
 let latestDone: { acknowledgedAt: Date } | null = null
 const writes: unknown[] = []

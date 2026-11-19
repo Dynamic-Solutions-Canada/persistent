@@ -9,7 +9,7 @@
  * keeps the occurrence FIRED/nagging, and suppresses any further escalation.
  */
 import { Router } from 'express'
-import type { ReminderOccurrence } from '@prisma/client'
+import type { ReminderOccurrence } from '../generated/prisma/client.js'
 import {
   checkItemInputSchema,
   undoDoneInputSchema,

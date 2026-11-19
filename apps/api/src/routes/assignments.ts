@@ -2,7 +2,7 @@ import { recipientEmailLocale } from '../lib/email-locale.js'
 /** Create an assignee-owned reminder and expose creator-only progress. */
 import { Router } from 'express'
 import { assignmentCreateSchema, type Assignment } from '@persistent/shared'
-import { Prisma } from '@prisma/client'
+import { Prisma } from '../generated/prisma/client.js'
 import { prisma } from '../lib/prisma.js'
 import { requireUser, requireUserId } from '../lib/auth-middleware.js'
 import {

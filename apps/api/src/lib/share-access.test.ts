@@ -1,7 +1,7 @@
 /** Checklist access must require ownership or an explicit grant for the actor and reminder. */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '../generated/prisma/client.js'
 
 process.env.DATABASE_URL ??= 'postgresql://localhost:5432/test'
 // Prisma delegates expose virtual methods; replace the database boundary before import.

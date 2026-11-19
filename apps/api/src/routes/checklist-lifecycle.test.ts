@@ -1,7 +1,7 @@
 /** Checklist progress cannot alter completed firings or outlive a revoked grant. */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '../generated/prisma/client.js'
 import type { Request, Response } from 'express'
 
 process.env.DATABASE_URL ??= 'postgresql://localhost:5432/test'

@@ -241,7 +241,8 @@ async function start() {
         'node',
         '--input-type=module',
         '-e',
-        "import {PrismaClient} from '@prisma/client';const p=new PrismaClient();console.log(JSON.stringify((await p.user.findMany({select:{email:true},orderBy:{email:'asc'}})).map(u=>u.email)));await p.$disconnect()",
+        // Plain pg: an inline script cannot load the generated TypeScript Prisma client.
+        "import pg from 'pg';const c=new pg.Client({connectionString:process.env.DATABASE_URL});await c.connect();const r=await c.query('SELECT email FROM \"User\" ORDER BY email ASC');console.log(JSON.stringify(r.rows.map(u=>u.email)));await c.end()",
       ]),
     )
     if (

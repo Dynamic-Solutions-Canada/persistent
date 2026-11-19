@@ -1,5 +1,5 @@
 /** Database aggregates only: no reminder content, account identities or session credentials are loaded. */
-import { Prisma } from '@prisma/client'
+import { Prisma } from '../generated/prisma/client.js'
 import {
   adminStatsSchema,
   reminderStatLabels,

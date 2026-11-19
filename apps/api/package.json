@@ -4,19 +4,20 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "prisma generate && tsc -p tsconfig.json",
     "predev": "npm run build --workspace @persistent/shared",
     "dev": "tsx watch --include \"../../packages/shared/dist/**\" src/server.ts",
     "start": "node dist/server.js",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "prisma generate && tsc --noEmit -p tsconfig.json",
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
-    "prisma:validate": "DATABASE_URL=\"${DATABASE_URL:-postgresql://validate-only@localhost:5432/validate-only}\" prisma validate"
+    "prisma:validate": "prisma validate"
   },
   "dependencies": {
     "@persistent/shared": "0.1.0",
-    "@prisma/client": "6.19.3",
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
     "@simplewebauthn/server": "13.3.3",
     "cors": "2.8.6",
     "dotenv": "16.6.1",
@@ -24,6 +25,7 @@
     "google-auth-library": "10.9.1",
     "helmet": "8.3.0",
     "luxon": "3.7.2",
+    "pg": "8.23.1",
     "ws": "8.23.0",
     "zod": "4.6.7"
   },
@@ -32,8 +34,9 @@
     "@types/express": "5.0.6",
     "@types/luxon": "3.7.6",
     "@types/node": "24.19.2",
+    "@types/pg": "8.23.1",
     "@types/ws": "8.18.2",
-    "prisma": "6.19.3",
+    "prisma": "7.10.1",
     "tsx": "4.23.15"
   }
 }

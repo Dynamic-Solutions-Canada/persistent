@@ -5,15 +5,18 @@
 // See docs/backend-conventions.md.
 
 generator client {
-  provider      = "prisma-client-js"
-  // "native" for local dev; the Debian openssl-3.0 target matches the production
-  // runtime image (bookworm) so the query engine is found there.
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
+  // Prisma 7's TypeScript client, generated into the API's source (gitignored) by
+  // `npm run db:generate`. It talks to Postgres through the pg adapter (lib/prisma-client.ts),
+  // so there is no query engine binary to target.
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
 }
 
+// The connection URL lives in prisma.config.ts (CLI) and lib/prisma-client.ts (runtime).
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 /// What kind of thing a reminder is; selects the extra fields it carries in

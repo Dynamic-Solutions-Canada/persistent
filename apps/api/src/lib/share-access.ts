@@ -1,7 +1,7 @@
 /** Access checks for shared reminder actions; an explicit grant permits collaboration. */
 import { prisma } from './prisma.js'
 import { broadcast } from './realtime.js'
-import type { ReminderOccurrence } from '@prisma/client'
+import type { ReminderOccurrence } from '../generated/prisma/client.js'
 import { occurrenceForActor } from './recipient-alert-state.js'
 import { nudgeNativeSync } from './delivery/index.js'
 import { logger } from './logger.js'

@@ -24,6 +24,8 @@ before it starts the watchers. Schema changes still need a real migration from
 `npm run db:migrate -- <name>`; startup never substitutes `db push` for migration
 history.
 
+Prisma 7 generates its TypeScript client into `apps/api/src/generated/prisma` (gitignored; `npm run db:generate`, which the API's `typecheck` and `build` also run), and the client reaches Postgres through the pg adapter. `apps/api/prisma.config.ts` gives the CLI its schema, migrations and `DATABASE_URL`, with a placeholder so `generate` and `validate` run without a database. Feature code imports `prisma` from `lib/prisma.ts`; scripts build a client with `createPrismaClient` from `lib/prisma-client.ts`, which owns the pool limits and keeps argument values out of Prisma's log lines. Prisma 7 refuses destructive commands such as `prisma migrate reset` and `prisma db push --force-reset` when an AI agent runs them, until a person consents: run those yourself, and never set the consent variable for an agent.
+
 `validate` and `test` stay toolchain-free, so they run anywhere with Node. Three suites need a native toolchain and run as their own CI jobs, and in the gate of every publishing workflow, rather than inside `validate`:
 
 - `npm run test:desktop`: the Windows app's portable localization harness, which needs the .NET SDK (in the development container).

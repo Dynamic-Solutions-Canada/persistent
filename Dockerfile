@@ -7,8 +7,8 @@
 # --- build stage ---
 FROM node:24.22.3-bookworm-slim AS build
 WORKDIR /app
-# OpenSSL so `prisma generate` detects the right engine (debian-openssl-3.0.x),
-# matching the runtime image.
+# OpenSSL so Prisma's install fetches the schema engine (used by `prisma migrate deploy`)
+# for debian-openssl-3.0.x, matching the runtime image.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends openssl \
  && rm -rf /var/lib/apt/lists/*
@@ -31,7 +31,7 @@ RUN npm run db:generate \
 # --- runtime stage ---
 FROM node:24.22.3-bookworm-slim AS runtime
 WORKDIR /app
-# Prisma needs OpenSSL at runtime.
+# Prisma's schema engine needs OpenSSL when migrations run at startup.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends openssl ca-certificates \
  && rm -rf /var/lib/apt/lists/*
@@ -40,8 +40,9 @@ ENV NODE_ENV=production
 ENV API_PORT=4000
 ENV WEB_DIST_DIR=/app/apps/web/dist
 
-# Copy the built workspace (node_modules carries the generated Prisma client and
-# the @persistent/shared workspace symlink; prisma CLI is present for migrations).
+# Copy the built workspace (the API's dist carries the generated Prisma client,
+# node_modules the @persistent/shared workspace symlink and the prisma CLI for
+# migrations).
 # The copied files are owned by the image's unprivileged `node` user (SEC-7) and
 # the app runs as that user, never root. /app itself stays root-owned. The API
 # keeps no data in the container (Postgres holds it), so nothing needs to write

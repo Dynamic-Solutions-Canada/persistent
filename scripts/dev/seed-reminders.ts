@@ -13,9 +13,10 @@
  * nothing else: the account, passkeys and sessions are untouched, so seeding never
  * signs you out.
  */
-import { PrismaClient, type OccurrenceStatus } from '@prisma/client'
+import type { OccurrenceStatus } from '../../apps/api/src/generated/prisma/client.js'
+import { createPrismaClient } from '../../apps/api/src/lib/prisma-client.js'
 
-const prisma = new PrismaClient()
+const prisma = createPrismaClient(process.env.DATABASE_URL ?? '')
 
 const args = process.argv.slice(2)
 const emailArg = args.find((a) => a.startsWith('--email='))?.split('=')[1]

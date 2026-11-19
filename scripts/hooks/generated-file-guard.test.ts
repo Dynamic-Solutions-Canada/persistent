@@ -153,9 +153,10 @@ test('the header check can be turned off, and a missing config means defaults', 
   })
 })
 
-test("this repo's config protects the Capacitor Android project and the icon exports", () => {
+test("this repo's config protects the Capacitor Android project, the icon exports and the Prisma client", () => {
   assert.deepEqual(loadConfig().generatedDirectories, [
     'apps/mobile/android',
     'assets/generated',
+    'apps/api/src/generated',
   ])
 })

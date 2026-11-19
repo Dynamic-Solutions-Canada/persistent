@@ -3,7 +3,7 @@
  * channel (FCM, Windows toast, escalation email) shows consistent text. Shares the
  * body formatter with the web client via @persistent/shared.
  */
-import type { Reminder } from '@prisma/client'
+import type { Reminder } from '../generated/prisma/client.js'
 import {
   message,
   type Locale,

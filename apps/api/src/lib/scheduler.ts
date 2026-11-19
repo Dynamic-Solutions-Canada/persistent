@@ -21,7 +21,7 @@ import type {
   OccurrenceStatus,
   Reminder,
   ReminderOccurrence,
-} from '@prisma/client'
+} from '../generated/prisma/client.js'
 import type { PushPayload, Schedule } from '@persistent/shared'
 import { isTimeless } from '@persistent/shared'
 import { prisma } from './prisma.js'

@@ -43,7 +43,7 @@ The overview, subsystem documents and the list of where data lives are in `ARCHI
 
 - API HTTP errors: throw `HttpError`, `badRequest`, `notFound` and friends from `apps/api/src/lib/http-error.ts`.
 - API env: import `env` from `apps/api/src/lib/env.ts`; never read `process.env` in feature code.
-- Prisma: import `prisma` from `apps/api/src/lib/prisma.ts`.
+- Prisma: import `prisma` from `apps/api/src/lib/prisma.ts`; a script builds its own client with `createPrismaClient` from `apps/api/src/lib/prisma-client.ts`.
 - Realtime: `broadcast(userId, event)` from `apps/api/src/lib/realtime.ts`.
 - Push: `dispatchToUser(userId, payload)` from `apps/api/src/lib/delivery/`.
 - Email: `sendCloudflareEmail` from `apps/api/src/lib/cloudflare-email.ts`.

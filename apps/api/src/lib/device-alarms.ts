@@ -13,7 +13,7 @@
  * — still as a choice to resolve rather than a URI to trust, since it was picked on
  * whichever device the user set it from.
  */
-import type { Reminder } from '@prisma/client'
+import type { Reminder } from '../generated/prisma/client.js'
 import {
   type DeviceAlarm,
   type Locale,

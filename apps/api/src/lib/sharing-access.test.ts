@@ -1,7 +1,7 @@
 /** Members can collaborate, but only the owner and original inviter may remove access. */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '../generated/prisma/client.js'
 
 process.env.DATABASE_URL ??= 'postgresql://localhost:5432/test'
 const delegate = {

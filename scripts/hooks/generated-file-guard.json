@@ -1,3 +1,7 @@
 {
-  "generatedDirectories": ["apps/mobile/android", "assets/generated"]
+  "generatedDirectories": [
+    "apps/mobile/android",
+    "assets/generated",
+    "apps/api/src/generated"
+  ]
 }

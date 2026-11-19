@@ -1,6 +1,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import type { RecipientAlertState, ReminderOccurrence } from '@prisma/client'
+import type {
+  RecipientAlertState,
+  ReminderOccurrence,
+} from '../generated/prisma/client.js'
 import { occurrenceForActor } from './recipient-alert-state.js'
 
 const until = new Date('2026-09-26T15:00:00.000Z')

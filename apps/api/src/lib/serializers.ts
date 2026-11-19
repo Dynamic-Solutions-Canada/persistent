@@ -7,7 +7,7 @@ import type {
   ReminderOccurrence,
   User,
   Passkey,
-} from '@prisma/client'
+} from '../generated/prisma/client.js'
 import type {
   Occurrence,
   Reminder,

@@ -1,7 +1,7 @@
 /** Undo is scoped, versioned, and preserves the original obligation rather than making another. */
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { PrismaClient } from '@prisma/client'
+import type { PrismaClient } from '../generated/prisma/client.js'
 process.env.DATABASE_URL ??= 'postgresql://localhost:5432/test'
 const now = new Date('2026-10-18T12:00:00Z')
 let status = 'ACKNOWLEDGED'

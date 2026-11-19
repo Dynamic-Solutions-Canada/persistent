@@ -2,7 +2,7 @@
 import { execFileSync } from 'node:child_process'
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
-import { PrismaClient } from '@prisma/client'
+import { createPrismaClient } from '../../apps/api/src/lib/prisma-client.js'
 import { inspectStorePng, validateStoreImage } from './store-image.ts'
 
 const DEMO_EMAIL = 'demo@example.test'
@@ -26,7 +26,7 @@ async function prepare(): Promise<void> {
       'Store preparation requires the isolated development database.',
     )
   }
-  const prisma = new PrismaClient()
+  const prisma = createPrismaClient(process.env.DATABASE_URL ?? '')
   try {
     const user = await prisma.user.upsert({
       where: { email },

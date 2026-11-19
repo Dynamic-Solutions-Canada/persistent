@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import type { Reminder } from '@prisma/client'
+import type { Reminder } from '../generated/prisma/client.js'
 import { ESC_SUFFIX } from '@persistent/shared'
 import { buildDeviceAlarms } from './device-alarms.js'
 
