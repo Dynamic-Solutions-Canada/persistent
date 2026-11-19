@@ -114,7 +114,7 @@ is `autoUpdate`, but the browser only looks for a new one on a navigation and on
 ~24h timer — and this WebView navigates once, at startup, then spends its life
 frozen, so both triggers are gone. A tray app left running for a fortnight would
 still serve the bundle it started with. So `SetWebViewIdle(false)` posts
-`checkForUpdate` to the page on every resume (`lib/swUpdate.ts` acts on it, and
+`checkForUpdate` to the page on every resume (`lib/appUpdate.ts` acts on it, and
 also listens for `visibilitychange`, which collapsing the controller is supposed to
 drive — the message exists because that link cannot be verified outside Windows).
 Worker activation and these checks compare the loaded page's build identity with
@@ -175,7 +175,7 @@ detection — the same rule that already governs `hasNativeUpdater()`.
   path is root-relative before acting on it — a host message is not a privileged
   caller either.
 - `checkForUpdate` (host -> page) says the flyout was just resumed, so the page
-  should look for a new build (`lib/swUpdate.ts`).
+  should look for a new build (`lib/appUpdate.ts`).
 - `refreshWidgetSnapshot` (host -> page) requests a refetch, and `widgetSnapshot`
   (page -> host) returns at most four preformatted Upcoming rows. The page applies
   the same selector used by `UpcomingPage`; C# only validates, stores and renders

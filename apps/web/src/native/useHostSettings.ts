@@ -34,7 +34,7 @@ export function useHostSettings(): HostSettingsState {
     const unsubscribe = onHostMessage((message) => {
       if (message.type === 'hostSettings') setSettings(message.settings)
       // The flyout was just reopened, so this page may have been frozen for days
-      // (`lib/swUpdate.ts` acts on the same message). Ask again, because
+      // (`lib/appUpdate.ts` acts on the same message). Ask again, because
       // `startAtSignIn` is live OS state and the user can turn the app off in Task
       // Manager while the page is suspended — the exact case that setting reports
       // the OS rather than a stored flag for. The React tree survives a suspend, so

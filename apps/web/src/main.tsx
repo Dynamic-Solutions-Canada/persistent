@@ -6,7 +6,7 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { BrowserRouter } from 'react-router-dom'
-import { startServiceWorker } from './lib/swUpdate.js'
+import { startServiceWorker } from './lib/appUpdate.js'
 import { queryClient, registerMutationDefaults } from './lib/queryClient.js'
 import { persistOptions } from './lib/persistQuery.js'
 import { AuthProvider } from './auth/useAuth.js'
@@ -20,7 +20,7 @@ import { initializeSessionNetwork } from './auth/sessionNetwork.js'
 
 // Auto-apply SW updates, and keep *looking* for them: a page that is opened once
 // and left running for days never navigates, so it would otherwise never notice a
-// new build (see lib/swUpdate.ts).
+// new build (see lib/appUpdate.ts).
 startServiceWorker()
 
 // Mutation defaults must exist before any persisted offline mutation resumes.

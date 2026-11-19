@@ -42,7 +42,7 @@ declare global {
  * is a message rather than `CoreWebView2.GoBack()`.
  *
  * `checkForUpdate` says the flyout was just reopened, so this page may have been
- * frozen for days (`lib/swUpdate.ts`). It is a nudge, not an instruction: the page
+ * frozen for days (`lib/appUpdate.ts`). It is a nudge, not an instruction: the page
  * decides whether to act, exactly as it does for `back`.
  *
  * `hostSettings` is the host's own settings, which this page's Settings screen
@@ -212,7 +212,7 @@ export function desktopPlatform(): 'windows' | 'linux' | null {
  *
  * Every subscriber picks out the messages it cares about and ignores the rest, so
  * `back` and `navigate` are read by `useNativeBack.ts`, `checkForUpdate` by
- * `lib/swUpdate.ts`, and `hostSettings` by `useHostSettings.ts`. In each case the
+ * `lib/appUpdate.ts`, and `hostSettings` by `useHostSettings.ts`. In each case the
  * host says what happened and the page decides what it means: the hierarchy that
  * Back walks is a web concern, and so is what a route does.
  *

@@ -85,7 +85,7 @@
   through live refreshes and offline queueing. Retain drafts on 409 and require an
   explicit action to load the latest version. Guard rollback by the current row;
   never replace a newer cache snapshot or invent a server version optimistically.
-- **Staying current:** `lib/swUpdate.ts` registers the auto-activating worker with
+- **Staying current:** `lib/appUpdate.ts` registers the auto-activating worker with
   `registerSW` and an `onNeedReload` override. Checks run on visibility, hourly while
   visible, and desktop host resume. Worker activation triggers the same build comparison as polling: only a
   confirmed mismatch between the loaded HTML stamp and uncached `build-id.json`
