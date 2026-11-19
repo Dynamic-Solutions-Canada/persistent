@@ -37,7 +37,8 @@
     "shots:check": "node --import tsx scripts/dev/store-assets.ts check",
     "shots:sync": "node --import tsx scripts/dev/store-assets.ts sync-play",
     "lint": "eslint .",
-    "test": "node scripts/dev/run-tests.mjs",
+    "test": "devkit-test",
+    "test:integration": "devkit-test --integration",
     "typecheck": "npm run typecheck --workspace @persistent/shared && npm run build --workspace @persistent/shared && npm run typecheck --workspace @persistent/api && npm run typecheck --workspace @persistent/web",
     "validate": "npm run lint && npm run test && npm run typecheck && npm run prisma:validate --workspace @persistent/api",
     "verify:desktop": "scripts/windows-build --build-only --configuration Debug",
@@ -64,7 +65,7 @@
     "install:linux": "npm run build:linux && node apps/linux-desktop/dist/install.cjs"
   },
   "devDependencies": {
-    "@dynamic-solutions-canada/devkit": "github:Dynamic-Solutions-Canada/devkit#v0.18.1",
+    "@dynamic-solutions-canada/devkit": "github:Dynamic-Solutions-Canada/devkit#v0.19.0",
     "@eslint/js": "^9.24.0",
     "@particle/dbus-next": "0.11.4",
     "concurrently": "^9.1.2",
