@@ -112,4 +112,4 @@ Doodles are enabled by default. The **Doodle background** dropdown offers Match 
 
 ## License
 
-Licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE). Copyright (c) 2026 Dynamic Solutions.
+Licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE). Copyright (c) 2026 Dynamic Solutions. Bundled third-party software stays under its own licences; see [NOTICE](NOTICE).

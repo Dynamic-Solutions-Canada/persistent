@@ -29,6 +29,7 @@ import { AdminPage } from './pages/admin/AdminPage.js'
 import { ReceivedSharesPage } from './pages/ReceivedSharesPage.js'
 import { HelpPage } from './pages/HelpPage.js'
 import { PrivacyPage } from './pages/PrivacyPage.js'
+import { ThirdPartyNoticesPage } from './pages/ThirdPartyNoticesPage.js'
 import { DeleteAccountPage } from './pages/DeleteAccountPage.js'
 import { DirectBuildMigrationNotice } from './native/DirectBuildMigrationNotice.js'
 import { PermissionOnboarding } from './native/permissions/PermissionOnboarding.js'
@@ -80,6 +81,10 @@ export function App() {
       <Routes>
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/delete-account" element={<DeleteAccountPage />} />
+        <Route
+          path="/third-party-notices"
+          element={<ThirdPartyNoticesPage />}
+        />
         <Route path="*" element={<SignInPage />} />
       </Routes>
     )
@@ -122,6 +127,10 @@ export function App() {
             <Route path="/help" element={<HelpPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/delete-account" element={<DeleteAccountPage />} />
+            <Route
+              path="/third-party-notices"
+              element={<ThirdPartyNoticesPage />}
+            />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </ReminderDialogProvider>

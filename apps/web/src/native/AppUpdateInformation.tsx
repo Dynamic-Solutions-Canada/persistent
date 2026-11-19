@@ -1,16 +1,13 @@
-/** About card, with migration guidance for the retired direct Android distribution. */
-import { useTranslation, Trans } from 'react-i18next'
+/** Update guidance for the About card, including the retired direct Android distribution. */
+import { useTranslation } from 'react-i18next'
 import { tr } from '../localization/i18n.js'
-import Card from '@mui/joy/Card'
 import Typography from '@mui/joy/Typography'
-import Stack from '@mui/joy/Stack'
 import { DirectBuildNotice } from './DirectBuildNotice.js'
 import { hasNativeUpdater, isNative } from './alarmBridge.js'
 import { AndroidDownloads } from './AndroidDownloads.js'
-import { useAppVersion } from './useAppVersion.js'
 
 /** Choose update guidance by installed capabilities, keeping both Android download choices available. */
-function AppUpdateInformation() {
+export function AppUpdateInformation() {
   useTranslation()
   if (hasNativeUpdater()) return <DirectBuildNotice />
   if (isNative()) {
@@ -29,25 +26,5 @@ function AppUpdateInformation() {
     <Typography level="body-xs">
       {tr('This web app updates automatically through your browser.')}
     </Typography>
-  )
-}
-
-export function UpdateSettings() {
-  useTranslation()
-  const currentVersion = useAppVersion()
-
-  return (
-    <Card variant="outlined">
-      <Typography level="title-sm">{tr('About')}</Typography>
-      <Typography level="body-sm">
-        <Trans
-          i18nKey={'Version <v0/>'}
-          components={{ v0: <>{currentVersion}</> }}
-        />
-      </Typography>
-      <Stack spacing={1.5}>
-        <AppUpdateInformation />
-      </Stack>
-    </Card>
   )
 }

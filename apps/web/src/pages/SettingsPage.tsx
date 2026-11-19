@@ -8,7 +8,7 @@
  * notifications, startup and window settings (`native/desktop-settings/`). One
  * Settings screen per product, whichever host is showing it.
  */
-import { useTranslation, Trans } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 import { tr } from '../localization/i18n.js'
 import { Link as RouterLink } from 'react-router-dom'
 import Stack from '@mui/joy/Stack'
@@ -35,7 +35,7 @@ import { SoundPickerRow } from '../components/SoundPickerRow.js'
 import { AlarmPlugin, isNative, pickSound } from '../native/alarmBridge.js'
 import { mirrorSyncConfig } from '../native/nativeSync.js'
 import { DesktopSettings } from '../native/desktop-settings/DesktopSettings.js'
-import { UpdateSettings } from '../native/UpdateSettings.js'
+import { AboutCard } from '../components/AboutCard.js'
 import { AccountSettingsCard } from '../components/AccountSettingsCard.js'
 import { NativeAppButtons } from '../components/NativeAppButtons.js'
 
@@ -254,35 +254,6 @@ export function SettingsPage() {
       <AccountSettingsCard />
 
       <Card variant="outlined">
-        <Typography level="title-sm">{tr('Help')}</Typography>
-        <Typography level="body-sm">
-          <Trans
-            i18nKey={
-              'New here, or want a refresher on how nagging, escalation, and Done/De-escalate/Snooze work? <c0>How Persistent works</c0>'
-            }
-            components={{ c0: <Link component={RouterLink} to="/help" /> }}
-          />
-        </Typography>
-      </Card>
-
-      <Card variant="outlined">
-        <Typography level="title-sm">{tr('Privacy')}</Typography>
-        <Typography level="body-sm">
-          <Trans
-            i18nKey={
-              "What Persistent stores and who it's shared with: <c0>Privacy policy</c0> · <c1>Deleting your account</c1>"
-            }
-            components={{
-              c0: <Link component={RouterLink} to="/privacy" />,
-              c1: <Link component={RouterLink} to="/delete-account" />,
-            }}
-          />
-        </Typography>
-      </Card>
-
-      <UpdateSettings />
-
-      <Card variant="outlined">
         <Typography level="title-sm">{tr('Apps')}</Typography>
         <Typography level="body-sm">
           {tr(
@@ -294,6 +265,8 @@ export function SettingsPage() {
           {tr('Our other apps')}
         </Link>
       </Card>
+
+      <AboutCard />
     </Stack>
   )
 }

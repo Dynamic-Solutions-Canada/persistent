@@ -39,6 +39,25 @@ export default {
   /** Prisma migration history lets doctor and baseline refresh compare schema state. */
   migrationsTable: '_prisma_migrations',
 
+  /**
+   * Third-party notices (HYG-3) for what ships to users: the web bundle, which every native host
+   * also shows, and the Linux AppImage's own Node dependencies (it bundles @persistent/shared, so
+   * that workspace's dependencies are listed too). The API image is not here: it runs only on our
+   * server and is never distributed. Windows and Android notices come from their own toolchains.
+   */
+  notices: [
+    {
+      title: 'Persistent web app',
+      packages: ['apps/web', 'packages/shared'],
+      output: 'apps/web/public/THIRD-PARTY-NOTICES.txt',
+    },
+    {
+      title: 'Persistent for Linux (AppImage)',
+      packages: ['apps/linux-desktop', 'packages/shared'],
+      output: 'apps/linux-desktop/THIRD-PARTY-NOTICES.txt',
+    },
+  ],
+
   /** Persistent has no checkout-local runtime files that need to travel with a database snapshot. */
   baselinePaths: [],
 

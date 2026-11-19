@@ -268,6 +268,10 @@ The bell mark's masters are in `assets/brand/`: `icon.svg` (the rounded tile), `
 
 The masters are flat filled paths only, because devkit's Android vectors accept nothing else: the motion lines are solid `#416397`, which is the old 55% opacity of `#6ea8fe` over the `#0b0f19` tile. The Windows app still draws its own icons with `generate-msix-images.ps1` until it moves to winui-app-kit.
 
+## Third-party notices
+
+`npm run notices` (devkit-notices) writes the notices for what ships to users, from the `notices` block in `devkit.config.mjs`: `apps/web/public/THIRD-PARTY-NOTICES.txt` for the web app, which every host shows at Settings > About > Third-party notices, and `apps/linux-desktop/THIRD-PARTY-NOTICES.txt`, which the AppImage ships beside Electron's own licence files. Run it after any production dependency change and commit the result. `npm run check:notices`, part of `validate`, checks the web file; `linux-desktop-check.yml` checks the Linux file on its x64 leg, because it needs that package's own install. The files are generated from the Linux x64 closure, so check them on Linux x64 (WSL or CI); the arm64 AppImage differs only in its native binary packages. The API image runs only on our server and is not distributed, so it has none. The root `NOTICE` names both files.
+
 ## Formatting
 
 Prettier formats the TypeScript, JavaScript, JSON, YAML, CSS, HTML and Markdown with the shared house style (`.prettierrc.json`: single quotes, no semicolons, Markdown prose left unwrapped). `npm run validate` runs `npm run format:check`; when it fails, run `npm run format` and commit the result. `.prettierignore` lists what stays untouched. The Windows app's C# gets `dotnet format` when it moves to winui-app-kit. To have `git blame` skip the one-off reformat, run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once.

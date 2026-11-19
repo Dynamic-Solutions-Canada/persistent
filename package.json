@@ -46,9 +46,11 @@
     "test:desktop": "scripts/dev/test-desktop.sh",
     "test:android": "npm --prefix apps/mobile run test:android",
     "typecheck": "npm run typecheck --workspace @persistent/shared && npm run build --workspace @persistent/shared && npm run typecheck --workspace @persistent/api && npm run typecheck --workspace @persistent/web",
-    "validate": "npm run build --workspace @persistent/shared && npm run format:check && npm run lint && npm run test && npm run typecheck && npm run prisma:validate --workspace @persistent/api && npm run check:devkit && npm run check:icons && npm run check:notes && npm run shots:check",
+    "validate": "npm run build --workspace @persistent/shared && npm run format:check && npm run lint && npm run test && npm run typecheck && npm run prisma:validate --workspace @persistent/api && npm run check:devkit && npm run check:icons && npm run check:notices && npm run check:notes && npm run shots:check",
     "check:devkit": "devkit-init --check",
     "check:icons": "devkit-icons --check",
+    "check:notices": "devkit-notices --check --only apps/web/public/THIRD-PARTY-NOTICES.txt",
+    "notices": "devkit-notices",
     "icons": "devkit-icons",
     "check:listing": "devkit-test apps/mobile/scripts/play-metadata.test.ts apps/mobile/scripts/play-publish.test.ts",
     "check:notes": "node scripts/release/notes.mjs check",
@@ -76,7 +78,7 @@
     "install:linux": "npm run build:linux && node apps/linux-desktop/dist/install.cjs"
   },
   "devDependencies": {
-    "@dynamic-solutions-canada/devkit": "github:Dynamic-Solutions-Canada/devkit#v0.21.0",
+    "@dynamic-solutions-canada/devkit": "github:Dynamic-Solutions-Canada/devkit#v0.23.0",
     "@eslint/js": "^9.39.5",
     "@particle/dbus-next": "0.11.4",
     "@resvg/resvg-js": "2.6.2",
