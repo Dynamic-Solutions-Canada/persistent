@@ -17,11 +17,16 @@ import { ErrorBoundary } from './components/ErrorBoundary.js'
 import { NativeLocaleSync } from './native/NativeLocaleSync.js'
 import { App } from './App.js'
 import { initializeSessionNetwork } from './auth/sessionNetwork.js'
+import { startAnalytics } from './lib/analytics.js'
+import { isNative } from './native/alarmBridge.js'
 
 // Auto-apply SW updates, and keep *looking* for them: a page that is opened once
 // and left running for days never navigates, so it would otherwise never notice a
 // new build (see lib/appUpdate.ts).
 startServiceWorker()
+
+// Browser-only visit counting, when the server has it configured; never in a native host.
+void startAnalytics(isNative())
 
 // Mutation defaults must exist before any persisted offline mutation resumes.
 initializeSessionNetwork()

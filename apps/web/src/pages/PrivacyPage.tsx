@@ -13,7 +13,7 @@ import Link from '@mui/joy/Link'
 // Also the contact address on the Play listing — Google verifies it routes.
 const CONTACT_EMAIL = 'contact@dynamic-solutions.ca'
 
-const LAST_UPDATED = '18 November 2026'
+const LAST_UPDATED = '19 November 2026'
 
 function Section({
   title,
@@ -45,7 +45,8 @@ export function PrivacyPage() {
           Persistent is a reminder app. It stores the reminders you create and
           the record of whether you confirmed them, so it can nag you until you
           do. It does not sell your data, does not show ads, and uses no
-          third-party analytics or advertising trackers. Administrators can view
+          third-party analytics or advertising trackers; the web app&apos;s own
+          visit counting is described under Analytics. Administrators can view
           aggregate account activity, reminder feature usage, and app/platform
           statistics to understand how the service is used.
         </Typography>
@@ -100,6 +101,19 @@ export function PrivacyPage() {
           <Typography level="body-sm">
             We do not collect your location, address book, photos, phone number,
             or payment details.
+          </Typography>
+        </Section>
+
+        <Section title="Analytics">
+          <Typography level="body-sm">
+            When you use Persistent in a web browser, we count visits with
+            Umami, an analytics tool we run on our own server. It uses no
+            cookies and keeps no IP address or device identifier: it records the
+            page visited (with any reminder or account identifiers removed from
+            the address), the referring site, and your browser, operating
+            system, screen size and country. It respects your browser&apos;s Do
+            Not Track setting. It never runs inside the Android, Windows or
+            Linux apps. These visit records are kept until we delete them.
           </Typography>
         </Section>
 

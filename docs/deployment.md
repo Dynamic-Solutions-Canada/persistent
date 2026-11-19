@@ -39,6 +39,10 @@ To rename a variable a deployed server already sets, keep reading the old name f
 
 The API container runs as the image's unprivileged `node` user (uid 1000), so a file mounted into it, such as the FCM service-account key under `.secrets/`, must be readable by uid 1000 on the host. An unreadable key does not stop the API: it stays healthy and logs `fcm auth failed` on every push. Compose marks the container healthy once `GET /api/health` answers.
 
+## Web analytics
+
+`UMAMI_SCRIPT_URL` and `UMAMI_WEBSITE_ID` in the server's `.env` turn on browser-only visit counting with the shared, self-hosted Umami (LOG-9, D-117). With both set, `GET /api/analytics-config` gives the web app the tracker's settings and the Content Security Policy allows the tracker's origin; with either empty, no tracker loads and the CSP names no analytics host. The web app never loads it inside the Android, Windows or Linux apps, sends no query strings, hashes, identifiers in paths or page titles beyond the app's name, and honours Do Not Track (`apps/web/src/lib/analytics.ts`). The privacy page's Analytics section describes it to users.
+
 ## Administrators
 
 `ADMIN_EMAILS` in the server's `.env` lists, comma-separated, the verified addresses whose accounts start with the admin role when they are first created; `compose.server.yml` passes it to the API, and `.env.server.example` shows the format. Grants are stored in the database: sign-in never re-applies them, so removing an address revokes nobody, and an empty value only means no new account becomes an administrator.

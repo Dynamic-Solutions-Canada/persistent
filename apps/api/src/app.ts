@@ -29,8 +29,14 @@ import { appReleaseRouter } from './routes/app-release.js'
 import { adminRouter } from './routes/admin.js'
 import { clientUsageRouter } from './routes/client-usage.js'
 import { announcementsRouter } from './routes/announcements.js'
+import {
+  analyticsCspSources,
+  getClientAnalyticsConfig,
+} from './lib/analytics.js'
 
 export function createApp() {
+  // The analytics origin joins the CSP only when Umami is configured (lib/analytics.ts).
+  const analyticsSources = analyticsCspSources(env)
   const app = express()
   // Behind a reverse proxy in production: trust X-Forwarded-* for req.ip and secure cookies.
   app.set('trust proxy', 1)
@@ -41,8 +47,16 @@ export function createApp() {
       contentSecurityPolicy: {
         useDefaults: true,
         directives: {
-          'script-src': ["'self'", 'https://accounts.google.com/gsi/client'],
-          'connect-src': ["'self'", 'https://accounts.google.com/gsi/'],
+          'script-src': [
+            "'self'",
+            'https://accounts.google.com/gsi/client',
+            ...analyticsSources,
+          ],
+          'connect-src': [
+            "'self'",
+            'https://accounts.google.com/gsi/',
+            ...analyticsSources,
+          ],
           'frame-src': ["'self'", 'https://accounts.google.com/gsi/'],
           'img-src': ["'self'", 'data:', 'https://*.googleusercontent.com'],
         },
@@ -63,6 +77,11 @@ export function createApp() {
 
   app.get('/api/health', (_request, response) => {
     response.json({ ok: true })
+  })
+
+  // Public: whether the web app should load the browser-only visit counter, and its settings.
+  app.get('/api/analytics-config', (_request, response) => {
+    response.json({ analytics: getClientAnalyticsConfig(env) })
   })
 
   // Resolve the session cookie into request.userId for every API request.

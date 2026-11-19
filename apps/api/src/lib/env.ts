@@ -48,6 +48,14 @@ const envSchema = z.object({
   // Android client id only needs to exist in the Cloud project (package + SHA-1);
   // it isn't read here. Empty disables Google login.
   GOOGLE_WEB_CLIENT_ID: z.string().optional(),
+  // Self-hosted, cookieless Umami (lib/analytics.ts). Analytics is on only when both are set;
+  // otherwise the web app loads no tracker and the CSP names no analytics host.
+  UMAMI_SCRIPT_URL: blankToUndefined(
+    z.string().url('UMAMI_SCRIPT_URL must be the tracker script URL'),
+  ),
+  UMAMI_WEBSITE_ID: blankToUndefined(
+    z.string().uuid('UMAMI_WEBSITE_ID must be the Umami website id'),
+  ),
 
   // App-store review access: one designated account may sign in with this fixed
   // code, because a reviewer cannot receive an emailed one-time code. Both must be

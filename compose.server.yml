@@ -75,6 +75,9 @@ services:
       FCM_SERVICE_ACCOUNT_FILE: ${FCM_SERVICE_ACCOUNT_FILE:-}
       FCM_PROJECT_ID: ${FCM_PROJECT_ID:-}
       GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID:-}
+      # Self-hosted Umami for web browsers only; both empty -> no tracker.
+      UMAMI_SCRIPT_URL: ${UMAMI_SCRIPT_URL:-}
+      UMAMI_WEBSITE_ID: ${UMAMI_WEBSITE_ID:-}
       # App-store review access (see apps/api/src/lib/review-access.ts). Empty ->
       # the fixed-code sign-in path does not exist.
       # Comma-separated apk-key-hash origins, one per signing cert (release key,
