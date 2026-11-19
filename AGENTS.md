@@ -36,7 +36,7 @@ The overview, subsystem documents and the list of where data lives are in `ARCHI
 - Initialise `apps/desktop/external/promo` with `git submodule update --init --recursive` in a fresh checkout before validating or building: the web app and the desktop app both import its catalog.
 - Never point `prisma migrate diff --shadow-database-url` at `DATABASE_URL`: Prisma resets the shadow database, which wipes the dev data. `prisma migrate status` answers "is the schema in step?" without touching anything.
 - A schema change needs `npm run db:generate` and updated shared contracts.
-- Tests import `@persistent/shared` from its built `dist/`, which `validate` does not rebuild: rebuild it after changing shared code.
+- Tests import `@persistent/shared` from its built `dist/`: `validate` builds it first, but a lone `npm test` or `test:integration` needs `npm run build --workspace @persistent/shared` after a shared change.
 - devkit generates the dev runner, `paseo.json` and the edit guard (`npm exec devkit-init` after a bump); app steps go in `dev:container` and `dev:postprepare`.
 - Generated files are not edited by hand: a Claude Code hook (`scripts/hooks/README.md`) rejects edits under `apps/mobile/android/` and to files whose header says they are generated.
 
