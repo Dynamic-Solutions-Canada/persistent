@@ -6,14 +6,15 @@ set -uo pipefail
 # Why this exists: adb's runtime connection table lives only in the adb server's
 # memory, so every container (re)start drops all `adb connect` targets. The
 # device's *authorization* survives rebuilds because ~/.android (which holds the
-# adb RSA key) is now a persisted named volume — see compose.persist.yml — but
+# adb RSA key) is now a persisted named volume (`android-home` in compose.dev.yml), but
 # the live connection still has to be remade. This script remakes it.
 #
 # Targets come from ADB_CONNECT (a space/comma-separated list of host:port, e.g.
 # "192.168.1.50:5555 192.168.1.51:5555"), read from the environment or, failing
 # that, from the workspace .env. Unset => no-op, so users who don't use wireless
 # debugging (or who attach over USB) are unaffected. Always exits 0: a device
-# that's off or off-network must never block container startup.
+# that's off or off-network must never block container startup. Failures are
+# still reported on stderr, so the startup log shows them.
 #
 # The wireless-debug PORT rotates every toggle, so a pinned ADB_CONNECT goes
 # stale. When no explicit target connects (or none is configured but a last-good
@@ -51,11 +52,20 @@ if [ -z "$targets" ] && [ ! -f "${HOME}/.android/adb-endpoint" ]; then
     exit 0
 fi
 
+# adb keeps its RSA key in ~/.android. If that folder is not writable, adb makes
+# a new key on every start and the phone asks to authorize it every time; say so
+# rather than letting each connect fail without explanation.
+if [ ! -w "${HOME}/.android" ]; then
+    echo "adb-connect: ${HOME}/.android is not writable, so adb cannot keep its key; rebuild the dev image (docker/dev/Dockerfile creates it)" >&2
+fi
+
 # Fast path: try any explicit host:port targets directly first (instant when the
 # port hasn't rotated). Then let discovery reconcile/rediscover in the background.
 for target in ${targets//,/ }; do
     echo "adb-connect: connecting to ${target}"
-    "$ADB" connect "$target" || true
+    if ! "$ADB" connect "$target"; then
+        echo "adb-connect: could not connect to ${target}" >&2
+    fi
 done
 
 if [ -x "$DISCOVER" ] && command -v python3 >/dev/null 2>&1; then

@@ -123,4 +123,11 @@ RUN set -eux; \
 RUN printf 'export PATH="$PATH:%s"\nexport DOTNET_ROOT="%s"\n' /opt/dotnet /opt/dotnet \
       > /etc/profile.d/dotnet.sh
 
+# HOME for the dev processes (devkit sets HOME=/tmp/devkit-home). Docker would
+# otherwise create it as root, as the parent of the `android-home` volume mount at
+# .android, leaving npm's cache and adb's key folder unwritable. Mode 1777 because
+# the container runs as the host user's uid, which need not be the image's `node`
+# user. A new named volume copies this folder's mode from the image.
+RUN install -d -m 1777 /tmp/devkit-home /tmp/devkit-home/.android
+
 WORKDIR /workspace
