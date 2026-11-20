@@ -26,12 +26,11 @@ on:
 permissions:
   contents: read
 
-# Publishes, so a run in progress is never cancelled. The group is per workflow:
-# GitHub drops an already-pending run when a third joins a group, and a group
-# shared across the Play workflows could drop a queued release that way.
+# CI-6: Play allows one open edit per app, so edit-opening workflows queue here, never cancel, and queue: max keeps a waiting release from being dropped.
 concurrency:
-  group: release
+  group: google-play-edit
   cancel-in-progress: false
+  queue: max
 
 jobs:
   # CI-4: publishing starts only once the gate passes for the same commit.

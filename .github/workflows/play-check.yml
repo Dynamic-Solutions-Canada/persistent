@@ -23,9 +23,11 @@ on:
 permissions:
   contents: read
 
+# CI-6: Play allows one open edit per app, so edit-opening workflows queue here, never cancel, and queue: max keeps a waiting release from being dropped.
 concurrency:
-  group: play-check
-  cancel-in-progress: true
+  group: google-play-edit
+  cancel-in-progress: false
+  queue: max
 
 jobs:
   check:
