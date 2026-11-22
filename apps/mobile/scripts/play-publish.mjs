@@ -16,9 +16,10 @@
  *                   in one edit. --check compares and discards the edit. Text
  *                   only unless --images is given; never changes app details or
  *                   countries.
- *   --images        With --listing-json: in the same edit, replace every listed
- *                   language's phone screenshots with the manifest's `play` files,
- *                   in manifest order (--manifest <json> to point elsewhere). The
+ *   --images        With --listing-json: in the same edit, replace the en-US phone
+ *                   screenshots with the manifest's `play` files, in manifest order
+ *                   (--manifest <json> to point elsewhere), and clear them in the
+ *                   other eight languages so they inherit en-US (D-098). The
  *                   files are validated before OAuth, also under --check, which
  *                   reports the planned replacement and writes nothing. The icon
  *                   and feature graphic are never touched.

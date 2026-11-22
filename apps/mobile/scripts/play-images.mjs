@@ -208,22 +208,33 @@ export class PlayImages {
     }))
   }
 
+  /** The listing that carries the screenshots; every other language inherits them. */
+  static defaultLanguage = 'en-US'
+
   /**
-   * One phone-screenshot replacement per language: the same files, in the same order.
-   * Languages come from the text sync, so the plan never reaches a Play listing the
-   * text sync does not own.
+   * One phone-screenshot replacement per language. Screenshots are captured once, in
+   * English (fleet decision D-098), so only the default language gets the files; every
+   * other language gets an empty set, which makes Play show the default language's
+   * screenshots there. Languages come from the text sync, so the plan never reaches a
+   * Play listing the text sync does not own.
    *
    * @template Shot
    * @param {string[]} languages Play language tags, in sync order.
    * @param {Shot[]} shots Validated screenshots, in carousel order.
+   * @param {string} [defaultLanguage] The listing that carries the screenshots.
    * @returns {{ language: string, imageType: string, shots: Shot[] }[]}
    */
-  static plan(languages, shots) {
+  static plan(languages, shots, defaultLanguage = PlayImages.defaultLanguage) {
     if (!shots.length) throw new Error('An image plan needs screenshots.')
+    if (!languages.includes(defaultLanguage)) {
+      throw new Error(
+        `The image plan's languages must include ${defaultLanguage}.`,
+      )
+    }
     return languages.map((language) => ({
       language,
       imageType: PlayImages.type,
-      shots,
+      shots: language === defaultLanguage ? shots : [],
     }))
   }
 }

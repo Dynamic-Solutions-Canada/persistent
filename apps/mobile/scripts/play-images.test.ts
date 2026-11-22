@@ -102,7 +102,7 @@ test('manifest screenshots keep manifest order and refuse unexpected paths', () 
   }
 })
 
-test('the plan gives every text-sync language the same files in the same order', () => {
+test('the plan puts the files on en-US only and empties the other languages so they inherit (D-098)', () => {
   const shots = [{ name: 'play/00.png' }, { name: 'play/01.png' }]
   const plan = PlayImages.plan(PlayMetadata.languages, shots)
   assert.deepEqual(
@@ -111,9 +111,10 @@ test('the plan gives every text-sync language the same files in the same order',
   )
   for (const entry of plan) {
     assert.equal(entry.imageType, 'phoneScreenshots')
-    assert.deepEqual(entry.shots, shots)
+    assert.deepEqual(entry.shots, entry.language === 'en-US' ? shots : [])
   }
   assert.throws(() => PlayImages.plan(PlayMetadata.languages, []))
+  assert.throws(() => PlayImages.plan(['fr-FR', 'de-DE'], shots), /en-US/)
 })
 
 test('the approved manifest files are publishable as they are committed', () => {

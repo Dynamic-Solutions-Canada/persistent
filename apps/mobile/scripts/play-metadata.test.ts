@@ -170,7 +170,7 @@ test('check writes no text and removes its edit; partial failure never commits',
   assert.ok(failure.calls.every((call) => !call.path.endsWith(':commit')))
 })
 
-test('an image plan replaces each language set after its text, verifies the count and commits once', async () => {
+test('an image plan sets en-US, clears the rest after the text, verifies counts and commits once', async () => {
   const shots = ['a', 'b', 'c'].map((name) => ({
     name,
     bytes: Buffer.from(name),
@@ -190,7 +190,16 @@ test('an image plan replaces each language set after its text, verifies the coun
   const uploads = fixture.calls.filter(
     (call) => call.method === 'POST' && call.path.startsWith('/upload/'),
   )
-  assert.equal(uploads.length, 9 * 3)
+  // Only en-US gets files; every language, en-US included, is cleared first.
+  assert.equal(uploads.length, 3)
+  assert.ok(uploads.every((call) => call.path.includes('/listings/en-US/')))
+  assert.equal(
+    fixture.calls.filter(
+      (call) =>
+        call.method === 'DELETE' && call.path.endsWith('/phoneScreenshots'),
+    ).length,
+    9,
+  )
   assert.ok(!fixture.calls.some((call) => call.path.includes('it-IT')))
   assert.equal(
     fixture.calls.filter((call) => call.path.endsWith(':commit')).length,

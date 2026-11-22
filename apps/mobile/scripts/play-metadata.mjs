@@ -86,7 +86,8 @@ export class PlayMetadata {
 
   /**
    * Stage title/descriptions for all languages in one edit, and with `images` also
-   * replace each planned language's phone screenshots in that same edit. Existing
+   * replace each planned language's phone screenshots in that same edit (the default
+   * language's files, and an empty set elsewhere so the others inherit them). Existing
    * video, unplanned image types (icon, feature graphic), unknown translations, app
    * details and distribution are untouched. A read-only check discards its edit;
    * failures also discard uncommitted work.
@@ -149,8 +150,9 @@ export class PlayMetadata {
       if (images) await this.#replaceImages({ images, path, request, report })
       await commit(edit.id)
       committed = true
-      const imageSummary = images
-        ? ` and ${images[0].shots.length} phone screenshots per language`
+      const carrier = images ? this.#imageCarrier(images) : null
+      const imageSummary = carrier
+        ? ` and ${carrier.shots.length} ${carrier.language} phone screenshots (other languages inherit them)`
         : ''
       report(
         `[play-publish] Nine text listings${imageSummary} committed. Verify Console review/publication separately.`,
@@ -175,19 +177,21 @@ export class PlayMetadata {
         const live = await request(`${path}/listings/${language}/${imageType}`)
         before = String(live.images?.length ?? 0)
       }
+      const after = shots.length ? String(shots.length) : '0 (inherits)'
       report(
-        `[play-publish] ${language} ${imageType}: ${before} on Play -> ${shots.length}`,
+        `[play-publish] ${language} ${imageType}: ${before} on Play -> ${after}`,
       )
     }
-    const files = images[0].shots.map(
+    const files = this.#imageCarrier(images).shots.map(
       ({ name, width, height }) => `${name} (${width}x${height})`,
     )
     report(`[play-publish] screenshots in order: ${files.join(', ')}`)
   }
 
   /**
-   * Replace each planned language's image set inside the open edit, then re-read it and
-   * throw if Play holds a different count, so the edit never commits a partial carousel.
+   * Replace each planned language's image set inside the open edit (an empty plan entry
+   * just clears it), then re-read it and throw if Play holds a different count, so the
+   * edit never commits a partial carousel.
    * Replaced whole rather than diffed: Play has no stable identity to match a file against.
    */
   static async #replaceImages({ images, path, request, report }) {
@@ -209,7 +213,14 @@ export class PlayMetadata {
           `${language} ${imageType}: Play holds ${count} after upload, expected ${shots.length}.`,
         )
       }
-      report(`[play-publish] ${language} ${imageType}: ${count} uploaded`)
+      report(
+        `[play-publish] ${language} ${imageType}: ${count} on Play after re-read`,
+      )
     }
+  }
+
+  /** The plan entry that carries the files; the others are emptied so they inherit them. */
+  static #imageCarrier(images) {
+    return images.find((entry) => entry.shots.length)
   }
 }

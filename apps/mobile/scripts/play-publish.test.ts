@@ -1301,7 +1301,7 @@ describe('publish request sequence', () => {
     )
   })
 
-  it('--listing-json --images replaces the manifest screenshots in all nine languages in the text edit', async () => {
+  it('--listing-json --images sets en-US from the manifest and clears the other languages in the text edit', async () => {
     const path = new URL(
       '../../../store-assets/play/listings.json',
       import.meta.url,
@@ -1326,15 +1326,23 @@ describe('publish request sequence', () => {
         call.method === 'POST' && call.path.includes('phoneScreenshots'),
     )
     assert.equal(deletes.length, 9)
-    assert.equal(uploads.length, 9 * 8)
+    assert.equal(uploads.length, 8)
+    assert.ok(uploads.every((call) => call.path.includes('/listings/en-US/')))
     assert.ok(calls.indexOf(deletes[0]) > lastText, 'images after the text')
     assert.ok(calls.indexOf(uploads.at(-1)!) < commit, 'inside the one edit')
-    assert.ok(uploads.some((call) => call.path.includes('/listings/ja-JP/')))
+    assert.ok(
+      deletes.some((call) => call.path.includes('/listings/ja-JP/')),
+      'other languages are cleared so they inherit en-US',
+    )
     assert.ok(
       calls.every((call) => !/icon|featureGraphic/.test(call.path)),
       'icon and feature graphic untouched',
     )
-    assert.match(stdout, /and 8 phone screenshots per language committed/)
+    assert.match(stdout, /ja-JP phoneScreenshots: 0 on Play after re-read/)
+    assert.match(
+      stdout,
+      /and 8 en-US phone screenshots \(other languages inherit them\) committed/,
+    )
   })
 
   it('--listing-json --images --check reports the plan and writes nothing', async () => {
@@ -1351,7 +1359,10 @@ describe('publish request sequence', () => {
     assert.equal(code, 0, stderr)
     // Only en-US exists in the mock, so only its image set is read.
     assert.match(stdout, /en-US phoneScreenshots: 2 on Play -> 8/)
-    assert.match(stdout, /ja-JP phoneScreenshots: new listing, 0 on Play -> 8/)
+    assert.match(
+      stdout,
+      /ja-JP phoneScreenshots: new listing, 0 on Play -> 0 \(inherits\)/,
+    )
     assert.match(stdout, /screenshots in order: play\/00-current-dark\.png/)
     assert.ok(
       calls.every(
