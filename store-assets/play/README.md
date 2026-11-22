@@ -1,6 +1,6 @@
 # Google Play screenshot review
 
-Eight 1080 x 1920 RGB PNGs, with real app captures and synthetic data. Includes the real Android notification shade and escalation alarm. Uploading is a separate step.
+Eight 1080 x 1920 RGB PNGs, with real app captures and synthetic data. Includes the real Android notification shade and escalation alarm. Uploading is a separate step: run the Play Listing workflow with `images` enabled, first in `check` mode.
 
 ## Keep the important things in sight.
 

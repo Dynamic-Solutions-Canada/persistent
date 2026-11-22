@@ -6,6 +6,8 @@ import { supportedLocales } from '../../../packages/shared/src/locales.js'
 // @ts-expect-error - dependency-free Node script has no generated declarations
 import { PlayMetadata } from './play-metadata.mjs'
 // @ts-expect-error - dependency-free Node script has no generated declarations
+import { PlayImages } from './play-images.mjs'
+// @ts-expect-error - dependency-free Node script has no generated declarations
 import { listingFromJson } from './play-publish.mjs'
 // @ts-expect-error - dependency-free Node script has no generated declarations
 import { playJson } from '../../../scripts/release/notes.mjs'
@@ -79,6 +81,9 @@ test('incomplete, unknown, over-limit and cyclic metadata fails before opening a
 class PlayEditFixture {
   calls: { path: string; method: string; body?: Record<string, unknown> }[] = []
   failLanguage: string | null = null
+  /** Image count Play reports after uploads; null means it counts the uploads honestly. */
+  stagedImages: number | null = null
+  uploads = 0
   async request(
     path: string,
     options: { method?: string; body?: Record<string, unknown> } = {},
@@ -86,6 +91,12 @@ class PlayEditFixture {
     const method = options.method ?? 'GET'
     this.calls.push({ path, method, body: options.body })
     if (path === '/edits') return { id: 'fixture' }
+    if (path.includes('/phoneScreenshots')) {
+      if (method === 'DELETE') this.uploads = 0
+      if (method === 'POST') this.uploads++
+      const count = this.stagedImages ?? this.uploads
+      return { images: Array.from({ length: count }, () => ({})) }
+    }
     if (method === 'GET')
       return {
         listings: [
@@ -101,12 +112,13 @@ class PlayEditFixture {
       throw new Error('Synthetic write failure')
     return {}
   }
-  async run(check: boolean) {
+  async run(check: boolean, images: unknown = null) {
     await PlayMetadata.publishListings({
       listings: PlayMetadata.listings(source),
       request: this.request.bind(this),
       editPath: '/edits',
       check,
+      images,
       report: () => {},
       commit: async () => {
         this.calls.push({ path: '/edits/fixture:commit', method: 'POST' })
@@ -156,4 +168,52 @@ test('check writes no text and removes its edit; partial failure never commits',
   await assert.rejects(failure.run(false), /Synthetic write failure/)
   assert.equal(failure.calls.at(-1)!.method, 'DELETE')
   assert.ok(failure.calls.every((call) => !call.path.endsWith(':commit')))
+})
+
+test('an image plan replaces each language set after its text, verifies the count and commits once', async () => {
+  const shots = ['a', 'b', 'c'].map((name) => ({
+    name,
+    bytes: Buffer.from(name),
+    contentType: 'image/png',
+  }))
+  const plan = PlayImages.plan(PlayMetadata.languages, shots)
+  const fixture = new PlayEditFixture()
+  await fixture.run(false, plan)
+
+  const lastText = fixture.calls.findLastIndex((call) =>
+    ['PATCH', 'PUT'].includes(call.method),
+  )
+  const firstImageWrite = fixture.calls.findIndex(
+    (call) => call.method !== 'GET' && call.path.includes('phoneScreenshots'),
+  )
+  assert.ok(firstImageWrite > lastText, 'text first, so new languages exist')
+  const uploads = fixture.calls.filter(
+    (call) => call.method === 'POST' && call.path.startsWith('/upload/'),
+  )
+  assert.equal(uploads.length, 9 * 3)
+  assert.ok(!fixture.calls.some((call) => call.path.includes('it-IT')))
+  assert.equal(
+    fixture.calls.filter((call) => call.path.endsWith(':commit')).length,
+    1,
+  )
+
+  // Check mode reads only languages Play already has and writes no image.
+  const check = new PlayEditFixture()
+  await check.run(true, plan)
+  assert.deepEqual(
+    check.calls.map((call) => `${call.method} ${call.path}`),
+    [
+      'POST /edits',
+      'GET /edits/fixture/listings',
+      'GET /edits/fixture/listings/en-US/phoneScreenshots',
+      'DELETE /edits/fixture',
+    ],
+  )
+
+  // A short count after upload aborts without committing.
+  const short = new PlayEditFixture()
+  short.stagedImages = 2
+  await assert.rejects(short.run(false, plan), /holds 2 after upload/)
+  assert.equal(short.calls.at(-1)!.method, 'DELETE')
+  assert.ok(short.calls.every((call) => !call.path.endsWith(':commit')))
 })

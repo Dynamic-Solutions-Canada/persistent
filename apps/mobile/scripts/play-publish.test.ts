@@ -290,17 +290,18 @@ describe('screenshot checks', () => {
     assert.equal(pngHasAlpha(fakePng(960, 2142, 2)), false) // RGB, what Play wants
   })
 
+  // Both sizes are within Play's 2:1 aspect limit; 1080x2160 sits exactly on it.
   it('passes a healthy set', () => {
     const shots = [
-      { name: '00.png', bytes: fakePng(960, 2142) },
-      { name: '01.png', bytes: fakePng(1120, 2495) },
+      { name: '00.png', bytes: fakePng(1080, 2160) },
+      { name: '01.png', bytes: fakePng(1080, 1920) },
     ]
     assert.deepEqual(screenshotProblems(shots), [])
   })
 
   it("names the offending file, since Play's own error does not", () => {
     const shots = [
-      { name: 'good.png', bytes: fakePng(1120, 2495) },
+      { name: 'good.png', bytes: fakePng(1080, 1920) },
       { name: 'alpha.png', bytes: fakePng(960, 2142, 6) },
       { name: 'tiny.png', bytes: fakePng(200, 400) },
     ]
@@ -319,7 +320,7 @@ describe('screenshot checks', () => {
   })
 
   it("enforces Play's 2-8 count", () => {
-    const one = [{ name: 'a.png', bytes: fakePng(1120, 2495) }]
+    const one = [{ name: 'a.png', bytes: fakePng(1080, 1920) }]
     assert.ok(
       screenshotProblems(one).some((p: string) =>
         /2-8 phone screenshots/.test(p),
@@ -327,7 +328,7 @@ describe('screenshot checks', () => {
     )
     const nine = Array.from({ length: 9 }, (_, i) => ({
       name: `${i}.png`,
-      bytes: fakePng(1120, 2495),
+      bytes: fakePng(1080, 1920),
     }))
     assert.ok(
       screenshotProblems(nine).some((p: string) =>
@@ -503,6 +504,9 @@ describe('publish request sequence', () => {
 
     const calls: Call[] = []
     let commitAttempts = 0
+    // Image count per listing image set, so a re-read after upload reflects the edit's
+    // writes. Every set starts with two old screenshots.
+    const imageCounts = new Map<string, number>()
 
     const server = http.createServer((req, res) => {
       const chunks: Buffer[] = []
@@ -543,9 +547,17 @@ describe('publish request sequence', () => {
           )
         }
         if (path.includes(`/${'phoneScreenshots'}`)) {
+          const set = path.replace(/^\/upload/, '').replace(/\?.*$/, '')
+          const count = imageCounts.get(set) ?? 2
           if (req.method === 'GET')
-            return json({ images: [{ id: 'old-1' }, { id: 'old-2' }] })
-          if (req.method === 'DELETE') return json({})
+            return json({
+              images: Array.from({ length: count }, (_, i) => ({ id: `${i}` })),
+            })
+          if (req.method === 'DELETE') {
+            imageCounts.set(set, 0)
+            return json({})
+          }
+          imageCounts.set(set, count + 1)
           return json({ image: { id: 'new' } })
         }
         if (path.endsWith('/listings') && req.method === 'GET') {
@@ -1184,7 +1196,7 @@ describe('publish request sequence', () => {
     // Named out of order on disk to prove the upload is sorted, not readdir order:
     // Play shows screenshots in upload order and the numbering is the intent.
     for (const name of ['02-b.png', '00-a.png', '01-c.png']) {
-      writeFileSync(join(dir, name), fakePng(1120, 2495))
+      writeFileSync(join(dir, name), fakePng(1080, 1920))
     }
     const { calls, code, stdout } = await runPublish([
       '--listing',
@@ -1287,6 +1299,89 @@ describe('publish request sequence', () => {
       calls.filter((call) => call.path.includes(':commit')).length,
       1,
     )
+  })
+
+  it('--listing-json --images replaces the manifest screenshots in all nine languages in the text edit', async () => {
+    const path = new URL(
+      '../../../store-assets/play/listings.json',
+      import.meta.url,
+    ).pathname
+    const { calls, code, stderr, stdout } = await runPublish([
+      '--listing-json',
+      path,
+      '--images',
+    ])
+    assert.equal(code, 0, stderr)
+
+    const commit = calls.findIndex((call) => call.path.includes(':commit'))
+    const lastText = calls.findLastIndex((call) =>
+      ['PUT', 'PATCH'].includes(call.method),
+    )
+    const deletes = calls.filter(
+      (call) =>
+        call.method === 'DELETE' && call.path.endsWith('/phoneScreenshots'),
+    )
+    const uploads = calls.filter(
+      (call) =>
+        call.method === 'POST' && call.path.includes('phoneScreenshots'),
+    )
+    assert.equal(deletes.length, 9)
+    assert.equal(uploads.length, 9 * 8)
+    assert.ok(calls.indexOf(deletes[0]) > lastText, 'images after the text')
+    assert.ok(calls.indexOf(uploads.at(-1)!) < commit, 'inside the one edit')
+    assert.ok(uploads.some((call) => call.path.includes('/listings/ja-JP/')))
+    assert.ok(
+      calls.every((call) => !/icon|featureGraphic/.test(call.path)),
+      'icon and feature graphic untouched',
+    )
+    assert.match(stdout, /and 8 phone screenshots per language committed/)
+  })
+
+  it('--listing-json --images --check reports the plan and writes nothing', async () => {
+    const path = new URL(
+      '../../../store-assets/play/listings.json',
+      import.meta.url,
+    ).pathname
+    const { calls, code, stderr, stdout } = await runPublish([
+      '--listing-json',
+      path,
+      '--images',
+      '--check',
+    ])
+    assert.equal(code, 0, stderr)
+    // Only en-US exists in the mock, so only its image set is read.
+    assert.match(stdout, /en-US phoneScreenshots: 2 on Play -> 8/)
+    assert.match(stdout, /ja-JP phoneScreenshots: new listing, 0 on Play -> 8/)
+    assert.match(stdout, /screenshots in order: play\/00-current-dark\.png/)
+    assert.ok(
+      calls.every(
+        (call) =>
+          ['GET', 'POST'].includes(call.method) ||
+          call.path.endsWith('/edits/edit-1'),
+      ),
+    )
+    assert.equal(
+      calls.filter(
+        (call) => call.method === 'POST' && call.path.includes('/listings/'),
+      ).length,
+      0,
+    )
+    assert.equal(
+      calls.filter((call) => call.path.includes(':commit')).length,
+      0,
+    )
+  })
+
+  it('--images without --listing-json fails before any Play request', async () => {
+    const { calls, code, stderr } = await runPublish([
+      '--listing',
+      '{listing}',
+      '--images',
+      '--no-screenshots',
+    ])
+    assert.equal(code, 1)
+    assert.match(stderr, /--images needs --listing-json/)
+    assert.equal(calls.length, 0)
   })
 
   it('--localized-notes reaches production upload and existing-release rewrite with nine languages', async () => {

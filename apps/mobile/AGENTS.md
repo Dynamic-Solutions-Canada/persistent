@@ -95,7 +95,7 @@ billing. Keep lab instrumentation and diagnostic geometry helpers in test source
 never the shipping app. Its runtime gates are separate from native compilation;
 failed or contaminated captures do not replace approved Store assets.
 
-`store-assets/play/listings.json` owns the nine-locale titles/descriptions; `store-assets/play/listings.md` holds the Console-only settings and the published screenshot record. The manual `play-listing` workflow uses `scripts/play-publish.mjs --listing-json` for text only, preserving graphics. Release notes are per version, in every wording, in the root `release-notes/` folder (see its README). The older `--listing` screenshot replacement requires an explicit screenshot publication request. Medication reminders are available, so the listing,
+`store-assets/play/listings.json` owns the nine-locale titles/descriptions; `store-assets/play/listings.md` holds the Console-only settings and the published screenshot record. The manual `play-listing` workflow uses `scripts/play-publish.mjs --listing-json` for text, preserving graphics; its opt-in `images` input adds `--images`, which replaces every listed language's phone screenshots with the `play` files in `store-assets/manifest.json`, in the same edit. The icon and feature graphic stay untouched. Release notes are per version, in every wording, in the root `release-notes/` folder (see its README). The older `--listing` screenshot replacement requires an explicit screenshot publication request. Medication reminders are available, so the listing,
 Health apps declaration, and Data safety declaration must cover medicine names
 and doses accurately.
 

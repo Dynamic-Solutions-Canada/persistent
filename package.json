@@ -58,7 +58,7 @@
     "check:notices:desktop": "python3 apps/desktop/external/winui-app-kit/scripts/generate-notices.py --check",
     "notices": "devkit-notices",
     "icons": "devkit-icons",
-    "check:listing": "devkit-test apps/mobile/scripts/play-metadata.test.ts apps/mobile/scripts/play-publish.test.ts",
+    "check:listing": "devkit-test apps/mobile/scripts/play-images.test.ts apps/mobile/scripts/play-metadata.test.ts apps/mobile/scripts/play-publish.test.ts",
     "check:notes": "node scripts/release/notes.mjs check",
     "verify:desktop": "scripts/windows-build --build-only --configuration Debug",
     "install:desktop": "scripts/windows-build --install",

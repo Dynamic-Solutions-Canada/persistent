@@ -1,8 +1,11 @@
 name: Play Listing
 
-# Text-only localized titles and descriptions from store-assets/play/listings.json.
-# A check discards its edit. Publication preserves screenshots, videos, app details
-# and country distribution. Verify review/publication in Play Console separately.
+# Localized titles and descriptions from store-assets/play/listings.json and, when
+# `images` is true, the phone screenshots listed under `play` in store-assets/manifest.json,
+# replaced in every listed language inside the same edit. A check validates the files,
+# reports the plan and discards its edit. Publication preserves videos, the icon, the
+# feature graphic, app details and country distribution, and the screenshots too unless
+# `images` is true. Verify review/publication in Play Console separately.
 
 on:
   workflow_dispatch:
@@ -13,6 +16,11 @@ on:
         default: check
         type: choice
         options: [check, publish]
+      images:
+        description: 'Also replace the phone screenshots with the manifest files, in every listed language'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -24,8 +32,8 @@ concurrency:
   queue: max
 
 jobs:
-  # CI-4: play-listing publishes store text, which the code gate says nothing about, so the gate is
-  # the offline checks of that text and the code that sends it.
+  # CI-4: play-listing publishes store text and, opt-in, screenshots, which the code gate says nothing
+  # about, so the gate is the offline checks of that text, those images and the code that sends them.
   gate:
     name: Gate
     runs-on: ubuntu-latest
@@ -42,7 +50,8 @@ jobs:
   listing:
     needs: gate
     runs-on: ubuntu-latest
-    timeout-minutes: 10 # about 3x the slowest recent run
+    # About 3x the slowest text-only run, plus room for an image sync: 9 languages x 8 uploads of about 1 MB.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
 
@@ -52,10 +61,11 @@ jobs:
 
       # No `npm ci`: the script is dependency-free by design (Node 24 has fetch
       # and RS256 signing built in), so this needs nothing from the workspace.
-      - name: ${{ inputs.mode == 'publish' && 'Push store listing' || 'Check store listing' }}
+      - name: ${{ inputs.mode == 'publish' && 'Push store listing' || 'Check store listing' }}${{ inputs.images && ' with screenshots' || '' }}
         working-directory: apps/mobile
         env:
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
           node scripts/play-publish.mjs --listing-json ../../store-assets/play/listings.json \
-            ${{ inputs.mode == 'check' && '--check' || '' }}
+            ${{ inputs.mode == 'check' && '--check' || '' }} \
+            ${{ inputs.images && '--images' || '' }}

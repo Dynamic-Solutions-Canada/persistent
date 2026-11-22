@@ -14,7 +14,14 @@
  * Modes:
  *   --listing-json <json> Validate and push all nine localized titles/descriptions
  *                   in one edit. --check compares and discards the edit. Text
- *                   only: never uploads images or changes app details/countries.
+ *                   only unless --images is given; never changes app details or
+ *                   countries.
+ *   --images        With --listing-json: in the same edit, replace every listed
+ *                   language's phone screenshots with the manifest's `play` files,
+ *                   in manifest order (--manifest <json> to point elsewhere). The
+ *                   files are validated before OAuth, also under --check, which
+ *                   reports the planned replacement and writes nothing. The icon
+ *                   and feature graphic are never touched.
  *   --localized-notes <json> Version-bound nine-locale notes for upload or
  *                   --set-notes. Requires matching --version-name; cannot be
  *                   combined with --notes. Over-limit notes fail before OAuth.
@@ -55,7 +62,7 @@
  *
  * Usage:
  *   node scripts/play-publish.mjs --check --version-code 40
- *   node scripts/play-publish.mjs --listing-json ../../store-assets/play/listings.json [--check]
+ *   node scripts/play-publish.mjs --listing-json ../../store-assets/play/listings.json [--images] [--check]
  *   node scripts/play-publish.mjs --listing [--check] [--no-screenshots]
  *   node scripts/play-publish.mjs --aab app.aab --tracks production --production-only \
  *     --version-name 0.17.0 --notes RELEASE_NOTES.md [--status completed|draft]
@@ -72,6 +79,7 @@ import {
 } from './play-api.mjs'
 import { retirePhoneTestingTracks } from './play-tracks.mjs'
 import { PlayMetadata } from './play-metadata.mjs'
+import { PlayImages } from './play-images.mjs'
 
 // PLAY_API_BASE is a test seam: play-publish.test.ts points it at a local mock
 // to assert the request sequence (one edit, one upload, every track). Never set
@@ -99,19 +107,15 @@ export const LISTING_LIMITS = { shortDescription: 80, fullDescription: 4000 }
 
 /** Where the phone screenshots live, relative to apps/mobile. */
 const DEFAULT_SCREENSHOTS = '../../store-assets/play'
-/** Play's slot name for phone screenshots; the listing carries several image types. */
-const SCREENSHOT_TYPE = 'phoneScreenshots'
+/** Where the approved Play screenshots are listed, relative to apps/mobile. */
+const DEFAULT_MANIFEST = '../../store-assets/manifest.json'
 
-/**
- * Play's rules for a phone screenshot. Checked here because the API's rejection
- * arrives mid-edit with a message that doesn't name the offending file.
- */
-export const SCREENSHOT_RULES = {
-  min: 320,
-  max: 3840,
-  maxBytes: 8 * 1024 * 1024,
-  count: [2, 8],
-}
+// The screenshot rules and PNG helpers moved to play-images.mjs so play-metadata.mjs can
+// share them without an import cycle. Re-exported for existing callers and tests.
+export const SCREENSHOT_RULES = PlayImages.rules
+export const pngSize = PlayImages.pngSize
+export const pngHasAlpha = PlayImages.pngHasAlpha
+export const screenshotProblems = PlayImages.screenshotProblems
 
 function fail(message) {
   console.error(`\n[play-publish] ${message}\n`)
@@ -246,70 +250,6 @@ export function describeListingDiff(current, next) {
       return `  ${field}: CHANGED (${[...before].length} -> ${size} chars)`
     })
     .join('\n')
-}
-
-/**
- * PNG dimensions, straight from the IHDR chunk. Avoids a dependency for the one
- * fact Play cares about, and doubles as a "is this really a PNG?" check —
- * Play accepts JPEG too, but everything here is a screen capture.
- */
-export function pngSize(buffer) {
-  const signature = Buffer.from([
-    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
-  ])
-  if (buffer.length < 24 || !buffer.subarray(0, 8).equals(signature))
-    return null
-  return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) }
-}
-
-/**
- * Whether a PNG carries an alpha channel. Play requires screenshots be 24-bit
- * with no alpha and rejects the upload otherwise, so this is worth catching
- * before an edit is open. IHDR colour type 4 (grey+alpha) and 6 (RGBA) are the
- * ones that carry it.
- */
-export function pngHasAlpha(buffer) {
-  if (!pngSize(buffer)) return false
-  const colorType = buffer.readUInt8(25)
-  return colorType === 4 || colorType === 6
-}
-
-/** Everything wrong with a screenshot set, named per file. Empty means publishable. */
-export function screenshotProblems(shots) {
-  const problems = []
-  const [min, max] = SCREENSHOT_RULES.count
-  if (shots.length < min || shots.length > max) {
-    problems.push(
-      `Play takes ${min}-${max} phone screenshots; found ${shots.length}.`,
-    )
-  }
-  for (const shot of shots) {
-    const size = pngSize(shot.bytes)
-    if (!size) {
-      problems.push(`${shot.name}: not a PNG.`)
-      continue
-    }
-    if (pngHasAlpha(shot.bytes)) {
-      problems.push(
-        `${shot.name}: has an alpha channel; Play wants 24-bit PNG with none.`,
-      )
-    }
-    const { width, height } = size
-    if (
-      Math.min(width, height) < SCREENSHOT_RULES.min ||
-      Math.max(width, height) > SCREENSHOT_RULES.max
-    ) {
-      problems.push(
-        `${shot.name}: ${width}x${height} — each side must be ${SCREENSHOT_RULES.min}-${SCREENSHOT_RULES.max}px.`,
-      )
-    }
-    if (shot.bytes.length > SCREENSHOT_RULES.maxBytes) {
-      problems.push(
-        `${shot.name}: ${(shot.bytes.length / 1e6).toFixed(1)} MB exceeds Play's 8 MB cap.`,
-      )
-    }
-  }
-  return problems
 }
 
 /** Highest versionCode across every release of every track, or 0 if none. */
@@ -581,7 +521,11 @@ async function main() {
   if (args.listing && localizedListingMode)
     fail('Choose --listing or --listing-json, not both.')
   if (localizedListingMode && args.screenshots)
-    fail('--listing-json updates text only; publish screenshots separately.')
+    fail(
+      '--listing-json takes its screenshots from the manifest with --images; --screenshots is for --listing.',
+    )
+  if (args.images && !localizedListingMode)
+    fail('--images needs --listing-json: it rides the localized text edit.')
   if (args.notes && args['localized-notes'])
     fail('Choose --notes or --localized-notes, not both.')
   // Read the AAB and notes up front too — a bad path is a caller error, and
@@ -609,6 +553,21 @@ async function main() {
         JSON.parse(read(args['listing-json'], 'localized listings', 'utf8')),
       )
     : null
+  // Read and check every screenshot before OAuth, also for --check, so a bad image fails
+  // the dry run instead of a publish part-way through its edit.
+  let imagePlan = null
+  if (localizedListingMode && args.images) {
+    const manifestPath =
+      typeof args.manifest === 'string' ? args.manifest : DEFAULT_MANIFEST
+    try {
+      imagePlan = PlayImages.plan(
+        PlayMetadata.languages,
+        PlayImages.loadScreenshots(manifestPath),
+      )
+    } catch (error) {
+      fail(error?.message || String(error))
+    }
+  }
 
   // Same reasoning for the listing: parse and length-check the copy before
   // authenticating, so a malformed file never opens an edit on Play.
@@ -673,6 +632,7 @@ async function main() {
       commit: (id) => commitEdit(token, packageName, id),
       editPath: editsPath(packageName),
       check: Boolean(args.check),
+      images: imagePlan,
     })
     return
   }
@@ -691,12 +651,12 @@ async function main() {
     )
     console.log(describeListingDiff(current, listing))
 
-    const imagesPath = `${editsPath(packageName, edit.id)}/listings/${LISTING_LANGUAGE}/${SCREENSHOT_TYPE}`
+    const imagesPath = `${editsPath(packageName, edit.id)}/listings/${LISTING_LANGUAGE}/${PlayImages.type}`
     if (withShots) {
       const live = await playFetch(token, imagesPath)
       const liveCount = live.images?.length ?? 0
       console.log(
-        `  ${SCREENSHOT_TYPE}: ${liveCount} on Play -> ${shots.length} from ${shotsDir}`,
+        `  ${PlayImages.type}: ${liveCount} on Play -> ${shots.length} from ${shotsDir}`,
       )
       for (const shot of shots) {
         const { width, height } = pngSize(shot.bytes)
@@ -734,7 +694,7 @@ async function main() {
         await playFetch(token, `/upload${imagesPath}?uploadType=media`, {
           method: 'POST',
           raw: shot.bytes,
-          rawType: 'image/png',
+          rawType: PlayImages.imageInfo(shot.bytes).contentType,
         })
         console.log(`[play-publish] uploaded ${shot.name}`)
       }

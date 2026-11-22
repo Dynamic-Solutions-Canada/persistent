@@ -122,7 +122,7 @@ The Microsoft set was captured November 19, 2026, between 4:02 p.m. and 4:04 p.m
 ## Publishing an approved refresh
 
 After deploying the matching hosted UI, run the existing `play-listing` workflow
-in check mode and inspect its diff. The workflow now publishes localized text only; an explicitly approved carousel refresh uses `node scripts/play-publish.mjs --listing` from `apps/mobile` (English copy from `play/listings.json`, screenshots from `play/`), first adding `--check` for comparison, then publishing without it.
+in check mode and inspect its diff. The workflow publishes localized text by default. For an explicitly approved carousel refresh, run it with `images` enabled: it replaces the phone screenshots in all nine languages with the manifest's `play` files, in manifest order, inside the text edit. Run `check` first, which validates the files and reports the plan, then `publish`. The icon and feature graphic are not touched.
 API success confirms a committed edit, not review submission. Open Publishing
 overview in Play Console, inspect all pending changes, send the approved items
 for review if needed, and confirm the phone screenshots appear under Changes

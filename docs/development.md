@@ -264,7 +264,7 @@ Use the exact Node and npm versions in the root manifest for production, develop
 
 ## CI
 
-`.github/workflows/ci.yml` ("CI") runs on every push to `main` and every pull request, with no path filter: `npm run validate`, `npm run test:integration` against a PostgreSQL service, `npm run test:desktop` and `npm run test:android`, each as its own job. Every publishing workflow (`release`, `release-linux`, `build-msix` on a tag, `store-publish`, `play-apk`, `play-promote`) calls it as its first job and publishes only once it passes, building the same ref. `play-listing` and `play-notes` publish store text, so their gate is `npm run check:listing` or `npm run check:release-notes` instead. `codeql.yml` scans TypeScript, C# and the workflows on push, pull request and weekly. Extra path-filtered workflows (`linux-desktop-check`, `image-check`) build expensive targets beside it, never instead of it.
+`.github/workflows/ci.yml` ("CI") runs on every push to `main` and every pull request, with no path filter: `npm run validate`, `npm run test:integration` against a PostgreSQL service, `npm run test:desktop` and `npm run test:android`, each as its own job. Every publishing workflow (`release`, `release-linux`, `build-msix` on a tag, `store-publish`, `play-apk`, `play-promote`) calls it as its first job and publishes only once it passes, building the same ref. `play-listing` and `play-notes` publish store text (and, opt-in, the listing screenshots), so their gate is `npm run check:listing` or `npm run check:release-notes` instead. `codeql.yml` scans TypeScript, C# and the workflows on push, pull request and weekly. Extra path-filtered workflows (`linux-desktop-check`, `image-check`) build expensive targets beside it, never instead of it.
 
 ## App icons
 
