@@ -109,7 +109,7 @@
             <uap3:Properties>
               <WidgetProvider>
                 <ProviderIcons>
-                  <Icon Path="Images\WidgetIcon.png" />
+                  <Icon Path="Images\Square150x150Logo.png" />
                 </ProviderIcons>
                 <Activation>
                   <CreateInstance ClassId="8C74E4F8-6D73-4D2D-92E8-CA3027DD1ED1" />
@@ -131,7 +131,7 @@
                     </Capabilities>
                     <ThemeResources>
                       <Icons>
-                        <Icon Path="Images\WidgetIcon.png" />
+                        <Icon Path="Images\Square150x150Logo.png" />
                       </Icons>
                       <Screenshots>
                         <Screenshot Path="Images\WidgetScreenshot.png" DisplayAltText="ms-resource:Resources/WindowsWidgetPreviewAlt" />

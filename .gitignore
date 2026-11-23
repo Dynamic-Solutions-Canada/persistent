@@ -59,14 +59,12 @@ apps/mobile/release.keystore
 # Windows-only MakePri step drops a fake registry here on its way to failing.
 apps/desktop/**/.mono/
 
-# Desktop generated build inputs and packages. The icons and PNGs under
-# Resources/ and the MSIX Images/ folder come from the generate-*.ps1 scripts, so
-# they are build output, not sources.
+# Desktop generated build inputs and packages. The app icon and MSIX images are
+# committed (npm run icons writes them from assets/brand/); only the widget picker
+# preview is rendered at build, by generate-widget-screenshot.ps1.
 apps/desktop/artifacts/
 apps/desktop/build-inputs/
-apps/desktop/Persistent.Desktop/Resources/*.ico
-apps/desktop/Persistent.Desktop/Resources/*.png
-apps/desktop/Persistent.DesktopMSIX/Images/
+apps/desktop/Persistent.DesktopMSIX/Images/WidgetScreenshot.png
 apps/desktop/**/*.msix
 apps/desktop/**/*.msixbundle
 # The Store upload container (a zip of the per-arch .msix files, renamed).

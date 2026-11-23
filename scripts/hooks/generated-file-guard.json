@@ -2,6 +2,8 @@
   "generatedDirectories": [
     "apps/mobile/android",
     "assets/generated",
-    "apps/api/src/generated"
+    "apps/api/src/generated",
+    "apps/desktop/Persistent.Desktop/Resources",
+    "apps/desktop/Persistent.DesktopMSIX/Images"
   ]
 }

@@ -69,7 +69,7 @@ $manifestVersion = if ($version -match '^\d+\.\d+\.\d+$') { "$version.0" } else 
 Write-Host "Version $version (manifest $manifestVersion), platform $Platform"
 
 if (-not (Test-Path $imagesDir)) {
-    throw "Images\ is missing. Run generate-msix-images.ps1 first."
+    throw "Images\ is missing. Run npm run icons from the repository root."
 }
 
 # --- SDK packaging tools --------------------------------------------------
