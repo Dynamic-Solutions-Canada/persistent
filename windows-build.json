@@ -11,7 +11,7 @@
   "store_identity_switch": "-StoreIdentity",
   "supports_configuration": false,
   "unsigned_switch": "-Store",
-  "prepare_script": "apps/desktop/Persistent.DesktopMSIX/generate-msix-images.ps1",
+  "prepare_script": "apps/desktop/Persistent.DesktopMSIX/generate-widget-screenshot.ps1",
   "signing": "shared-dev",
   "certificate_switch": "-CertPath",
   "password_switch": "-CertPassword",

@@ -77,12 +77,11 @@ jobs:
           echo "VERSION=$ver" >> $env:GITHUB_OUTPUT
           Write-Host "Detected version: $ver"
 
-      # Before the build: the icons are gitignored build output, and the csproj
-      # only picks up ApplicationIcon when the .ico already exists. Generating
-      # after would produce a binary with no icon.
-      - name: Generate images
+      # The app icon and MSIX images are committed (npm run icons output); only the
+      # widget picker preview, which the manifest names, is rendered here.
+      - name: Render the widget preview
         shell: pwsh
-        run: .\Persistent.DesktopMSIX\generate-msix-images.ps1
+        run: .\Persistent.DesktopMSIX\generate-widget-screenshot.ps1
 
       - name: Build
         shell: pwsh

@@ -7,6 +7,11 @@
       "legacy": true,
       "play": true,
       "playMaster": "maskable"
+    },
+    "windows": {
+      "images": "apps/desktop/Persistent.DesktopMSIX/Images",
+      "ico": "apps/desktop/Persistent.Desktop/Resources/Persistent.ico",
+      "tiles": true
     }
   }
 }

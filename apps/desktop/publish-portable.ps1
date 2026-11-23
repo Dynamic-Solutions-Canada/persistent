@@ -42,15 +42,6 @@ Write-Host "Publishing $name..."
 if (Test-Path $publish) { Remove-Item $publish -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $publish | Out-Null
 
-# The icons are gitignored build output and the csproj only picks up
-# ApplicationIcon when the .ico already exists, so render them first or the exe
-# ships with the generic default.
-$icon = Join-Path $root 'Persistent.Desktop\Resources\Persistent.ico'
-if (-not (Test-Path $icon)) {
-    Write-Host "Icons missing - generating..."
-    & (Join-Path $root 'Persistent.DesktopMSIX\generate-msix-images.ps1')
-}
-
 # SelfContained bundles .NET; WindowsAppSDKSelfContained bundles the Windows App
 # SDK runtime. Both are needed for "unzip and run" on a machine that has neither
 # -- without the second, the app dies at startup with a missing-runtime error

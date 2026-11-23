@@ -639,8 +639,7 @@ The Linux development container includes the .NET SDK for non-XAML C# checks and
 
 - Local WSL workflow: `npm run verify:desktop`, `npm run package:desktop:dev` and
   `npm run install:desktop`. See [the shared Windows build guide](https://github.com/Dynamic-Solutions-Canada/windows-build-tools#readme).
-- Icons: `.\Persistent.DesktopMSIX\generate-msix-images.ps1` (renders the same
-  bell mark as `assets/brand/icon.svg`; keep the two in step)
+- Icons: `npm run icons` writes the app `.ico`, the in-app PNG and every MSIX image from `assets/brand/icon.svg` and `icon-mono.svg` (see [App icons](development.md#app-icons)); they are committed. The build's prepare step, `Persistent.DesktopMSIX\generate-widget-screenshot.ps1`, renders only the widget picker preview.
   **Start at sign-in works in the portable build**, via the unpackaged fallback in
   `StartupManager`: no MSIX `windows.startupTask` exists, so it writes
   `HKCU\…\Run` with this executable's absolute path. That path is the catch —
