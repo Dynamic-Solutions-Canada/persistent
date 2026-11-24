@@ -77,7 +77,8 @@
         "primary": "#6EA8FE",
         "accent": "#416397",
         "crop": [1488, 60, 420, 560],
-        "fade": "bottom"
+        "fade": "bottom",
+        "textFreeFile": "text-free/00-hero-dark.png"
       },
       "caption": "View, snooze and confirm them on the same account as the web and Android.",
       "alt": "Persistent's name and the headline \"Your reminders, one click from the Windows tray.\" on a blue panel, beside Persistent's real tray flyout in Enjoy Dark, enlarged, showing Current reminders and fading out at the bottom."
