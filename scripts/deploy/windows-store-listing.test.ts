@@ -6,6 +6,28 @@ import {
   mergeStoreListing,
   assertReleasePackage,
 } from './windows-store-listing.mjs'
+// @ts-expect-error - the dependency-free release runner module is plain JavaScript.
+import { resolveStoreScreenshots } from './windows-store-screenshots.mjs'
+
+/** The plan for a draft's listing locales: four shared screenshots, captioned per locale. */
+function planFor(locales: string[]) {
+  const manifest = {
+    microsoft: Array.from({ length: 4 }, (_, index) => ({
+      file: `screenshots/0${index}.png`,
+    })),
+  }
+  const captions = (prefix: string) =>
+    Array.from({ length: 4 }, (_, index) => `${prefix} ${index}`)
+  const listings = {
+    locales: {
+      'en-US': { screenshotCaptions: captions('View') },
+      'fr-FR': { screenshotCaptions: captions('Vue') },
+      'fr-CA': { copyFrom: 'fr-FR' },
+      'ja-JP': { screenshotCaptions: captions('画面') },
+    },
+  }
+  return resolveStoreScreenshots(manifest, listings, locales)
+}
 
 test('Store package guard matches the CLI upload wrapper rather than its nested bundle', () => {
   const draft = {
@@ -29,7 +51,7 @@ test('Store package guard matches the CLI upload wrapper rather than its nested 
   )
 })
 
-test('Store screenshot refresh preserves packages, logos, policy, other languages and source draft', () => {
+test('Store screenshot refresh preserves packages, logos, policy, copy and the source draft', () => {
   const draft = {
     ApplicationPackages: [
       { FileName: 'release.msixbundle', FileStatus: 'PendingUpload' },
@@ -52,14 +74,13 @@ test('Store screenshot refresh preserves packages, logos, policy, other language
           ],
         },
       },
-      'fr-ca': { BaseListing: { Description: 'Existing translation' } },
+      'fr-ca': {
+        BaseListing: { Description: 'Existing translation', Images: [] },
+      },
     },
   }
-  const shots = Array.from({ length: 4 }, (_, index) => ({
-    file: `microsoft/${index}.png`,
-    alt: `View ${index}`,
-  }))
-  const result = mergeStoreListing(draft, shots, {
+  const plan = planFor(Object.keys(draft.Listings))
+  const result = mergeStoreListing(draft, plan, {
     'en-US': 'A taller flyout.',
     'fr-CA': 'Un menu plus haut.',
   })
@@ -67,85 +88,73 @@ test('Store screenshot refresh preserves packages, logos, policy, other language
     draft.Listings['en-us'].BaseListing.Images[0].FileStatus,
     'Uploaded',
   )
+  assert.deepEqual(result.ApplicationPackages, draft.ApplicationPackages)
+  assert.deepEqual(result.Pricing, draft.Pricing)
+  assert.equal(result.TargetPublishMode, 'Immediate')
+
+  const english = result.Listings['en-us'].BaseListing
+  assert.equal(english.Title, 'Persistent')
+  assert.equal(english.Description, 'Keep existing copy')
+  assert.equal(english.ReleaseNotes, 'A taller flyout.')
+  // Logos as they were, then the new set in order, then the removed screenshot.
   assert.deepEqual(
-    result.submission.ApplicationPackages,
-    draft.ApplicationPackages,
-  )
-  assert.deepEqual(result.submission.Pricing, draft.Pricing)
-  assert.deepEqual(result.submission.Listings['fr-ca'], {
-    BaseListing: {
-      ...draft.Listings['fr-ca'].BaseListing,
-      releaseNotes: 'Un menu plus haut.',
-    },
-  })
-  const listing = result.submission.Listings['en-us'].BaseListing
-  assert.equal(listing.Title, 'Persistent')
-  assert.equal(listing.Description, 'Keep existing copy')
-  assert.equal(listing.Images[0].FileStatus, 'PendingDelete')
-  assert.deepEqual(
-    listing.Images[1],
+    english.Images[0],
     draft.Listings['en-us'].BaseListing.Images[1],
   )
   assert.deepEqual(
-    listing.Images.slice(2).map(
+    english.Images.slice(1, 5).map(
       (image: { fileName: string }) => image.fileName,
     ),
-    shots.map((_, index) => `en-us/${index}.png`),
+    ['en-us/00.png', 'en-us/01.png', 'en-us/02.png', 'en-us/03.png'],
   )
-  assert.equal(listing.ReleaseNotes, 'A taller flyout.')
+  assert.equal(english.Images[5].FileName, 'old.png')
+  assert.equal(english.Images[5].FileStatus, 'PendingDelete')
+
+  const french = result.Listings['fr-ca'].BaseListing
+  assert.equal(french.Description, 'Existing translation')
+  assert.equal(french.releaseNotes, 'Un menu plus haut.')
+  assert.deepEqual(
+    french.Images.map((image: { description: string }) => image.description),
+    ['Vue 0', 'Vue 1', 'Vue 2', 'Vue 3'],
+  )
 })
 
-test('Store updates reject missing English listings and duplicate screenshot filenames', () => {
-  const shots = Array.from({ length: 4 }, () => ({
-    file: 'microsoft/same.png',
-    alt: 'Same',
-  }))
-  assert.throws(
-    () => mergeStoreListing({ listings: {} }, shots, { 'en-US': 'Notes' }),
-    /English/,
-  )
+test('Store updates reject a draft without an English listing', () => {
   assert.throws(
     () =>
-      mergeStoreListing(
-        { listings: { 'en-us': { baseListing: { images: [] } } } },
-        shots,
-        { 'en-US': 'Notes' },
-      ),
-    /unique/,
+      mergeStoreListing({ listings: {} }, planFor(['en-US']), {
+        'en-US': 'Notes',
+      }),
+    /English/,
   )
 })
 
 test('every listing gets its own approved notes, and a listing without any fails first', () => {
-  const shots = Array.from({ length: 4 }, (_, index) => ({
-    file: `microsoft/${index}.png`,
-    alt: `View ${index}`,
-  }))
   const draft = {
     listings: {
       'en-us': { baseListing: { images: [] } },
-      'ja-jp': { baseListing: { releaseNotes: 'Old' } },
+      'ja-jp': { baseListing: { releaseNotes: 'Old', images: [] } },
     },
   }
+  const plan = planFor(['en-us', 'ja-jp'])
   assert.throws(
-    () => mergeStoreListing(draft, shots, { 'en-US': 'New' }),
+    () => mergeStoreListing(draft, plan, { 'en-US': 'New' }),
     /No release notes for the ja-jp listing/,
   )
-  const result = mergeStoreListing(draft, shots, {
+  const result = mergeStoreListing(draft, plan, {
     'en-US': 'New',
     'ja-JP': '新しい通知。',
   })
   assert.equal(
-    result.submission.listings['ja-jp'].baseListing.releaseNotes,
+    result.listings['ja-jp'].baseListing.releaseNotes,
     '新しい通知。',
   )
   assert.throws(
     () =>
       mergeStoreListing(
         { listings: { 'en-us': { baseListing: { images: [] } } } },
-        shots,
-        {
-          'en-US': 'x'.repeat(1501),
-        },
+        planFor(['en-us']),
+        { 'en-US': 'x'.repeat(1501) },
       ),
     /over 1500/,
   )

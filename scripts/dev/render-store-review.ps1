@@ -3,7 +3,12 @@ param([Parameter(Mandatory)][string]$AssetsRoot)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $manifest = Get-Content (Join-Path $AssetsRoot 'manifest.json') -Raw | ConvertFrom-Json
-$canvas = [Drawing.Bitmap]::new(2200,1300,[Drawing.Imaging.PixelFormat]::Format24bppRgb)
+$listings = Get-Content (Join-Path $AssetsRoot 'microsoft/listings.json') -Raw -Encoding utf8 | ConvertFrom-Json
+# The generated hero (D-123) is one image per listing locale; copyFrom locales reuse their target's.
+$hero = @($manifest.microsoft | Where-Object { $_.PSObject.Properties['hero'] }) | Select-Object -First 1
+$heroLocales = @($listings.locales.PSObject.Properties | Where-Object { -not $_.Value.PSObject.Properties['copyFrom'] } | ForEach-Object Name)
+$height = if ($hero) { 1330 } else { 1060 }
+$canvas = [Drawing.Bitmap]::new(2200,$height,[Drawing.Imaging.PixelFormat]::Format24bppRgb)
 $graphics = [Drawing.Graphics]::FromImage($canvas)
 $heading = [Drawing.Font]::new('Segoe UI',28,[Drawing.FontStyle]::Bold)
 $label = [Drawing.Font]::new('Segoe UI',16)
@@ -32,12 +37,28 @@ try {
         $name = [IO.Path]::GetFileNameWithoutExtension($shot.file).Substring(3).Replace('-light','').Replace('-dark','').Replace('-',' ')
         $graphics.DrawString($name,$label,$ink,(30+$index*$playCellWidth),674)
     }
-    $graphics.DrawString('Microsoft Store: actual Windows tray flyout',$heading,$ink,30,724)
+    $graphics.DrawString('Microsoft Store: generated hero, then the actual Windows tray flyout',$heading,$ink,30,724)
+    # As for Play, keep the whole listing in one row however many screenshots it has.
+    $microsoftCellWidth = [int][Math]::Floor(2140 / $manifest.microsoft.Count)
     for ($index=0; $index -lt $manifest.microsoft.Count; $index++) {
         $shot = $manifest.microsoft[$index]
-        $image = [Drawing.Image]::FromFile((Join-Path (Join-Path $AssetsRoot 'microsoft') $shot.file))
-        try { Draw-ContainedPreview $image (30+$index*542) 785 520 470 }
+        $file = ([string]$shot.file).Replace('{locale}','en-US')
+        $image = [Drawing.Image]::FromFile((Join-Path (Join-Path $AssetsRoot 'microsoft') $file))
+        try { Draw-ContainedPreview $image (30+$index*$microsoftCellWidth) 785 ($microsoftCellWidth-22) 260 }
         finally { $image.Dispose() }
+    }
+    if ($hero) {
+        $graphics.DrawString('Microsoft Store: the hero in every listing locale',$heading,$ink,30,1040)
+        $heroCellWidth = [int][Math]::Floor(2140 / $heroLocales.Count)
+        for ($index=0; $index -lt $heroLocales.Count; $index++) {
+            $locale = $heroLocales[$index]
+            $file = ([string]$hero.file).Replace('{locale}',$locale)
+            $image = [Drawing.Image]::FromFile((Join-Path (Join-Path $AssetsRoot 'microsoft') $file))
+            try { Draw-ContainedPreview $image (30+$index*$heroCellWidth) 1100 ($heroCellWidth-22) 180 }
+            finally { $image.Dispose() }
+            # Label each hero just below it, at its contained 16:9 height.
+            $graphics.DrawString($locale,$label,$ink,(30+$index*$heroCellWidth),(1108+[int](($heroCellWidth-22)*9/16)))
+        }
     }
     $output = Join-Path $AssetsRoot 'review.png'
     $canvas.Save($output,[Drawing.Imaging.ImageFormat]::Png)

@@ -1,4 +1,8 @@
-/** Upload approved screenshots and notes into the CLI-created Store draft, then optionally commit it. */
+/**
+ * Upload approved screenshots and notes into the CLI-created Store draft, then optionally
+ * commit it. Every listing locale gets its own generated hero first, then the shared
+ * screenshots (D-123). `--check` plans and validates every listing with no Store call.
+ */
 import { readFile, copyFile, mkdir, mkdtemp, rm, stat } from 'node:fs/promises'
 import { createReadStream } from 'node:fs'
 import { spawnSync } from 'node:child_process'
@@ -11,6 +15,11 @@ import {
   mergeStoreListing,
   assertReleasePackage,
 } from './windows-store-listing.mjs'
+import {
+  archiveRoots,
+  confirmStoreScreenshots,
+  resolveStoreScreenshots,
+} from './windows-store-screenshots.mjs'
 import { listingTexts } from '../release/notes.mjs'
 
 const root = fileURLToPath(new URL('../../', import.meta.url))
@@ -18,10 +27,16 @@ const assetsRoot = path.join(root, 'store-assets')
 const productId = '9PCX2XGQ7CJS'
 const origin = 'https://manage.devcenter.microsoft.com'
 
-/** Validate all local artifacts before authenticating or changing the pending Store submission. */
+/**
+ * Read the manifest, the Microsoft listing text and the approved notes for the version being
+ * submitted. Validates the notes' presence; images are validated per plan (validateImages).
+ */
 async function loadAssets() {
   const manifest = JSON.parse(
     await readFile(path.join(assetsRoot, 'manifest.json'), 'utf8'),
+  )
+  const listings = JSON.parse(
+    await readFile(path.join(assetsRoot, 'microsoft/listings.json'), 'utf8'),
   )
   // The approved notes for the version being submitted, in every listing locale (LIST-10).
   const props = await readFile(
@@ -32,16 +47,23 @@ async function loadAssets() {
   if (!version)
     throw new Error('Could not read <Version> from Directory.Build.props.')
   const notes = listingTexts('desktop', version)
-  // winui-app-kit's manifest schema names each screenshot under store-assets/microsoft/; the
-  // upload works with paths under store-assets/.
-  const shots = manifest.microsoft.map((shot) => ({
-    ...shot,
-    file: `microsoft/${shot.file}`,
-  }))
-  for (const shot of shots) {
-    if (!/^microsoft\/screenshots\/[a-z0-9-]+\.png$/.test(shot.file))
-      throw new Error('Unexpected desktop screenshot path.')
-    const bytes = await readFile(path.join(assetsRoot, shot.file))
+  return { manifest, listings, notes }
+}
+
+/**
+ * Check every planned image before anything is uploaded: a screenshot path under
+ * store-assets/microsoft/screenshots/ (a hero in its locale folder), and a PNG the Store takes.
+ */
+async function validateImages(plan) {
+  const sources = new Set(plan.files.map((image) => image.source))
+  for (const source of sources) {
+    if (
+      !/^microsoft\/screenshots\/(?:[A-Za-z]{2,3}(?:-[A-Za-z0-9]+)*\/)?[a-z0-9-]+\.png$/.test(
+        source,
+      )
+    )
+      throw new Error(`Unexpected desktop screenshot path: ${source}`)
+    const bytes = await readFile(path.join(assetsRoot, source))
     const size = pngSize(bytes)
     if (
       !size ||
@@ -52,23 +74,52 @@ async function loadAssets() {
       bytes[24] !== 8 ||
       bytes[25] !== 2
     ) {
-      throw new Error(`Invalid Store screenshot: ${shot.file}`)
+      throw new Error(`Invalid Store screenshot: ${source}`)
     }
   }
-  // Exercise metadata validation without needing a live draft in local check mode.
-  mergeStoreListing(
-    {
-      listings: Object.fromEntries(
-        Object.keys(notes).map((locale) => [
-          locale.toLowerCase(),
-          { baseListing: { images: [] } },
-        ]),
-      ),
-    },
-    shots,
-    notes,
-  )
-  return { shots, notes }
+}
+
+/**
+ * Plan every listings.json locale and run the merge and read-back check against a synthetic
+ * draft, so check mode fails on a missing image, caption or note exactly as a real run would,
+ * with no Store call and no credentials.
+ */
+async function checkAssets() {
+  const { manifest, listings, notes } = await loadAssets()
+  const locales = Object.keys(listings.locales)
+  const plan = resolveStoreScreenshots(manifest, listings, locales)
+  await validateImages(plan)
+
+  // A draft as the Store returns it: a logo and last release's screenshot in each listing.
+  const draft = {
+    listings: Object.fromEntries(
+      locales.map((locale) => [
+        locale.toLowerCase(),
+        {
+          baseListing: {
+            images: [
+              {
+                fileName: 'logo.png',
+                fileStatus: 'Uploaded',
+                imageType: 'Icon',
+              },
+              {
+                fileName: 'old.png',
+                fileStatus: 'Uploaded',
+                imageType: 'Screenshot',
+              },
+            ],
+          },
+        },
+      ]),
+    ),
+  }
+  confirmStoreScreenshots(mergeStoreListing(draft, plan, notes), plan)
+  for (const [locale, images] of plan.locales)
+    console.log(
+      `  ${locale}: ${images.map((image) => image.source).join(', ')}`,
+    )
+  return plan
 }
 
 /** Create a short-lived authenticated API client; never print credentials, responses, or SAS URLs. */
@@ -122,20 +173,24 @@ async function requester() {
   }
 }
 
-/** Stage the exact CLI input package and images in one ZIP using their registered filenames. */
-async function archive(packagePath, assets, directory) {
+/**
+ * Stage the exact CLI input package and every locale's images in one ZIP under their
+ * registered names: a draft takes a single upload, so the images travel with the package.
+ */
+async function archive(packagePath, files, directory) {
   const contents = path.join(directory, 'contents')
   await mkdir(contents)
-  await copyFile(packagePath, path.join(contents, path.basename(packagePath)))
-  for (const asset of assets) {
-    const target = path.join(contents, asset.fileName)
+  const packageName = path.basename(packagePath)
+  await copyFile(packagePath, path.join(contents, packageName))
+  for (const image of files) {
+    const target = path.join(contents, image.fileName)
     await mkdir(path.dirname(target), { recursive: true })
-    await copyFile(path.join(assetsRoot, asset.source), target)
+    await copyFile(path.join(assetsRoot, image.source), target)
   }
   const output = path.join(directory, 'submission.zip')
   const result = spawnSync(
     'tar.exe',
-    ['-a', '-cf', output, '-C', contents, path.basename(packagePath), 'en-us'],
+    ['-a', '-cf', output, '-C', contents, ...archiveRoots(packageName, files)],
     { encoding: 'utf8' },
   )
   if (result.status !== 0)
@@ -143,11 +198,16 @@ async function archive(packagePath, assets, directory) {
   return output
 }
 
-/** Update only the current pending draft, preserving its package identity and all unowned metadata. */
+/**
+ * Update only the current pending draft, preserving its package identity and all unowned
+ * metadata: every listing's screenshots are replaced (its hero first, then the shared set) and
+ * its release notes set, then the draft is read back to confirm the display order.
+ * @param commit commit the submission for certification after the read-back passes
+ */
 async function publish(packagePath, commit) {
   if (process.platform !== 'win32')
     throw new Error('Run Store publication on the Windows release runner.')
-  const { shots, notes } = await loadAssets()
+  const { manifest, listings, notes } = await loadAssets()
   const request = await requester()
   const application = await request(`/my/applications/${productId}`)
   const id = member(member(application, 'pendingApplicationSubmission'), 'id')
@@ -157,13 +217,21 @@ async function publish(packagePath, commit) {
   if (member(draft, 'status') !== 'PendingCommit')
     throw new Error('The Store submission is not an editable pending draft.')
   assertReleasePackage(draft, path.basename(packagePath))
-  const merged = mergeStoreListing(draft, shots, notes)
+
+  // Plan and validate every listing's images before the first change, so a gap changes nothing.
+  const plan = resolveStoreScreenshots(
+    manifest,
+    listings,
+    Object.keys(member(draft, 'listings') ?? {}),
+  )
+  await validateImages(plan)
+  const submission = mergeStoreListing(draft, plan, notes)
   const directory = await mkdtemp(
     path.join(os.tmpdir(), 'persistent-store-upload-'),
   )
   try {
-    const uploadArchive = await archive(packagePath, merged.assets, directory)
-    const updated = await request(route, 'PUT', merged.submission)
+    const uploadArchive = await archive(packagePath, plan.files, directory)
+    const updated = await request(route, 'PUT', submission)
     const uploadUrl =
       member(updated, 'fileUploadUrl') ?? member(draft, 'fileUploadUrl')
     if (!uploadUrl) throw new Error('The Store draft returned no upload URL.')
@@ -192,8 +260,17 @@ async function publish(packagePath, commit) {
     })
     if (!upload.ok)
       throw new Error(`Store artwork upload failed (${upload.status}).`)
+
+    // Read the draft back: every listing must expect its planned screenshots in display order,
+    // and the release package must still be there.
+    const verified = await request(route)
+    confirmStoreScreenshots(verified, plan)
+    assertReleasePackage(verified, path.basename(packagePath))
+    const fallback = plan.fallback.length
+      ? `; en-US screenshots for ${plan.fallback.join(', ')}`
+      : ''
     console.log(
-      `Uploaded ${shots.length} approved screenshots and release notes to submission ${id}.`,
+      `Replaced the screenshots in ${plan.locales.size} listings and set their release notes in submission ${id}${fallback}.`,
     )
     if (commit) {
       await request(`${route}/commit`, 'POST', {})
@@ -207,9 +284,9 @@ async function publish(packagePath, commit) {
 const packageIndex = process.argv.indexOf('--package')
 try {
   if (process.argv.includes('--check')) {
-    const { shots } = await loadAssets()
+    const plan = await checkAssets()
     console.log(
-      `Microsoft Store assets valid: ${shots.length} screenshots and release notes.`,
+      `Microsoft Store assets valid: ${plan.locales.size} listing locales, ${plan.files.length / plan.locales.size} screenshots each, and release notes. No Store call was made.`,
     )
   } else if (packageIndex >= 0 && process.argv[packageIndex + 1]) {
     await publish(

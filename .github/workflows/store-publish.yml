@@ -161,7 +161,8 @@ jobs:
             --clientSecret "${{ secrets.AZURE_AD_APPLICATION_SECRET }}" `
             --sellerId "${{ secrets.SELLER_ID }}"
 
-      # Upload the package as a draft first, then attach the approved images and notes.
+      # Upload the package as a draft first, then replace every listing locale's screenshots (its
+      # generated hero first, D-123) and set the approved notes, resending the package with the images.
       # The API helper preserves the draft's unrelated listing and submission fields.
       - name: Upload Store package draft
         shell: pwsh
