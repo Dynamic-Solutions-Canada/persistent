@@ -8,9 +8,29 @@ interface PlayShot {
   caption: string
   theme: string
 }
+interface MicrosoftShot {
+  file: string
+  alt: string
+  hero?: object
+}
 const manifest = JSON.parse(
   readFileSync('store-assets/manifest.json', 'utf8'),
-) as { play: PlayShot[]; microsoft: Array<{ file: string; alt: string }> }
+) as { play: PlayShot[]; microsoft: MicrosoftShot[] }
+const listings = JSON.parse(
+  readFileSync('store-assets/microsoft/listings.json', 'utf8'),
+) as { locales: Record<string, { copyFrom?: string }> }
+
+// The generated hero (D-123) has one image per listing locale; the sheet shows en-US in the
+// listing row and every locale's own hero below it. copyFrom locales reuse their target's.
+const heroLocales = Object.entries(listings.locales)
+  .filter(([, record]) => !record.copyFrom)
+  .map(([locale]) => locale)
+const hero = manifest.microsoft.find((shot) => shot.hero)
+
+/** The image path of a Microsoft screenshot for one listing locale, under store-assets/microsoft/. */
+function microsoftFile(shot: MicrosoftShot, locale = 'en-US'): string {
+  return shot.file.replace('{locale}', locale)
+}
 
 /** Escape captions and relative asset paths before inserting them into static HTML. */
 function escape(value: string): string {
@@ -59,15 +79,23 @@ img { width: 100%; height: 100%; object-fit: contain; display: block; }
 // A review sheet gives the whole refresh a stable, easy-to-share visual overview.
 const review = `<!doctype html><html lang="en"><meta charset="utf-8"><title>Persistent store refresh</title>
 <style>
-* { box-sizing: border-box; } body { margin: 0; padding: 28px; width: 1440px; height: 730px; background: #eef0f2; color: #26384a; font: 16px Arial, sans-serif; }
+* { box-sizing: border-box; } body { margin: 0; padding: 28px; width: 1440px; min-height: 730px; background: #eef0f2; color: #26384a; font: 16px Arial, sans-serif; }
 h1 { font-size: 26px; margin: 0 0 16px; } h2 { font-size: 20px; margin: 20px 0 12px; }
 .play { display: grid; grid-template-columns: repeat(${manifest.play.length},1fr); gap: 14px; }
-.desktop { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+.desktop { display: grid; grid-template-columns: repeat(${manifest.microsoft.length},1fr); gap: 14px; }
+.heroes { display: grid; grid-template-columns: repeat(${heroLocales.length},1fr); gap: 14px; }
+figcaption { margin-top: 4px; font-size: 13px; color: #52677b; }
 figure { margin: 0; } img { width: 100%; display: block; border-radius: 6px; }
 .play img { height: 390px; object-fit: contain; } .desktop img { height: 178px; object-fit: contain; }
 </style><h1>Persistent: Google Play carousel</h1><div class="play">
 ${manifest.play.map((shot) => `<figure><img src="../${escape(shot.file)}" alt="${escape(shot.headline)}"></figure>`).join('')}
 </div><h2>Microsoft Store: native Windows tray flyout</h2><div class="desktop">
-${manifest.microsoft.map((shot) => `<figure><img src="../microsoft/${escape(shot.file)}" alt="${escape(shot.alt)}"></figure>`).join('')}
-</div></html>`
+${manifest.microsoft.map((shot) => `<figure><img src="../microsoft/${escape(microsoftFile(shot))}" alt="${escape(shot.alt)}"></figure>`).join('')}
+</div>${
+  hero
+    ? `<h2>Microsoft Store: generated first screenshot per listing locale</h2><div class="heroes">
+${heroLocales.map((locale) => `<figure><img src="../microsoft/${escape(microsoftFile(hero, locale))}" alt="${escape(hero.alt)}"><figcaption>${escape(locale)}</figcaption></figure>`).join('')}
+</div>`
+    : ''
+}</html>`
 writeFileSync('store-assets/render/review.html', review)
