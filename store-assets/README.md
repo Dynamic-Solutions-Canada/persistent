@@ -16,7 +16,7 @@ npm run shots:prepare -- --email=demo@example.test
 
 The command accepts only that account and local development database hosts. It resets the demo reminders, preserves its sign-in methods, and creates a protected synthetic `alex@example.test` recipient with one completed assigned task. `fixture.json` records the generated reminder ids. Seed once per refresh, then keep those ids for the whole capture session. Dates are relative to preparation, with schedule-consistent passed firings, including Friday rather than Saturday for weekday reminders.
 
-Sign in to that account on the local development origin. The development email-code response includes a preview code; use the ordinary verification endpoint without printing the code or session token. Never use production or a personal account. Set Enjoy Light or Enjoy Dark, 12-hour times, Toronto timezone, and doodles off. Dismiss announcements and the native-app promotion. For phone captures only, hide the web-only “Get the app” button, which is absent in Android, following the previous listing capture convention. Keep actual app content unchanged.
+Sign in to that account on the local development origin. The development email-code response includes a preview code; use the ordinary verification endpoint without printing the code or session token. Never use production or a personal account. Set Enjoy Dark, 12-hour times, Toronto timezone, and doodles off. Dismiss announcements and the native-app promotion. For phone captures only, hide the web-only “Get the app” button, which is absent in Android, following the previous listing capture convention. Keep actual app content unchanged.
 
 ## Google Play
 
@@ -32,11 +32,11 @@ theme, and unrelated notification icons must be absent. Do not add simulated
 system chrome or hide another app's notifications without permission. Capture
 these six app scenarios; the manifest determines final carousel order:
 
-1. Current, Enjoy Light. The plants, puppy, and part-completed morning checklist are visible.
+1. Current, Enjoy Dark. The plants, puppy, and part-completed morning checklist are visible.
 2. Open “Get out the door” in its reading dialog, Enjoy Dark. Do not toggle items or Done.
-3. Edit “Take vitamin D”, Enjoy Light, showing the synthetic medicine name and 1000 IU dose. Do not save.
+3. Edit “Take vitamin D”, Enjoy Dark, showing the synthetic medicine name and 1000 IU dose. Do not save.
 4. Create a draft reminder and open Share, Enjoy Dark. Stage `alex@example.test` in the dialog without saving or sending an invitation. Use ordinary input or the existing debug WebView endpoint for controlled fields and verify their state.
-5. Notes, Enjoy Light, showing “Trip packing”.
+5. Notes, Enjoy Dark, showing “Trip packing”.
 6. Assigned by me, Enjoy Dark, showing the completed synthetic parcel pickup.
 
 The final carousel also includes the real notification shade and alarm described
@@ -48,7 +48,7 @@ user explicitly confirms completion.
 
 Save each full native capture to the `source` path in the manifest after the RGB conversion below. For Paseo composition exports, the helper accepts base64 on stdin: `node --import tsx scripts/dev/store-assets.ts save store-assets/raw/android/...png`. It never logs image data. Keep raw captures alongside the final exports so future caption/frame edits do not require recapturing the UI.
 
-Run `npm run shots:render`. Navigate the Paseo tab to each generated HTML layout through Vite, for example `http://localhost:<web-port>/@fs/workspace/store-assets/render/00-current-light.html`. Set **720 x 1280 CSS pixels**, wait for the captured image to load, then screenshot. On the current Windows Paseo host, DPR 1.5 produces **1080 x 1920**. Check actual dimensions, rather than assuming the host's DPR. If another host differs, adjust the CSS viewport and renderer canvas together to produce the same export dimensions.
+Run `npm run shots:render`. Navigate the Paseo tab to each generated HTML layout through Vite, for example `http://localhost:<web-port>/@fs/workspace/store-assets/render/00-current-dark.html`. Set **720 x 1280 CSS pixels**, wait for the captured image to load, then screenshot. On the current Windows Paseo host, DPR 1.5 produces **1080 x 1920**. Check actual dimensions, rather than assuming the host's DPR. If another host differs, adjust the CSS viewport and renderer canvas together to produce the same export dimensions.
 
 The mockups use a small alternating angle and reusable CSS phone frame. The app pixels come exclusively from the raw screenshots. The saved background and generation prompt are in `marketing/`; reuse them for consistency. Google recommends avoiding device imagery and skew, but this carousel deliberately includes those stylized mockups at the maintainer's request.
 

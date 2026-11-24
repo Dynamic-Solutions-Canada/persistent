@@ -87,32 +87,32 @@
       "source": "raw/microsoft/01-current-dark.png",
       "theme": "dark",
       "crop": "tray",
-      "caption": "Current reminders in the Windows tray flyout, Enjoy Dark. English interface; desktop wallpaper and taskbar visible.",
-      "alt": "Default Windows tray flyout above the taskbar, on the dark desktop wallpaper, showing Current reminders in Enjoy Dark."
+      "caption": "Everything due now, one click from the tray.",
+      "alt": "The Persistent tray flyout above the Windows taskbar, showing current reminders."
     },
     {
       "file": "screenshots/02-checklist-dark.png",
       "source": "raw/microsoft/02-checklist-dark.png",
       "theme": "dark",
       "crop": "tray",
-      "caption": "Checklist reading dialog in the Windows tray flyout, Enjoy Dark. English interface; wallpaper and taskbar visible.",
-      "alt": "Default Windows tray flyout above the taskbar, on the dark desktop wallpaper, showing a checklist reading dialog in Enjoy Dark."
+      "caption": "Tick off a checklist, then confirm when the whole task is done.",
+      "alt": "A morning checklist open in the Persistent tray flyout, with its reminder controls."
     },
     {
       "file": "screenshots/03-medication-dark.png",
       "source": "raw/microsoft/03-medication-dark.png",
       "theme": "dark",
       "crop": "tray",
-      "caption": "Synthetic vitamin reminder editor with dose and Save in the Windows tray flyout, Enjoy Dark. English interface; wallpaper and taskbar visible.",
-      "alt": "Default Windows tray flyout above the taskbar, on the dark desktop wallpaper, showing the synthetic vitamin reminder editor with dose and Save action in Enjoy Dark."
+      "caption": "Medication reminders with names and doses.",
+      "alt": "A vitamin D reminder with its dose, open for editing in the Persistent tray flyout."
     },
     {
       "file": "screenshots/04-assigned-dark.png",
       "source": "raw/microsoft/04-assigned-dark.png",
       "theme": "dark",
       "crop": "tray",
-      "caption": "Synthetic assigned-task progress in the Windows tray flyout, Enjoy Dark. English interface; wallpaper and taskbar visible.",
-      "alt": "Default Windows tray flyout above the taskbar, on the dark desktop wallpaper, showing synthetic assigned-task progress in Enjoy Dark."
+      "caption": "See when a reminder you assigned was handled.",
+      "alt": "Assigned by me in the Persistent tray flyout, showing a completed parcel pickup."
     }
   ]
 }
