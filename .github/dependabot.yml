@@ -1,4 +1,7 @@
 # Weekly, grouped updates for every ecosystem and manifest directory (HYG-8).
+# The docker entries watch the Dockerfiles and the production compose file (CTR-3);
+# Node's version follows .nvmrc and moves with the fleet (PLAT-8), so Dependabot
+# never bumps it.
 # Gradle is absent on purpose: the Android project is generated into the
 # git-ignored apps/mobile/android/ by scripts/setup-android.mjs, which pins its
 # versions, so Dependabot never sees a Gradle manifest.
@@ -12,18 +15,14 @@ updates:
     schedule:
       interval: weekly
     ignore:
-      # Major versions move together in the staged stack upgrade (TypeScript, zod,
-      # Prisma, React, Vite, ESLint, Capacitor and the rest), one step at a time with
-      # its own checks. Remove this rule once that upgrade is done.
-      - dependency-name: '*'
-        update-types: ['version-update:semver-major']
-      # devkit is pinned to a release tag and bumped by hand, following the consumer
-      # steps in its release notes. Dependabot misreads its git tags (it proposed
-      # v0.20.2 -> v0.17.1).
+      # devkit and web-app-kit are pinned to release tags and bumped by hand, following
+      # the consumer steps in their release notes. Dependabot misreads their git tags
+      # (it proposed devkit v0.20.2 -> v0.17.1).
       - dependency-name: '@dynamic-solutions-canada/devkit'
+      - dependency-name: '@dynamic-solutions-canada/web-app-kit'
     groups:
-      minor-and-patch:
-        update-types: ['minor', 'patch']
+      npm:
+        patterns: ['*']
 
   - package-ecosystem: nuget
     directories:
@@ -50,3 +49,26 @@ updates:
     groups:
       github-actions:
         patterns: ['*']
+
+  - package-ecosystem: docker
+    directories: ['/', '/docker/dev']
+    schedule:
+      interval: weekly
+    groups:
+      docker:
+        patterns: ['*']
+    ignore:
+      - dependency-name: node
+
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      docker-compose:
+        patterns: ['*']
+    ignore:
+      # A Postgres major needs a dump and restore of the live database, so it is a
+      # planned deploy, not a weekly update.
+      - dependency-name: postgres
+        update-types: ['version-update:semver-major']
