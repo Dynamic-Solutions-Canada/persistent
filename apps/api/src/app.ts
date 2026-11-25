@@ -19,6 +19,7 @@ import { attachUser } from './lib/auth-middleware.js'
 import { HttpError } from './lib/http-error.js'
 import { contentSecurityDirectives } from './lib/content-security.js'
 import { describeError, logger } from './lib/logger.js'
+import { looksLikeFilePath, sendMissingFile } from './lib/missing-file.js'
 import { authRouter } from './routes/auth.js'
 import { remindersRouter } from './routes/reminders.js'
 import { sharesRouter } from './routes/shares.js'
@@ -117,6 +118,12 @@ export function createApp() {
     app.get(/.*/, (request, response, next) => {
       if (request.path.startsWith('/api') || request.path === '/ws')
         return next()
+      // A missing file is a 404, not the app shell, so a broken deploy fails visibly.
+      if (looksLikeFilePath(request.path)) {
+        sendMissingFile(response)
+        return
+      }
+
       response.sendFile(path.join(webDir, 'index.html'))
     })
   }
