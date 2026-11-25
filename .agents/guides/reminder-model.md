@@ -35,6 +35,7 @@ persistence guarantee.
 
 ## Occurrences and schedules
 
+A live obligation is an occurrence that is `FIRED` and not yet `ACKNOWLEDGED`.
 Each `ReminderOccurrence` is independent. A later firing never suppresses an
 older unacknowledged one, and acknowledging one occurrence never clears another.
 `SUPERSEDED` is legacy-only and must not be produced. The explicit Undo done

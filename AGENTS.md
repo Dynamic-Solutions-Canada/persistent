@@ -19,24 +19,15 @@ The overview, subsystem documents and the list of where data lives are in `ARCHI
 
 ## Behaviour
 
-- **Persistence is native.** Truly undismissable notifications and repeating alarm sound while the app is closed are native-OS capabilities, not web ones. The model is device-scheduled plus server backup: the server is the source of truth and materialises occurrences, the native client schedules on-device exact alarms so they fire offline, and FCM is the cross-device, escalation and ad-hoc backup. Read `docs/alarm-architecture.md` and `docs/notification-behavior.md` before touching notifications.
-- **Reminders and occurrences.** A `Reminder` is the definition a user manages; the scheduler expands it into independent `ReminderOccurrence` rows, one per firing. A live obligation is an occurrence that is `FIRED` and not yet `ACKNOWLEDGED`. The schedule kinds `none` (remind now) and `never` (a note) are both timeless but behave differently. Read `.agents/guides/reminder-model.md` before changing reminder types, checklists, notes, schedule transitions, the occurrence lifecycle or notification content.
-- **Data isolation.** There is no multi-tenancy; ownership is per user. Domain queries filter by the authenticated `userId` (`requireUserId(request)`), with these exceptions only:
-  - Sharing: recipient reads and permitted actions must prove an explicit `ReminderShare` grant for that recipient and reminder, and firings stay owned by the creator.
-  - Assignment: an assigned reminder belongs to the assignee, and its creator reads only the `ReminderAssignment` progress record scoped by `creatorId`.
-  - Administrators may read aggregate cross-user counts after a fresh database admin grant check, exposing no account identities or reminder content.
-    See `docs/auth-architecture.md` and `apps/api/AGENTS.md`.
+- **Persistence is native.** Undismissable notifications and repeating alarm sound while the app is closed are native-OS capabilities, not web ones. The server is the source of truth, the native client schedules exact on-device alarms so they fire offline, and FCM is the backup. Read `docs/alarm-architecture.md` and `docs/notification-behavior.md` before touching notifications.
+- **Reminders and occurrences.** A `Reminder` is the definition a user manages; the scheduler expands it into independent `ReminderOccurrence` rows, one per firing. Read `.agents/guides/reminder-model.md` before changing reminder types, checklists, notes, schedule transitions, the occurrence lifecycle or notification content.
+- **Data isolation.** There is no multi-tenancy; ownership is per user. Domain queries filter by the authenticated `userId` (`requireUserId(request)`). The only exceptions are an explicit `ReminderShare` grant, assignment progress scoped by `creatorId`, and aggregate-only admin counts; their rules are in `apps/api/AGENTS.md` and `docs/auth-architecture.md`.
 
 ## Conventions and gotchas
 
 - TypeScript everywhere with strict mode intact. `verbatimModuleSyntax` is on, so type-only imports use `import type`.
 - Non-trivial modules carry a short JSDoc header naming what they own and any non-obvious invariants.
-- PowerShell scripts stay ASCII-only: Windows PowerShell 5.1 reads a `.ps1` without a BOM as ANSI, so a single non-ASCII character can break it.
-- Initialise `apps/desktop/external/promo` with `git submodule update --init --recursive` in a fresh checkout before validating or building: the web app and the desktop app both import its catalog.
-- Never point `prisma migrate diff --shadow-database-url` at `DATABASE_URL`: Prisma resets the shadow database, which wipes the dev data. `prisma migrate status` answers "is the schema in step?" without touching anything.
-- A schema change needs `npm run db:generate` and updated shared contracts.
-- Tests import `@persistent/shared` from its built `dist/`: `validate` builds it first, but a lone `npm test` or `test:integration` needs `npm run build --workspace @persistent/shared` after a shared change.
-- devkit generates the dev runner, `paseo.json` and the edit guard (`npm exec devkit-init` after a bump); app steps go in `dev:container` and `dev:postprepare`.
+- Before setting up a checkout, changing the Prisma schema or `packages/shared`, or bumping devkit, read `.agents/guides/dev-environment.md`: the promo submodule, the shadow-database trap, and building the shared package before a lone test run.
 - Generated files are not edited by hand: a Claude Code hook (`scripts/hooks/README.md`) rejects edits under `apps/mobile/android/` and to files whose header says they are generated.
 
 ## Shared helpers (do not duplicate)
@@ -74,28 +65,29 @@ Only the `release` skill bumps the version (with notes in `release-notes/`) and 
 
 ## Guidance map
 
-| Guide, doc, or skill                              | Read or use when                                                        | Governs                                                                                   |
-| ------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `.agents/guides/reminder-model.md`                | Changing reminder types, schedules, occurrences or notification content | `apps/api`, `apps/web`, `apps/mobile`, `packages/shared`                                  |
-| `.agents/guides/ui-conventions.md`                | Changing any screen, dialog or control                                  | `apps/web/src/**`                                                                         |
-| `docs/auth-architecture.md`                       | Touching auth, sessions, passkeys or data isolation                     | `apps/api/src/routes/auth.ts`, domain queries                                             |
-| `docs/data-event-contract.md`                     | Changing HTTP or WebSocket data flow or offline sync                    | `apps/api`, `apps/web/src/lib`, `apps/web/src/data`                                       |
-| `docs/host-bridge-contract.md`                    | Changing a message, method or fallback between the page and a host      | `apps/web/src/native`, `apps/desktop`, `apps/linux-desktop`, `apps/mobile/android-plugin` |
-| `docs/alarm-architecture.md`                      | Changing the notification, alarm or escalation mechanism                | `apps/api/src/lib/delivery`, `apps/mobile`                                                |
-| `docs/notification-behavior.md`                   | Changing the user-facing done, silence or snooze guarantee              | every surface                                                                             |
-| `docs/desktop-architecture.md`                    | Changing the Windows tray app                                           | `apps/desktop/**`                                                                         |
-| `docs/linux-desktop-architecture.md`              | Changing the Linux tray host                                            | `apps/linux-desktop/**`                                                                   |
-| `docs/localization.md`                            | Changing copy, catalogs or locale handling                              | `packages/shared/src/messages/**`, all UIs                                                |
-| `ARCHITECTURE.md`                                 | Orienting, or changing where the product stores data                    | repo-wide                                                                                 |
-| `docs/development.md`                             | Running, testing or releasing                                           | repo-wide                                                                                 |
-| `docs/deployment.md`                              | Deploying, server config, backup, export or account deletion            | `Dockerfile`, `compose.server.yml`, `nginx.server.conf`                                   |
-| `scripts/hooks/README.md`                         | A Claude Code hook blocked an edit                                      | `scripts/hooks/**`, `.claude/settings.json`                                               |
-| `commit` skill                                    | Committing here                                                         | repo-wide                                                                                 |
-| `deploy`, `release` skills                        | Deploying the server, releasing Android and web                         | `compose.server.yml`, `.github/workflows/release.yml`                                     |
-| `desktop` skill                                   | Building, packaging or installing the Windows app                       | `apps/desktop/**`                                                                         |
-| `verify` skill                                    | Confirming a change works in the running app                            | all surfaces                                                                              |
-| `audit-docs` skill                                | Checking docs and agent files for drift                                 | `docs/**`, `**/AGENTS.md`, `.agents/**`                                                   |
-| `test-android-device`, `store-screenshots` skills | Testing on a physical phone; refreshing store images                    | `apps/mobile`, `store-assets/**`                                                          |
+| Guide, doc, or skill                              | Read or use when                                                             | Governs                                                                                   |
+| ------------------------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `.agents/guides/reminder-model.md`                | Changing reminder types, schedules, occurrences or notification content      | `apps/api`, `apps/web`, `apps/mobile`, `packages/shared`                                  |
+| `.agents/guides/ui-conventions.md`                | Changing any screen, dialog or control                                       | `apps/web/src/**`                                                                         |
+| `.agents/guides/dev-environment.md`               | Setting up a checkout, changing the schema or shared package, bumping devkit | `apps/api/prisma/**`, `packages/shared/**`, `package.json`, `scripts/dev/**`              |
+| `docs/auth-architecture.md`                       | Touching auth, sessions, passkeys or data isolation                          | `apps/api/src/routes/auth.ts`, domain queries                                             |
+| `docs/data-event-contract.md`                     | Changing HTTP or WebSocket data flow or offline sync                         | `apps/api`, `apps/web/src/lib`, `apps/web/src/data`                                       |
+| `docs/host-bridge-contract.md`                    | Changing a message, method or fallback between the page and a host           | `apps/web/src/native`, `apps/desktop`, `apps/linux-desktop`, `apps/mobile/android-plugin` |
+| `docs/alarm-architecture.md`                      | Changing the notification, alarm or escalation mechanism                     | `apps/api/src/lib/delivery`, `apps/mobile`                                                |
+| `docs/notification-behavior.md`                   | Changing the user-facing done, silence or snooze guarantee                   | every surface                                                                             |
+| `docs/desktop-architecture.md`                    | Changing the Windows tray app                                                | `apps/desktop/**`                                                                         |
+| `docs/linux-desktop-architecture.md`              | Changing the Linux tray host                                                 | `apps/linux-desktop/**`                                                                   |
+| `docs/localization.md`                            | Changing copy, catalogs or locale handling                                   | `packages/shared/src/messages/**`, all UIs                                                |
+| `ARCHITECTURE.md`                                 | Orienting, or changing where the product stores data                         | repo-wide                                                                                 |
+| `docs/development.md`                             | Running, testing or releasing                                                | repo-wide                                                                                 |
+| `docs/deployment.md`                              | Deploying, server config, backup, export or account deletion                 | `Dockerfile`, `compose.server.yml`, `nginx.server.conf`                                   |
+| `scripts/hooks/README.md`                         | A Claude Code hook blocked an edit                                           | `scripts/hooks/**`, `.claude/settings.json`                                               |
+| `commit` skill                                    | Committing here                                                              | repo-wide                                                                                 |
+| `deploy`, `release` skills                        | Deploying the server, releasing Android and web                              | `compose.server.yml`, `.github/workflows/release.yml`                                     |
+| `desktop` skill                                   | Building, packaging or installing the Windows app                            | `apps/desktop/**`                                                                         |
+| `verify` skill                                    | Confirming a change works in the running app                                 | all surfaces                                                                              |
+| `audit-docs` skill                                | Checking docs and agent files for drift                                      | `docs/**`, `**/AGENTS.md`, `.agents/**`                                                   |
+| `test-android-device`, `store-screenshots` skills | Testing on a physical phone; refreshing store images                         | `apps/mobile`, `store-assets/**`                                                          |
 
 Skills live in `.agents/skills/`; Claude Code reads them through the `.claude/skills` symlink.
 
