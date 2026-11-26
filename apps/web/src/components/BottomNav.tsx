@@ -6,6 +6,9 @@ import { tr } from '../localization/i18n.js'
  * Mobile-first primary navigation.
  * Single-line labels stay compact; actual wrapping grows the row while keeping
  * icons aligned, without reserving an empty second line for every translation.
+ * A label wraps only between words: a tab whose longest word does not fit its equal
+ * share grows instead. The bar publishes its height (`lib/fixedControlSizes.ts`), so the
+ * floating New reminder button and the page's bottom padding follow a taller bar.
  *
  * Order is chronological on purpose — now, next, past — so Upcoming sits between
  * Current and History, and Notes sits after them: it is the one tab with no place in
@@ -20,11 +23,12 @@ import { tr } from '../localization/i18n.js'
  * advertising a feature rather than navigating to anything. The `/notes` route exists
  * regardless (see `pages/NotesPage.tsx`); this only decides whether to offer the way in.
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 import type { SvgIconComponent } from '@mui/icons-material'
 import Sheet from '@mui/joy/Sheet'
 import { safeAreaInset } from '../lib/safeArea.js'
+import { publishBottomNavHeight } from '../lib/fixedControlSizes.js'
 import Stack from '@mui/joy/Stack'
 import Button from '@mui/joy/Button'
 import Typography from '@mui/joy/Typography'
@@ -115,6 +119,57 @@ function useKeyboardOpen(): boolean {
   return open
 }
 
+/**
+ * Whether the tab row must fall back to breaking words, with a callback ref for the row.
+ *
+ * Each tab is normally at least as wide as its longest word, so no label breaks
+ * mid-word. When the words together are wider than the row (a window narrower than
+ * any phone, or a large text size) that would push the last tab off screen, so the
+ * row then returns to equal shares that may break a word: every tab stays reachable.
+ *
+ * The width the word-keeping row needed is recorded when it overflows, and the row
+ * leaves the fallback only once it is that wide again, so the two layouts never
+ * alternate. A new label set (another language, or the Notes tab coming or going)
+ * measures again from the word-keeping layout.
+ *
+ * @param labels The current labels, joined; any change re-measures.
+ */
+function useWordBreakFallback(
+  labels: string,
+): [(element: HTMLDivElement | null) => void, boolean] {
+  const [row, setRow] = useState<HTMLDivElement | null>(null)
+  // The row's scrollWidth when the word-keeping layout overflowed, or null while it fits.
+  const [needed, setNeeded] = useState<number | null>(null)
+  const [measuredLabels, setMeasuredLabels] = useState(labels)
+  if (measuredLabels !== labels) {
+    setMeasuredLabels(labels)
+    setNeeded(null)
+  }
+
+  useLayoutEffect(() => {
+    if (!row) return
+
+    // Enter the fallback when the word-keeping row overflows; leave it when the row
+    // is as wide as that layout needed.
+    const check = () =>
+      setNeeded((previous) => {
+        if (previous === null) {
+          return row.scrollWidth > row.clientWidth + 1 ? row.scrollWidth : null
+        }
+        return row.clientWidth >= previous ? null : previous
+      })
+    check()
+
+    // A resize or a text-size change (which changes the row's height) checks again.
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(check)
+    observer.observe(row)
+    return () => observer.disconnect()
+  }, [row, labels, needed])
+
+  return [setRow, needed !== null]
+}
+
 export function BottomNav() {
   useTranslation()
   const { pathname } = useLocation()
@@ -122,9 +177,8 @@ export function BottomNav() {
   const received = useReceivedShares()
   const isActive = (to: string) =>
     to === '/' ? pathname === '/' : pathname.startsWith(to)
-  // Hide the bar while typing so the keyboard doesn't push it up over the content.
-  const keyboardOpen = useKeyboardOpen()
-  if (keyboardOpen) return null
+  // One ref callback for the bar's life, so re-renders don't detach and re-measure it.
+  const navRef = useMemo(() => publishBottomNavHeight(), [])
 
   // The Notes tab earns its place only when there is a note to show — but never
   // disappears from under the user while they are standing on it, which is what
@@ -135,9 +189,17 @@ export function BottomNav() {
   const items = ITEMS.filter(
     (item) => item.to !== '/notes' || hasNotes || isActive('/notes'),
   )
+  const [rowRef, breakWords] = useWordBreakFallback(
+    items.map((item) => tr(item.label)).join('\n'),
+  )
+
+  // Hide the bar while typing so the keyboard doesn't push it up over the content.
+  const keyboardOpen = useKeyboardOpen()
+  if (keyboardOpen) return null
 
   return (
     <Sheet
+      ref={navRef}
       variant="solid"
       sx={{
         position: 'fixed',
@@ -155,7 +217,7 @@ export function BottomNav() {
         pr: safeAreaInset('right'),
       }}
     >
-      <Stack direction="row" sx={{ maxWidth: 640, mx: 'auto' }}>
+      <Stack ref={rowRef} direction="row" sx={{ maxWidth: 640, mx: 'auto' }}>
         {items.map(({ to, label, icon: Icon }) => {
           const active = isActive(to)
           return (
@@ -165,12 +227,15 @@ export function BottomNav() {
               to={to}
               variant={active ? 'soft' : 'plain'}
               color={active ? 'primary' : 'neutral'}
-              // `minWidth: 0` + a small inline padding is what lets five tabs share a
-              // 320px phone: a Button won't shrink below its own content otherwise, so the
-              // row would overflow the centred column instead of dividing it.
+              // Tabs share the row equally (a zero basis) until a label's longest word
+              // would not fit its share: `min-content` then widens that tab and the
+              // others give up the room, so "Einstellungen" or "Configurações" stays one
+              // word instead of breaking mid-word. A small inline padding keeps five
+              // translated tabs within a 320px phone; below that, `breakWords` lets
+              // them shrink rather than push a tab off screen.
               sx={{
-                flex: 1,
-                minWidth: 0,
+                flex: '1 1 0',
+                minWidth: breakWords ? 0 : 'min-content',
                 flexDirection: 'column',
                 justifyContent: 'flex-start',
                 gap: 0.25,
@@ -187,7 +252,10 @@ export function BottomNav() {
                   maxWidth: '100%',
                   lineHeight: 1.2,
                   textAlign: 'center',
-                  overflowWrap: 'anywhere',
+                  // Lines break between words; a word breaks only in the fallback.
+                  // Breaking anywhere by default split single long words at the last
+                  // letter that fitted ("Einstellunge" / "n").
+                  overflowWrap: breakWords ? 'anywhere' : 'normal',
                 }}
               >
                 {tr(label)}

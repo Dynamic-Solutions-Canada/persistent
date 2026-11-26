@@ -28,7 +28,10 @@
  *   or it drifts into the margin on a wide window.
  * - It clears `BottomNav` *and* `env(safe-area-inset-bottom)` — the nav extends its
  *   own background down behind the Android gesture bar, so a bare pixel offset
- *   parks the button on top of the tabs on an edge-to-edge device.
+ *   parks the button on top of the tabs on an edge-to-edge device. It reads the
+ *   bar's measured height (`lib/fixedControlSizes.ts`), which includes that inset and
+ *   a second line of a wrapped translated label; a fixed 72px let a taller bar
+ *   slide over the button.
  *
  * The wrapper spans the full column width to place the button, so it is
  * `pointerEvents: 'none'` with the button re-enabling itself — otherwise an
@@ -50,13 +53,19 @@ import { tr } from '../localization/i18n.js'
 import { createPortal } from 'react-dom'
 import { useReminderDialogs } from './reminderDialogContext.js'
 import Box from '@mui/joy/Box'
-import { safeAreaInset } from '../lib/safeArea.js'
+import {
+  bottomNavHeight,
+  publishNewReminderFabWidth,
+} from '../lib/fixedControlSizes.js'
 import Button from '@mui/joy/Button'
 import AddIcon from '@mui/icons-material/Add'
+import { useMemo } from 'react'
 
 export function NewReminderFab() {
   useTranslation()
   const dialogs = useReminderDialogs()
+  // One ref callback for the button's life, so re-renders don't detach and re-measure it.
+  const buttonRef = useMemo(() => publishNewReminderFabWidth(), [])
   return (
     <>
       {/* In-flow spacer: the button is fixed, so nothing else can push the last
@@ -68,7 +77,9 @@ export function NewReminderFab() {
             position: 'fixed',
             left: 0,
             right: 0,
-            bottom: `calc(72px + ${safeAreaInset('bottom')})`,
+            // 15px above the bar's measured height, which includes the gesture-bar
+            // inset and grows when a translated tab label wraps.
+            bottom: `calc(${bottomNavHeight()} + 15px)`,
             // Under BottomNav's z-index of 10, so it can never sit over the tabs.
             zIndex: 9,
             mx: 'auto',
@@ -80,6 +91,7 @@ export function NewReminderFab() {
           }}
         >
           <Button
+            ref={buttonRef}
             onClick={dialogs.create}
             variant="soft"
             color="primary"
