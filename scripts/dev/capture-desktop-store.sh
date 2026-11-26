@@ -3,8 +3,8 @@
 # (store-assets/README.md, "Microsoft Store"). For each locale: seed the demo account with that
 # locale's synthetic data, check (or switch) the guest's display language, run
 # capture-desktop-store.ps1 in the guest's desktop session, and copy the four captures and their
-# sidecars into store-assets/raw/microsoft/<locale>/. Run on the VM at 200% in en-US and ja-JP
-# (November 26, 2026).
+# sidecars into store-assets/raw/microsoft/<locale>/. Run on the VM at 200% in every
+# listing locale (November 26, 2026).
 #
 # When: the seed places each firing at its schedule's most recent time (8:00, 8:15 and 9:00 a.m.
 # Toronto), so the cards read "Today" only when the capture runs on a weekday after 9:00 a.m.;
