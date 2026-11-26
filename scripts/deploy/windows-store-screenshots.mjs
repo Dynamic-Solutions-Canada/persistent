@@ -1,6 +1,6 @@
 /**
  * The Microsoft Store screenshot set for every listing locale, and how it replaces a draft's
- * screenshots (D-123, LIST-8). A JavaScript port of winui-app-kit v2.7.1's
+ * screenshots (D-123, LIST-8). A JavaScript port of winui-app-kit v2.10.0's
  * resolve-, merge- and confirm-store-screenshots.ps1, so Persistent's listings behave like the
  * WinUI apps': each locale gets its generated hero first, then the other screenshots in manifest
  * order, captioned in that locale. A `{locale}` path is that locale's own image (a copyFrom

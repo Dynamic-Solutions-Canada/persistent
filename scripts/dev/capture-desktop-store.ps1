@@ -77,9 +77,22 @@ function Get-FlyoutWindow {
         Select-Object -First 1
 }
 
+<#
+Whether a Windows language tag is the listing locale. Windows reports some without the region or
+with a script ("ja" for ja-JP, "zh-Hans-CN" for zh-CN), so the language must match and the region,
+when the tag names one, too.
+#>
+function Test-LanguageTag([string]$Tag, [string]$Locale) {
+    $wanted = $Locale.Split('-')
+    $parts = $Tag.Split('-')
+    if ($parts[0] -ne $wanted[0]) { return $false }
+    $region = $parts | Select-Object -Skip 1 | Where-Object { $_.Length -eq 2 }
+    return (-not $region) -or ($region -eq $wanted[1])
+}
+
 # 1. Windows must already be in this locale (the capture owner switches it between locales).
 $windowsLanguage = (Get-WinUserLanguageList)[0].LanguageTag
-if ($windowsLanguage -ne $locale) { throw "Windows' display language is $windowsLanguage, not $locale. Switch it first." }
+if (-not (Test-LanguageTag $windowsLanguage $locale)) { throw "Windows' display language is $windowsLanguage, not $locale. Switch it first." }
 
 # 2. Open the flyout from the tray icon, found by automation ID and the product-name tooltip.
 $icon = Find-TrayIcon 'Persistent'

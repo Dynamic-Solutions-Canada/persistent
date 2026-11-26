@@ -92,7 +92,7 @@ to stop the sound promptly. Delete only the newly created reminder from the
 verified local demo account. Never press Done for a screenshot.
 
 Capture the actual screen with `adb -s <serial> exec-out screencap -p > <path>.png`.
-The current en-US set came from a Pixel 9 Pro (960 x 2142); new sets come from the Pixel 5 test phone. Android captures are RGBA; run
+The current en-US set came from the android-vm emulator (see `raw/android/native/README.md`); new sets come from the Pixel 5 test phone, so check each capture's actual size. Android captures are RGBA; run
 `scripts/dev/convert-store-capture.ps1` with `-InputPath` and `-OutputPath` to save
 the same dimensions and pixels as Store-compatible RGB. It uses the existing
 Windows image runtime. If RemoteSigned rejects a WSL UNC script, execute a

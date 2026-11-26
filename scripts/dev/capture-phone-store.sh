@@ -17,8 +17,9 @@
 #
 # How the language is switched: Android has no shell command for the system locale on an
 # unrooted phone (setprop persist.sys.locale needs root). The Appium Settings helper app
-# (io.appium.settings, Apache-2.0), once granted CHANGE_CONFIGURATION, sets it from a broadcast,
-# as Appium does on real devices. This script never installs it: installing a helper app on the
+# (io.appium.settings, Apache-2.0), once granted CHANGE_CONFIGURATION, sets it from a broadcast.
+# That this works on the Pixel 5's Android version is unverified: try it once, supervised, and
+# confirm the read-back and the restore before running every locale. This script never installs it: installing a helper app on the
 # test phone needs Ryan's go-ahead first, and the script stops if it is missing.
 #
 # Afterwards, convert each capture to RGB with scripts/dev/convert-store-capture.ps1 (README)
@@ -78,8 +79,11 @@ set_system_locale() {
         -n "$helper/.receivers.LocaleSettingReceiver" \
         --es lang "${locale%%-*}" --es country "${locale##*-}" >/dev/null
     sleep 3
-    if [[ "$(system_locale)" != "$locale" ]]; then
-        echo "capture-phone-store: the phone reports $(system_locale) after switching to $locale" >&2
+    local now
+    now="$(system_locale)"
+    # Android may report a script ("zh-Hans-CN"); language and region must match.
+    if [[ "${now%%-*}" != "${locale%%-*}" || "${now##*-}" != "${locale##*-}" ]]; then
+        echo "capture-phone-store: the phone reports $now after switching to $locale" >&2
         return 1
     fi
 }

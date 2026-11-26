@@ -123,7 +123,7 @@ Medication reminders store medicine names and doses. The Health apps declaration
 All eight live in `en-US/`, and each Play listing locale with its own record has
 its own eight in its folder, captured with the phone and app in that language and
 the demo account seeded with that locale's synthetic data (health data synthetic
-only). The current en-US eight are full-display Pixel 9 Pro captures with
+only). The current en-US eight (provenance in `../raw/android/native/README.md`) are full-display captures with
 the real status area and gesture bar, and no unrelated notification icons.
 All are composed in Paseo
 inside reusable phone mockups, with 1080 x 1920 RGB PNG exports. Marketing copy

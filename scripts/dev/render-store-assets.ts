@@ -44,8 +44,8 @@ const playListings = JSON.parse(
 const DEVKIT_TEXT =
   'node_modules/@dynamic-solutions-canada/devkit/src/store-hero/text.mjs'
 
-/** The headline box: the h1 max-width (as before localization), two lines, from 48 px down to 30 px. */
-const HEADLINE = { largest: 48, smallest: 30, maxWidth: 610, maxLines: 2 }
+/** The headline box: the copy column's 600 px, two lines, from 48 px down to 30 px. */
+const HEADLINE = { largest: 48, smallest: 30, maxWidth: 600, maxLines: 2 }
 
 // The generated hero (D-123) has one image per listing locale; the sheet shows each listing
 // locale's own row. copyFrom locales reuse their target's.
@@ -128,6 +128,8 @@ const fitted = fitText(fit.text, {
 })
 if (fitted) {
   h1.style.fontSize = fitted.size + 'px'
+  // The fitted lines are final: no further soft wrapping may strand a word.
+  h1.style.whiteSpace = 'pre'
   h1.textContent = fitted.lines.join('\\n')
 }
 // The copy must end above the phone, which starts at 216 px.

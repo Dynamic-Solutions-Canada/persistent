@@ -21,8 +21,11 @@
 #   WINDOWS_BUILD_TOOLS    default /development/windows-build-tools
 #
 # Preconditions are the README's: a throwaway -snapshot session, the Debug dev package installed
-# and pointed at the local origin, signed in to the demo account only, screenshot-desktop.ps1
-# -Mode Prepare done, at 200% display scale. This script changes nothing else in the guest.
+# and pointed at the local origin, signed in to the demo account only, the WebView2 debug policy,
+# screenshot-desktop.ps1 -Mode Prepare done, at 200% display scale. A language switch takes a
+# sign-in or a cold cycle, and cold-cycling a -snapshot guest discards all of that, so the
+# switch command (or the capture owner) must re-establish these preconditions for each locale.
+# This script changes nothing else in the guest.
 set -euo pipefail
 
 repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -51,11 +54,21 @@ guest_language() {
     app_test_ssh 'powershell -NoProfile -Command "(Get-WinUserLanguageList)[0].LanguageTag"' | tr -d '\r'
 }
 
+# Whether Windows tag $1 is listing locale $2. Windows reports some tags without the region or
+# with a script ("ja" for ja-JP, "zh-Hans-CN" for zh-CN): the language must match, and the
+# region too when the tag names one.
+same_language() {
+    local tag="$1" locale="$2" region
+    [[ "${tag%%-*}" == "${locale%%-*}" ]] || return 1
+    region="$(tr '-' '\n' <<<"${tag#*-}" | grep -xE '[A-Z]{2}' || true)"
+    [[ "$tag" != *-* || -z "$region" || "$region" == "${locale##*-}" ]]
+}
+
 # Make the guest's display language $1, or stop and say which one is needed.
 ensure_language() {
     local locale="$1" current
     current="$(guest_language)"
-    if [[ "$current" == "$locale" ]]; then
+    if same_language "$current" "$locale"; then
         return 0
     fi
     if [[ -z "${DESKTOP_LANGUAGE_SWITCH:-}" ]]; then
@@ -64,7 +77,7 @@ ensure_language() {
     fi
     $DESKTOP_LANGUAGE_SWITCH "$locale"
     current="$(guest_language)"
-    if [[ "$current" != "$locale" ]]; then
+    if ! same_language "$current" "$locale"; then
         echo "capture-desktop-store: the language switch left the guest in $current, not $locale" >&2
         exit 1
     fi

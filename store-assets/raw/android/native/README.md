@@ -1,6 +1,6 @@
 # Native Android capture provenance
 
-Captured on November 19, 2026, between 2:19 p.m. and 2:28 p.m. Toronto time, on the shared `android-vm` emulator (API 37 Google Play image, Pixel 7 profile, 1080 x 2400), not on a personal phone. The web app came from the development working tree at `b504c98` (Persistent 0.31.1, React 19, web-app-kit 0.2.0), loaded by the direct-debug package `ca.persistent.app` through `adb reverse` to the local Vite server. The app was installed fresh for the session and signed in only to the protected synthetic account `demo@example.test`, prepared with `npm run shots:prepare`.
+This records the en-US set, in `en-US/`; each other locale's set is recorded when it is captured. Captured on November 19, 2026, between 2:19 p.m. and 2:28 p.m. Toronto time, on the shared `android-vm` emulator (API 37 Google Play image, Pixel 7 profile, 1080 x 2400), not on a personal phone. The web app came from the development working tree at `b504c98` (Persistent 0.31.1, React 19, web-app-kit 0.2.0), loaded by the direct-debug package `ca.persistent.app` through `adb reverse` to the local Vite server. The app was installed fresh for the session and signed in only to the protected synthetic account `demo@example.test`, prepared with `npm run shots:prepare`.
 
 All eight captures are Enjoy Dark, with 12-hour times and doodles off. Notifications, display over other apps and background running were granted through the ordinary Android screens.
 
