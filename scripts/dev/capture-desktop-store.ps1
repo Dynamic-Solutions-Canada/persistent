@@ -145,6 +145,10 @@ foreach ($view in $views) {
     Open-FlyoutRoute $session $view.path
     $flyout = Get-FlyoutWindow
     Save-DesktopCapture $view.name $flyout
+    # The flyout's web content is out of UI Automation's reach, so its element dump is empty; save the
+    # page's visible text beside the capture for the localization checks instead (not committed).
+    $text = Invoke-FlyoutScript $session 'document.body.innerText'
+    [IO.File]::WriteAllText("$UiOut\$($view.name).text.txt", [string]$text, (New-Object Text.UTF8Encoding $false))
 
     # Every capture must be at the agreed display scale, or the renderer's crop is wrong.
     $sidecar = Get-Content "$UiOut\$($view.name).json" -Raw | ConvertFrom-Json
