@@ -1,9 +1,8 @@
 name: Play Listing
 
 # Localized titles and descriptions from store-assets/play/listings.json and, when
-# `images` is true, the phone screenshots listed under `play` in store-assets/manifest.json,
-# set on en-US and cleared in the other eight languages so they inherit them (D-098),
-# inside the same edit. A check validates the files,
+# `images` is true, each language's own phone screenshots listed under `play` in
+# store-assets/manifest.json (en-CA and fr-CA get en-US's and fr-FR's), inside the same edit. A check validates the files,
 # reports the plan and discards its edit. Publication preserves videos, the icon, the
 # feature graphic, app details and country distribution, and the screenshots too unless
 # `images` is true. Verify review/publication in Play Console separately.
@@ -18,7 +17,7 @@ on:
         type: choice
         options: [check, publish]
       images:
-        description: 'Also set the en-US phone screenshots from the manifest; other languages inherit them'
+        description: "Also set every language's own phone screenshots from the manifest"
         required: false
         default: false
         type: boolean
@@ -51,8 +50,8 @@ jobs:
   listing:
     needs: gate
     runs-on: ubuntu-latest
-    # About 3x the slowest text-only run, plus room for an image sync: 9 languages x 8 uploads of about 1 MB.
-    timeout-minutes: 20
+    # About 3x the slowest text-only run, plus room for an image sync: 9 languages x 8 uploads of about 1 MB each.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
 

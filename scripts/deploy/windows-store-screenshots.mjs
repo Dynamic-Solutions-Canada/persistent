@@ -2,8 +2,9 @@
  * The Microsoft Store screenshot set for every listing locale, and how it replaces a draft's
  * screenshots (D-123, LIST-8). A JavaScript port of winui-app-kit v2.7.1's
  * resolve-, merge- and confirm-store-screenshots.ps1, so Persistent's listings behave like the
- * WinUI apps': each locale gets its generated hero first (a copyFrom locale uses its target's),
- * then the shared screenshots in manifest order, captioned in that locale.
+ * WinUI apps': each locale gets its generated hero first, then the other screenshots in manifest
+ * order, captioned in that locale. A `{locale}` path is that locale's own image (a copyFrom
+ * locale uses its target's); a path without it is shared.
  *
  * Everything here is pure: no file or Store access, so the plan is testable on Linux and the
  * publisher's check mode can exercise it without credentials.
@@ -36,7 +37,7 @@ function findRecord(records, locale) {
 /**
  * Plan the screenshots for each listing locale, without reading any image.
  * @param manifest store-assets/manifest.json; its `microsoft` entries in listing order, each
- *   `file` under store-assets/microsoft/. The entry with a `hero` block has `{locale}` in it.
+ *   `file` under store-assets/microsoft/, which may contain `{locale}`.
  * @param listings store-assets/microsoft/listings.json
  * @param listingLocales the locales to plan: the draft's listings, or every listings.json
  *   locale in check mode
@@ -76,12 +77,10 @@ export function resolveStoreScreenshots(manifest, listings, listingLocales) {
       )
 
     const images = entries.map((entry, index) => {
-      // A hero is drawn per listing locale; every other screenshot is shared.
-      const file = entry.hero
-        ? entry.file.replace(LOCALE_TOKEN, found.name)
-        : entry.file
-      if (file.includes(LOCALE_TOKEN))
-        throw new Error(`Only the hero may have a per-locale path: ${file}`)
+      // A `{locale}` path is that locale's own image (the hero, and every localized
+      // capture); a copyFrom locale (en-CA, fr-CA) uses its target's. A path without it is
+      // shared by every locale.
+      const file = entry.file.replace(LOCALE_TOKEN, found.name)
       const description = String(captions[index] ?? '').trim()
       if (!description || description.length > MAX_DESCRIPTION)
         throw new Error(

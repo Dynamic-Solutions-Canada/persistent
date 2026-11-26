@@ -2,74 +2,58 @@
   "size": "1920x1080",
   "play": [
     {
-      "file": "play/00-current-dark.png",
-      "source": "raw/android/native/00-current-dark.png",
+      "file": "play/{locale}/00-current-dark.png",
+      "source": "raw/android/native/{locale}/00-current-dark.png",
       "theme": "enjoy-dark",
-      "headline": "Keep the important things\nin sight.",
-      "caption": "Every reminder waits for your confirmation.",
       "alt": "Enjoy Dark Current view with plants, puppy, and a part-completed morning checklist."
     },
     {
-      "file": "play/01-notification-shade-dark.png",
-      "source": "raw/android/native/01-notification-shade-dark.png",
+      "file": "play/{locale}/01-notification-shade-dark.png",
+      "source": "raw/android/native/{locale}/01-notification-shade-dark.png",
       "theme": "enjoy-dark",
-      "headline": "Swipe it away?\nIt comes back.",
-      "caption": "Reminders return until you confirm they're done.",
       "alt": "Real Android notification shade, in dark mode, with four distinct synthetic reminders and the plant reminder's Done and Snooze actions expanded."
     },
     {
-      "file": "play/02-alarm-dark.png",
-      "source": "raw/android/native/02-alarm-dark.png",
+      "file": "play/{locale}/02-alarm-dark.png",
+      "source": "raw/android/native/{locale}/02-alarm-dark.png",
       "theme": "enjoy-dark",
-      "headline": "Ignore it too long,\nit escalates.",
-      "caption": "Unconfirmed reminders can become a ringing alarm.",
       "alt": "Real Android escalated alarm, in dark mode, for the synthetic Check the oven reminder, with native Done, Snooze, and De-escalate controls."
     },
     {
-      "file": "play/03-checklist-dark.png",
-      "source": "raw/android/native/03-checklist-dark.png",
+      "file": "play/{locale}/03-checklist-dark.png",
+      "source": "raw/android/native/{locale}/03-checklist-dark.png",
       "theme": "enjoy-dark",
-      "headline": "Finish the task.\nThen mark it done.",
-      "caption": "Checklists, notes, and controls in one clear view.",
       "alt": "Enjoy Dark reading dialog with a morning checklist and Done and Snooze controls below it."
     },
     {
-      "file": "play/04-medication-dark.png",
-      "source": "raw/android/native/04-medication-dark.png",
+      "file": "play/{locale}/04-medication-dark.png",
+      "source": "raw/android/native/{locale}/04-medication-dark.png",
       "theme": "enjoy-dark",
-      "headline": "Make room for\nyour daily routines.",
-      "caption": "Medication reminders with names and doses.",
       "alt": "Synthetic vitamin D reminder editor in Enjoy Dark with a 1000 IU dose."
     },
     {
-      "file": "play/05-sharing-dark.png",
-      "source": "raw/android/native/05-sharing-dark.png",
+      "file": "play/{locale}/05-sharing-dark.png",
+      "source": "raw/android/native/{locale}/05-sharing-dark.png",
       "theme": "enjoy-dark",
-      "headline": "Share the reminder.\nStay on the same page.",
-      "caption": "Plan together, or assign a task to one person.",
       "alt": "Enjoy Dark sharing dialog with a staged synthetic recipient, Alex."
     },
     {
-      "file": "play/06-notes-dark.png",
-      "source": "raw/android/native/06-notes-dark.png",
+      "file": "play/{locale}/06-notes-dark.png",
+      "source": "raw/android/native/{locale}/06-notes-dark.png",
       "theme": "enjoy-dark",
-      "headline": "A place for the things\nyou want to keep.",
-      "caption": "Notes and checklists, without an alarm.",
       "alt": "Enjoy Dark Notes view showing a trip-packing checklist."
     },
     {
-      "file": "play/07-assigned-dark.png",
-      "source": "raw/android/native/07-assigned-dark.png",
+      "file": "play/{locale}/07-assigned-dark.png",
+      "source": "raw/android/native/{locale}/07-assigned-dark.png",
       "theme": "enjoy-dark",
-      "headline": "Know when\nit is done.",
-      "caption": "See progress on tasks you have assigned.",
       "alt": "Enjoy Dark Assigned by me view with synthetic parcel pickup completion."
     }
   ],
   "microsoft": [
     {
       "file": "screenshots/{locale}/00-hero-dark.png",
-      "source": "raw/microsoft/01-current-dark.png",
+      "source": "raw/microsoft/{locale}/01-current-dark.png",
       "theme": "dark",
       "hero": {
         "layout": "split",
@@ -84,32 +68,32 @@
       "alt": "Persistent's name and the headline \"Your reminders, one click from the Windows tray.\" on a blue panel, beside Persistent's real tray flyout in Enjoy Dark, enlarged, showing Current reminders and fading out at the bottom."
     },
     {
-      "file": "screenshots/01-current-dark.png",
-      "source": "raw/microsoft/01-current-dark.png",
+      "file": "screenshots/{locale}/01-current-dark.png",
+      "source": "raw/microsoft/{locale}/01-current-dark.png",
       "theme": "dark",
       "crop": "tray",
       "caption": "Everything due now, one click from the tray.",
       "alt": "The Persistent tray flyout above the Windows taskbar, showing current reminders."
     },
     {
-      "file": "screenshots/02-checklist-dark.png",
-      "source": "raw/microsoft/02-checklist-dark.png",
+      "file": "screenshots/{locale}/02-checklist-dark.png",
+      "source": "raw/microsoft/{locale}/02-checklist-dark.png",
       "theme": "dark",
       "crop": "tray",
       "caption": "Tick off a checklist, then confirm when the whole task is done.",
       "alt": "A morning checklist open in the Persistent tray flyout, with its reminder controls."
     },
     {
-      "file": "screenshots/03-medication-dark.png",
-      "source": "raw/microsoft/03-medication-dark.png",
+      "file": "screenshots/{locale}/03-medication-dark.png",
+      "source": "raw/microsoft/{locale}/03-medication-dark.png",
       "theme": "dark",
       "crop": "tray",
       "caption": "Medication reminders with names and doses.",
       "alt": "A vitamin D reminder with its dose, open for editing in the Persistent tray flyout."
     },
     {
-      "file": "screenshots/04-assigned-dark.png",
-      "source": "raw/microsoft/04-assigned-dark.png",
+      "file": "screenshots/{locale}/04-assigned-dark.png",
+      "source": "raw/microsoft/{locale}/04-assigned-dark.png",
       "theme": "dark",
       "crop": "tray",
       "caption": "See when a reminder you assigned was handled.",

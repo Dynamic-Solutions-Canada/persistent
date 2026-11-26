@@ -1,6 +1,7 @@
-/** Pure checks for the Play phone-screenshot plan and validation, plus the real approved files. */
+/** Pure checks for the per-locale Play phone-screenshot plan and validation, plus the real approved files. */
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 // @ts-expect-error - dependency-free Node script has no generated declarations
 import { PlayImages } from './play-images.mjs'
@@ -102,27 +103,82 @@ test('manifest screenshots keep manifest order and refuse unexpected paths', () 
   }
 })
 
-test('the plan puts the files on en-US only and empties the other languages so they inherit (D-098)', () => {
-  const shots = [{ name: 'play/00.png' }, { name: 'play/01.png' }]
-  const plan = PlayImages.plan(PlayMetadata.languages, shots)
+test("manifest paths with {locale} name each locale's own files", () => {
+  const manifest = {
+    play: [{ file: 'play/{locale}/00-a.png' }, { file: 'play/01-shared.png' }],
+  }
+  assert.deepEqual(PlayImages.manifestScreenshots(manifest, 'de-DE'), [
+    'play/de-DE/00-a.png',
+    'play/01-shared.png',
+  ])
+  assert.throws(() =>
+    PlayImages.manifestScreenshots({ play: [{ file: 'play/{lang}/00.png' }] }),
+  )
+})
+
+test("every language gets its own locale's set; en-CA and fr-CA get their sources' sets", () => {
+  const listings = JSON.parse(
+    readFileSync(
+      new URL('../../../store-assets/play/listings.json', import.meta.url),
+      'utf8',
+    ),
+  )
+  const sources = PlayMetadata.sources(listings)
+  const sets = new Map(
+    [...new Set(sources.values())].map((locale) => [
+      locale,
+      [{ name: `play/${locale}/00.png` }, { name: `play/${locale}/01.png` }],
+    ]),
+  )
+  const plan = PlayImages.plan(PlayMetadata.languages, sets, sources)
   assert.deepEqual(
     plan.map((entry: { language: string }) => entry.language),
     PlayMetadata.languages,
   )
+  const byLanguage = Object.fromEntries(
+    plan.map((entry: { language: string; source: string }) => [
+      entry.language,
+      entry.source,
+    ]),
+  )
+  assert.equal(byLanguage['en-CA'], 'en-US')
+  assert.equal(byLanguage['fr-CA'], 'fr-FR')
+  assert.equal(byLanguage['de-DE'], 'de-DE')
   for (const entry of plan) {
     assert.equal(entry.imageType, 'phoneScreenshots')
-    assert.deepEqual(entry.shots, entry.language === 'en-US' ? shots : [])
+    assert.equal(entry.shots, sets.get(entry.source))
   }
-  assert.throws(() => PlayImages.plan(PlayMetadata.languages, []))
-  assert.throws(() => PlayImages.plan(['fr-FR', 'de-DE'], shots), /en-US/)
+  // A missing locale fails rather than falling back to English screens.
+  sets.delete('ja-JP')
+  assert.throws(
+    () => PlayImages.plan(PlayMetadata.languages, sets, sources),
+    /ja-JP: no ja-JP phone screenshots/,
+  )
 })
 
-test('the approved manifest files are publishable as they are committed', () => {
-  const shots = PlayImages.loadScreenshots(manifestPath)
-  assert.equal(shots.length, 8)
-  assert.equal(shots[0].name, 'play/00-current-dark.png')
-  for (const shot of shots) {
-    assert.equal(shot.contentType, 'image/png')
-    assert.deepEqual([shot.width, shot.height], [1080, 1920])
+test('the committed screenshot sets are publishable as they are committed', () => {
+  // Completeness (every listing locale captured) is shots:check's and the --images path's
+  // job; this checks each set that is on disk, en-US always.
+  const listings = JSON.parse(
+    readFileSync(
+      new URL('../../../store-assets/play/listings.json', import.meta.url),
+      'utf8',
+    ),
+  )
+  const captured = [...new Set(PlayMetadata.sources(listings).values())].filter(
+    (locale) =>
+      locale === 'en-US' ||
+      existsSync(
+        new URL(`../../../store-assets/play/${locale}/`, import.meta.url),
+      ),
+  )
+  for (const locale of captured) {
+    const shots = PlayImages.loadScreenshots(manifestPath, locale)
+    assert.equal(shots.length, 8, locale)
+    assert.equal(shots[0].name, `play/${locale}/00-current-dark.png`)
+    for (const shot of shots) {
+      assert.equal(shot.contentType, 'image/png')
+      assert.deepEqual([shot.width, shot.height], [1080, 1920])
+    }
   }
 })

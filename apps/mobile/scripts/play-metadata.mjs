@@ -13,9 +13,73 @@ export class PlayMetadata {
   ]
   static limits = { title: 30, shortDescription: 80, fullDescription: 4000 }
 
-  /** Validate the entire source before OAuth or any edit. Aliases share copy, never locale identity. */
+  /**
+   * Fields of a listing record that are never sent to Play: the text drawn above the phone in
+   * each screenshot (headline and caption, in carousel order), which the screenshot renderer
+   * reads. Each is an array of non-empty strings.
+   */
+  static frameFields = ['screenshotHeadlines', 'screenshotCaptions']
+
+  /**
+   * Validate the entire source before OAuth or any edit. Aliases share copy, never locale
+   * identity. Returns only the text Play stores; the frame fields stay local.
+   */
   static listings(source) {
-    return this.#resolve(source, this.limits)
+    return this.#resolve(source, this.limits, this.frameFields).map(
+      (listing) => {
+        const text = { language: listing.language }
+        for (const field of Object.keys(this.limits))
+          text[field] = listing[field]
+        return text
+      },
+    )
+  }
+
+  /**
+   * Each language's screenshot frame text, with en-CA and fr-CA resolved to their sources.
+   * Throws when a record lacks the frame fields, their lengths differ, or an entry is empty.
+   *
+   * @returns {{ language: string, headlines: string[], captions: string[] }[]}
+   */
+  static frameText(source) {
+    return this.#resolve(source, this.limits, this.frameFields).map(
+      (listing) => {
+        const [headlines, captions] = this.frameFields.map((field) => {
+          const values = listing[field]
+          const valid =
+            Array.isArray(values) &&
+            values.length > 0 &&
+            values.every((value) => typeof value === 'string' && value.trim())
+          if (!valid)
+            throw new Error(
+              `${listing.language}.${field} must be a list of non-empty strings.`,
+            )
+          return values
+        })
+        if (headlines.length !== captions.length)
+          throw new Error(
+            `${listing.language}: ${headlines.length} screenshot headlines for ${captions.length} captions.`,
+          )
+        return { language: listing.language, headlines, captions }
+      },
+    )
+  }
+
+  /**
+   * The record each language takes its copy (and its screenshots) from: itself, or the
+   * `copyFrom` source of en-CA and fr-CA. An empty Play image set falls back to the default
+   * language (en-US), not to fr-FR, so fr-CA must be sent fr-FR's files explicitly.
+   *
+   * @returns {Map<string, string>} language to source locale, in sync order
+   */
+  static sources(source) {
+    this.listings(source)
+    return new Map(
+      this.languages.map((language) => [
+        language,
+        source.locales[language].copyFrom ?? language,
+      ]),
+    )
   }
 
   /** Curated release notes are version-bound and rejected, rather than silently truncated, above 500 chars. */
@@ -29,7 +93,7 @@ export class PlayMetadata {
     }))
   }
 
-  static #resolve(source, limits) {
+  static #resolve(source, limits, extraFields = []) {
     if (
       source?.schemaVersion !== 1 ||
       !source.locales ||
@@ -64,7 +128,9 @@ export class PlayMetadata {
       }
       if (
         !value ||
-        Object.keys(value).some((key) => !Object.hasOwn(limits, key))
+        Object.keys(value).some(
+          (key) => !Object.hasOwn(limits, key) && !extraFields.includes(key),
+        )
       ) {
         throw new Error(`${language}: unexpected metadata field.`)
       }
@@ -86,8 +152,8 @@ export class PlayMetadata {
 
   /**
    * Stage title/descriptions for all languages in one edit, and with `images` also
-   * replace each planned language's phone screenshots in that same edit (the default
-   * language's files, and an empty set elsewhere so the others inherit them). Existing
+   * replace each planned language's phone screenshots in that same edit, each with its
+   * own locale's set (en-CA and fr-CA with en-US's and fr-FR's). Existing
    * video, unplanned image types (icon, feature graphic), unknown translations, app
    * details and distribution are untouched. A read-only check discards its edit;
    * failures also discard uncommitted work.
@@ -99,7 +165,7 @@ export class PlayMetadata {
    * @param {(editId: string) => Promise<void>} options.commit Commits the edit.
    * @param {string} options.editPath The app's edits collection path.
    * @param {boolean} options.check Report only, write nothing.
-   * @param {{ language: string, imageType: string, shots: { name: string, bytes: Buffer, contentType: string }[] }[] | null} [options.images]
+   * @param {{ language: string, source?: string, imageType: string, shots: { name: string, bytes: Buffer, contentType: string }[] }[] | null} [options.images]
    *   Per-language screenshot plan from PlayImages.plan(), or null for text only.
    * @param {(line: string) => void} [options.report]
    */
@@ -150,9 +216,8 @@ export class PlayMetadata {
       if (images) await this.#replaceImages({ images, path, request, report })
       await commit(edit.id)
       committed = true
-      const carrier = images ? this.#imageCarrier(images) : null
-      const imageSummary = carrier
-        ? ` and ${carrier.shots.length} ${carrier.language} phone screenshots (other languages inherit them)`
+      const imageSummary = images
+        ? ` and ${images.length} localized phone screenshot sets`
         : ''
       report(
         `[play-publish] Nine text listings${imageSummary} committed. Verify Console review/publication separately.`,
@@ -177,20 +242,29 @@ export class PlayMetadata {
         const live = await request(`${path}/listings/${language}/${imageType}`)
         before = String(live.images?.length ?? 0)
       }
-      const after = shots.length ? String(shots.length) : '0 (inherits)'
       report(
-        `[play-publish] ${language} ${imageType}: ${before} on Play -> ${after}`,
+        `[play-publish] ${language} ${imageType}: ${before} on Play -> ${shots.length}`,
       )
     }
-    const files = this.#imageCarrier(images).shots.map(
-      ({ name, width, height }) => `${name} (${width}x${height})`,
-    )
-    report(`[play-publish] screenshots in order: ${files.join(', ')}`)
+    // Each source locale's files once, in carousel order; aliases name their source.
+    const reported = new Set()
+    for (const { language, source = language, shots } of images) {
+      if (reported.has(source)) {
+        report(`[play-publish] ${language} uses ${source}'s screenshots`)
+        continue
+      }
+      reported.add(source)
+      const files = shots.map(
+        ({ name, width, height }) => `${name} (${width}x${height})`,
+      )
+      report(
+        `[play-publish] ${source} screenshots in order: ${files.join(', ')}`,
+      )
+    }
   }
 
   /**
-   * Replace each planned language's image set inside the open edit (an empty plan entry
-   * just clears it), then re-read it and throw if Play holds a different count, so the
+   * Replace each planned language's image set inside the open edit, then re-read it and throw if Play holds a different count, so the
    * edit never commits a partial carousel.
    * Replaced whole rather than diffed: Play has no stable identity to match a file against.
    */
@@ -217,10 +291,5 @@ export class PlayMetadata {
         `[play-publish] ${language} ${imageType}: ${count} on Play after re-read`,
       )
     }
-  }
-
-  /** The plan entry that carries the files; the others are emptied so they inherit them. */
-  static #imageCarrier(images) {
-    return images.find((entry) => entry.shots.length)
   }
 }

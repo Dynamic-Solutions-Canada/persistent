@@ -10,16 +10,16 @@ Drawn by devkit-store-hero from the Current capture (`../README.md`, Hero). Engl
 
 ## Current, Enjoy Dark
 
-![Tray flyout showing Current reminders in Enjoy Dark](screenshots/01-current-dark.png)
+![Tray flyout showing Current reminders in Enjoy Dark](screenshots/en-US/01-current-dark.png)
 
 ## Checklist, Enjoy Dark
 
-![Tray flyout showing the morning checklist and its reminder controls in Enjoy Dark](screenshots/02-checklist-dark.png)
+![Tray flyout showing the morning checklist and its reminder controls in Enjoy Dark](screenshots/en-US/02-checklist-dark.png)
 
 ## Medication, Enjoy Dark
 
-![Tray flyout showing the synthetic vitamin reminder editor, dose, and Save action in Enjoy Dark](screenshots/03-medication-dark.png)
+![Tray flyout showing the synthetic vitamin reminder editor, dose, and Save action in Enjoy Dark](screenshots/en-US/03-medication-dark.png)
 
 ## Assigned by me, Enjoy Dark
 
-![Tray flyout showing synthetic parcel-pickup completion in Enjoy Dark](screenshots/04-assigned-dark.png)
+![Tray flyout showing synthetic parcel-pickup completion in Enjoy Dark](screenshots/en-US/04-assigned-dark.png)

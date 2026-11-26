@@ -170,13 +170,19 @@ test('check writes no text and removes its edit; partial failure never commits',
   assert.ok(failure.calls.every((call) => !call.path.endsWith(':commit')))
 })
 
-test('an image plan sets en-US, clears the rest after the text, verifies counts and commits once', async () => {
-  const shots = ['a', 'b', 'c'].map((name) => ({
-    name,
-    bytes: Buffer.from(name),
-    contentType: 'image/png',
-  }))
-  const plan = PlayImages.plan(PlayMetadata.languages, shots)
+test('an image plan gives each language its own set after the text, verifies counts and commits once', async () => {
+  const sources = PlayMetadata.sources(source)
+  const sets = new Map(
+    [...new Set<string>(sources.values())].map((locale) => [
+      locale,
+      ['a', 'b', 'c'].map((name) => ({
+        name: `play/${locale}/${name}.png`,
+        bytes: Buffer.from(name),
+        contentType: 'image/png',
+      })),
+    ]),
+  )
+  const plan = PlayImages.plan(PlayMetadata.languages, sets, sources)
   const fixture = new PlayEditFixture()
   await fixture.run(false, plan)
 
@@ -190,9 +196,14 @@ test('an image plan sets en-US, clears the rest after the text, verifies counts 
   const uploads = fixture.calls.filter(
     (call) => call.method === 'POST' && call.path.startsWith('/upload/'),
   )
-  // Only en-US gets files; every language, en-US included, is cleared first.
-  assert.equal(uploads.length, 3)
-  assert.ok(uploads.every((call) => call.path.includes('/listings/en-US/')))
+  // Every language gets its own three files, each set cleared first.
+  assert.equal(uploads.length, 9 * 3)
+  for (const language of PlayMetadata.languages)
+    assert.equal(
+      uploads.filter((call) => call.path.includes(`/listings/${language}/`))
+        .length,
+      3,
+    )
   assert.equal(
     fixture.calls.filter(
       (call) =>
@@ -225,4 +236,29 @@ test('an image plan sets en-US, clears the rest after the text, verifies counts 
   await assert.rejects(short.run(false, plan), /holds 2 after upload/)
   assert.equal(short.calls.at(-1)!.method, 'DELETE')
   assert.ok(short.calls.every((call) => !call.path.endsWith(':commit')))
+})
+
+test('frame text stays local: never sent to Play, resolved for aliases, lengths checked', () => {
+  for (const listing of PlayMetadata.listings(source)) {
+    assert.deepEqual(Object.keys(listing).sort(), [
+      'fullDescription',
+      'language',
+      'shortDescription',
+      'title',
+    ])
+  }
+  const frames = PlayMetadata.frameText(source)
+  const frCa = frames.find(
+    (frame: { language: string }) => frame.language === 'fr-CA',
+  )
+  assert.deepEqual(frCa.headlines, source.locales['fr-FR'].screenshotHeadlines)
+  for (const frame of frames)
+    assert.equal(frame.headlines.length, frame.captions.length)
+
+  const short = structuredClone(source)
+  short.locales['de-DE'].screenshotCaptions.pop()
+  assert.throws(
+    () => PlayMetadata.frameText(short),
+    /de-DE: 8 screenshot headlines for 7 captions/,
+  )
 })

@@ -16,11 +16,11 @@
  *                   in one edit. --check compares and discards the edit. Text
  *                   only unless --images is given; never changes app details or
  *                   countries.
- *   --images        With --listing-json: in the same edit, replace the en-US phone
- *                   screenshots with the manifest's `play` files, in manifest order
- *                   (--manifest <json> to point elsewhere), and clear them in the
- *                   other eight languages so they inherit en-US (D-098). The
- *                   files are validated before OAuth, also under --check, which
+ *   --images        With --listing-json: in the same edit, replace every language's
+ *                   phone screenshots with its own locale's `play` files from the
+ *                   manifest, in manifest order (--manifest <json> to point
+ *                   elsewhere); en-CA and fr-CA get en-US's and fr-FR's. Every
+ *                   locale's files are validated before OAuth, also under --check, which
  *                   reports the planned replacement and writes nothing. The icon
  *                   and feature graphic are never touched.
  *   --localized-notes <json> Version-bound nine-locale notes for upload or
@@ -106,8 +106,8 @@ const LISTING_LANGUAGE = 'en-US'
  */
 export const LISTING_LIMITS = { shortDescription: 80, fullDescription: 4000 }
 
-/** Where the phone screenshots live, relative to apps/mobile. */
-const DEFAULT_SCREENSHOTS = '../../store-assets/play'
+/** Where the en-US phone screenshots live, relative to apps/mobile (the legacy English --listing mode). */
+const DEFAULT_SCREENSHOTS = '../../store-assets/play/en-US'
 /** Where the approved Play screenshots are listed, relative to apps/mobile. */
 const DEFAULT_MANIFEST = '../../store-assets/manifest.json'
 
@@ -561,9 +561,14 @@ async function main() {
     const manifestPath =
       typeof args.manifest === 'string' ? args.manifest : DEFAULT_MANIFEST
     try {
+      // Each language shows its own locale's captures; aliases use their copy source's.
+      const sources = PlayMetadata.sources(
+        JSON.parse(read(args['listing-json'], 'localized listings', 'utf8')),
+      )
       imagePlan = PlayImages.plan(
         PlayMetadata.languages,
-        PlayImages.loadScreenshots(manifestPath),
+        PlayImages.loadSets(manifestPath, sources.values()),
+        sources,
       )
     } catch (error) {
       fail(error?.message || String(error))

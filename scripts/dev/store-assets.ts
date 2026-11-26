@@ -1,17 +1,37 @@
 /** Repeatable store demo preparation and asset exports, without launching a browser. */
 import { execFileSync } from 'node:child_process'
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { createPrismaClient } from '../../apps/api/src/lib/prisma-client.js'
 import { inspectStorePng, validateStoreImage } from './store-image.ts'
+import {
+  captureLocales,
+  DEFAULT_DEMO_LOCALE,
+  demoText,
+} from './store-demo-text.ts'
 
 const DEMO_EMAIL = 'demo@example.test'
 const RECIPIENT_EMAIL = 'alex@example.test'
 const RECIPIENT_NAME = 'Persistent screenshot recipient'
 
-/** Seed only the known development demo account, and expose synthetic scenario ids. */
+/**
+ * Seed only the known development demo account, and expose synthetic scenario ids. With
+ * `--locale=<listing locale>` the sample text is that listing's (store-assets/demo-text.json);
+ * the capture loops run this once per locale, before capturing it.
+ */
 async function prepare(): Promise<void> {
   const email = process.argv.find((arg) => arg.startsWith('--email='))?.slice(8)
+  const locale =
+    process.argv.find((arg) => arg.startsWith('--locale='))?.slice(9) ??
+    DEFAULT_DEMO_LOCALE
+  // Fails before any write when the locale has no sample text.
+  const text = demoText(locale)
   if (email !== DEMO_EMAIL)
     throw new Error(
       `Pass --email=${DEMO_EMAIL}. Personal accounts are not capture fixtures.`,
@@ -49,6 +69,7 @@ async function prepare(): Promise<void> {
         'tsx',
         'scripts/dev/seed-demo-listing.ts',
         `--email=${email}`,
+        `--locale=${locale}`,
       ],
       { stdio: 'inherit' },
     )
@@ -70,7 +91,7 @@ async function prepare(): Promise<void> {
       const reminder = await tx.reminder.create({
         data: {
           userId: recipient.id,
-          title: 'Pick up the parcel',
+          title: text.parcel.title,
           schedule: { kind: 'none', timesOfDay: [] },
           startDate: finishedAt.toLocaleDateString('en-CA', {
             timeZone: 'America/Toronto',
@@ -111,6 +132,7 @@ async function prepare(): Promise<void> {
         {
           capturedAgainst: 'development',
           email,
+          locale,
           preparedAt: new Date().toISOString(),
           timeZone: 'America/Toronto',
           reminders,
@@ -120,7 +142,7 @@ async function prepare(): Promise<void> {
       ) + '\n',
     )
     console.log(
-      'Prepared synthetic store fixture. Scenario ids: store-assets/fixture.json',
+      `Prepared synthetic ${locale} store fixture. Scenario ids: store-assets/fixture.json`,
     )
   } finally {
     await prisma.$disconnect()
@@ -142,7 +164,12 @@ async function saveCapture(path: string): Promise<void> {
   console.log(`Saved ${path}: ${width}x${height}`)
 }
 
-/** Check the curated files against the stores' pixel and encoding requirements. */
+/**
+ * Check the curated files against the stores' pixel and encoding requirements. A Play entry
+ * with `{locale}` needs one file per Play listing locale with its own record (no fallback to
+ * en-US, which would put English screens in a translated listing), and every locale needs one
+ * frame headline and caption per screenshot.
+ */
 function check(): void {
   const manifest = JSON.parse(
     readFileSync('store-assets/manifest.json', 'utf8'),
@@ -166,28 +193,106 @@ function check(): void {
     }
     if (shots.length < 4)
       throw new Error(`${store}: expected at least four curated screenshots`)
-    if (store === 'play' && shots.length > 8)
+    if (shots.length > 8)
       throw new Error('play: the carousel supports at most eight screenshots')
-    for (const shot of shots) {
-      const png = readFileSync(resolve('store-assets', shot.file))
-      const { width, height } = validateStoreImage(png, store)
-      console.log(`${store}: ${shot.file} (${width}x${height})`)
+
+    const locales = captureLocales('store-assets/play/listings.json')
+    checkFrameText(locales, shots.length)
+    const missing: string[] = []
+    for (const locale of locales) {
+      for (const shot of shots) {
+        const file = shot.file.replace('{locale}', locale)
+        if (!existsSync(resolve('store-assets', file))) {
+          missing.push(file)
+          continue
+        }
+        const { width, height } = validateStoreImage(
+          readFileSync(resolve('store-assets', file)),
+          store,
+        )
+        console.log(`${store}: ${file} (${width}x${height})`)
+      }
     }
-    checkSingleCopy(store, shots)
+    checkSingleCopy(store, shots, locales)
+    if (missing.length) {
+      // Group by locale, so the message names what to capture rather than 48 paths.
+      const byLocale = new Map<string, number>()
+      for (const file of missing) {
+        const locale = file.split('/')[1]
+        byLocale.set(locale, (byLocale.get(locale) ?? 0) + 1)
+      }
+      const summary = [...byLocale]
+        .map(([locale, count]) => `${locale} (${count} of ${shots.length})`)
+        .join(', ')
+      throw new Error(
+        `play: these listing locales have no capture yet, and there is no fallback to en-US: ${summary}. Capture them (store-assets/README.md).`,
+      )
+    }
   }
 }
 
-/** Every PNG in a store's folder is one the manifest names: one committed copy (LIST-6). */
-function checkSingleCopy(store: string, shots: Array<{ file: string }>): void {
-  const named = new Set(shots.map((shot) => shot.file))
-  const stray = readdirSync(resolve('store-assets', store))
-    .filter((name) => name.endsWith('.png'))
-    .map((name) => `${store}/${name}`)
+/**
+ * Every PNG in the Play folder and its locale folders is one the manifest names: one
+ * committed copy (LIST-6), and nothing left over for a locale the listing dropped.
+ */
+function checkSingleCopy(
+  store: string,
+  shots: Array<{ file: string }>,
+  locales: string[],
+): void {
+  const named = new Set(
+    shots.flatMap((shot) =>
+      locales.map((locale) => shot.file.replace('{locale}', locale)),
+    ),
+  )
+  const root = resolve('store-assets', store)
+  const folders = [
+    '',
+    ...readdirSync(root, { withFileTypes: true })
+      .filter(
+        (entry) =>
+          entry.isDirectory() && /^[a-z]{2}-[A-Z]{2}$/.test(entry.name),
+      )
+      .map((entry) => entry.name),
+  ]
+  const stray = folders
+    .flatMap((folder) =>
+      readdirSync(resolve(root, folder))
+        .filter((name) => name.endsWith('.png'))
+        .map((name) => [store, folder, name].filter(Boolean).join('/')),
+    )
     .filter((file) => !named.has(file))
   if (stray.length)
     throw new Error(
       `${store}: not in the manifest, so not in the listing: ${stray.join(', ')}`,
     )
+}
+
+/** Each Play listing locale has one frame headline and caption per screenshot. */
+function checkFrameText(locales: string[], count: number): void {
+  const listings = JSON.parse(
+    readFileSync('store-assets/play/listings.json', 'utf8'),
+  ) as {
+    locales: Record<
+      string,
+      { screenshotHeadlines?: string[]; screenshotCaptions?: string[] }
+    >
+  }
+  for (const locale of locales) {
+    const record = listings.locales[locale]
+    for (const field of [
+      'screenshotHeadlines',
+      'screenshotCaptions',
+    ] as const) {
+      const values = record?.[field] ?? []
+      if (values.length !== count || values.some((value) => !value.trim()))
+        throw new Error(
+          `play/listings.json ${locale}: ${values.length} ${field} for ${count} screenshots`,
+        )
+      if (values.some((value) => value.includes('\u2014')))
+        throw new Error(`play/listings.json ${locale}: em dash in ${field}`)
+    }
+  }
 }
 
 /** Each Microsoft listing locale has one caption per screenshot, in manifest order (LIST-8). */
@@ -221,5 +326,5 @@ else if (command === 'save' && process.argv[3])
 else if (command === 'check') check()
 else
   throw new Error(
-    'Usage: store-assets.ts prepare --email=... | save store-assets/path.png | check',
+    'Usage: store-assets.ts prepare --email=... [--locale=...] | save store-assets/path.png | check',
   )
