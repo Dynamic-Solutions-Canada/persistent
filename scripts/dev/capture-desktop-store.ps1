@@ -1,8 +1,8 @@
 <#
 Capture Persistent's four Microsoft Store tray-flyout views for ONE listing locale, in the test VM's
 desktop session (windows-build-tools app-test; run by scripts/dev/capture-desktop-store.sh through
-app_test_ui, never on a personal desktop). Untested: written before the localized capture session,
-so its first run is supervised.
+app_test_ui, never on a personal desktop). Run on the VM at 200% in en-US and ja-JP (November 26,
+2026).
 
 Nothing here looks an element up by its English name. Native parts are found by automation ID or
 class (the tray icon by AutomationId NotifyItemIcon and the app's non-localized tooltip

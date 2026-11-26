@@ -3,8 +3,13 @@
 # (store-assets/README.md, "Microsoft Store"). For each locale: seed the demo account with that
 # locale's synthetic data, check (or switch) the guest's display language, run
 # capture-desktop-store.ps1 in the guest's desktop session, and copy the four captures and their
-# sidecars into store-assets/raw/microsoft/<locale>/. Untested: written before the localized
-# capture session, so its first run is supervised.
+# sidecars into store-assets/raw/microsoft/<locale>/. Run on the VM at 200% in en-US and ja-JP
+# (November 26, 2026).
+#
+# When: the seed places each firing at its schedule's most recent time (8:00, 8:15 and 9:00 a.m.
+# Toronto), so the cards read "Today" only when the capture runs on a weekday after 9:00 a.m.;
+# earlier they read "Yesterday", and at weekends the school-day reminder moves to Friday. The
+# script checks the guest's clock and stops outside 9:05 a.m. to 5:55 p.m. on a weekday.
 #
 # Usage: scripts/dev/capture-desktop-store.sh [locale ...]
 #   With no locales, every Microsoft listing locale with its own record (en-CA and fr-CA reuse
@@ -108,6 +113,19 @@ write_inputs() {
     " "$locale" "$debug_port" "$scale" "$file"
 }
 
+# Stop unless the guest's clock (Toronto time, as the seed's) is a weekday between 9:05 a.m. and
+# 5:55 p.m., the hours in which every seeded firing is today's (see "When" above).
+check_capture_time() {
+    local now day hours mins minutes
+    now="$(app_test_ssh "powershell -NoProfile -Command \"(Get-Date).ToString('yyyy-MM-dd HH mm')\"" | tr -d '\r')"
+    read -r day hours mins <<<"$(date -d "$(cut -d' ' -f1 <<<"$now")" +%u) $(cut -d' ' -f2- <<<"$now")"
+    minutes=$((10#$hours * 60 + 10#$mins))
+    if ((day > 5 || minutes < 9 * 60 + 5 || minutes > 17 * 60 + 55)); then
+        echo "capture-desktop-store: the guest's clock reads $now; capture on a weekday between 9:05 a.m. and 5:55 p.m., or the reminders read Yesterday" >&2
+        exit 1
+    fi
+}
+
 inputs="$(mktemp --suffix=.json)"
 trap 'rm -f "$inputs"' EXIT
 
@@ -116,6 +134,8 @@ app_test_put scripts/dev/capture-desktop-store.ps1
 
 for locale in "${locales[@]}"; do
     echo "== $locale"
+
+    check_capture_time
 
     # Seed first: the guest's flyout shows whatever the account holds when it reloads.
     docker exec -w /workspace "$SHOTS_NODE_CONTAINER" \
