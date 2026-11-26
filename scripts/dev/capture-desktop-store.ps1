@@ -148,7 +148,12 @@ $views = @(
     @{ name = '04-assigned-dark'; path = '/assigned' }
 )
 foreach ($view in $views) {
-    Open-FlyoutRoute $session $view.path
+    # Load each view fresh at its route. A reminder dialog lives outside the routes, so a route change
+    # alone left the vitamin reminder's dialog open over Assigned by me; a reload closes it.
+    Invoke-FlyoutScript $session "location.replace('$($view.path)'); true" | Out-Null
+    Start-Sleep -Seconds 6
+    $session.Socket.Dispose()
+    $session = Connect-Flyout ([int]$inputs.debugPort)
     $flyout = Get-FlyoutWindow
     Save-DesktopCapture $view.name $flyout
     # The flyout's web content is out of UI Automation's reach, so its element dump is empty; save the
