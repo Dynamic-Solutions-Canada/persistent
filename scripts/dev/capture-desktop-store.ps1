@@ -97,8 +97,14 @@ if (-not (Test-LanguageTag $windowsLanguage $locale)) { throw "Windows' display 
 # 2. Open the flyout from the tray icon, found by automation ID and the product-name tooltip.
 $icon = Find-TrayIcon 'Persistent'
 if (-not $icon) { throw 'No Persistent tray icon; is the app running?' }
-# The previous locale's run leaves the flyout open, and a click on the icon would close it.
-if (-not (Get-FlyoutWindow)) { Invoke-Click $icon }
+# Always open the flyout fresh from the tray: the previous locale's run leaves it open, and a flyout
+# that was not just opened from the icon can sit mid-screen at 200% (seen on the VM, November 26,
+# 2026), outside the tray crop. A click on the icon closes an open flyout, so close it first.
+if (Get-FlyoutWindow) {
+    Invoke-Click $icon
+    Start-Sleep -Seconds 2
+}
+Invoke-Click $icon
 # Park the pointer on empty desktop, so the tray icon's hover and (on the VM's software cursor) the
 # pointer itself stay out of the captures.
 $screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
