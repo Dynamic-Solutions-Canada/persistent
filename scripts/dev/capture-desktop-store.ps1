@@ -97,7 +97,12 @@ if (-not (Test-LanguageTag $windowsLanguage $locale)) { throw "Windows' display 
 # 2. Open the flyout from the tray icon, found by automation ID and the product-name tooltip.
 $icon = Find-TrayIcon 'Persistent'
 if (-not $icon) { throw 'No Persistent tray icon; is the app running?' }
-Invoke-Click $icon
+# The previous locale's run leaves the flyout open, and a click on the icon would close it.
+if (-not (Get-FlyoutWindow)) { Invoke-Click $icon }
+# Park the pointer on empty desktop, so the tray icon's hover and (on the VM's software cursor) the
+# pointer itself stay out of the captures.
+$screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+[UiNative]::SetCursorPos([int]($screen.Width * 0.2), [int]($screen.Height * 0.3)) | Out-Null
 Start-Sleep -Seconds 2
 $flyout = Get-FlyoutWindow
 if (-not $flyout) { throw 'The flyout did not open.' }
@@ -115,6 +120,8 @@ Invoke-FlyoutScript $session @"
   if ($hour12) { settings.timeFormat = '12h'; settings.timeFormatChosen = true }
   else { delete settings.timeFormat; settings.timeFormatChosen = false }
   localStorage.setItem(key, JSON.stringify(settings))
+  // The native-app promotion is dismissed in every capture (README, "Prepare the demo").
+  localStorage.setItem('persistent-hide-native-apps-banner', '1')
   location.reload()
   return true
 })()
