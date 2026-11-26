@@ -380,7 +380,7 @@
   "Invitation pending": "Invitation pending",
   "Declined": "Declined",
   "Assigned": "Assigned",
-  " at {{v0}}": " at {{v0}}",
+  "{{status}} ({{when}})": "{{status}} ({{when}})",
   "From {{v0}}{{v1}}": "From {{v0}}{{v1}}",
   " · Next: {{v0}}": " · Next: {{v0}}",
   "Shared by {{v0}}": "Shared by {{v0}}",

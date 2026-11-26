@@ -380,7 +380,7 @@
   "Invitation pending": "招待の返答待ち",
   "Declined": "辞退済み",
   "Assigned": "割り当て済み",
-  " at {{v0}}": " {{v0}}",
+  "{{status}} ({{when}})": "{{status}}（{{when}}）",
   "From {{v0}}{{v1}}": "{{v0}} より{{v1}}",
   " · Next: {{v0}}": " · 次回: {{v0}}",
   "Shared by {{v0}}": "{{v0}} が共有",

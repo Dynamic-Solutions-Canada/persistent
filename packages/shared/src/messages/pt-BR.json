@@ -380,7 +380,7 @@
   "Invitation pending": "Convite pendente",
   "Declined": "Recusado",
   "Assigned": "Atribuído",
-  " at {{v0}}": " às {{v0}}",
+  "{{status}} ({{when}})": "{{status}} ({{when}})",
   "From {{v0}}{{v1}}": "De {{v0}}{{v1}}",
   " · Next: {{v0}}": " · Próximo: {{v0}}",
   "Shared by {{v0}}": "Compartilhado por {{v0}}",

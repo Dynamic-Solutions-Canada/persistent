@@ -30,8 +30,16 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
       <SelectedColorScheme mode={mode} />
       <NativeAppearanceSync />
       <CssBaseline />
-      {/* Scale all rem-based typography up 10% overall. */}
-      <GlobalStyles styles={{ html: { fontSize: '110%' } }} />
+      {/* Scale all rem-based typography up 10% overall. Japanese wraps between
+          phrases rather than at any character, so a line never ends with a word
+          cut in two or leaves "す。" alone (Chromium's auto-phrase; the root's
+          lang comes from configureLocale). Other browsers keep normal breaking. */}
+      <GlobalStyles
+        styles={{
+          html: { fontSize: '110%' },
+          ':lang(ja)': { wordBreak: 'auto-phrase' },
+        }}
+      />
       {children}
     </CssVarsProvider>
   )
