@@ -107,7 +107,7 @@ ensures checkout-local dependencies (`devkit prepare`), then runs this repo's
 `dev:postprepare`, which generates the Prisma client and builds the shared contracts. It is safe to repeat and does not start Docker, PostgreSQL,
 the proxy, or the app. Preparation and development automatically select the Node
 version in `.nvmrc` from an existing nvm installation and check the pinned npm
-version, even when Paseo's shell uses a newer Node by default. They do not install
+version, even when the shell uses a newer Node by default. They do not install
 a runtime or change the machine's default. Install the pinned runtime once with
 `nvm install` if it is absent, or use the development container.
 Before a fresh checkout has dependencies, it uses the
@@ -152,27 +152,11 @@ database volume.
 Reset refuses to operate on the primary checkout because it owns the source
 database for snapshots.
 
-### Paseo workspace scripts
+### Generated development files
 
-`paseo.json` uses the same setup and teardown commands for worktree lifecycle
-hooks. Paseo prepares a new worktree with `npm run dev:prepare-worktree` and
-runs `devkit cleanup --paseo --yes` before removing it. Archive cleanup removes private
-worktree volumes only after the final active workspace reference is archived; ordinary
-`npm run dev:down` preserves them. Setup does not start the application;
-run the `dev` script when you want to use it. Both hooks and all Scripts menu
-commands use the pinned runtime wrapper, so they do not depend on Paseo's host
-Node version or an interactive shell's nvm setup.
+`devkit-init` writes the dev runner (`scripts/dev/run-dev.mjs`), the `dev` and lifecycle npm scripts and the edit guard, and `npm run check:devkit` (part of `validate`) fails when one is stale or hand-edited; run `npm exec devkit-init` after every devkit bump. Inside the container the runner hands over to this repo's `dev:container` script: wait for the database, generate the Prisma client, apply migrations, build the shared package, then start the shared, API and web dev servers. Change those steps there, never in the runner.
 
-`devkit-init` writes the dev runner (`scripts/dev/run-dev.mjs`), the `dev` and lifecycle npm scripts, `paseo.json` and the edit guard, and `npm run check:devkit` (part of `validate`) fails when one is stale or hand-edited; run `npm exec devkit-init` after every devkit bump. Inside the container the runner hands over to this repo's `dev:container` script: wait for the database, generate the Prisma client, apply migrations, build the shared package, then start the shared, API and web dev servers. Change those steps there, never in the runner.
-
-The Scripts menu exposes `dev-prepare-worktree`, `dev`, `dev-background`,
-`dev-down`, `dev-doctor`, `validate`, `test`, and `build`. Prefer the supervised
-foreground `dev` script when using Paseo's Start/Stop controls. The background
-variant stays detached; stop it with `dev-down`.
-
-Devkit owns checkout ports and proxy URLs, so these scripts do not ask Paseo to
-allocate a second service port. The runner prints the proxied and direct URLs.
-`build` compiles the application; `validate` checks it. Neither deploys it.
+The runner prints the proxied and direct URLs. `build` compiles the application; `validate` checks it. Neither deploys it.
 Resetting databases, refreshing snapshots, pruning volumes, bootstrapping the
 machine, and deploying remain explicit operations outside automatic hooks.
 

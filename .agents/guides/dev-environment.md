@@ -9,5 +9,5 @@ The full workflow is in `docs/development.md`; this guide keeps the traps that h
 - **Never point `prisma migrate diff --shadow-database-url` at `DATABASE_URL`.** Prisma resets the shadow database, which wipes the dev data. `prisma migrate status` answers "is the schema in step?" without touching anything.
 - **A schema change needs `npm run db:generate` and updated shared contracts** in `packages/shared`.
 - **Tests import `@persistent/shared` from its built `dist/`.** `validate` builds it first, but a lone `npm test` or `test:integration` needs `npm run build --workspace @persistent/shared` after a shared change.
-- **devkit generates the dev runner, `paseo.json` and the edit guard.** Run `npm exec devkit-init` after a bump. App steps go in `dev:container` and `dev:postprepare`, never in the generated runner.
+- **devkit generates the dev runner and the edit guard.** Run `npm exec devkit-init` after a bump. App steps go in `dev:container` and `dev:postprepare`, never in the generated runner.
 - **PowerShell scripts stay ASCII-only.** Windows PowerShell 5.1 reads a `.ps1` without a BOM as ANSI, so a single non-ASCII character can break it (also in `apps/desktop/AGENTS.md`).
