@@ -15,13 +15,12 @@
 #   SHOTS_NODE_CONTAINER  required: the dev stack's Node container, which runs shots:prepare
 #   ADB                   default adb: an adb that holds the phone's existing pairing key
 #
-# How the language is switched: Android has no shell command for the system locale on an
-# unrooted phone (setprop persist.sys.locale needs root). The Appium Settings helper app
-# (io.appium.settings, Apache-2.0), once granted CHANGE_CONFIGURATION, sets it from a broadcast.
-# That this works on the Pixel 5's Android version is unverified: try it once, supervised, and
-# confirm the read-back and the restore before running every locale. This script never installs it: installing a helper app on the
-# test phone needs Ryan's go-ahead first, and the script stops if it is missing.
-#
+# How the language is switched: the Pixel 5 runs Android 17 (API 37), whose shell has
+# `cmd locale set-device-locale <tag>` and `get-device-locale`, so no helper app is installed.
+# Verified on 2026-11-27: ja-JP and zh-Hans-CN applied and read back, and en-US restored
+# `system_locales` to exactly en-US. The phone accepts zh-Hans-CN, not zh-CN, so a listing
+# locale is mapped to the tag the phone lists before switching. Switching re-posts Android's
+# debugging notifications as heads-up banners: wait for them to clear before capturing.
 # Afterwards, convert each capture to RGB with scripts/dev/convert-store-capture.ps1 (README)
 # before rendering. Nothing here changes display timeout, lock or other persistent settings; the
 # shared keepalive helper keeps the unlocked phone awake and stops with this script.
@@ -34,7 +33,6 @@ cd "$repo"
 adb="${ADB:-adb}"
 test_phone=192.168.2.205
 demo_package=ca.persistent.app
-helper=io.appium.settings
 device_helper="$HOME/.claude/bin/android-device.py"
 
 # The locales to capture: the arguments, or every Play listing locale with its own record.
@@ -55,41 +53,40 @@ fi
 device() { "$adb" -s "$serial" "$@"; }
 echo "Test phone: $serial"
 
-# 2. The language helper must already be there, with its permission.
-if ! device shell pm list packages "$helper" | grep -qx "package:$helper"; then
-    echo "capture-phone-store: $helper is not installed on the test phone; it switches the system language. Ask before installing it." >&2
+# 2. The phone must offer the shell locale command (Android 17 and newer).
+if ! device shell cmd locale help | grep -q set-device-locale; then
+    echo "capture-phone-store: this phone has no 'cmd locale set-device-locale'; switch its language another way." >&2
     exit 1
 fi
-device shell pm grant "$helper" android.permission.CHANGE_CONFIGURATION
 
 # The phone's current system locale, as a BCP 47 tag such as en-US.
 system_locale() {
-    local locale
-    locale="$(device shell getprop persist.sys.locale | tr -d '\r')"
-    if [[ -z "$locale" ]]; then
-        locale="$(device shell settings get system system_locales | tr -d '\r' | cut -d, -f1)"
-    fi
-    printf '%s\n' "$locale"
+    device shell cmd locale get-device-locale | tr -d '\r'
+}
+
+# The phone's tag for a listing locale: it lists Chinese with its script (zh-Hans-CN).
+device_tag() {
+    case "$1" in
+        zh-CN) printf 'zh-Hans-CN\n' ;;
+        *) printf '%s\n' "$1" ;;
+    esac
 }
 
 # Set the system locale to $1 (language-REGION) and confirm it took effect.
 set_system_locale() {
-    local locale="$1"
-    device shell am broadcast -a io.appium.settings.locale \
-        -n "$helper/.receivers.LocaleSettingReceiver" \
-        --es lang "${locale%%-*}" --es country "${locale##*-}" >/dev/null
+    local locale="$1" tag now
+    tag="$(device_tag "$locale")"
+    device shell cmd locale set-device-locale "$tag" >/dev/null
     sleep 3
-    local now
     now="$(system_locale)"
-    # Android may report a script ("zh-Hans-CN"); language and region must match.
-    if [[ "${now%%-*}" != "${locale%%-*}" || "${now##*-}" != "${locale##*-}" ]]; then
-        echo "capture-phone-store: the phone reports $now after switching to $locale" >&2
+    if [[ "$now" != "$tag" ]]; then
+        echo "capture-phone-store: the phone reports $now after switching to $tag" >&2
         return 1
     fi
 }
 
 original_locale="$(system_locale)"
-if [[ ! "$original_locale" =~ ^[a-z]{2,3}-[A-Z]{2}$ ]]; then
+if [[ ! "$original_locale" =~ ^[a-z]{2,3}(-[A-Z][a-z]{3})?-[A-Z]{2}$ ]]; then
     echo "capture-phone-store: cannot read the phone's current locale ($original_locale), so it could not be restored; stopping before any change." >&2
     exit 1
 fi

@@ -28,8 +28,7 @@ before using its results as store sources.
 Use the isolated demo Android app on the shared `android-vm` emulator with SystemUI demo mode, following the native
 capture setup below. Every current set comes from it (`raw/android/native/README.md`): the Pixel 5 test phone shows Android's wireless-debugging icon and the real network name in the shade, which a clean Store shot cannot include. `scripts/dev/capture-phone-store.sh [locale ...]` is a guided version for the Pixel 5 test phone, should its status bar ever be clean enough. It runs the whole
 set for every Play listing locale: it seeds each locale, switches the phone's system
-language (through the Appium Settings helper, which must already be installed with
-Ryan's go-ahead), restarts the demo app, prompts for each scenario with that
+language (with Android 17's `cmd locale set-device-locale`, no helper app), restarts the demo app, prompts for each scenario with that
 locale's sample names, saves each screen, and restores the original language on exit. Capture the full display for all eight images, including the
 real status area and gesture bar. Both bars must be readable against the selected
 theme, and unrelated notification icons must be absent. Do not add simulated
