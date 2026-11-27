@@ -158,12 +158,11 @@ npm run shots:prepare -- --email=demo@example.test
 npm run shots:render
 npm run shots:export
 npm run shots:check
-npm run shots:sync
 ```
 
 `shots:prepare` runs in the isolated development stack; the capture and render steps
-between commands are documented in the workflow. `shots:sync` replaces the local
-upload directory only. Publish the listing separately when requested.
+between commands are documented in the workflow. The publisher uploads straight from
+`play/<locale>/`. Publish the listing separately when requested.
 
 ### Video
 

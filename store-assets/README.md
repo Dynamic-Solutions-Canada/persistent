@@ -25,14 +25,16 @@ separate capture path on disposable devices, with a synthetic-only temporary
 server and a free-only submission guard. Check its runtime verification status
 before using its results as store sources.
 
-Use the isolated demo Android app on the shared `android-vm` emulator with SystemUI demo mode, following the native
-capture setup below. Every current set comes from it (`raw/android/native/README.md`): the Pixel 5 test phone shows Android's wireless-debugging icon and the real network name in the shade, which a clean Store shot cannot include. `scripts/dev/capture-phone-store.sh [locale ...]` is a guided version for the Pixel 5 test phone, should its status bar ever be clean enough. It runs the whole
+Capture on the Pixel 5 test phone with the isolated demo Android app, following the native
+capture setup below. Before each capture, dismiss every stray notification, including Android's ADB debugging notice, which can be swiped away while connected and comes back after each language switch, so swipe it again. The Wi-Fi name in the shade may stay or be cropped. Never use demo mode or change the phone's settings. The November 27, 2026 set came from the `android-vm` emulator with SystemUI demo mode as a one-off, because that run had already started (`raw/android/native/README.md`); the emulator remains the fallback when the phone is unavailable.
+
+`scripts/dev/capture-phone-store.sh [locale ...]` is the capture path. It runs the whole
 set for every Play listing locale: it seeds each locale, switches the phone's system
 language (with Android 17's `cmd locale set-device-locale`, no helper app), restarts the demo app, prompts for each scenario with that
 locale's sample names, saves each screen, and restores the original language on exit. Capture the full display for all eight images, including the
 real status area and gesture bar. Both bars must be readable against the selected
 theme, and unrelated notification icons must be absent. Do not add simulated
-system chrome or hide another app's notifications without permission. Capture
+system chrome. Capture
 these six app scenarios; the manifest determines final carousel order:
 
 1. Current, Enjoy Dark. The plants, puppy, and part-completed morning checklist are visible.
@@ -75,10 +77,10 @@ permission screens. Both packages are named Persistent, so verify `ca.persistent
 and the demo version on App Info before changing a Settings toggle.
 
 For the shade, expand the real Persistent notification group and the plant
-reminder until Done and Snooze are visible. Do not press either. Inspect for
-personal notifications and network names before saving an asset. Any crop or
-retouch needs an explicit framing decision; do not clear personal notifications
-or change network settings to clean up the shot.
+reminder until Done and Snooze are visible. Do not press either. Dismiss stray
+notifications first. The Wi-Fi name may stay or be cropped; any other crop or
+retouch needs an explicit framing decision. Do not change network or other phone settings
+to clean up the shot.
 
 For the escalation alarm, select Enjoy Dark and let its native appearance synchronize. Create
 one temporary synthetic reminder named "Check the oven", with body "Take the tray
@@ -91,7 +93,7 @@ to stop the sound promptly. Delete only the newly created reminder from the
 verified local demo account. Never press Done for a screenshot.
 
 Capture the actual screen with `adb -s <serial> exec-out screencap -p > <path>.png`.
-The current sets came from the android-vm emulator at 1080 x 2400 (see `raw/android/native/README.md`); check each capture's actual size. Android captures are RGBA; run
+The Pixel 5 captures at 1080 x 2340 and the emulator at 1080 x 2400 (the November 27, 2026 set); check each capture's actual size. Android captures are RGBA; run
 `scripts/dev/convert-store-capture.ps1` with `-InputPath` and `-OutputPath` to save
 the same dimensions and pixels as Store-compatible RGB. It uses the existing
 Windows image runtime. If RemoteSigned rejects a WSL UNC script, execute a
@@ -106,8 +108,9 @@ and original display timeout unchanged.
 
 Inspect immediately before each capture: live Android notifications can arrive
 while waiting. Keep only Persistent's notification icon and the ordinary Android
-status indicators in exported native screenshots. Obtain approval for any retouch
-or unrelated notification dismissal; an already clean real capture is preferable.
+status indicators in exported native screenshots: dismiss stray notifications, including
+the ADB debugging notice, before each capture. Obtain approval for any retouch other than
+cropping the Wi-Fi name.
 
 ## Microsoft Store
 
