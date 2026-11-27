@@ -6,7 +6,7 @@
       "shortDescription": "Reminders that return until confirmed. Open them from the Windows tray, share them, tick off checklists and see what's next in a Windows 11 widget. Alerts run while Persistent is open and your PC is awake.",
       "fullDescription": "Keep your reminders one click away at your desk. Persistent lives in the Windows tray: open it to view, edit, share, snooze or confirm reminders, in sync with the web and Android apps.\n\nReminders that come back\nTurn on notifications in Settings and a dismissed reminder returns, nags repeat on your schedule and alarm reminders ring until you act. Done takes two deliberate steps, so nothing is cleared by accident. Snooze postpones an alert; silencing an alarm keeps the reminder active.\n\nAlerts run while Persistent is open in the tray and your PC is awake, and it catches up as soon as it is running and online again. For alarms that ring offline or with the app closed, add the free Android app on the same account.\n\nFor everyday plans\n• One-time and repeating schedules: chosen weekdays, every few days or monthly dates, including the last day of the month\n• Checklists that start fresh each time, plus notes without alerts\n• Every due time is tracked separately: confirming the afternoon reminder never clears a missed morning one\n• History, with Undo done for accidental completions\n\nShare or assign\nInvite people by email to edit and complete reminders together. Snooze stays personal, so one person's snooze never silences another's alert. Assign a reminder to one person and follow their progress. An ignored reminder can escalate to your other devices and email a contact you choose.\n\nOn your desktop\nThe Microsoft Store app adds an Upcoming widget for Windows 11. Select a reminder to open it in the app.\n\nYour language\nAvailable in English, Spanish, French, German, Simplified Chinese, Brazilian Portuguese and Japanese. Language, date format, 12 or 24-hour clock and time zone are separate settings, and your own reminder text is never translated.\n\nFree, with no ads\nSign in with an email code, Google or a passkey. A free account and an internet connection keep your reminders in sync. No ads, tracking or third-party analytics. The service uses its own aggregate usage statistics. Delete your account and its data any time in Settings.\n\nPersistent is a reminder tool, not a medical device. Ask a qualified healthcare professional for medical advice.",
       "features": [
-        "Your reminders, one click from the Windows tray.",
+        "Reminders that stay until you're done.",
         "Dismissed notifications return until you confirm, while Persistent is open and your PC is awake.",
         "Two-step Done, so a reminder is never cleared by accident.",
         "Every due time is confirmed separately; a missed one is never cleared silently.",
@@ -27,10 +27,10 @@
         "Windows widget",
         "persistent notifications"
       ],
-      "heroHeadline": "Your reminders, one click from the Windows tray.",
-      "heroSubline": "View, snooze and confirm them on the same account as the web and Android.",
+      "heroHeadline": "Reminders that stay until you're done.",
+      "heroSubline": "They wait in the Windows tray until you confirm them, on the same account as the web and Android.",
       "screenshotCaptions": [
-        "View, snooze and confirm them on the same account as the web and Android.",
+        "They wait in the Windows tray until you confirm them, on the same account as the web and Android.",
         "Everything due now, one click from the tray.",
         "Tick off a checklist, then confirm when the whole task is done.",
         "Medication reminders with names and doses.",
@@ -45,7 +45,7 @@
       "shortDescription": "Recordatorios hasta confirmar. Ábrelos desde la bandeja de Windows, compártelos, completa listas y consulta lo próximo en un widget de Windows 11. Los avisos funcionan con Persistent abierto y el PC despierto.",
       "fullDescription": "Ten tus recordatorios a un clic en el escritorio. Persistent vive en la bandeja de Windows: ábrelo para ver, editar, compartir, posponer o confirmar recordatorios, sincronizados con la web y la aplicación de Android.\n\nRecordatorios que vuelven\nActiva las notificaciones en Ajustes y un recordatorio descartado vuelve a aparecer, los avisos se repiten según tu programación y las alarmas suenan hasta que actúes. Hecho requiere dos pasos deliberados, para que nada se borre por accidente. Posponer retrasa el aviso; silenciar una alarma mantiene activo el recordatorio.\n\nLos avisos funcionan mientras Persistent está abierto en la bandeja y el PC despierto, y se ponen al día en cuanto vuelve a estar en marcha y con conexión. Para alarmas que suenen sin conexión o con la aplicación cerrada, añade la aplicación gratuita de Android con la misma cuenta.\n\nPara tus planes diarios\n• Programación única o periódica: días de la semana elegidos, cada pocos días o fechas mensuales, incluido el último día del mes\n• Listas que empiezan de cero cada vez, además de notas sin avisos\n• Cada hora programada se sigue por separado: confirmar el recordatorio de la tarde nunca borra uno de la mañana que se pasó\n• Historial, con Deshacer hecho para lo completado por error\n\nCompartir o asignar\nInvita a personas por correo para editar y completar recordatorios juntos. Posponer es personal, así que lo que pospone una persona nunca silencia el aviso de otra. Asigna un recordatorio a una persona y sigue su progreso. Un recordatorio ignorado puede avisar a tus otros dispositivos y enviar un correo a un contacto que elijas.\n\nEn el escritorio\nLa aplicación de Microsoft Store añade un widget de Próximos para Windows 11. Selecciona un recordatorio para abrirlo en la aplicación.\n\nTu idioma\nDisponible en inglés, español, francés, alemán, chino simplificado, portugués de Brasil y japonés. El idioma, el formato de fecha, el reloj de 12 o 24 horas y la zona horaria se configuran por separado, y el texto de tus recordatorios nunca se traduce.\n\nGratis y sin anuncios\nAccede con un código por correo, Google o una clave de acceso. Una cuenta gratuita y conexión a internet mantienen tus recordatorios sincronizados. Sin anuncios, seguimiento ni análisis de terceros. El servicio usa sus propias estadísticas agregadas de uso. Elimina tu cuenta y sus datos cuando quieras en Ajustes.\n\nPersistent es una herramienta de recordatorios, no un producto sanitario. Consulta a un profesional sanitario para obtener asesoramiento médico.",
       "features": [
-        "Tus recordatorios, a un clic desde la bandeja de Windows.",
+        "Recordatorios que se quedan hasta que terminas.",
         "Las notificaciones descartadas vuelven hasta que confirmes, con Persistent abierto y el PC despierto.",
         "Hecho en dos pasos, para que un recordatorio nunca se borre por accidente.",
         "Cada hora programada se confirma por separado; una que se pasó nunca se borra sin avisar.",
@@ -66,10 +66,10 @@
         "widget Windows",
         "notificaciones persistentes"
       ],
-      "heroHeadline": "Tus recordatorios, a un clic desde la bandeja de Windows.",
-      "heroSubline": "Ver, posponer y confirmar, con la misma cuenta que usas en la web y Android.",
+      "heroHeadline": "Recordatorios que se quedan hasta que terminas.",
+      "heroSubline": "Esperan en la bandeja de Windows hasta que los confirmas, con la misma cuenta que usas en la web y Android.",
       "screenshotCaptions": [
-        "Ver, posponer y confirmar, con la misma cuenta que usas en la web y Android.",
+        "Esperan en la bandeja de Windows hasta que los confirmas, con la misma cuenta que usas en la web y Android.",
         "Todo lo pendiente ahora, a un clic desde la bandeja.",
         "Marca los elementos de una lista y confirma cuando termines toda la tarea.",
         "Recordatorios de medicación con nombres y dosis.",
@@ -102,10 +102,10 @@
         "widget Windows",
         "notifications persistantes"
       ],
-      "heroHeadline": "Vos rappels à un clic,\ndans la zone de\nnotification de Windows.",
-      "heroSubline": "Consulter, reporter et confirmer, avec le même compte que sur le Web et Android.",
+      "heroHeadline": "Des rappels qui restent jusqu’à ce que ce soit fait.",
+      "heroSubline": "Ils attendent dans la zone de notification de Windows jusqu’à votre confirmation, avec le même compte que sur le Web et Android.",
       "screenshotCaptions": [
-        "Consulter, reporter et confirmer, avec le même compte que sur le Web et Android.",
+        "Ils attendent dans la zone de notification de Windows jusqu’à votre confirmation, avec le même compte que sur le Web et Android.",
         "Tout ce qui est à faire maintenant, à un clic de la zone de notification.",
         "Cochez une liste, puis confirmez quand toute la tâche est terminée.",
         "Rappels de médicaments avec noms et doses.",
@@ -141,10 +141,10 @@
         "Windows-Widget",
         "Benachrichtigungen"
       ],
-      "heroHeadline": "Deine Erinnerungen\nmit einem Klick\nim Infobereich\nvon Windows.",
-      "heroSubline": "Ansehen, schlummern lassen und bestätigen, mit demselben Konto wie im Web und auf Android.",
+      "heroHeadline": "Erinnerungen, die bleiben, bis du fertig bist.",
+      "heroSubline": "Sie warten im Infobereich von Windows, bis du sie bestätigst, mit demselben Konto wie im Web und auf Android.",
       "screenshotCaptions": [
-        "Ansehen, schlummern lassen und bestätigen, mit demselben Konto wie im Web und auf Android.",
+        "Sie warten im Infobereich von Windows, bis du sie bestätigst, mit demselben Konto wie im Web und auf Android.",
         "Alles, was jetzt fällig ist, mit einem Klick im Infobereich.",
         "Hake eine Checkliste ab und bestätige, wenn die ganze Aufgabe erledigt ist.",
         "Medikamentenerinnerungen mit Namen und Dosierung.",
@@ -177,10 +177,10 @@
         "Windows 小组件",
         "持续通知"
       ],
-      "heroHeadline": "在 Windows 系统托盘中，一键查看提醒。",
-      "heroSubline": "查看、稍后提醒或确认完成，使用与网页版和 Android 相同的账号。",
+      "heroHeadline": "提醒一直都在，直到你完成。",
+      "heroSubline": "提醒会留在 Windows 系统托盘中，直到你确认完成，使用与网页版和 Android 相同的账号。",
       "screenshotCaptions": [
-        "查看、稍后提醒或确认完成，使用与网页版和 Android 相同的账号。",
+        "提醒会留在 Windows 系统托盘中，直到你确认完成，使用与网页版和 Android 相同的账号。",
         "当前到期的所有提醒，托盘中一键可达。",
         "逐项勾选清单，整个任务完成后再确认。",
         "带药名和剂量的用药提醒。",
@@ -192,7 +192,7 @@
       "shortDescription": "Lembretes até você confirmar. Abra-os na bandeja do Windows, compartilhe, marque listas e veja o que vem a seguir em um widget do Windows 11. Os alertas funcionam com o Persistent aberto e o PC acordado.",
       "fullDescription": "Seus lembretes a um clique na sua mesa. O Persistent fica na bandeja do Windows: abra-o para ver, editar, compartilhar, adiar ou confirmar lembretes, sincronizados com a web e o aplicativo Android.\n\nLembretes que voltam\nAtive as notificações nas Configurações e um lembrete dispensado volta, os avisos se repetem conforme sua programação e os alarmes tocam até você agir. Concluir exige duas etapas intencionais, para que nada seja apagado por engano. Adiar posterga o alerta; silenciar um alarme mantém o lembrete ativo.\n\nOs alertas funcionam enquanto o Persistent está aberto na bandeja e o PC acordado, e tudo é atualizado assim que ele volta a funcionar e a ficar online. Para alarmes que tocam offline ou com o aplicativo fechado, adicione o aplicativo Android gratuito na mesma conta.\n\nPara os seus planos\n• Agendamentos únicos ou recorrentes: dias da semana escolhidos, a cada poucos dias ou datas mensais, incluindo o último dia do mês\n• Listas que recomeçam do zero a cada vez, além de notas sem alertas\n• Cada horário é acompanhado separadamente: confirmar o lembrete da tarde nunca apaga um da manhã que ficou para trás\n• Histórico, com Desfazer conclusão para conclusões acidentais\n\nCompartilhar ou atribuir\nConvide pessoas por e-mail para editar e concluir lembretes juntas. O adiamento é pessoal, então o adiamento de uma pessoa nunca silencia o alerta de outra. Atribua um lembrete a uma pessoa e acompanhe o progresso. Um lembrete ignorado pode alertar seus outros dispositivos e enviar um e-mail a um contato escolhido por você.\n\nNa sua área de trabalho\nO aplicativo da Microsoft Store adiciona um widget Próximos para o Windows 11. Selecione um lembrete para abri-lo no aplicativo.\n\nSeu idioma\nDisponível em inglês, espanhol, francês, alemão, chinês simplificado, português do Brasil e japonês. Idioma, formato de data, relógio de 12 ou 24 horas e fuso horário são configurações separadas, e o texto dos seus lembretes nunca é traduzido.\n\nGrátis e sem anúncios\nEntre com código por e-mail, Google ou chave de acesso. Uma conta gratuita e uma conexão com a internet mantêm seus lembretes sincronizados. Sem anúncios, rastreamento ou análise de terceiros. O serviço usa suas próprias estatísticas agregadas de uso. Exclua sua conta e seus dados a qualquer momento nas Configurações.\n\nO Persistent é uma ferramenta de lembretes, não um dispositivo médico. Consulte um profissional de saúde para obter orientação médica.",
       "features": [
-        "Seus lembretes a um clique na bandeja do Windows.",
+        "Lembretes que ficam até você terminar.",
         "As notificações dispensadas voltam até você confirmar, com o Persistent aberto e o PC acordado.",
         "Concluir em duas etapas, para que nenhum lembrete seja apagado por engano.",
         "Cada horário é confirmado separadamente; um que ficou para trás nunca é apagado em silêncio.",
@@ -213,10 +213,10 @@
         "widget Windows",
         "notificações persistentes"
       ],
-      "heroHeadline": "Seus lembretes a um clique na bandeja do Windows.",
-      "heroSubline": "Veja, adie e confirme com a mesma conta usada na web e no Android.",
+      "heroHeadline": "Lembretes que ficam até você terminar.",
+      "heroSubline": "Eles esperam na bandeja do Windows até você confirmar, com a mesma conta usada na web e no Android.",
       "screenshotCaptions": [
-        "Veja, adie e confirme com a mesma conta usada na web e no Android.",
+        "Eles esperam na bandeja do Windows até você confirmar, com a mesma conta usada na web e no Android.",
         "Tudo o que vence agora, a um clique da bandeja.",
         "Marque os itens de uma lista e confirme quando a tarefa toda estiver concluída.",
         "Lembretes de medicamentos com nomes e doses.",
@@ -249,10 +249,10 @@
         "ウィジェット",
         "通知"
       ],
-      "heroHeadline": "Windows のタスクトレイからリマインダーにすぐアクセス。",
-      "heroSubline": "Web や Android と同じアカウントで、表示、スヌーズ、完了確認ができます。",
+      "heroHeadline": "終わるまで\n消えない\nリマインダー。",
+      "heroSubline": "完了を確認するまで Windows のタスクトレイに残ります。Web や Android と同じアカウントで使えます。",
       "screenshotCaptions": [
-        "Web や Android と同じアカウントで、表示、スヌーズ、完了確認ができます。",
+        "完了を確認するまで Windows のタスクトレイに残ります。Web や Android と同じアカウントで使えます。",
         "今やるべきことを、トレイからワンクリックで。",
         "チェックリストを消化し、タスク全体が終わったら完了を確認。",
         "薬の名前と用量を記録できる服薬リマインダー。",
