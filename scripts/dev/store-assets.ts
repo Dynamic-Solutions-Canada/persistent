@@ -1,4 +1,4 @@
-/** Repeatable store demo preparation and asset exports, without launching a browser. */
+/** Repeatable store demo preparation and asset checks. */
 import { execFileSync } from 'node:child_process'
 import {
   existsSync,
@@ -7,9 +7,9 @@ import {
   readFileSync,
   writeFileSync,
 } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import { resolve } from 'node:path'
 import { createPrismaClient } from '../../apps/api/src/lib/prisma-client.js'
-import { inspectStorePng, validateStoreImage } from './store-image.ts'
+import { validateStoreImage } from './store-image.ts'
 import {
   captureLocales,
   DEFAULT_DEMO_LOCALE,
@@ -147,21 +147,6 @@ async function prepare(): Promise<void> {
   } finally {
     await prisma.$disconnect()
   }
-}
-
-/** Decode a Paseo MCP image block from stdin; never log its base64 payload. */
-async function saveCapture(path: string): Promise<void> {
-  const chunks: Buffer[] = []
-  for await (const chunk of process.stdin) chunks.push(Buffer.from(chunk))
-  const input = Buffer.concat(chunks).toString().trim()
-  const bytes = Buffer.from(input, 'base64')
-  const { width, height } = inspectStorePng(bytes)
-  const target = resolve(path)
-  if (!target.startsWith(resolve('store-assets') + '/'))
-    throw new Error('Captures belong under store-assets/.')
-  mkdirSync(dirname(target), { recursive: true })
-  writeFileSync(target, bytes)
-  console.log(`Saved ${path}: ${width}x${height}`)
 }
 
 /**
@@ -318,13 +303,11 @@ function checkCaptions(count: number): void {
 const command = process.argv[2]
 if (command === 'help')
   console.log(
-    'Capture workflow: store-assets/README.md. Use shots:prepare, Paseo browser captures, shots:render, then shots:check. No browser is launched automatically.',
+    'Capture workflow: store-assets/README.md. Use shots:prepare, the device captures, shots:render, shots:export (headless Chromium in Docker), then shots:check.',
   )
 else if (command === 'prepare') await prepare()
-else if (command === 'save' && process.argv[3])
-  await saveCapture(process.argv[3])
 else if (command === 'check') check()
 else
   throw new Error(
-    'Usage: store-assets.ts prepare --email=... [--locale=...] | save store-assets/path.png | check',
+    'Usage: store-assets.ts prepare --email=... [--locale=...] | check',
   )

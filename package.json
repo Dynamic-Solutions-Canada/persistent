@@ -42,6 +42,7 @@
     "check:hero": "devkit-store-hero --check",
     "check:kit-ref": "apps/desktop/external/winui-app-kit/scripts/check-kit-ref .",
     "shots:check": "node --import tsx scripts/dev/store-assets.ts check",
+    "shots:export": "node --import tsx scripts/dev/export-store-assets.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",

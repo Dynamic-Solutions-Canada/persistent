@@ -27,9 +27,9 @@ Both Google Play and current GitHub APKs use the Google-signed `ca.dynamicsoluti
 
 Use the [repeatable store screenshot workflow](../README.md).
 It prepares a protected synthetic demo account, captures all eight source screens
-in the isolated Android demo app, and renders reusable phone mockups through the
-shared Paseo browser. `npm run shots`
-prints the workflow entrypoint; it does not launch or install a browser.
+in the isolated Android demo app, and renders reusable phone mockups with
+`npm run shots:render` and `npm run shots:export` (headless Chromium in Docker). `npm run shots`
+prints the workflow entrypoint.
 
 **Always capture against the demo account, never a real one.** The owner's real
 account contains actual prescriptions; a Play listing is public and permanent.
@@ -125,8 +125,7 @@ its own eight in its folder, captured with the phone and app in that language an
 the demo account seeded with that locale's synthetic data (health data synthetic
 only). Every set (provenance in `../raw/android/native/README.md`) is full-display captures with
 the real status area and gesture bar, and no unrelated notification icons.
-All are composed in Paseo
-inside reusable phone mockups, with 1080 x 1920 RGB PNG exports. Marketing copy
+All are composed inside reusable phone mockups, with 1080 x 1920 RGB PNG exports. Marketing copy
 describes the feature without theme names.
 Ordered as they should appear in Play:
 
@@ -150,13 +149,14 @@ No screen repeats a reminder as two near-identical cards.
 Use [store-assets/README.md](../README.md) and its manifest.
 Prepare the synthetic fixture, capture all eight screens in the isolated Android
 demo app through the authorized device session, then render
-the phone layouts and capture their final exports. If waiting has allowed another
+the phone layouts and export them headless. If waiting has allowed another
 scheduled firing to create duplicate demo cards, refresh the protected fixture
 before capture and synchronize the demo app again:
 
 ```sh
 npm run shots:prepare -- --email=demo@example.test
 npm run shots:render
+npm run shots:export
 npm run shots:check
 npm run shots:sync
 ```

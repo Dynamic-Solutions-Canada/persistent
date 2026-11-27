@@ -6,7 +6,7 @@
  * store-assets/play/listings.json. The page breaks and sizes the headline with devkit's Store
  * hero rule (`fitText`: balanced lines, and up to 15 percent smaller to keep a lone word with its
  * neighbours), measured in the browser with the font it renders in, so CJK breaks match what is
- * drawn. Render each page in Paseo at 720 x 1280 CSS pixels (store-assets/README.md).
+ * drawn. `npm run shots:export` renders each page at 720 x 1280 CSS pixels (store-assets/README.md).
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { captureLocales } from './store-demo-text.ts'
@@ -167,7 +167,7 @@ for (const locale of playLocales) {
     )
   }
   console.log(
-    `Render in Paseo at 720x1280 CSS pixels, then save as ${forLocale(manifest.play[0].file, locale).replace(/[^/]+$/, '')}: store-assets/render/${locale}/*.html`,
+    `Wrote store-assets/render/${locale}/*.html; npm run shots:export saves them to ${forLocale(manifest.play[0].file, locale).replace(/[^/]+$/, '')}.`,
   )
 }
 

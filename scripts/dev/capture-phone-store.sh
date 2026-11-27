@@ -142,4 +142,4 @@ for locale in "${locales[@]}"; do
     shoot "$locale" 07-assigned-dark "Assigned by me, showing \"$(sample "$locale" parcel.title)\" completed."
 done
 
-echo "Captured: ${locales[*]}. Next: convert to RGB, npm run shots:render, render each page in Paseo, npm run shots:check (README)."
+echo "Captured: ${locales[*]}. Next: convert to RGB, npm run shots:render, npm run shots:export, npm run shots:check (README)."

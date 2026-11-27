@@ -84,8 +84,8 @@ generates reusable phone layouts, and `shots:check` validates final PNG exports.
 Capture all Play source screens in an explicitly requested device session using
 the isolated demo Android app. Preserve the real status area and gesture bar on
 every image, with readable system icons and no unrelated notification icons.
-Render the marketing layouts in the shared Paseo browser; do not install a
-standalone browser for this workflow. Follow the workflow's permission, account, and cleanup
+Render the marketing layouts with `shots:export` (headless Chromium in a pinned,
+memory-capped Docker container); do not install a browser on the host for this workflow. Follow the workflow's permission, account, and cleanup
 steps; preserve the signed-in Store app. Keep native permission demonstration
 videos separate.
 
