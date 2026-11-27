@@ -173,8 +173,11 @@ async function openPage(port: number) {
   >()
   socket.addEventListener('message', (event) => {
     const message = JSON.parse(String(event.data))
-    pending.get(message.id)?.(message)
+    // Only replies to commands sent here carry a numeric id; events and anything else are ignored.
+    if (typeof message.id !== 'number' || !pending.has(message.id)) return
+    const resolveReply = pending.get(message.id)!
     pending.delete(message.id)
+    resolveReply(message)
   })
 
   /** Send one DevTools command and return its result, or throw its error. */
