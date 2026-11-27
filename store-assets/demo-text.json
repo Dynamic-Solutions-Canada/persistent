@@ -1,0 +1,346 @@
+{
+  "schemaVersion": 1,
+  "about": "Synthetic sample data shown in the Store screenshots, one record per listing locale with its own screenshots. The seed (scripts/dev/seed-demo-listing.ts), shots:prepare and both capture loops read it; en-CA and fr-CA reuse en-US and fr-FR. Draft translations: see store-assets/README.md.",
+  "locales": {
+    "en-US": {
+      "puppy": {
+        "title": "Feed the puppy",
+        "details": "Half a cup of kibble, and fresh water."
+      },
+      "plants": {
+        "title": "Water the plants",
+        "details": "Back bed first, then the tomatoes."
+      },
+      "outTheDoor": {
+        "title": "Get out the door",
+        "details": "The 8:20 bus waits for nobody.",
+        "items": [
+          "Lunches packed",
+          "Water bottles filled",
+          "Homework in bags",
+          "Bus passes"
+        ]
+      },
+      "bins": {
+        "title": "Take the bins out",
+        "details": "Blue box this week, not the green one."
+      },
+      "timesheet": {
+        "title": "Submit the timesheet",
+        "details": "Before payroll closes."
+      },
+      "groceries": {
+        "title": "Grocery run",
+        "items": ["Dog food", "Coffee", "Bread", "Dish soap"]
+      },
+      "vitamin": {
+        "title": "Take vitamin D",
+        "medication": "Vitamin D",
+        "unit": "IU"
+      },
+      "trip": {
+        "title": "Trip packing",
+        "items": ["Passports", "Chargers", "Hold the mail"]
+      },
+      "filter": {
+        "title": "Change the furnace filter",
+        "details": "Sizes are on the shelf above the washer."
+      },
+      "parcel": { "title": "Pick up the parcel" },
+      "alarm": {
+        "title": "Check the oven",
+        "details": "Take the tray out, then turn the oven off."
+      },
+      "shareDraft": { "title": "Plan the birthday party" }
+    },
+    "es-ES": {
+      "puppy": {
+        "title": "Dar de comer al cachorro",
+        "details": "Media taza de pienso y agua fresca."
+      },
+      "plants": {
+        "title": "Regar las plantas",
+        "details": "Primero el bancal del fondo, luego los tomates."
+      },
+      "outTheDoor": {
+        "title": "Salir de casa",
+        "details": "El autobús de las 8:20 no espera a nadie.",
+        "items": [
+          "Almuerzos preparados",
+          "Botellas de agua llenas",
+          "Deberes en la mochila",
+          "Abonos de autobús"
+        ]
+      },
+      "bins": {
+        "title": "Sacar la basura",
+        "details": "Esta semana toca el contenedor azul, no el verde."
+      },
+      "timesheet": {
+        "title": "Enviar la hoja de horas",
+        "details": "Antes del cierre de nóminas."
+      },
+      "groceries": {
+        "title": "Hacer la compra",
+        "items": ["Pienso para el perro", "Café", "Pan", "Lavavajillas"]
+      },
+      "vitamin": {
+        "title": "Tomar vitamina D",
+        "medication": "Vitamina D",
+        "unit": "UI"
+      },
+      "trip": {
+        "title": "Preparar la maleta",
+        "items": ["Pasaportes", "Cargadores", "Retener el correo"]
+      },
+      "filter": {
+        "title": "Cambiar el filtro de la caldera",
+        "details": "Las medidas están en el estante sobre la lavadora."
+      },
+      "parcel": { "title": "Recoger el paquete" },
+      "alarm": {
+        "title": "Mirar el horno",
+        "details": "Saca la bandeja y apaga el horno."
+      },
+      "shareDraft": { "title": "Organizar la fiesta de cumpleaños" }
+    },
+    "fr-FR": {
+      "puppy": {
+        "title": "Nourrir le chiot",
+        "details": "Une demi-tasse de croquettes et de l’eau fraîche."
+      },
+      "plants": {
+        "title": "Arroser les plantes",
+        "details": "D’abord le massif du fond, puis les tomates."
+      },
+      "outTheDoor": {
+        "title": "Partir à l’heure",
+        "details": "Le bus de 8 h 20 n’attend personne.",
+        "items": [
+          "Déjeuners prêts",
+          "Gourdes remplies",
+          "Devoirs dans les cartables",
+          "Cartes de bus"
+        ]
+      },
+      "bins": {
+        "title": "Sortir les poubelles",
+        "details": "Bac bleu cette semaine, pas le vert."
+      },
+      "timesheet": {
+        "title": "Envoyer la feuille de temps",
+        "details": "Avant la clôture de la paie."
+      },
+      "groceries": {
+        "title": "Faire les courses",
+        "items": ["Croquettes", "Café", "Pain", "Liquide vaisselle"]
+      },
+      "vitamin": {
+        "title": "Prendre la vitamine D",
+        "medication": "Vitamine D",
+        "unit": "UI"
+      },
+      "trip": {
+        "title": "Préparer les valises",
+        "items": ["Passeports", "Chargeurs", "Suspendre le courrier"]
+      },
+      "filter": {
+        "title": "Changer le filtre de la chaudière",
+        "details": "Les dimensions sont sur l’étagère au-dessus du lave-linge."
+      },
+      "parcel": { "title": "Récupérer le colis" },
+      "alarm": {
+        "title": "Surveiller le four",
+        "details": "Sortez la plaque, puis éteignez le four."
+      },
+      "shareDraft": { "title": "Organiser l’anniversaire" }
+    },
+    "de-DE": {
+      "puppy": {
+        "title": "Welpen füttern",
+        "details": "Eine halbe Tasse Trockenfutter und frisches Wasser."
+      },
+      "plants": {
+        "title": "Pflanzen gießen",
+        "details": "Erst das hintere Beet, dann die Tomaten."
+      },
+      "outTheDoor": {
+        "title": "Los zur Schule",
+        "details": "Der Bus um 8:20 wartet auf niemanden.",
+        "items": [
+          "Pausenbrote eingepackt",
+          "Trinkflaschen gefüllt",
+          "Hausaufgaben im Ranzen",
+          "Busfahrkarten"
+        ]
+      },
+      "bins": {
+        "title": "Mülltonnen rausstellen",
+        "details": "Diese Woche die blaue Tonne, nicht die grüne."
+      },
+      "timesheet": {
+        "title": "Stundenzettel abgeben",
+        "details": "Bevor die Lohnabrechnung schließt."
+      },
+      "groceries": {
+        "title": "Einkaufen",
+        "items": ["Hundefutter", "Kaffee", "Brot", "Spülmittel"]
+      },
+      "vitamin": {
+        "title": "Vitamin D nehmen",
+        "medication": "Vitamin D",
+        "unit": "IE"
+      },
+      "trip": {
+        "title": "Koffer packen",
+        "items": ["Reisepässe", "Ladegeräte", "Post zurückhalten"]
+      },
+      "filter": {
+        "title": "Heizungsfilter wechseln",
+        "details": "Die Größen stehen auf dem Regal über der Waschmaschine."
+      },
+      "parcel": { "title": "Paket abholen" },
+      "alarm": {
+        "title": "Nach dem Ofen sehen",
+        "details": "Blech herausnehmen, dann den Ofen ausschalten."
+      },
+      "shareDraft": { "title": "Geburtstagsfeier planen" }
+    },
+    "zh-CN": {
+      "puppy": { "title": "喂小狗", "details": "半杯狗粮，再换上清水。" },
+      "plants": {
+        "title": "给植物浇水",
+        "details": "先浇后面的花坛，再浇番茄。"
+      },
+      "outTheDoor": {
+        "title": "准备出门",
+        "details": "8:20 的校车不等人。",
+        "items": ["午饭已装好", "水壶已灌满", "作业已放进书包", "公交卡"]
+      },
+      "bins": {
+        "title": "倒垃圾",
+        "details": "这周倒蓝色垃圾桶，不是绿色的。"
+      },
+      "timesheet": { "title": "提交工时表", "details": "在工资结算截止前。" },
+      "groceries": {
+        "title": "采购日用品",
+        "items": ["狗粮", "咖啡", "面包", "洗洁精"]
+      },
+      "vitamin": {
+        "title": "服用维生素 D",
+        "medication": "维生素 D",
+        "unit": "IU"
+      },
+      "trip": { "title": "收拾行李", "items": ["护照", "充电器", "暂停收信"] },
+      "filter": {
+        "title": "更换暖气滤网",
+        "details": "尺寸写在洗衣机上方的架子上。"
+      },
+      "parcel": { "title": "取快递" },
+      "alarm": {
+        "title": "看一下烤箱",
+        "details": "把烤盘取出来，然后关掉烤箱。"
+      },
+      "shareDraft": { "title": "筹备生日聚会" }
+    },
+    "pt-BR": {
+      "puppy": {
+        "title": "Alimentar o filhote",
+        "details": "Meia xícara de ração e água fresca."
+      },
+      "plants": {
+        "title": "Regar as plantas",
+        "details": "Primeiro o canteiro dos fundos, depois os tomates."
+      },
+      "outTheDoor": {
+        "title": "Sair de casa",
+        "details": "O ônibus das 8h20 não espera ninguém.",
+        "items": [
+          "Lancheiras prontas",
+          "Garrafas de água cheias",
+          "Lição na mochila",
+          "Cartões de ônibus"
+        ]
+      },
+      "bins": {
+        "title": "Levar o lixo para fora",
+        "details": "Nesta semana é a lixeira azul, não a verde."
+      },
+      "timesheet": {
+        "title": "Enviar a folha de ponto",
+        "details": "Antes do fechamento da folha."
+      },
+      "groceries": {
+        "title": "Fazer compras",
+        "items": ["Ração", "Café", "Pão", "Detergente"]
+      },
+      "vitamin": {
+        "title": "Tomar vitamina D",
+        "medication": "Vitamina D",
+        "unit": "UI"
+      },
+      "trip": {
+        "title": "Fazer as malas",
+        "items": ["Passaportes", "Carregadores", "Suspender a correspondência"]
+      },
+      "filter": {
+        "title": "Trocar o filtro do aquecedor",
+        "details": "As medidas estão na prateleira acima da máquina de lavar."
+      },
+      "parcel": { "title": "Retirar a encomenda" },
+      "alarm": {
+        "title": "Ver o forno",
+        "details": "Tire a assadeira e desligue o forno."
+      },
+      "shareDraft": { "title": "Organizar a festa de aniversário" }
+    },
+    "ja-JP": {
+      "puppy": {
+        "title": "子犬にごはん",
+        "details": "ドッグフードをカップ半分と、新しいお水。"
+      },
+      "plants": {
+        "title": "植物に水やり",
+        "details": "奥の花壇から、次にトマト。"
+      },
+      "outTheDoor": {
+        "title": "出かける準備",
+        "details": "8:20 のバスは待ってくれません。",
+        "items": [
+          "お弁当を詰めた",
+          "水筒を満タンにした",
+          "宿題をかばんに入れた",
+          "バスの定期券"
+        ]
+      },
+      "bins": {
+        "title": "ゴミ出し",
+        "details": "今週は青いゴミ箱。緑ではありません。"
+      },
+      "timesheet": { "title": "勤務表を提出", "details": "給与締め日の前に。" },
+      "groceries": {
+        "title": "買い出し",
+        "items": ["ドッグフード", "コーヒー", "パン", "食器用洗剤"]
+      },
+      "vitamin": {
+        "title": "ビタミンDを飲む",
+        "medication": "ビタミンD",
+        "unit": "IU"
+      },
+      "trip": {
+        "title": "旅行の荷造り",
+        "items": ["パスポート", "充電器", "郵便の一時停止"]
+      },
+      "filter": {
+        "title": "暖房のフィルター交換",
+        "details": "サイズは洗濯機の上の棚にあります。"
+      },
+      "parcel": { "title": "荷物を受け取る" },
+      "alarm": {
+        "title": "オーブンを確認",
+        "details": "天板を取り出して、オーブンを切る。"
+      },
+      "shareDraft": { "title": "誕生日会の準備" }
+    }
+  }
+}

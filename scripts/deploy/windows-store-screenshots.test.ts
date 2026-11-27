@@ -116,12 +116,22 @@ test('planning stops on a caption gap, an empty caption, a count out of range or
     () => resolveStoreScreenshots(twice, listings, ['en-US']),
     /share a file name/,
   )
-  const shared = structuredClone(manifest)
-  shared.microsoft[1].file = 'screenshots/{locale}/01.png'
-  assert.throws(
-    () => resolveStoreScreenshots(shared, listings, ['en-US']),
-    /Only the hero/,
+})
+
+test("a localized capture is each locale's own image; aliases use their target's", () => {
+  const { manifest, listings } = fixture()
+  const localized = structuredClone(manifest)
+  localized.microsoft[1].file = 'screenshots/{locale}/01.png'
+  const plan = resolveStoreScreenshots(localized, listings, ['en-US', 'fr-CA'])
+  assert.equal(
+    plan.locales.get('en-us')[1].source,
+    'microsoft/screenshots/en-US/01.png',
   )
+  assert.equal(
+    plan.locales.get('fr-ca')[1].source,
+    'microsoft/screenshots/fr-FR/01.png',
+  )
+  assert.equal(plan.locales.get('fr-ca')[1].fileName, 'fr-ca/01.png')
 })
 
 test('merge keeps logos, puts the new set in order before the removed screenshots, and reads back', () => {

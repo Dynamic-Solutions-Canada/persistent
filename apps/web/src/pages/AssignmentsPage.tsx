@@ -170,16 +170,20 @@ export function AssignmentsPage() {
                           timeFormat,
                           user?.timeZone,
                         )}
-                        : {firingLabel(firing)}
+                        :{' '}
                         {firing.acknowledgedAt
-                          ? tr(' at {{v0}}', {
-                              v0: formatWhen(
+                          ? // The completion time in parentheses, not after a
+                            // preposition: formatWhen's relative days ("Today,
+                            // 1:07 PM") read wrongly after "at", "um" or "à".
+                            tr('{{status}} ({{when}})', {
+                              status: firingLabel(firing),
+                              when: formatWhen(
                                 firing.acknowledgedAt,
                                 timeFormat,
                                 user?.timeZone,
                               ),
                             })
-                          : ''}
+                          : firingLabel(firing)}
                       </Typography>
                     ))}
                   </Stack>

@@ -2,7 +2,7 @@
  * Fill the **store demo account** with the reminders the Play listing
  * screenshots are taken against.
  *
- *   npx tsx scripts/dev/seed-demo-listing.ts --email=demo@example.test
+ *   npx tsx scripts/dev/seed-demo-listing.ts --email=demo@example.test [--locale=de-DE]
  *
  * Separate from `db:seed` (which covers every type/state for eyeballing the UI)
  * because this one has a different job: produce a small, believable account that
@@ -27,6 +27,11 @@
  * weekday its schedule names. Materialization will not disturb them: it back-fills
  * only `once` schedules, and repeating ones expand forward from now.
  *
+ * **Text in the listing's language.** Titles, details, checklist items and the medicine
+ * come from store-assets/demo-text.json, in `--locale` (default en-US, the production demo
+ * account's), because the app never translates what a user typed. Checklist item ids stay
+ * the same in every language, so checked state seeds alike.
+ *
  * `--email` is required and there is no "first user" fallback: this is pointed at
  * production to set up the demo account, and a wrong guess there would delete a
  * real person's reminders.
@@ -34,12 +39,18 @@
 import type { OccurrenceStatus } from '../../apps/api/src/generated/prisma/client.js'
 import { createPrismaClient } from '../../apps/api/src/lib/prisma-client.js'
 import { DateTime } from 'luxon'
+import { DEFAULT_DEMO_LOCALE, demoText } from './store-demo-text.ts'
 
 const prisma = createPrismaClient(process.env.DATABASE_URL ?? '')
 
 const args = process.argv.slice(2)
 const emailArg = args.find((a) => a.startsWith('--email='))?.split('=')[1]
 const keep = args.includes('--keep')
+/** The listing language whose sample text to write; fails for a locale without a record. */
+const locale =
+  args.find((a) => a.startsWith('--locale='))?.split('=')[1] ??
+  DEFAULT_DEMO_LOCALE
+const text = demoText(locale)
 /** Resolve the account and print what would be written, then stop. Writes nothing. */
 const dryRun = args.includes('--dry-run')
 
@@ -144,30 +155,27 @@ interface Seed {
   occurrences?: SeedOccurrence[]
 }
 
-const groceries = [
-  { id: 'gr-1', text: 'Dog food' },
-  { id: 'gr-2', text: 'Coffee' },
-  { id: 'gr-3', text: 'Bread' },
-  { id: 'gr-4', text: 'Dish soap' },
-]
-const trip = [
-  { id: 'tr-1', text: 'Passports' },
-  { id: 'tr-2', text: 'Chargers' },
-  { id: 'tr-3', text: 'Hold the mail' },
-]
-const outTheDoor = [
-  { id: 'go-1', text: 'Lunches packed' },
-  { id: 'go-2', text: 'Water bottles filled' },
-  { id: 'go-3', text: 'Homework in bags' },
-  { id: 'go-4', text: 'Bus passes' },
-]
+/**
+ * A checklist's items in this locale, with the same ids in every language: `checkedItems`
+ * refers to them, so a translated set seeds the same ticked state.
+ */
+function checklist(prefix: string, items: string[] | undefined) {
+  return (items ?? []).map((item, index) => ({
+    id: `${prefix}-${index + 1}`,
+    text: item,
+  }))
+}
+
+const groceries = checklist('gr', text.groceries.items)
+const trip = checklist('tr', text.trip.items)
+const outTheDoor = checklist('go', text.outTheDoor.items)
 
 const seeds: Seed[] = [
   {
     note: 'due — the hero; twice daily is what a "must not miss" routine looks like',
     reminder: {
-      title: 'Feed the puppy',
-      details: 'Half a cup of kibble, and fresh water.',
+      title: text.puppy.title,
+      details: text.puppy.details,
       type: 'NONE',
       schedule: {
         kind: 'daily',
@@ -192,8 +200,8 @@ const seeds: Seed[] = [
   {
     note: 'due — second distinct card on Current',
     reminder: {
-      title: 'Water the plants',
-      details: 'Back bed first, then the tomatoes.',
+      title: text.plants.title,
+      details: text.plants.details,
       type: 'NONE',
       schedule: {
         kind: 'interval',
@@ -214,8 +222,8 @@ const seeds: Seed[] = [
     // blank; leaving two ticked is what shows that a nag is about what is *left*.
     note: 'due — a part-ticked checklist, the only live one',
     reminder: {
-      title: 'Get out the door',
-      details: 'The 8:20 bus waits for nobody.',
+      title: text.outTheDoor.title,
+      details: text.outTheDoor.details,
       type: 'TODO',
       typeData: { items: outTheDoor },
       schedule: { kind: 'daily', timesOfDay: ['08:15'], skipWeekends: true },
@@ -234,8 +242,8 @@ const seeds: Seed[] = [
   {
     note: 'due — third distinct card, and the reminder the alarm shot uses',
     reminder: {
-      title: 'Take the bins out',
-      details: 'Blue box this week, not the green one.',
+      title: text.bins.title,
+      details: text.bins.details,
       type: 'NONE',
       schedule: { kind: 'weekly', timesOfDay: ['18:30'], daysOfWeek: [1] },
       // PERSISTENT on purpose: seeded as ALARM it would ring the moment the phone
@@ -248,8 +256,8 @@ const seeds: Seed[] = [
   {
     note: 'escalation configured, nothing live — the Escalation tab shot opens this',
     reminder: {
-      title: 'Submit the timesheet',
-      details: 'Before payroll closes.',
+      title: text.timesheet.title,
+      details: text.timesheet.details,
       type: 'NONE',
       schedule: { kind: 'weekly', timesOfDay: ['16:00'], daysOfWeek: [5] },
       persistence: 'PERSISTENT',
@@ -269,7 +277,7 @@ const seeds: Seed[] = [
   {
     note: 'checklist, not yet due — shows the Checklist type the copy still sells',
     reminder: {
-      title: 'Grocery run',
+      title: text.groceries.title,
       type: 'TODO',
       typeData: { items: groceries },
       schedule: { kind: 'once', timesOfDay: ['17:30'] },
@@ -280,10 +288,16 @@ const seeds: Seed[] = [
   {
     note: 'synthetic medication, scheduled for tomorrow so the editor shows the dose without a live alarm',
     reminder: {
-      title: 'Take vitamin D',
+      title: text.vitamin.title,
       type: 'MEDICATION',
       typeData: {
-        medications: [{ name: 'Vitamin D', quantity: 1000, unit: 'IU' }],
+        medications: [
+          {
+            name: text.vitamin.medication,
+            quantity: 1000,
+            unit: text.vitamin.unit,
+          },
+        ],
       },
       schedule: { kind: 'once', timesOfDay: ['09:00'] },
       startDate: isoDay(1),
@@ -293,7 +307,7 @@ const seeds: Seed[] = [
   {
     note: 'a note — sits under Notes on Current, never fires',
     reminder: {
-      title: 'Trip packing',
+      title: text.trip.title,
       type: 'TODO',
       typeData: { items: trip },
       schedule: { kind: 'never', timesOfDay: [] },
@@ -304,8 +318,8 @@ const seeds: Seed[] = [
   {
     note: 'monthly — a distinct History row and a distant Upcoming entry',
     reminder: {
-      title: 'Change the furnace filter',
-      details: 'Sizes are on the shelf above the washer.',
+      title: text.filter.title,
+      details: text.filter.details,
       type: 'NONE',
       schedule: {
         kind: 'monthly',
@@ -337,7 +351,7 @@ async function main(): Promise<void> {
   const user = await prisma.user.findUnique({ where: { email: emailArg } })
   if (!user) throw new Error(`No user with email ${emailArg}.`)
 
-  console.log(`Target: ${user.email} (${user.id})`)
+  console.log(`Target: ${user.email} (${user.id}), sample text in ${locale}`)
 
   if (dryRun) {
     const fmt = (d: Date) =>
@@ -403,10 +417,10 @@ async function main(): Promise<void> {
   console.log(`\nSeeded ${seeds.length} reminders for ${user.email}.`)
   console.log('Due cards (four distinct reminders, none repeated):')
   for (const [label, when] of [
-    ['Feed the puppy', puppyDue],
-    ['Get out the door', outTheDoorDue],
-    ['Water the plants', plantsDue],
-    ['Take the bins out', binsDue],
+    [text.puppy.title, puppyDue],
+    [text.outTheDoor.title, outTheDoorDue],
+    [text.plants.title, plantsDue],
+    [text.bins.title, binsDue],
   ] as const) {
     console.log(
       `  ${label.padEnd(20)} ${DateTime.fromJSDate(when).setZone(ZONE).toFormat('ccc d LLL, h:mm a')}`,

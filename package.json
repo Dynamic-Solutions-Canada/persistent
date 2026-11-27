@@ -40,7 +40,9 @@
     "check:screenshots": "python3 apps/desktop/external/winui-app-kit/scripts/store/render-screenshots.py --check",
     "hero": "devkit-store-hero",
     "check:hero": "devkit-store-hero --check",
+    "check:kit-ref": "apps/desktop/external/winui-app-kit/scripts/check-kit-ref .",
     "shots:check": "node --import tsx scripts/dev/store-assets.ts check",
+    "shots:export": "node --import tsx scripts/dev/export-store-assets.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
@@ -52,7 +54,7 @@
     "lint:android": "npm --prefix apps/mobile run lint:android",
     "check:android-notices": "npm --prefix apps/mobile run check:android-notices",
     "typecheck": "npm run typecheck --workspace @persistent/shared && npm run build --workspace @persistent/shared && npm run typecheck --workspace @persistent/api && npm run typecheck --workspace @persistent/web",
-    "validate": "npm run build --workspace @persistent/shared && npm run format:check && npm run lint && npm run test && npm run typecheck && npm run prisma:validate --workspace @persistent/api && npm run check:devkit && npm run check:icons && npm run check:notices && npm run check:notes && npm run shots:check && npm run check:screenshots && npm run check:hero",
+    "validate": "npm run build --workspace @persistent/shared && npm run format:check && npm run lint && npm run test && npm run typecheck && npm run prisma:validate --workspace @persistent/api && npm run check:devkit && npm run check:icons && npm run check:notices && npm run check:notes && npm run shots:check && npm run check:screenshots && npm run check:hero && npm run check:kit-ref",
     "check:devkit": "devkit-init --check",
     "check:icons": "devkit-icons --check",
     "check:notices": "devkit-notices --check --only apps/web/public/THIRD-PARTY-NOTICES.txt",
@@ -86,7 +88,7 @@
     "install:linux": "npm run build:linux && node apps/linux-desktop/dist/install.cjs"
   },
   "devDependencies": {
-    "@dynamic-solutions-canada/devkit": "github:Dynamic-Solutions-Canada/devkit#v0.29.0",
+    "@dynamic-solutions-canada/devkit": "github:Dynamic-Solutions-Canada/devkit#v0.31.0",
     "@eslint/js": "9.39.5",
     "@particle/dbus-next": "0.11.4",
     "@resvg/resvg-js": "2.6.2",

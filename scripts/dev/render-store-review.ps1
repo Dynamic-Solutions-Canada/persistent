@@ -1,5 +1,10 @@
-<# Render a contact sheet from the actual store PNGs without a browser or additional software. #>
-param([Parameter(Mandatory)][string]$AssetsRoot)
+<#
+Render a contact sheet from the actual store PNGs without a browser or additional software.
+-Locale picks the listing locale whose Play and Microsoft sets fill the top rows (default en-US;
+review.png is the en-US sheet; -Locale de-DE writes render/review-de-DE.png, which is not committed). The hero row always shows
+every locale.
+#>
+param([Parameter(Mandatory)][string]$AssetsRoot, [string]$Locale = 'en-US')
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $manifest = Get-Content (Join-Path $AssetsRoot 'manifest.json') -Raw | ConvertFrom-Json
@@ -31,7 +36,7 @@ try {
     $playPreviewWidth = $playCellWidth - 27
     for ($index=0; $index -lt $manifest.play.Count; $index++) {
         $shot = $manifest.play[$index]
-        $image = [Drawing.Image]::FromFile((Join-Path $AssetsRoot $shot.file))
+        $image = [Drawing.Image]::FromFile((Join-Path $AssetsRoot ([string]$shot.file).Replace('{locale}',$Locale)))
         try { Draw-ContainedPreview $image (30+$index*$playCellWidth) 78 $playPreviewWidth 587 }
         finally { $image.Dispose() }
         $name = [IO.Path]::GetFileNameWithoutExtension($shot.file).Substring(3).Replace('-light','').Replace('-dark','').Replace('-',' ')
@@ -42,7 +47,7 @@ try {
     $microsoftCellWidth = [int][Math]::Floor(2140 / $manifest.microsoft.Count)
     for ($index=0; $index -lt $manifest.microsoft.Count; $index++) {
         $shot = $manifest.microsoft[$index]
-        $file = ([string]$shot.file).Replace('{locale}','en-US')
+        $file = ([string]$shot.file).Replace('{locale}',$Locale)
         $image = [Drawing.Image]::FromFile((Join-Path (Join-Path $AssetsRoot 'microsoft') $file))
         try { Draw-ContainedPreview $image (30+$index*$microsoftCellWidth) 785 ($microsoftCellWidth-22) 260 }
         finally { $image.Dispose() }
@@ -60,7 +65,8 @@ try {
             $graphics.DrawString($locale,$label,$ink,(30+$index*$heroCellWidth),(1108+[int](($heroCellWidth-22)*9/16)))
         }
     }
-    $output = Join-Path $AssetsRoot 'review.png'
+    # Other locales' sheets are working previews, kept out of the repository in render/.
+    $output = if ($Locale -eq 'en-US') { Join-Path $AssetsRoot 'review.png' } else { Join-Path $AssetsRoot "render/review-$Locale.png" }
     $canvas.Save($output,[Drawing.Imaging.ImageFormat]::Png)
     Write-Output "Saved review preview: $output"
 } finally {

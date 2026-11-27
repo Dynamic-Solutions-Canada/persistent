@@ -32,9 +32,9 @@
 
 <!-- These are the same synthetic-data mockups used by the Play listing. -->
 <p align="center">
-  <img src="store-assets/play/00-current-dark.png" alt="Current reminders in Enjoy Dark" height="400">
-  <img src="store-assets/play/03-checklist-dark.png" alt="Checklist and reminder controls in Enjoy Dark" height="400">
-  <img src="store-assets/play/05-sharing-dark.png" alt="Sharing dialog with a staged sample recipient in Enjoy Dark" height="400">
+  <img src="store-assets/play/en-US/00-current-dark.png" alt="Current reminders in Enjoy Dark" height="400">
+  <img src="store-assets/play/en-US/03-checklist-dark.png" alt="Checklist and reminder controls in Enjoy Dark" height="400">
+  <img src="store-assets/play/en-US/05-sharing-dark.png" alt="Sharing dialog with a staged sample recipient in Enjoy Dark" height="400">
 </p>
 
 Most reminder apps fire once and are easy to swipe away. Persistent keeps coming back, as a notification that returns or an alarm that keeps ringing, until you _actually mark it done_. It is built for the things you cannot afford to miss.

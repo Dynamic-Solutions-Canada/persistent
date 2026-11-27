@@ -2,18 +2,22 @@
  * Dependency-free Play phone-screenshot validation and per-language upload planning.
  *
  * Shared by the legacy English `--listing` mode and the localized `--listing-json --images`
- * mode, so both apply one set of Play rules. Lives apart from play-publish.mjs because
+ * mode, so both apply one set of Play rules. Each listing language uploads its own
+ * locale's screenshots. Lives apart from play-publish.mjs because
  * play-metadata.mjs needs it too, and play-publish.mjs already imports play-metadata.mjs.
  */
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
 const PNG_SIGNATURE = Buffer.from([
   0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
 ])
 
-/** Manifest paths are under store-assets/play/ and named so the order is readable on disk. */
-const MANIFEST_FILE = /^play\/[a-z0-9-]+\.(png|jpe?g)$/
+/**
+ * Manifest paths are under store-assets/play/ and named so the order is readable on disk,
+ * optionally in a per-locale folder (`play/{locale}/...`).
+ */
+const MANIFEST_FILE = /^play\/(\{locale\}\/)?[a-z0-9-]+\.(png|jpe?g)$/
 
 export class PlayImages {
   /** Play's slot name for phone screenshots; a listing carries several image types. */
@@ -157,49 +161,61 @@ export class PlayImages {
   }
 
   /**
-   * The phone screenshots the manifest approves for Play, in carousel order.
+   * The phone screenshots the manifest approves for Play, in carousel order, for one locale.
    *
    * Only `play` entries are read. The icon and feature graphic have no manifest entry,
-   * so the image sync never touches them.
+   * so the image sync never touches them. A `{locale}` in a path is that locale's own
+   * capture (`play/{locale}/00-current-dark.png`); a path without it is shared by every
+   * locale.
    *
    * @param {{ play?: { file?: unknown }[] }} manifest Parsed store-assets/manifest.json.
+   * @param {string} [locale] The listing locale whose files to name.
    * @returns {string[]} Paths relative to the manifest's directory.
    */
-  static manifestScreenshots(manifest) {
+  static manifestScreenshots(manifest, locale = PlayImages.defaultLanguage) {
     if (!Array.isArray(manifest?.play) || !manifest.play.length) {
       throw new Error('The manifest has no `play` screenshots.')
     }
-    const files = manifest.play.map((entry) => entry?.file)
-    for (const file of files) {
+    const templates = manifest.play.map((entry) => entry?.file)
+    for (const file of templates) {
       if (typeof file !== 'string' || !MANIFEST_FILE.test(file)) {
         throw new Error(`Unexpected Play screenshot path: ${String(file)}.`)
       }
     }
-    if (new Set(files).size !== files.length) {
+    if (new Set(templates).size !== templates.length) {
       throw new Error('The manifest lists a Play screenshot twice.')
     }
-    return files
+    return templates.map((file) => file.replace('{locale}', locale))
   }
 
   /**
-   * Read and validate the manifest's Play screenshots. Each file is read once, and the
-   * same bytes go to every language. Throws, naming every problem, before any network
-   * call, so a bad image never opens an edit.
+   * Read and validate one locale's Play screenshots from the manifest. Each file is read
+   * once. Throws, naming every problem (a missing file included), before any network call,
+   * so a bad or missing image never opens an edit. There is no fallback to another locale's
+   * files: that would put English screens in a translated listing without anyone noticing.
    *
    * @param {string} manifestPath Path to store-assets/manifest.json.
+   * @param {string} [locale] The listing locale to load.
    * @returns {{ name: string, bytes: Buffer, contentType: string, width: number, height: number }[]}
    */
-  static loadScreenshots(manifestPath) {
+  static loadScreenshots(manifestPath, locale = PlayImages.defaultLanguage) {
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
     const root = dirname(manifestPath)
-    const shots = PlayImages.manifestScreenshots(manifest).map((name) => ({
+    const names = PlayImages.manifestScreenshots(manifest, locale)
+    const missing = names.filter((name) => !existsSync(resolve(root, name)))
+    if (missing.length) {
+      throw new Error(
+        `${locale} has no Play screenshot at ${missing.join(', ')}; capture that locale before publishing its images.`,
+      )
+    }
+    const shots = names.map((name) => ({
       name,
       bytes: readFileSync(resolve(root, name)),
     }))
     const problems = PlayImages.screenshotProblems(shots)
     if (problems.length) {
       throw new Error(
-        `${manifestPath} screenshots are not publishable:\n  - ${problems.join('\n  - ')}`,
+        `${manifestPath} ${locale} screenshots are not publishable:\n  - ${problems.join('\n  - ')}`,
       )
     }
     return shots.map((shot) => ({
@@ -208,33 +224,56 @@ export class PlayImages {
     }))
   }
 
-  /** The listing that carries the screenshots; every other language inherits them. */
+  /**
+   * Every source locale's screenshot set, validated, before any network call. Collects
+   * every locale's problems into one error, so a dry run names them all at once.
+   *
+   * @param {string} manifestPath Path to store-assets/manifest.json.
+   * @param {Iterable<string>} locales The locales that carry their own set (no copyFrom aliases).
+   * @returns {Map<string, ReturnType<typeof PlayImages.loadScreenshots>>}
+   */
+  static loadSets(manifestPath, locales) {
+    const sets = new Map()
+    const problems = []
+    for (const locale of new Set(locales)) {
+      try {
+        sets.set(locale, PlayImages.loadScreenshots(manifestPath, locale))
+      } catch (error) {
+        problems.push(error?.message || String(error))
+      }
+    }
+    if (problems.length) throw new Error(problems.join('\n'))
+    return sets
+  }
+
+  /** The language Play falls back to for a listing with no phone screenshots of its own. */
   static defaultLanguage = 'en-US'
 
   /**
-   * One phone-screenshot replacement per language. Screenshots are captured once, in
-   * English (fleet decision D-098), so only the default language gets the files; every
-   * other language gets an empty set, which makes Play show the default language's
-   * screenshots there. Languages come from the text sync, so the plan never reaches a
-   * Play listing the text sync does not own.
+   * One phone-screenshot replacement per language, each with its own locale's files: the
+   * screenshots show Android, the app and its sample data in the listing's language. en-CA
+   * and fr-CA get their copy source's files (en-US and fr-FR) explicitly, because an empty
+   * set on Play falls back to the default language, which would show fr-CA English screens.
+   * Languages come from the text sync, so the plan never reaches a Play listing the text
+   * sync does not own.
    *
    * @template Shot
    * @param {string[]} languages Play language tags, in sync order.
-   * @param {Shot[]} shots Validated screenshots, in carousel order.
-   * @param {string} [defaultLanguage] The listing that carries the screenshots.
-   * @returns {{ language: string, imageType: string, shots: Shot[] }[]}
+   * @param {Map<string, Shot[]>} sets Validated screenshots per source locale, in carousel order.
+   * @param {Map<string, string>} [sources] Language to source locale (PlayMetadata.sources);
+   *   a language missing from it is its own source.
+   * @returns {{ language: string, source: string, imageType: string, shots: Shot[] }[]}
    */
-  static plan(languages, shots, defaultLanguage = PlayImages.defaultLanguage) {
-    if (!shots.length) throw new Error('An image plan needs screenshots.')
-    if (!languages.includes(defaultLanguage)) {
-      throw new Error(
-        `The image plan's languages must include ${defaultLanguage}.`,
-      )
-    }
-    return languages.map((language) => ({
-      language,
-      imageType: PlayImages.type,
-      shots: language === defaultLanguage ? shots : [],
-    }))
+  static plan(languages, sets, sources = new Map()) {
+    return languages.map((language) => {
+      const source = sources.get(language) ?? language
+      const shots = sets.get(source)
+      if (!shots?.length) {
+        throw new Error(
+          `${language}: no ${source} phone screenshots to upload; every language needs its own set.`,
+        )
+      }
+      return { language, source, imageType: PlayImages.type, shots }
+    })
   }
 }

@@ -711,61 +711,90 @@ export function ReminderEditorPage({
             </Alert>
           )}
 
+          {/* The actions. In the reminder dialog they stay pinned to the bottom of
+              its scrolling body, like the reading dialog's footer, so Save, Cancel
+              and Delete stay in view however long the form gets: in Portuguese
+              the row wraps to two lines at the flyout's width and pushed Delete
+              below the dialog's edge. Each button keeps its label on one line
+              and the row wraps between buttons. */}
           <Stack
-            direction="row"
-            spacing={1}
-            useFlexGap
-            flexWrap="wrap"
-            sx={{ mt: 1 }}
+            spacing={0.5}
+            sx={
+              onClose
+                ? {
+                    position: 'sticky',
+                    // The scroll box's 4px shadow gutter (ReminderDialogs).
+                    bottom: -4,
+                    zIndex: 1,
+                    mx: -0.5,
+                    px: 0.5,
+                    pt: 1.5,
+                    pb: 0.5,
+                    bgcolor: 'background.surface',
+                    borderTop: '1px solid',
+                    borderColor: 'divider',
+                  }
+                : undefined
+            }
           >
-            {!assignedToMe && (
+            <Stack
+              direction="row"
+              spacing={1}
+              useFlexGap
+              flexWrap="wrap"
+              sx={{ '& > *': { whiteSpace: 'nowrap' } }}
+            >
+              {!assignedToMe && (
+                <Button
+                  type="button"
+                  variant="outlined"
+                  size="sm"
+                  startDecorator={<ShareIcon />}
+                  endDecorator={
+                    shareButtonCount > 0 ? (
+                      <ShareCountChip count={shareButtonCount} />
+                    ) : undefined
+                  }
+                  onClick={() => setShareOpen(true)}
+                >
+                  {tr('Share')}
+                </Button>
+              )}
               <Button
-                type="button"
-                variant="outlined"
-                size="sm"
-                startDecorator={<ShareIcon />}
-                endDecorator={
-                  shareButtonCount > 0 ? (
-                    <ShareCountChip count={shareButtonCount} />
-                  ) : undefined
-                }
-                onClick={() => setShareOpen(true)}
+                type="submit"
+                loading={busy}
+                disabled={missingTodoItems}
+                sx={{ flex: 1 }}
               >
-                {tr('Share')}
+                {id
+                  ? tr('Save')
+                  : draftMode === 'assign'
+                    ? tr('Assign')
+                    : tr('Create')}
+              </Button>
+              <Button
+                variant="outlined"
+                color="neutral"
+                onClick={() => leaveFor('/')}
+              >
+                {tr('Cancel')}
+              </Button>
+            </Stack>
+            {id && !shared && (
+              <Button
+                variant="plain"
+                color="danger"
+                size="sm"
+                loading={remove.isPending}
+                onClick={onDelete}
+                sx={{ alignSelf: 'center' }}
+              >
+                {assignedToMe
+                  ? tr('Decline assignment')
+                  : tr('Delete reminder')}
               </Button>
             )}
-            <Button
-              type="submit"
-              loading={busy}
-              disabled={missingTodoItems}
-              sx={{ flex: 1 }}
-            >
-              {id
-                ? tr('Save')
-                : draftMode === 'assign'
-                  ? tr('Assign')
-                  : tr('Create')}
-            </Button>
-            <Button
-              variant="outlined"
-              color="neutral"
-              onClick={() => leaveFor('/')}
-            >
-              {tr('Cancel')}
-            </Button>
           </Stack>
-          {id && !shared && (
-            <Button
-              variant="plain"
-              color="danger"
-              size="sm"
-              loading={remove.isPending}
-              onClick={onDelete}
-              sx={{ alignSelf: 'center', mt: 0.5 }}
-            >
-              {assignedToMe ? tr('Decline assignment') : tr('Delete reminder')}
-            </Button>
-          )}
         </Stack>
       </Sheet>
       <DiscardChangesDialog

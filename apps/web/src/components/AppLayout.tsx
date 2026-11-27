@@ -18,6 +18,7 @@ import type { ReactNode } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import Box from '@mui/joy/Box'
 import { safeAreaInset } from '../lib/safeArea.js'
+import { bottomNavHeight } from '../lib/fixedControlSizes.js'
 import Sheet from '@mui/joy/Sheet'
 import Typography from '@mui/joy/Typography'
 import IconButton from '@mui/joy/IconButton'
@@ -88,15 +89,15 @@ export function AppLayout({ children }: { children: ReactNode }) {
           <HelpOutlineIcon />
         </IconButton>
       </Sheet>
-      {/* pb leaves room for the fixed bottom nav, which is itself taller by the
-          gesture-bar inset. */}
+      {/* pb leaves room for the fixed bottom nav at its measured height, which
+          includes the gesture-bar inset and any wrapped label line. */}
       <Box
         sx={{
           maxWidth: 640,
           mx: 'auto',
           px: 2,
           py: 2,
-          pb: `calc(80px + ${safeAreaInset('bottom')})`,
+          pb: `calc(${bottomNavHeight()} + 23px)`,
         }}
       >
         <AlarmPermissionsBanner />

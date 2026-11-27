@@ -84,8 +84,8 @@ generates reusable phone layouts, and `shots:check` validates final PNG exports.
 Capture all Play source screens in an explicitly requested device session using
 the isolated demo Android app. Preserve the real status area and gesture bar on
 every image, with readable system icons and no unrelated notification icons.
-Render the marketing layouts in the shared Paseo browser; do not install a
-standalone browser for this workflow. Follow the workflow's permission, account, and cleanup
+Render the marketing layouts with `shots:export` (headless Chromium in a pinned,
+memory-capped Docker container); do not install a browser on the host for this workflow. Follow the workflow's permission, account, and cleanup
 steps; preserve the signed-in Store app. Keep native permission demonstration
 videos separate.
 
@@ -95,7 +95,7 @@ billing. Keep lab instrumentation and diagnostic geometry helpers in test source
 never the shipping app. Its runtime gates are separate from native compilation;
 failed or contaminated captures do not replace approved Store assets.
 
-`store-assets/play/listings.json` owns the nine-locale titles/descriptions; `store-assets/play/listings.md` holds the Console-only settings and the published screenshot record. The manual `play-listing` workflow uses `scripts/play-publish.mjs --listing-json` for text, preserving graphics; its opt-in `images` input adds `--images`, which sets the en-US phone screenshots from the `play` files in `store-assets/manifest.json` and clears them in the other eight languages, in the same edit. Screenshots are captured once, in English, and the other languages inherit them (fleet decision D-098). The icon and feature graphic stay untouched. Release notes are per version, in every wording, in the root `release-notes/` folder (see its README). The older `--listing` screenshot replacement requires an explicit screenshot publication request. Medication reminders are available, so the listing,
+`store-assets/play/listings.json` owns the nine-locale titles/descriptions; `store-assets/play/listings.md` holds the Console-only settings and the published screenshot record. The manual `play-listing` workflow uses `scripts/play-publish.mjs --listing-json` for text, preserving graphics; its opt-in `images` input adds `--images`, which sets every language's phone screenshots from its own locale's `play` files in `store-assets/manifest.json` (en-CA and fr-CA get en-US's and fr-FR's), in the same edit. Each locale's set shows Android, the app and its sample data in that language; a missing locale fails before any Play call. The icon and feature graphic stay untouched. Release notes are per version, in every wording, in the root `release-notes/` folder (see its README). The older `--listing` screenshot replacement requires an explicit screenshot publication request. Medication reminders are available, so the listing,
 Health apps declaration, and Data safety declaration must cover medicine names
 and doses accurately.
 

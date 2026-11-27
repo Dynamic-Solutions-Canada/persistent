@@ -355,8 +355,8 @@ Do not bulk-copy results into the curated asset directories.
 Inspect every PNG for the expected synthetic scenario, unique reminder names,
 readable status icons, real bottom gesture bar and no unrelated notification icons.
 Preserve the full shade. Convert opaque native PNGs with the existing lossless
-`scripts/dev/convert-store-capture.ps1`, then use the normal manifest, Paseo mockup
-rendering, contact sheet and `shots:check` workflow. Keep screenshots,
+`scripts/dev/convert-store-capture.ps1`, then use the normal manifest, `shots:render`
+and `shots:export` mockup rendering, contact sheet and `shots:check` workflow. Keep screenshots,
 logs, source commit, device model, OS and matrix id as provenance. Compilation alone
 does not prove usable image pixels or native alarm behavior.
 

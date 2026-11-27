@@ -24,6 +24,7 @@ import Stack from '@mui/joy/Stack'
 import Typography from '@mui/joy/Typography'
 import { SectionHeading } from '../components/SectionHeading.js'
 import { NewReminderFab } from '../components/NewReminderFab.js'
+import { besideNewReminderFab } from '../lib/fixedControlSizes.js'
 import { useReminders } from '../data/reminders.js'
 import { useActiveOccurrences } from '../data/occurrences.js'
 import { compareFirings } from '../lib/firingOrder.js'
@@ -117,11 +118,22 @@ export function RemindersPage() {
               title={tr('Assigned by me')}
               subtitle={tr('Track reminders you made for someone else.')}
             />
+            {/* Sized to its label and start-aligned, like the other outlined links
+                to another page, and kept out of the floating New reminder button's
+                column: full width, it ran under that button whenever the end of
+                this list sat at the bottom of the window. A long label wraps
+                between words instead. */}
             <Button
               component={RouterLink}
               to="/assigned"
               variant="outlined"
               color="neutral"
+              sx={{
+                alignSelf: 'flex-start',
+                maxWidth: besideNewReminderFab(),
+                minWidth: 'min-content',
+                textAlign: 'center',
+              }}
             >
               {tr('View assignments')}
             </Button>

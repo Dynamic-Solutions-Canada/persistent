@@ -11,4 +11,4 @@ store-assets/fixture.json
 # A deliberately corrupt catalog the desktop localization harness feeds the loader.
 apps/desktop/tools/localization-tests/corrupt-catalog.json
 # Capture sidecars are evidence written by the Windows capture helper; they keep its formatting.
-store-assets/raw/microsoft/*.json
+store-assets/raw/microsoft/**/*.json

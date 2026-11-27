@@ -25,11 +25,17 @@ import {
   withReleaseNotes,
   // @ts-expect-error - plain .mjs script, no type declarations
 } from './play-publish.mjs'
-import { mkdtempSync as makeTempDir, writeFileSync as writeFile } from 'node:fs'
+import {
+  mkdirSync,
+  mkdtempSync as makeTempDir,
+  writeFileSync as writeFile,
+} from 'node:fs'
 import { tmpdir as osTempDir } from 'node:os'
 import { join as joinPath } from 'node:path'
 // @ts-expect-error - plain .mjs script, no type declarations
 import { playJson } from '../../../scripts/release/notes.mjs'
+// @ts-expect-error - dependency-free Node script has no generated declarations
+import { PlayMetadata } from './play-metadata.mjs'
 
 /** The 0.29.0 notes as release.yml hands them to the publisher, built from release-notes/. */
 function localizedNotesFile(): string {
@@ -1301,7 +1307,32 @@ describe('publish request sequence', () => {
     )
   })
 
-  it('--listing-json --images sets en-US from the manifest and clears the other languages in the text edit', async () => {
+  /**
+   * A throwaway store-assets folder: a manifest with eight per-locale Play entries and a
+   * valid 1080 x 1920 PNG header for each locale in `locales`, so the image tests do not
+   * depend on which locales have been captured in the real repo.
+   */
+  function localizedImageFixture(
+    locales = ['en-US', 'es-ES', 'fr-FR', 'de-DE', 'zh-CN', 'pt-BR', 'ja-JP'],
+  ): string {
+    const root = makeTempDir(joinPath(osTempDir(), 'play-images-'))
+    const play = Array.from({ length: 8 }, (_, index) => ({
+      file: `play/{locale}/0${index}-shot.png`,
+    }))
+    writeFile(joinPath(root, 'manifest.json'), JSON.stringify({ play }))
+    for (const locale of locales) {
+      mkdirSync(joinPath(root, 'play', locale), { recursive: true })
+      for (let index = 0; index < 8; index += 1) {
+        writeFile(
+          joinPath(root, 'play', locale, `0${index}-shot.png`),
+          fakePng(1080, 1920),
+        )
+      }
+    }
+    return joinPath(root, 'manifest.json')
+  }
+
+  it("--listing-json --images gives every language its own locale's set in the text edit", async () => {
     const path = new URL(
       '../../../store-assets/play/listings.json',
       import.meta.url,
@@ -1310,6 +1341,8 @@ describe('publish request sequence', () => {
       '--listing-json',
       path,
       '--images',
+      '--manifest',
+      localizedImageFixture(),
     ])
     assert.equal(code, 0, stderr)
 
@@ -1326,23 +1359,23 @@ describe('publish request sequence', () => {
         call.method === 'POST' && call.path.includes('phoneScreenshots'),
     )
     assert.equal(deletes.length, 9)
-    assert.equal(uploads.length, 8)
-    assert.ok(uploads.every((call) => call.path.includes('/listings/en-US/')))
+    assert.equal(uploads.length, 9 * 8)
+    for (const language of PlayMetadata.languages) {
+      assert.equal(
+        uploads.filter((call) => call.path.includes(`/listings/${language}/`))
+          .length,
+        8,
+        language,
+      )
+    }
     assert.ok(calls.indexOf(deletes[0]) > lastText, 'images after the text')
     assert.ok(calls.indexOf(uploads.at(-1)!) < commit, 'inside the one edit')
-    assert.ok(
-      deletes.some((call) => call.path.includes('/listings/ja-JP/')),
-      'other languages are cleared so they inherit en-US',
-    )
     assert.ok(
       calls.every((call) => !/icon|featureGraphic/.test(call.path)),
       'icon and feature graphic untouched',
     )
-    assert.match(stdout, /ja-JP phoneScreenshots: 0 on Play after re-read/)
-    assert.match(
-      stdout,
-      /and 8 en-US phone screenshots \(other languages inherit them\) committed/,
-    )
+    assert.match(stdout, /ja-JP phoneScreenshots: 8 on Play after re-read/)
+    assert.match(stdout, /and 9 localized phone screenshot sets committed/)
   })
 
   it('--listing-json --images --check reports the plan and writes nothing', async () => {
@@ -1354,16 +1387,19 @@ describe('publish request sequence', () => {
       '--listing-json',
       path,
       '--images',
+      '--manifest',
+      localizedImageFixture(),
       '--check',
     ])
     assert.equal(code, 0, stderr)
     // Only en-US exists in the mock, so only its image set is read.
     assert.match(stdout, /en-US phoneScreenshots: 2 on Play -> 8/)
+    assert.match(stdout, /ja-JP phoneScreenshots: new listing, 0 on Play -> 8/)
     assert.match(
       stdout,
-      /ja-JP phoneScreenshots: new listing, 0 on Play -> 0 \(inherits\)/,
+      /ja-JP screenshots in order: play\/ja-JP\/00-shot\.png/,
     )
-    assert.match(stdout, /screenshots in order: play\/00-current-dark\.png/)
+    assert.match(stdout, /fr-CA uses fr-FR's screenshots/)
     assert.ok(
       calls.every(
         (call) =>
@@ -1381,6 +1417,27 @@ describe('publish request sequence', () => {
       calls.filter((call) => call.path.includes(':commit')).length,
       0,
     )
+  })
+
+  it('--listing-json --images fails before any Play request when a locale has no captures', async () => {
+    const path = new URL(
+      '../../../store-assets/play/listings.json',
+      import.meta.url,
+    ).pathname
+    const { calls, code, stderr } = await runPublish([
+      '--listing-json',
+      path,
+      '--images',
+      '--manifest',
+      localizedImageFixture(['en-US', 'fr-FR']),
+      '--check',
+    ])
+    assert.equal(code, 1)
+    assert.match(
+      stderr,
+      /de-DE has no Play screenshot at play\/de-DE\/00-shot\.png/,
+    )
+    assert.equal(calls.length, 0)
   })
 
   it('--images without --listing-json fails before any Play request', async () => {
