@@ -123,23 +123,23 @@ Medication reminders store medicine names and doses. The Health apps declaration
 All eight live in `en-US/`, and each Play listing locale with its own record has
 its own eight in its folder, captured with the phone and app in that language and
 the demo account seeded with that locale's synthetic data (health data synthetic
-only). The current en-US eight (provenance in `../raw/android/native/README.md`) are full-display captures with
+only). Every set (provenance in `../raw/android/native/README.md`) is full-display captures with
 the real status area and gesture bar, and no unrelated notification icons.
 All are composed in Paseo
 inside reusable phone mockups, with 1080 x 1920 RGB PNG exports. Marketing copy
 describes the feature without theme names.
 Ordered as they should appear in Play:
 
-| File                             | Shows                                                                                                                         | Theme          |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| `00-current-dark.png`            | Current reminders for plants, puppy, and the morning checklist                                                                | Enjoy Dark     |
-| `01-notification-shade-dark.png` | Four distinct reminders, native Done and Snooze actions, and copy explaining that swiped notifications return until confirmed | Android system |
-| `02-alarm-dark.png`              | Real ignored-reminder escalation into an alarm with Done, Snooze, and De-escalate controls                                    | Enjoy Dark     |
-| `03-checklist-dark.png`          | Reading dialog with a part-completed checklist and reminder controls below it                                                 | Enjoy Dark     |
-| `04-medication-dark.png`         | Synthetic vitamin reminder editor with medicine name and 1000 IU dose                                                         | Enjoy Dark     |
-| `05-sharing-dark.png`            | Share or assign dialog with a staged sample recipient                                                                         | Enjoy Dark     |
-| `06-notes-dark.png`              | Trip-packing note checklist, without an alarm                                                                                 | Enjoy Dark     |
-| `07-assigned-dark.png`           | Assigned by me status with a synthetic completion record                                                                      | Enjoy Dark     |
+| File                             | Shows                                                                                                              | Theme          |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------ | -------------- |
+| `00-current-dark.png`            | Current reminders for plants, puppy, and the morning checklist, and copy explaining that reminders stay until done | Enjoy Dark     |
+| `01-notification-shade-dark.png` | Four distinct reminders, native Done and Snooze actions, and copy explaining that only Done clears a reminder      | Android system |
+| `02-alarm-dark.png`              | Real ignored-reminder escalation into an alarm with Done, Snooze, and De-escalate controls                         | Enjoy Dark     |
+| `03-checklist-dark.png`          | Reading dialog with a part-completed checklist and reminder controls below it                                      | Enjoy Dark     |
+| `04-medication-dark.png`         | Synthetic vitamin reminder editor with medicine name and 1000 IU dose                                              | Enjoy Dark     |
+| `05-sharing-dark.png`            | Share or assign dialog with a staged sample recipient                                                              | Enjoy Dark     |
+| `06-notes-dark.png`              | Trip-packing note checklist, without an alarm                                                                      | Enjoy Dark     |
+| `07-assigned-dark.png`           | Assigned by me status with a synthetic completion record                                                           | Enjoy Dark     |
 
 The root README embeds `00`, `03`, and `05` from this directory, without separate
 copies. Native permission videos remain separate.

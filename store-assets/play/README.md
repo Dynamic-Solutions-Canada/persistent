@@ -2,15 +2,15 @@
 
 Eight 1080 x 1920 RGB PNGs per Play listing locale, with real app captures and synthetic data in that language. English is shown here; each locale's set is in its own folder (`de-DE/` and so on), framed with its headlines and captions from `listings.json`. Includes the real Android notification shade and escalation alarm. Uploading is a separate step: run the Play Listing workflow with `images` enabled, first in `check` mode.
 
-## Keep the important things in sight.
+## Reminders that stay until you're done.
 
-Every reminder waits for your confirmation.
+They stay in your notifications and come back if you swipe them away.
 
 ![Enjoy Dark Current view with plants, puppy, and a part-completed morning checklist.](en-US/00-current-dark.png)
 
 ## Swipe it away? It comes back.
 
-Reminders return until you confirm they're done.
+Only Done clears a reminder.
 
 ![Real Android notification shade, in dark mode, with four distinct synthetic reminders and the plant reminder's Done and Snooze actions expanded.](en-US/01-notification-shade-dark.png)
 

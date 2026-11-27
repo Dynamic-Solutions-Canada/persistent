@@ -25,8 +25,8 @@ separate capture path on disposable devices, with a synthetic-only temporary
 server and a free-only submission guard. Check its runtime verification status
 before using its results as store sources.
 
-Use the isolated demo Android app on the Pixel 5 test phone, following the native
-capture setup below. `scripts/dev/capture-phone-store.sh [locale ...]` runs the whole
+Use the isolated demo Android app on the shared `android-vm` emulator with SystemUI demo mode, following the native
+capture setup below. Every current set comes from it (`raw/android/native/README.md`): the Pixel 5 test phone shows Android's wireless-debugging icon and the real network name in the shade, which a clean Store shot cannot include. `scripts/dev/capture-phone-store.sh [locale ...]` is a guided version for the Pixel 5 test phone, should its status bar ever be clean enough. It runs the whole
 set for every Play listing locale: it seeds each locale, switches the phone's system
 language (through the Appium Settings helper, which must already be installed with
 Ryan's go-ahead), restarts the demo app, prompts for each scenario with that
@@ -92,7 +92,7 @@ to stop the sound promptly. Delete only the newly created reminder from the
 verified local demo account. Never press Done for a screenshot.
 
 Capture the actual screen with `adb -s <serial> exec-out screencap -p > <path>.png`.
-The current en-US set came from the android-vm emulator (see `raw/android/native/README.md`); new sets come from the Pixel 5 test phone, so check each capture's actual size. Android captures are RGBA; run
+The current sets came from the android-vm emulator at 1080 x 2400 (see `raw/android/native/README.md`); check each capture's actual size. Android captures are RGBA; run
 `scripts/dev/convert-store-capture.ps1` with `-InputPath` and `-OutputPath` to save
 the same dimensions and pixels as Store-compatible RGB. It uses the existing
 Windows image runtime. If RemoteSigned rejects a WSL UNC script, execute a
