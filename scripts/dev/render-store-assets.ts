@@ -91,6 +91,9 @@ function playPage(
 * { box-sizing: border-box; }
 html, body { margin: 0; width: 720px; height: 1280px; overflow: hidden; }
 body { background: #e7edf3 url('../../marketing/studio-background.png') center/cover; color: #26384a; font-family: Arial, sans-serif; }
+/* Name the CJK face, so Japanese and Chinese copy is set in one font at its real bold weight, not per-glyph fallback that varies by host. */
+:lang(ja) body { font-family: Arial, 'Yu Gothic', sans-serif; }
+:lang(zh) body { font-family: Arial, 'Microsoft YaHei', sans-serif; }
 .copy { position: absolute; top: 46px; left: 60px; right: 60px; z-index: 2; }
 h1 { white-space: pre-line; margin: 0; font-size: 48px; line-height: 1.06; letter-spacing: -1.5px; max-width: 610px; }
 p { margin: 15px 0 0; color: #52677b; font-size: 22px; line-height: 1.35; }
